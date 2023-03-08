@@ -5,8 +5,8 @@ const navigation = () => [
     icon: 'mdi:home-outline',
   },
   {
-    title: 'Second Page',
-    path: '/second-page',
+    title: 'Nueva Solicitud',
+    path: '/nueva-solicitud',
     icon: 'mdi:email-outline',
   },
   {
