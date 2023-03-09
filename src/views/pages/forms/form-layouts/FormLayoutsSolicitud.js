@@ -135,7 +135,6 @@ const FormLayoutsSolicitud = () => {
     setObjective('')
     setSupervisor('')
     setDescription('')
-    //set empty again
   }
 
   const [addUserOpen, setAddUserOpen] = useState(false)
