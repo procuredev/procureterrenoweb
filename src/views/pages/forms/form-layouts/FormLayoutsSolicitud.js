@@ -1,6 +1,9 @@
 // ** React Imports
 import { Fragment, useState } from 'react'
 
+// ** Hooks
+import { useAuth } from 'src/context/FirebaseContext'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -44,6 +47,8 @@ import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
  import TableHeaderNewUser from 'src/views/pages/apps/user/list/TableHeaderNewUser'
 import AddNewUserDrawer from 'src/views/pages/apps/user/list/AddNewUserDrawer'
 
+
+
 // Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
@@ -72,6 +77,8 @@ const FormLayoutsSolicitud = () => {
   const [files, setFiles] = useState([])
 
   // ** Hooks
+  const auth = useAuth();
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
       setFiles(acceptedFiles.map(file => Object.assign(file)))
@@ -119,9 +126,29 @@ const FormLayoutsSolicitud = () => {
     setFiles([])
   }
 
+  const handleSubmit = () => {
+    //event.preventDefault();
+    auth.newDoc(title, date, area, objective, supervisor, description)
+    setTitle('')
+    setDate('')
+    setArea('')
+    setObjective('')
+    setSupervisor('')
+    setDescription('')
+    //set empty again
+  }
+
   const [addUserOpen, setAddUserOpen] = useState(false)
 
+  const [title, setTitle] = useState('')
+  const [date, setDate] = useState('')
+  const [area, setArea] = useState('')
+  const [objective, setObjective] = useState('')
+  const [supervisor, setSupervisor] = useState('')
+  const [description, setDescription] = useState('')
+
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
+
 
   return (
     <Card>
@@ -130,15 +157,26 @@ const FormLayoutsSolicitud = () => {
         <form onSubmit={e => e.preventDefault()}>
           <Grid container spacing={5}>
             <Grid item xs={12}>
-              <TextField fullWidth type='text' label='Título' />
+              <TextField
+              fullWidth type='text'
+              label='Título'
+              value={title}
+              onChange={() => setTitle(event.target.value)} />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha' />
+              <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha'
+              onChange={() => setDate(event.srcElement.value)} />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel id='input-label-area'>Área</InputLabel>
-                <Select label='Área' defaultValue='' id='id-area' labelId='labelId-area'>
+                <Select
+                label='Área'
+                defaultValue=''
+                id='id-area'
+                labelId='labelId-area'
+                value={area}
+                onChange={() => setArea(event.target.dataset.value)}>
                   <MenuItem value='2100'>2100</MenuItem>
                   <MenuItem value='3500'>3500</MenuItem>
                   <MenuItem value='3600'>3600</MenuItem>
@@ -155,9 +193,15 @@ const FormLayoutsSolicitud = () => {
               </Typography>
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl  fullWidth>
                 <InputLabel id='input-label-objetivo'>Objetivo</InputLabel>
-                <Select label='Objetivo' defaultValue='' id='id-objetivo' labelId='labelId-objetivo'>
+                <Select
+                label='Objetivo'
+                defaultValue=''
+                id='id-objetivo'
+                labelId='labelId-objetivo'
+                value={objective}
+                onChange={() => setObjective(event.target.dataset.value)}>
                   <MenuItem value='Sketch'>Sketch</MenuItem>
                   <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
                   <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
@@ -170,11 +214,17 @@ const FormLayoutsSolicitud = () => {
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel id='input-label-destinatario'>Destinatario</InputLabel>
-                <Select label='Destinatario' defaultValue='' id='id-destinatario' labelId='labelId-destinatario'>
-                  <MenuItem value='Camila Muñoz Jimenez - camila.munoz@bhp.com - Supervisora'>
+                <Select
+                value={supervisor}
+                onChange={() => setSupervisor(event.target.dataset.value)}
+                label='Destinatario'
+                defaultValue=''
+                id='id-destinatario'
+                labelId='labelId-destinatario'>
+                  <MenuItem value='Camila Muñoz Jimenez'>
                     Camila Muñoz Jimenez - camila.munoz@bhp.com - Supervisora
                   </MenuItem>
-                  <MenuItem value='Felipe Perez Perez - felipe.perez@bhp.com - Supervisor'>
+                  <MenuItem value='Felipe Perez Perez'>
                     Felipe Perez Perez - felipe.perez@bhp.com - Supervisor
                   </MenuItem>
                 </Select>
@@ -184,17 +234,22 @@ const FormLayoutsSolicitud = () => {
               <TableHeaderNewUser toggle={toggleAddUserDrawer} />
 
                 <AddNewUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
-            
+
             </Grid>
             <Grid item xs={12}>
+              <FormControl  fullWidth>
+
               <TextField
                 fullWidth
                 type='Text'
                 label='Descripción'
+                value={description}
+                onChange={() => setDescription(event.target.value)}
 
                 //placeholder='carterleonard@gmail.com'
                 //helperText='You can use letters, numbers & periods'
               />
+              </FormControl>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
@@ -211,7 +266,7 @@ const FormLayoutsSolicitud = () => {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button type='submit' variant='contained' size='large'>
+                <Button onClick={()=>handleSubmit()} type='submit' variant='contained' size='large'>
                   Enviar Solicitud
                 </Button>
               </Box>

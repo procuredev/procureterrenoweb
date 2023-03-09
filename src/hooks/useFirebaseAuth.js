@@ -1,7 +1,8 @@
 
 
 import { useState, useEffect } from 'react'
-import Firebase from 'src/configs/firebase'
+import { Firebase, db } from 'src/configs/firebase'
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 
 // ** Next Imports
 import Head from 'next/head'
@@ -14,10 +15,13 @@ const formatAuthUser = user => {
   }
 }
 
+
+
 const useFirebaseAuth = () => {
 
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [docs, setDocs] = useState([])
 
   const router = useRouter()
 
@@ -39,10 +43,10 @@ const useFirebaseAuth = () => {
     setLoading(true)
   }
 
-  const signInWithEmailAndPassword = (email, password) =>{
+  const signInWithEmailAndPassword = (email, password) => {
     Firebase.auth().signInWithEmailAndPassword(email, password)
-    .then(user => console.log(user))
-    .catch(err => console.log(err))
+      .then(user => console.log(user))
+      .catch(err => console.log(err))
 
   }
 
@@ -51,8 +55,8 @@ const useFirebaseAuth = () => {
     Firebase.auth().createUserWithEmailAndPassword(email, password)
 
   const signOut = () => Firebase.auth().signOut()
-  .then(resetUser)
-  .then(router.push('/login/'))
+    .then(resetUser)
+    .then(router.push('/login/'))
 
   // listen for Firebase state change
   useEffect(() => {
@@ -61,28 +65,53 @@ const useFirebaseAuth = () => {
     return () => unsubscribe()
   }, [])
 
+
+  // write doc
+  const newDoc = async (title, date, area, objective, supervisor, description) => {
+    const user = Firebase.auth().currentUser
+    if (user !== null) {
+      const docRef = await addDoc(collection(db, 'solicitudes'), {
+        //name: user.displayName,
+        title,
+        user: user.email,
+        requestedDate: date,
+        area,
+        objective,
+        supervisor,
+        description,
+        date: Timestamp.fromDate(new Date()),
+        uid: user.uid
+      });
+      console.log('Document written with ID: ', docRef.id);
+
+
+      return docRef.uid;
+    }
+  }
+
   //evita que el user logueado esté en login
   useEffect(() => {
-    if (authUser !== null && (router.pathname.includes('login') || router.asPath===('/'))) {
+    if (authUser !== null && (router.pathname.includes('login') || router.asPath === ('/'))) {
       router.replace('/home')
     }
 
-  },[authUser, router])
+  }, [authUser, router])
 
-//evitar que el no logueado esté en home
-useEffect(() => {
-  if (authUser === null && router.asPath!==('/login/') ) {
-    router.replace('/login/')
-  }
+  //evitar que el no logueado esté en home
+  useEffect(() => {
+    if (authUser === null && router.asPath !== ('/login/')) {
+      router.replace('/login/')
+    }
 
-},[authUser, router])
+  }, [authUser, router])
 
   return {
     loading,
     signOut,
     authUser,
     signInWithEmailAndPassword,
-    createUserWithEmailAndPassword
+    createUserWithEmailAndPassword,
+    newDoc,
   }
 }
 
