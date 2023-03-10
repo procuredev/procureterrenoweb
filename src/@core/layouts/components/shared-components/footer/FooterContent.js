@@ -16,8 +16,8 @@ const FooterContent = () => {
           ❤️
         </Box>
         {` by `}
-        <Link target='_blank' href='https://pixinvent.com/'>
-          Pixinvent
+        <Link target='_blank' href='https://www.procure.cl/'>
+          Procure
         </Link>
       </Typography>
       {hidden ? null : (

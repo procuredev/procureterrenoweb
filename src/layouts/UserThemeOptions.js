@@ -10,15 +10,17 @@ const UserThemeOptions = () => {
   // ** To use core palette, uncomment the below line
   // const palette = corePalette(mode, skin)
   return {
-    /*
+
     palette:{
       primary: {
-        light: '#787EFF',
-        main: '#666CFF',
-        dark: '#5A5FE0',
+        light: '#91C13D',
+        main: '#91C13D',
+        dark: '#91C13D',
         contrastText: '#FFF'
       }
     },
+    
+    /*,
     breakpoints: {
       values: {
         xs: 0,
