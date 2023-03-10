@@ -15,11 +15,11 @@ const UserThemeOptions = () => {
       primary: {
         light: '#91C13D',
         main: '#91C13D',
-        dark: '#91C13D',
+        dark: '#65872B',
         contrastText: '#FFF'
       }
     },
-    
+
     /*,
     breakpoints: {
       values: {
