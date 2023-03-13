@@ -6,15 +6,15 @@ const navigation = () => {
       icon: 'mdi:home-outline',
     },
     {
+      path: '/solicitudes',
+      title: 'Solicitudes',
+      icon: 'mdi:file-document-multiple-outline',
+    },
+    {
       title: 'Nueva Solicitud',
       path: '/nueva-solicitud',
       icon: 'mdi:email-outline',
     },
-    {
-      path: '/acl',
-      title: 'Access Control',
-      icon: 'mdi:shield-outline',
-    }
   ]
 }
 

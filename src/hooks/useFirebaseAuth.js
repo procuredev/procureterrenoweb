@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Firebase, db } from 'src/configs/firebase'
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, Timestamp, query, getDoc, getDocs, querySnapShot } from "firebase/firestore";
 
 // ** Next Imports
 import Head from 'next/head'
@@ -106,6 +106,21 @@ const useFirebaseAuth = () => {
 
   }, [authUser, router])
 
+  const getDocuments = async () => {
+    const querySnapshot = await getDocs(collection(db, "solicitudes"));
+    const allDocs = [];
+    querySnapshot.forEach((doc) => {
+
+      // doc.data() is never undefined for query doc snapshots
+      //console.log(doc.id, " => ", doc.data());
+      allDocs.push({ ...doc.data(), id: doc.id });
+    });
+
+    return allDocs;
+
+
+  };
+
   return {
     loading,
     signOut,
@@ -113,6 +128,7 @@ const useFirebaseAuth = () => {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     newDoc,
+    getDocuments
   }
 }
 
