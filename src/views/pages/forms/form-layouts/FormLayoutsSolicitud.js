@@ -26,7 +26,6 @@ import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import { styled } from '@mui/material/styles'
 import CardSnippet from 'src/@core/components/card-snippet'
-import FileUploaderMultipleProcure from 'src/views/pages/forms/form-elements/file-uploader/FileUploaderMultipleProcure'
 
 // ** Source code imports
 // import * as source from 'src/views/forms/form-elements/file-uploader/FileUploaderSourceCode'
@@ -44,7 +43,7 @@ import PageHeader from 'src/@core/components/page-header'
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 
 // ** Custom Table Components Imports
- import TableHeaderNewUser from 'src/views/pages/apps/user/list/TableHeaderNewUser'
+import TableHeaderNewUser from 'src/views/pages/apps/user/list/TableHeaderNewUser'
 import AddNewUserDrawer from 'src/views/pages/apps/user/list/AddNewUserDrawer'
 
 
@@ -79,11 +78,19 @@ const FormLayoutsSolicitud = () => {
   // ** Hooks
   const auth = useAuth();
 
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
+      console.log(acceptedFiles)
       setFiles(acceptedFiles.map(file => Object.assign(file)))
     }
   })
+
+  const handleRemoveFile = file => {
+    const uploadedFiles = files
+    const filtered = uploadedFiles.filter(i => i.name !== file.name)
+    setFiles([...filtered])
+  }
 
   const renderFilePreview = file => {
     if (file.type.startsWith('image')) {
@@ -91,12 +98,6 @@ const FormLayoutsSolicitud = () => {
     } else {
       return <Icon icon='mdi:file-document-outline' />
     }
-  }
-
-  const handleRemoveFile = file => {
-    const uploadedFiles = files
-    const filtered = uploadedFiles.filter(i => i.name !== file.name)
-    setFiles([...filtered])
   }
 
   const fileList = files.map(file => (
@@ -118,12 +119,34 @@ const FormLayoutsSolicitud = () => {
     </ListItem>
   ))
 
-  const handleLinkClick = event => {
-    event.preventDefault()
-  }
+  // Styled component for the upload image inside the dropzone area
+  const Img = styled('img')(({ theme }) => ({
+    [theme.breakpoints.up('md')]: {
+      marginRight: theme.spacing(10)
+    },
+    [theme.breakpoints.down('md')]: {
+      marginBottom: theme.spacing(4)
+    },
+    [theme.breakpoints.down('sm')]: {
+      width: 250
+    }
+  }))
+
+  // Styled component for the heading inside the dropzone area
+  const HeadingTypography = styled(Typography)(({ theme }) => ({
+    marginBottom: theme.spacing(5),
+    [theme.breakpoints.down('sm')]: {
+      marginBottom: theme.spacing(4)
+    }
+  }))
+
 
   const handleRemoveAllFiles = () => {
     setFiles([])
+  }
+
+  const handleLinkClick = event => {
+    event.preventDefault()
   }
 
   const handleSubmit = () => {
@@ -135,6 +158,7 @@ const FormLayoutsSolicitud = () => {
     setObjective('')
     setSupervisor('')
     setDescription('')
+    setFiles([])
   }
 
   const [addUserOpen, setAddUserOpen] = useState(false)
@@ -157,25 +181,25 @@ const FormLayoutsSolicitud = () => {
           <Grid container spacing={5}>
             <Grid item xs={12}>
               <TextField
-              fullWidth type='text'
-              label='Título'
-              value={title}
-              onChange={() => setTitle(event.target.value)} />
+                fullWidth type='text'
+                label='Título'
+                value={title}
+                onChange={() => setTitle(event.target.value)} />
             </Grid>
             <Grid item xs={12}>
               <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha'
-              onChange={() => setDate(event.srcElement.value)} />
+                onChange={() => setDate(event.srcElement.value)} />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel id='input-label-area'>Área</InputLabel>
                 <Select
-                label='Área'
-                defaultValue=''
-                id='id-area'
-                labelId='labelId-area'
-                value={area}
-                onChange={() => setArea(event.target.dataset.value)}>
+                  label='Área'
+                  defaultValue=''
+                  id='id-area'
+                  labelId='labelId-area'
+                  value={area}
+                  onChange={() => setArea(event.target.dataset.value)}>
                   <MenuItem value='2100'>2100</MenuItem>
                   <MenuItem value='3500'>3500</MenuItem>
                   <MenuItem value='3600'>3600</MenuItem>
@@ -192,15 +216,15 @@ const FormLayoutsSolicitud = () => {
               </Typography>
             </Grid>
             <Grid item xs={12}>
-              <FormControl  fullWidth>
+              <FormControl fullWidth>
                 <InputLabel id='input-label-objetivo'>Objetivo</InputLabel>
                 <Select
-                label='Objetivo'
-                defaultValue=''
-                id='id-objetivo'
-                labelId='labelId-objetivo'
-                value={objective}
-                onChange={() => setObjective(event.target.dataset.value)}>
+                  label='Objetivo'
+                  defaultValue=''
+                  id='id-objetivo'
+                  labelId='labelId-objetivo'
+                  value={objective}
+                  onChange={() => setObjective(event.target.dataset.value)}>
                   <MenuItem value='Sketch'>Sketch</MenuItem>
                   <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
                   <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
@@ -214,12 +238,12 @@ const FormLayoutsSolicitud = () => {
               <FormControl fullWidth>
                 <InputLabel id='input-label-destinatario'>Destinatario</InputLabel>
                 <Select
-                value={supervisor}
-                onChange={() => setSupervisor(event.target.dataset.value)}
-                label='Destinatario'
-                defaultValue=''
-                id='id-destinatario'
-                labelId='labelId-destinatario'>
+                  value={supervisor}
+                  onChange={() => setSupervisor(event.target.dataset.value)}
+                  label='Destinatario'
+                  defaultValue=''
+                  id='id-destinatario'
+                  labelId='labelId-destinatario'>
                   <MenuItem value='Camila Muñoz Jimenez'>
                     Camila Muñoz Jimenez - camila.munoz@bhp.com - Supervisora
                   </MenuItem>
@@ -232,27 +256,54 @@ const FormLayoutsSolicitud = () => {
             <Grid item xs={12}>
               <TableHeaderNewUser toggle={toggleAddUserDrawer} />
 
-                <AddNewUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
+              <AddNewUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
 
             </Grid>
             <Grid item xs={12}>
-              <FormControl  fullWidth>
+              <FormControl fullWidth>
 
-              <TextField
-                fullWidth
-                type='Text'
-                label='Descripción'
-                value={description}
-                onChange={() => setDescription(event.target.value)}
+                <TextField
+                  fullWidth
+                  type='Text'
+                  label='Descripción'
+                  value={description}
+                  onChange={() => setDescription(event.target.value)}
 
                 //placeholder='carterleonard@gmail.com'
                 //helperText='You can use letters, numbers & periods'
-              />
+                />
               </FormControl>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <FileUploaderMultipleProcure />
+                <Fragment>
+                  <div {...getRootProps({ className: 'dropzone' })}>
+                    <input {...getInputProps()} />
+                    <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
+                    <Icon icon='mdi:file-document-outline' />
+                      <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: ['center', 'center', 'inherit'] }}>
+                        <HeadingTypography variant='h5'>Subir archivos</HeadingTypography>
+                        <Typography color='textSecondary'>
+                          Arrastra las imágenes acá o{' '}
+                          <Link onClick={() => handleLinkClick}>
+                            haz click acá
+                          </Link>{' '}
+                          para buscarlas en tu dispositivo
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </div>
+                  {files.length ? (
+                    <Fragment>
+                      <List>{fileList}</List>
+                      <div className='buttons'>
+                        <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
+                          Quitar todo
+                        </Button>
+                      </div>
+                    </Fragment>
+                  ) : null}
+                </Fragment>
               </FormControl>
             </Grid>
             <Grid item xs={24}>
@@ -265,7 +316,7 @@ const FormLayoutsSolicitud = () => {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button onClick={()=>handleSubmit()} type='submit' variant='contained' size='large'>
+                <Button onClick={() => handleSubmit()} type='submit' variant='contained' size='large'>
                   Enviar Solicitud
                 </Button>
               </Box>

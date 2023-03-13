@@ -80,7 +80,8 @@ const useFirebaseAuth = () => {
         supervisor,
         description,
         date: Timestamp.fromDate(new Date()),
-        uid: user.uid
+        uid: user.uid,
+
       });
       console.log('Document written with ID: ', docRef.id);
 
