@@ -46,25 +46,18 @@ const DataGrid = () => {
         title={
           <Typography variant='h5'>
             <Link href='https://mui.com/x/react-data-grid/' target='_blank'>
-              Data Grid
+              Solicitudes
             </Link>
           </Typography>
         }
         subtitle={
-          <Typography variant='body2'>
-            Data Grid is a fast and extendable react data table and react data grid.
+          <Typography variant='body2'>Todas las solicitudes
           </Typography>
         }
       />
       <Grid item xs={12}>
-        <TableBasic rows={[data.map((doc) => {id: doc.id; email: doc.user; title: doc.title; requested:doc.requestedDate; area:doc.area})]} />
+        <TableBasic rows={data} />
       </Grid>
-
-      <div>
-      {data.length > 0 && data.map(element => {
-        return (<div key={element.uid}>{element.title}</div>)
-      })}
-    </div>
     </Grid>
   )
 }

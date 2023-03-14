@@ -1,55 +1,60 @@
+import * as React from 'react';
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import { DataGrid } from '@mui/x-data-grid'
 import CardHeader from '@mui/material/CardHeader'
+import { DateRangePicker } from '@mui/lab';
+import { date } from 'yup/lib/locale';
 
 
 const columns = [
   {
-    flex: 0.1,
     field: 'id',
-    minWidth: 80,
-    headerName: 'ID'
+    headerName: 'ID',
+    flex: 0.5,
   },
   {
-    flex: 0.25,
-    minWidth: 200,
-    field: 'full_name',
-    headerName: 'Name'
+    field: 'title',
+    headerName: 'Solicitud',
+    flex: 1,
+    editable: true,
   },
   {
-    flex: 0.25,
-    minWidth: 230,
-    field: 'email',
-    headerName: 'Email'
+    field: 'supervisor',
+    headerName: 'Supervisor',
+    flex: 1,
+    editable: true,
   },
   {
-    flex: 0.15,
-    minWidth: 130,
-    field: 'start_date',
-    headerName: 'Date'
+    field: 'area',
+    headerName: 'Area',
+    flex: 0.4,
+    editable: true,
   },
   {
-    flex: 0.15,
-    minWidth: 120,
-    field: 'experience',
-    headerName: 'Title'
+    field: 'user',
+    headerName: 'Autor',
+    flex: 1,
+    editable: true,
   },
   {
-    flex: 0.1,
-    field: 'age',
-    minWidth: 80,
-    headerName: 'Age'
+    field: 'requestedDate',
+    headerName: 'Fecha',
+    flex: 0.5,
+    editable: true,
   }
-]
+];
+
+
 
 const TableBasic = (rows) => {
+
   return (
     <Card>
-      <CardHeader title='Basic' />
       <Box sx={{ height: 500 }}>
-        <DataGrid columns={columns} rows={rows} />
+        <DataGrid rows={rows.rows} columns={columns} />
       </Box>
     </Card>
   )
