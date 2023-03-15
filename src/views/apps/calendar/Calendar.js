@@ -1,5 +1,8 @@
 // ** React Import
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
+
+// ** Hooks
+import { useAuth } from 'src/context/FirebaseContext'
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from '@fullcalendar/react'
@@ -25,7 +28,21 @@ const blankEvent = {
   }
 }
 
-const Calendar = props => {
+const Calendar = (props) => {
+
+  const auth = useAuth()
+  const [data, setData] = useState([]);
+  useEffect(() => {
+    async function fetch() {
+      const allDocs = await auth.getDocuments()
+      console.log(allDocs)
+      setData(allDocs)
+
+      return allDocs
+    }
+    fetch();
+  }, []);
+
   // ** Props
   const {
     store,
@@ -49,9 +66,10 @@ const Calendar = props => {
     }
   }, [calendarApi, setCalendarApi])
   if (store) {
+
     // ** calendarOptions(Props)
     const calendarOptions = {
-      events: store.events.length ? store.events : [],
+      events: data,
       plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
       initialView: 'dayGridMonth',
       headerToolbar: {
@@ -151,6 +169,8 @@ const Calendar = props => {
       // Get direction from app state (store)
       direction
     }
+
+    console.log(data)
 
     // @ts-ignore
     return(

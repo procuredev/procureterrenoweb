@@ -11,11 +11,6 @@ import { date } from 'yup/lib/locale';
 
 const columns = [
   {
-    field: 'id',
-    headerName: 'ID',
-    flex: 0.5,
-  },
-  {
     field: 'title',
     headerName: 'Solicitud',
     flex: 1,
@@ -40,7 +35,7 @@ const columns = [
     editable: true,
   },
   {
-    field: 'requestedDate',
+    field: 'start',
     headerName: 'Fecha',
     flex: 0.5,
     editable: true,

@@ -39,6 +39,19 @@ const calendarsColor = {
 }
 
 const AppCalendar = () => {
+
+  let events={events: [{
+    id: 1,
+    url: '',
+    title: 'Design Review',
+    start: '2023-01-01',
+    end: '2023-01-02',
+    allDay: false,
+    extendedProps: {
+      calendar: 'Business'
+    }
+  }]}
+
   // ** States
   const [calendarApi, setCalendarApi] = useState(null)
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
@@ -69,7 +82,7 @@ const AppCalendar = () => {
         ...(skin === 'bordered' && { border: theme => `1px solid ${theme.palette.divider}` })
       }}
     >
-      <SidebarLeft
+      {/*<SidebarLeft
         store={store}
         mdAbove={mdAbove}
         dispatch={dispatch}
@@ -81,7 +94,7 @@ const AppCalendar = () => {
         handleCalendarsUpdate={handleCalendarsUpdate}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleAddEventSidebarToggle={handleAddEventSidebarToggle}
-      />
+    />*/}
       <Box
         sx={{
           px: 5,
@@ -90,10 +103,12 @@ const AppCalendar = () => {
           borderRadius: 1,
           boxShadow: 'none',
           backgroundColor: 'background.paper',
-          ...(mdAbove ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : {})
+          
+          //...(mdAbove ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : {})
         }}
       >
         <Calendar
+          events={events.events}
           store={store}
           dispatch={dispatch}
           direction={direction}
