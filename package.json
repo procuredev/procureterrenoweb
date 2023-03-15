@@ -12,8 +12,6 @@
     "build:icons": "tsc -b src/iconify-bundle && node src/iconify-bundle/bundle-icons-react.js"
   },
   "dependencies": {
-    "@babel/core": "7.20.2",
-    "@babel/loader":"7.20.2",
     "@babel/eslint-parser": "7.19.1",
     "@casl/ability": "6.3.2",
     "@casl/react": "3.1.0",
@@ -77,11 +75,14 @@
     "yup": "0.32.11"
   },
   "devDependencies": {
+    "@babel/core": "^7.21.3",
+    "@babel/preset-env": "^7.20.2",
     "@iconify/iconify": "3.0.0",
     "@iconify/json": "2.1.131",
     "@iconify/tools": "2.1.1",
     "@iconify/types": "2.0.0",
     "@iconify/utils": "2.0.1",
+    "babel-loader": "^9.1.2",
     "eslint": "8.26.0",
     "eslint-config-next": "13.0.0",
     "eslint-config-prettier": "8.5.0",
@@ -89,7 +90,8 @@
     "eslint-import-resolver-typescript": "3.5.2",
     "eslint-plugin-import": "2.26.0",
     "next-transpile-modules": "9.1.0",
-    "prettier": "2.7.1"
+    "prettier": "2.7.1",
+    "webpack": "^5.76.1"
   },
   "resolutions": {
     "minipass": "3.3.5",
