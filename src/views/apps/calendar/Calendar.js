@@ -13,6 +13,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import FullScreenDialog from 'src/@core/components/dialog-fullsize'
 
 const blankEvent = {
   title: '',
