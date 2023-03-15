@@ -14,6 +14,11 @@ const navigation = () => [
     path: '/nueva-solicitud',
     icon: 'mdi:email-outline',
   },
+  {
+    title: 'Calendario',
+    path: '/calendario',
+    icon: 'mdi:calendarmonth-outline',
+  },
 ]
 
 export default navigation

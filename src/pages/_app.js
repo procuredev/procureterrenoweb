@@ -1,5 +1,11 @@
 import { FirebaseAuthProvider } from 'src/context/FirebaseContext'
 
+import { store } from 'src/store'
+import { Provider } from 'react-redux'
+
+// ** Fake-DB Import
+import 'src/@fake-db'
+
 // ** Next Imports
 import Head from 'next/head'
 import { Router } from 'next/router'
@@ -79,7 +85,7 @@ const App = props => {
 
 
   return (
-
+<Provider store={store}>
     <CacheProvider value={emotionCache}>
       <Head>
         <title>{`${themeConfig.templateName} `}</title>
@@ -111,7 +117,7 @@ const App = props => {
       </SettingsProvider>
       </FirebaseAuthProvider>
     </CacheProvider>
-
+</Provider>
   )
 }
 
