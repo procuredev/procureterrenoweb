@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Firebase, db } from 'src/configs/firebase'
-import { collection, addDoc, Timestamp, query, getDoc, getDocs, querySnapShot } from "firebase/firestore";
+import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, querySnapShot, updateDoc, where } from "firebase/firestore";
 
 // ** Next Imports
 import Head from 'next/head'
@@ -14,8 +14,6 @@ const formatAuthUser = user => {
     email: user.email
   }
 }
-
-
 
 const useFirebaseAuth = () => {
 
@@ -117,9 +115,16 @@ const useFirebaseAuth = () => {
     });
 
     return allDocs;
-
-
   };
+
+  const updateDocs = async (id) => {
+    const docId = [id].toString();
+    const ref = doc(db, 'solicitudes', id)
+    await updateDoc(ref, {
+      events: [{event: `Autorizado por ${Firebase.auth().currentUser.email}`, date:Timestamp.fromDate(new Date())}]
+    });
+  }
+
 
   return {
     loading,
@@ -128,7 +133,8 @@ const useFirebaseAuth = () => {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     newDoc,
-    getDocuments
+    getDocuments,
+    updateDocs
   }
 }
 

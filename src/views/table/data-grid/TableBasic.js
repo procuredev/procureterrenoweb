@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useAuth } from 'src/context/FirebaseContext'
 
 // ** MUI Imports
 import { Typography, IconButton } from '@mui/material';
@@ -21,11 +22,14 @@ import { use } from 'i18next';
 const TableBasic = (rows) => {
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState('')
-
+  const auth = useAuth();
 
 //set id as state: done
 //find id in data aka rows
 //render only id data
+  const testFirebase = (id) => {
+    auth.updateDocs(id)
+  }
 
   const handleClickOpen = (id) => {
     setOpen(true)
@@ -95,9 +99,11 @@ const TableBasic = (rows) => {
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
+        const { row } = params
+
         return (
           <>
-          <Button variant='contained' color='success' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
+          <Button onClick={()=>testFirebase(row.id)} variant='contained' color='success' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
             <Check sx={{ fontSize: 18 }}/>
           </Button>
           <Button variant='contained' color='secondary' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
