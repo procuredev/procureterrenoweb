@@ -67,7 +67,7 @@ const useFirebaseAuth = () => {
 
 
   // write doc
-  const newDoc = async (title, date, area, objective, supervisor, description) => {
+  const newDoc = async (title, date, area, objective, receiver, description) => {
     const user = Firebase.auth().currentUser
     if (user !== null) {
       const docRef = await addDoc(collection(db, 'solicitudes'), {
@@ -77,7 +77,7 @@ const useFirebaseAuth = () => {
         start: date,
         area,
         objective,
-        supervisor,
+        receiver,
         description,
         date: Timestamp.fromDate(new Date()),
         uid: user.uid,

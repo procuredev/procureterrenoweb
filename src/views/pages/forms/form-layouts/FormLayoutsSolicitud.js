@@ -151,12 +151,12 @@ const FormLayoutsSolicitud = () => {
 
   const handleSubmit = () => {
     //event.preventDefault();
-    auth.newDoc(title, date, area, objective, supervisor, description)
+    auth.newDoc(title, date, area, objective, receiver, description)
     setTitle('')
     setDate('')
     setArea('')
     setObjective('')
-    setSupervisor('')
+    setReceiver('')
     setDescription('')
     setFiles([])
   }
@@ -167,7 +167,7 @@ const FormLayoutsSolicitud = () => {
   const [date, setDate] = useState('')
   const [area, setArea] = useState('')
   const [objective, setObjective] = useState('')
-  const [supervisor, setSupervisor] = useState('')
+  const [receiver, setReceiver] = useState('')
   const [description, setDescription] = useState('')
 
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
@@ -238,8 +238,8 @@ const FormLayoutsSolicitud = () => {
               <FormControl fullWidth>
                 <InputLabel id='input-label-destinatario'>Destinatario</InputLabel>
                 <Select
-                  value={supervisor}
-                  onChange={() => setSupervisor(event.target.dataset.value)}
+                  value={receiver}
+                  onChange={() => setReceiver(event.target.dataset.value)}
                   label='Destinatario'
                   defaultValue=''
                   id='id-destinatario'

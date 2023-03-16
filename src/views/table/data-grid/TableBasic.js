@@ -66,7 +66,7 @@ const TableBasic = (rows) => {
       }
     },
     {
-      field: 'supervisor',
+      field: 'receiver',
       headerName: 'Destinatario',
       flex: 0.7,
       editable: true,
@@ -117,8 +117,8 @@ const TableBasic = (rows) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid rows={rows.rows} columns={columns} columnVisibilityModel={{
-    supervisor: md,
-    area:md,
+    receiver: md,
+    area:false,
     user:sm,
     start:sm,
   }}/>
