@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 // ** MUI Imports
 import { Typography, IconButton } from '@mui/material';
@@ -13,10 +15,13 @@ import { date } from 'yup/lib/locale';
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined';
 import { Container } from '@mui/system';
 import {FullScreenDialog} from 'src/@core/components/dialog-fullsize';
+import { Check, Clear, Edit } from '@mui/icons-material';
+import { use } from 'i18next';
 
 const TableBasic = (rows) => {
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState('')
+
 
 //set id as state: done
 //find id in data aka rows
@@ -31,11 +36,16 @@ const TableBasic = (rows) => {
     setOpen(false);
   };
 
+  const theme = useTheme();
+  const sm = useMediaQuery(theme.breakpoints.up('sm'));
+  const md = useMediaQuery(theme.breakpoints.up('md'));
+
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
       flex: 1,
+      minWidth:150,
       editable: true,
       renderCell: params => {
         const { row } = params
@@ -57,20 +67,20 @@ const TableBasic = (rows) => {
     },
     {
       field: 'supervisor',
-      headerName: 'Supervisor',
-      flex: 1,
+      headerName: 'Destinatario',
+      flex: 0.7,
       editable: true,
     },
     {
       field: 'area',
       headerName: 'Area',
-      flex: 0.4,
+      flex: 0.3,
       editable: true,
     },
     {
       field: 'user',
       headerName: 'Autor',
-      flex: 1,
+      flex: 0.7,
       editable: true,
     },
     {
@@ -78,13 +88,40 @@ const TableBasic = (rows) => {
       headerName: 'Fecha',
       flex: 0.5,
       editable: true,
+    },
+    {
+      flex: 0.3,
+      minWidth:190,
+      field: 'actions',
+      headerName: 'Acciones',
+      renderCell: params => {
+        return (
+          <>
+          <Button variant='contained' color='success' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
+            <Check sx={{ fontSize: 18 }}/>
+          </Button>
+          <Button variant='contained' color='secondary' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
+            <Edit sx={{ fontSize: 18 }}/>
+          </Button>
+          <Button variant='contained' color='error' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
+            <Clear sx={{ fontSize: 18 }}/>
+          </Button>
+          </>
+        )
+      }
     }
+
   ];
 
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGrid rows={rows.rows} columns={columns} />
+        <DataGrid rows={rows.rows} columns={columns} columnVisibilityModel={{
+    supervisor: md,
+    area:md,
+    user:sm,
+    start:sm,
+  }}/>
         <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />
       </Box>
     </Card>

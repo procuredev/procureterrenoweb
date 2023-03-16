@@ -40,10 +40,10 @@ let {title, description, start, user, date, area} = doc
               <CloseIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Sound
+             Detalles de la solicitud
             </Typography>
             <Button autoFocus color="inherit" onClick={()=>handleClose()}>
-              save
+              Guardar
             </Button>
           </Toolbar>
         </AppBar>
@@ -78,7 +78,7 @@ let {title, description, start, user, date, area} = doc
           <TimelineConnector />
         </TimelineSeparator>
         <TimelineContent>
-        <Typography variant="h6">En revisión</Typography>
+        <Typography >En revisión</Typography>
         <Typography variant="body2"> Creado por {user}</Typography>
         </TimelineContent>
       </TimelineItem>
@@ -93,7 +93,7 @@ let {title, description, start, user, date, area} = doc
           <TimelineConnector />
         </TimelineSeparator>
         <TimelineContent>
-        <Typography variant="h6">Aprobado</Typography>
+        <Typography>Aprobado</Typography>
         <Typography variant="body2"> Aprobado por otrouser</Typography>
         </TimelineContent>
       </TimelineItem>
