@@ -12,31 +12,21 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined';
+import { Timeline, TimelineItem, TimelineSeparator, TimelineConnector, TimelineContent, TimelineDot, TimelineOppositeContent, timelineOppositeContentClasses } from '@mui/lab';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function FullScreenDialog() {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+export const FullScreenDialog = ({open, handleClose, doc}) => {
+let {title, description, start, user, date, area} = doc
 
   return (
     <div>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Open full-screen dialog
-      </Button>
       <Dialog
         fullScreen
         open={open}
-        onClose={handleClose}
+        onClose={()=>handleClose()}
         TransitionComponent={Transition}
       >
         <AppBar sx={{ position: 'relative' }}>
@@ -44,7 +34,7 @@ export default function FullScreenDialog() {
             <IconButton
               edge="start"
               color="inherit"
-              onClick={handleClose}
+              onClick={()=>handleClose()}
               aria-label="close"
             >
               <CloseIcon />
@@ -52,23 +42,64 @@ export default function FullScreenDialog() {
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
               Sound
             </Typography>
-            <Button autoFocus color="inherit" onClick={handleClose}>
+            <Button autoFocus color="inherit" onClick={()=>handleClose()}>
               save
             </Button>
           </Toolbar>
         </AppBar>
-        <List>
-          <ListItem button>
-            <ListItemText primary="Phone ringtone" secondary="Titania" />
-          </ListItem>
-          <Divider />
-          <ListItem button>
-            <ListItemText
-              primary="Default notification ringtone"
-              secondary="Tethys"
-            />
-          </ListItem>
-        </List>
+    <Timeline>
+    <Timeline
+      sx={{
+        [`& .${timelineOppositeContentClasses.root}`]: {
+          flex: 0.2,
+        },
+      }}
+    >
+
+<Typography sx={{ fontSize: 14 }} color="textSecondary" gutterBottom>
+          Estado
+        </Typography>
+        <Typography variant="h5" sx={{ mb: 1.5 }} component="div">
+          {title}
+        </Typography>
+        <Typography sx={{ mb: 1.5 }} color="textSecondary">
+          Área {area} | Fecha de inicio: {start}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 5 }}>
+        {description}
+        </Typography>
+
+      <TimelineItem>
+        <TimelineOppositeContent color="textSecondary">
+          09:30 am
+        </TimelineOppositeContent>
+        <TimelineSeparator>
+          <TimelineDot />
+          <TimelineConnector />
+        </TimelineSeparator>
+        <TimelineContent>
+        <Typography variant="h6">En revisión</Typography>
+        <Typography variant="body2"> Creado por {user}</Typography>
+        </TimelineContent>
+      </TimelineItem>
+
+
+      <TimelineItem>
+        <TimelineOppositeContent color="textSecondary">
+          09:30 am
+        </TimelineOppositeContent>
+        <TimelineSeparator>
+          <TimelineDot />
+          <TimelineConnector />
+        </TimelineSeparator>
+        <TimelineContent>
+        <Typography variant="h6">Aprobado</Typography>
+        <Typography variant="body2"> Aprobado por otrouser</Typography>
+        </TimelineContent>
+      </TimelineItem>
+
+    </Timeline>
+    </Timeline>
       </Dialog>
     </div>
   );
