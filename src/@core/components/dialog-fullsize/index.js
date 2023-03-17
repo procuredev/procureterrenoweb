@@ -6,6 +6,7 @@ import ListItem from '@mui/material/ListItem';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import AppBar from '@mui/material/AppBar';
+import Chip from '@mui/material/Chip';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -19,7 +20,19 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export const FullScreenDialog = ({open, handleClose, doc}) => {
-let {title, description, start, user, date, area} = doc
+let {title, state, description, start, user, date, area, events, id} = doc
+state = state || 100
+
+const dictionary = {
+  1: {title:'En revisión', details:'En espera de revisión por Contract Operator', color:'primary'},
+  2: {title:'En revisión', details:'En espera de revisión por Contract Owner', color:'primary'},
+  3: {title:'En revisión', details:'En espera de revisión por Planificador', color:'primary'},
+  4: {title:'En revisión', details:'En espera de revisión por Administrador de contrato', color:'primary'},
+  5: {title:'En revisión', details:'En espera de revisión por Supervisor', color:'primary'},
+  6: {title:'Aprobado', details:'Aprobado por supervisor', color:'success'},
+  0: {title:'Rechazado', details:'Rechazado', color:'error'},
+  100: {title: 'Loading', details:'Loading', color:'primary'}
+}
 
   return (
     <div>
@@ -55,9 +68,11 @@ let {title, description, start, user, date, area} = doc
         },
       }}
     >
-
+<Chip label={dictionary[state].title} color='primary' size='small' sx={{ width:100, mb: 3  }} />
 <Typography sx={{ fontSize: 14 }} color="textSecondary" gutterBottom>
-          Estado
+        </Typography>
+        <Typography sx={{ fontSize: 14 }} color="textSecondary" gutterBottom>
+          {dictionary[state].details}
         </Typography>
         <Typography variant="h5" sx={{ mb: 1.5 }} component="div">
           {title}
@@ -71,7 +86,7 @@ let {title, description, start, user, date, area} = doc
 
       <TimelineItem>
         <TimelineOppositeContent color="textSecondary">
-          09:30 am
+        Fecha en UNIX {date && date.seconds}
         </TimelineOppositeContent>
         <TimelineSeparator>
           <TimelineDot />
@@ -83,20 +98,25 @@ let {title, description, start, user, date, area} = doc
         </TimelineContent>
       </TimelineItem>
 
-
-      <TimelineItem>
+        {events && events.length>0 && events.map((element)=>{
+          return(
+          <div key={id}>
+            <TimelineItem>
         <TimelineOppositeContent color="textSecondary">
-          09:30 am
+        Fecha en UNIX {element.date.seconds}
         </TimelineOppositeContent>
         <TimelineSeparator>
           <TimelineDot />
           <TimelineConnector />
         </TimelineSeparator>
         <TimelineContent>
-        <Typography>Aprobado</Typography>
-        <Typography variant="body2"> Aprobado por otrouser</Typography>
+        <Typography >Cambio de {element.prevState} a {element.newState}</Typography>
+        <Typography variant="body2">Por {element.author}</Typography>
         </TimelineContent>
       </TimelineItem>
+          </div>
+        )
+        })}
 
     </Timeline>
     </Timeline>

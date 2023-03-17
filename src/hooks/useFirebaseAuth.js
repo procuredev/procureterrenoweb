@@ -1,12 +1,12 @@
-
-
+import "firebase/compat/firestore";
 import { useState, useEffect } from 'react'
 import { Firebase, db } from 'src/configs/firebase'
-import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, querySnapShot, updateDoc, where } from "firebase/firestore";
+import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, querySnapShot, updateDoc, where, FieldValue,dataObject, arrayUnion} from "firebase/firestore";
 
 // ** Next Imports
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { DataSaverOn } from '@mui/icons-material';
 
 const formatAuthUser = user => {
   return {
@@ -118,10 +118,17 @@ const useFirebaseAuth = () => {
   };
 
   const updateDocs = async (id) => {
-    const docId = [id].toString();
     const ref = doc(db, 'solicitudes', id)
+
+    const querySnapshot = await getDoc(ref);
+    const prevState = querySnapshot.data().state
+    const newState = prevState+1
+
+    const newEvent = {prevState, newState, author: Firebase.auth().currentUser.email, date:Timestamp.fromDate(new Date())}
+
     await updateDoc(ref, {
-      events: [{event: `Autorizado por ${Firebase.auth().currentUser.email}`, date:Timestamp.fromDate(new Date())}]
+      events: arrayUnion(newEvent),
+      state: newState
     });
   }
 
