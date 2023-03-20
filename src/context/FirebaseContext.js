@@ -14,6 +14,7 @@ const authUserContext = createContext({
   createUserWithEmailAndPassword: async () => Promise.resolve(),
   newDoc: async () => Promise.resolve,
   getDocuments: async () => Promise.resolve(),
+  reviewDocs: async () => Promise.resolve(),
   updateDocs: async () => Promise.resolve(),
 
 })

@@ -48,7 +48,7 @@ const TableBasic = (rows) => {
   };
 
   const writeCallback = () => {
-    auth.updateDocs(doc.id, approve);
+    auth.reviewDocs(doc.id, approve);
     setOpenAlert(false);
   }
 

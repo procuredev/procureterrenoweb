@@ -117,7 +117,7 @@ const useFirebaseAuth = () => {
     return allDocs;
   };
 
-  const updateDocs = async (id, approves) => {
+  const reviewDocs = async (id, approves) => {
     //if approves is true, +1, if false back to 0
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref);
@@ -134,6 +134,18 @@ const useFirebaseAuth = () => {
     });
   }
 
+  const updateDocs = async (id, obj) => {
+    const ref = doc(db, 'solicitudes', id)
+    const querySnapshot = await getDoc(ref);
+
+    //save previous version
+    const prevDoc = querySnapshot.data();
+
+    const newEvent = {prevDoc, author: Firebase.auth().currentUser.email, date:Timestamp.fromDate(new Date())}
+
+    await updateDoc(ref, obj);
+  }
+
 
   return {
     loading,
@@ -143,7 +155,7 @@ const useFirebaseAuth = () => {
     createUserWithEmailAndPassword,
     newDoc,
     getDocuments,
-    updateDocs
+    reviewDocs
   }
 }
 
