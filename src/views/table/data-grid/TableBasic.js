@@ -15,29 +15,45 @@ import { DateRangePicker } from '@mui/lab';
 import { date } from 'yup/lib/locale';
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined';
 import { Container } from '@mui/system';
-import {FullScreenDialog} from 'src/@core/components/dialog-fullsize';
+import AlertDialog from 'src/@core/components/dialog-warning';
+import { FullScreenDialog } from 'src/@core/components/dialog-fullsize';
 import { Check, Clear, Edit } from '@mui/icons-material';
 import { use } from 'i18next';
 
 const TableBasic = (rows) => {
-  const [open, setOpen] = useState(false)
-  const [doc, setDoc] = useState('')
+  const [open, setOpen] = useState(false);
+  const [openAlert, setOpenAlert] = useState(false);
+  const [doc, setDoc] = useState('');
+  const [approve, setApprove] = useState(true);
   const auth = useAuth();
 
-//set id as state: done
-//find id in data aka rows
-//render only id data
-  const testFirebase = (id) => {
-    auth.updateDocs(id)
-  }
+  //set id as state: done
+  //find id in data aka rows
+  //render only id data
 
-  const handleClickOpen = (id) => {
+
+  const handleClickOpen = (doc) => {
+    setDoc(doc)
     setOpen(true)
-    setDoc(id)
   };
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleClickOpenAlert = (doc, isApproved) => {
+    setDoc(doc)
+    setOpenAlert(true);
+    setApprove(isApproved)
+  };
+
+  const writeCallback = () => {
+    auth.updateDocs(doc.id, approve);
+    setOpenAlert(false);
+  }
+
+  const handleCloseAlert = () => {
+    setOpenAlert(false);
   };
 
   const theme = useTheme();
@@ -49,21 +65,21 @@ const TableBasic = (rows) => {
       field: 'title',
       headerName: 'Solicitud',
       flex: 1,
-      minWidth:150,
+      minWidth: 150,
       editable: true,
       renderCell: params => {
         const { row } = params
 
         return (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton onClick={()=>handleClickOpen(row)}>
-                <OpenInNewOutlined sx={{ fontSize: 18 }}/>
-                </IconButton>
+            <IconButton onClick={() => handleClickOpen(row)}>
+              <OpenInNewOutlined sx={{ fontSize: 18 }} />
+            </IconButton>
 
 
-              <Typography noWrap variant='string'>
-                {row.title}
-              </Typography>
+            <Typography noWrap variant='string'>
+              {row.title}
+            </Typography>
 
           </Box>
         )
@@ -95,7 +111,7 @@ const TableBasic = (rows) => {
     },
     {
       flex: 0.3,
-      minWidth:190,
+      minWidth: 190,
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
@@ -103,15 +119,15 @@ const TableBasic = (rows) => {
 
         return (
           <>
-          <Button onClick={()=>testFirebase(row.id)} variant='contained' color='success' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
-            <Check sx={{ fontSize: 18 }}/>
-          </Button>
-          <Button variant='contained' color='secondary' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
-            <Edit sx={{ fontSize: 18 }}/>
-          </Button>
-          <Button variant='contained' color='error' sx={{margin:'5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px'}}>
-            <Clear sx={{ fontSize: 18 }}/>
-          </Button>
+            <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+              <Check sx={{ fontSize: 18 }} />
+            </Button>
+            <Button variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+              <Edit sx={{ fontSize: 18 }} />
+            </Button>
+            <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+              <Clear sx={{ fontSize: 18 }} />
+            </Button>
           </>
         )
       }
@@ -123,11 +139,12 @@ const TableBasic = (rows) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid rows={rows.rows} columns={columns} columnVisibilityModel={{
-    receiver: md,
-    area:false,
-    user:sm,
-    start:sm,
-  }}/>
+          receiver: md,
+          area: false,
+          user: sm,
+          start: sm,
+        }} />
+        <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback}></AlertDialog>
         <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />
       </Box>
     </Card>

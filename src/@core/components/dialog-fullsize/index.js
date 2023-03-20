@@ -21,7 +21,8 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export const FullScreenDialog = ({open, handleClose, doc}) => {
 let {title, state, description, start, user, date, area, events, id} = doc
-state = state || 100
+
+state = typeof state === 'number' ? state : 100
 
 const dictionary = {
   1: {title:'En revisión', details:'En espera de revisión por Contract Operator', color:'primary'},

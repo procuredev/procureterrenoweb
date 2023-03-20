@@ -117,12 +117,14 @@ const useFirebaseAuth = () => {
     return allDocs;
   };
 
-  const updateDocs = async (id) => {
+  const updateDocs = async (id, approves) => {
+    //if approves is true, +1, if false back to 0
     const ref = doc(db, 'solicitudes', id)
-
     const querySnapshot = await getDoc(ref);
-    const prevState = querySnapshot.data().state
-    const newState = prevState+1
+    const prevState = querySnapshot.data().state;
+    const newState = approves ? prevState+1 : 0;
+
+    //const newState = prevState+1
 
     const newEvent = {prevState, newState, author: Firebase.auth().currentUser.email, date:Timestamp.fromDate(new Date())}
 
