@@ -4,6 +4,8 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from 'src/context/FirebaseContext'
 
+import {unixToDate} from 'src/@core/components/unixToDate'
+
 // ** MUI Imports
 import { Typography, IconButton } from '@mui/material';
 import { Button } from '@mui/material';
@@ -108,6 +110,14 @@ const TableBasic = (rows) => {
       headerName: 'Fecha',
       flex: 0.5,
       editable: true,
+      renderCell: params => {
+        const {row} = params
+
+        return(<div>
+          {unixToDate(row.date.seconds)}
+        </div>
+          )
+      }
     },
     {
       flex: 0.3,

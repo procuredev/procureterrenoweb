@@ -23,6 +23,7 @@ const useFirebaseAuth = () => {
 
   const router = useRouter()
 
+// Observador estado logueado
 
   const authStateChanged = async authState => {
     if (!authState) {
@@ -41,6 +42,8 @@ const useFirebaseAuth = () => {
     setLoading(true)
   }
 
+  // Inicio de sesión
+
   const signInWithEmailAndPassword = (email, password) => {
     Firebase.auth().signInWithEmailAndPassword(email, password)
       .then(user => console.log(user))
@@ -56,7 +59,7 @@ const useFirebaseAuth = () => {
     .then(resetUser)
     .then(router.push('/login/'))
 
-  // listen for Firebase state change
+  // Listen for Firebase state change - Observador cambios de estado de Firebase
   useEffect(() => {
     const unsubscribe = Firebase.auth().onAuthStateChanged(authStateChanged)
 
@@ -64,7 +67,7 @@ const useFirebaseAuth = () => {
   }, [])
 
 
-  // write doc
+  // Escribe documentos en Firestore Database
   const newDoc = async (title, date, area, objective, receiver, description) => {
     const user = Firebase.auth().currentUser
     if (user !== null) {
@@ -88,7 +91,7 @@ const useFirebaseAuth = () => {
     }
   }
 
-  //evita que el user logueado esté en login
+  // Evita que el user logueado esté en login
   useEffect(() => {
     if (authUser !== null && (router.pathname.includes('login') || router.asPath === ('/'))) {
       router.replace('/home')
@@ -96,7 +99,7 @@ const useFirebaseAuth = () => {
 
   }, [authUser, router])
 
-  //evitar que el no logueado esté en home
+  // Evita que el no logueado esté en home
   useEffect(() => {
     if (authUser === null && router.asPath !== ('/login/')) {
       router.replace('/login/')
@@ -104,6 +107,7 @@ const useFirebaseAuth = () => {
 
   }, [authUser, router])
 
+  // Get docs - Consulta documentos db
   const getDocuments = async () => {
     const querySnapshot = await getDocs(collection(db, "solicitudes"));
     const allDocs = [];
@@ -117,6 +121,8 @@ const useFirebaseAuth = () => {
     return allDocs;
   };
 
+  // Modifica estado documentos
+
   const reviewDocs = async (id, approves) => {
     //if approves is true, +1, if false back to 0
     const ref = doc(db, 'solicitudes', id)
@@ -126,6 +132,7 @@ const useFirebaseAuth = () => {
 
     //const newState = prevState+1
 
+    //Guarda estado anterior, autor y fecha modificación
     const newEvent = {prevState, newState, author: Firebase.auth().currentUser.email, date:Timestamp.fromDate(new Date())}
 
     await updateDoc(ref, {
@@ -134,15 +141,14 @@ const useFirebaseAuth = () => {
     });
   }
 
+  // Modifica otros campos documentos
   const updateDocs = async (id, obj) => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref);
 
-    //save previous version
+    //save previous version?
     const prevDoc = querySnapshot.data();
-
     const newEvent = {prevDoc, author: Firebase.auth().currentUser.email, date:Timestamp.fromDate(new Date())}
-
     await updateDoc(ref, obj);
   }
 
@@ -155,7 +161,8 @@ const useFirebaseAuth = () => {
     createUserWithEmailAndPassword,
     newDoc,
     getDocuments,
-    reviewDocs
+    reviewDocs,
+    updateDocs
   }
 }
 

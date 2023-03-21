@@ -14,6 +14,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import FullScreenDialog from 'src/@core/components/dialog-fullsize'
+import { date } from 'yup'
 
 const blankEvent = {
   title: '',
@@ -44,6 +45,7 @@ const Calendar = (props) => {
     fetch();
   }, []);
 
+
   // ** Props
   const {
     store,
@@ -70,7 +72,9 @@ const Calendar = (props) => {
 
     // ** calendarOptions(Props)
     const calendarOptions = {
-      events: data,
+      //falta agregar todos los demás atributos, este evento es el que después queda como store.selectedevent
+
+      events: data.map(a=>({title:a.title, start:a.start.seconds*1000, allDay:true, id:a.id, description:a.description})),
       plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
       initialView: 'dayGridMonth',
       headerToolbar: {
@@ -171,7 +175,7 @@ const Calendar = (props) => {
       direction
     }
 
-    console.log(data)
+    console.log(calendarOptions)
 
     // @ts-ignore
     return(

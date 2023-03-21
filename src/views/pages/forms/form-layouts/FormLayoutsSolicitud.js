@@ -188,7 +188,7 @@ const FormLayoutsSolicitud = () => {
             </Grid>
             <Grid item xs={12}>
               <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha'
-                onChange={() => setDate(event.srcElement.value)} />
+                onChange={() => setDate(new Date (Number((event.srcElement.value).split('-')[0]),Number((event.srcElement.value).split('-')[1]-1),Number((event.srcElement.value).split('-')[2])))} />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>

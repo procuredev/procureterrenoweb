@@ -1,5 +1,6 @@
 // ** React Imports
 import { useState, useEffect, forwardRef, useCallback, Fragment } from 'react'
+import { useAuth } from 'src/context/FirebaseContext'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -55,6 +56,7 @@ const AddEventSidebar = props => {
   } = props
 
   // ** States
+  const auth = useAuth();
   const [values, setValues] = useState(defaultState)
 
   const {
@@ -72,28 +74,24 @@ const AddEventSidebar = props => {
     handleAddEventSidebarToggle()
   }
 
-  const onSubmit = data => {
+  const onSubmit = (data, event) => {
+    event.preventDefault()
+
     const modifiedEvent = {
-      url: values.url,
-      display: 'block',
-      title: data.title,
-      end: values.endDate,
-      allDay: values.allDay,
+      //title: data.title,
+      //end: values.endDate,
       start: values.startDate,
-      extendedProps: {
-        calendar: capitalize(values.calendar),
-        guests: values.guests && values.guests.length ? values.guests : undefined,
-        description: values.description.length ? values.description : undefined
-      }
+      description: values.description
     }
     if (store.selectedEvent === null || (store.selectedEvent !== null && !store.selectedEvent.title.length)) {
       dispatch(addEvent(modifiedEvent))
     } else {
-      dispatch(updateEvent({ id: store.selectedEvent.id, ...modifiedEvent }))
+      auth.updateDocs(store.selectedEvent.id, modifiedEvent)
     }
     calendarApi.refetchEvents()
     handleSidebarClose()
   }
+
 
   const handleDeleteEvent = () => {
     if (store.selectedEvent) {
@@ -231,21 +229,7 @@ const AddEventSidebar = props => {
                 </FormHelperText>
               )}
             </FormControl>
-            <FormControl fullWidth sx={{ mb: 6 }}>
-              <InputLabel id='event-calendar'>Calendar</InputLabel>
-              <Select
-                label='Calendar'
-                value={values.calendar}
-                labelId='event-calendar'
-                onChange={e => setValues({ ...values, calendar: e.target.value })}
-              >
-                <MenuItem value='Personal'>Personal</MenuItem>
-                <MenuItem value='Business'>Business</MenuItem>
-                <MenuItem value='Family'>Family</MenuItem>
-                <MenuItem value='Holiday'>Holiday</MenuItem>
-                <MenuItem value='ETC'>ETC</MenuItem>
-              </Select>
-            </FormControl>
+
             <Box sx={{ mb: 6 }}>
               <DatePicker
                 selectsStart
@@ -282,32 +266,7 @@ const AddEventSidebar = props => {
                 }
               />
             </FormControl>
-            <TextField
-              fullWidth
-              type='url'
-              id='event-url'
-              sx={{ mb: 6 }}
-              label='Event URL'
-              value={values.url}
-              onChange={e => setValues({ ...values, url: e.target.value })}
-            />
-            <FormControl fullWidth sx={{ mb: 6 }}>
-              <InputLabel id='event-guests'>Guests</InputLabel>
-              <Select
-                multiple
-                label='Guests'
-                value={values.guests}
-                labelId='event-guests'
-                id='event-guests-select'
-                onChange={e => setValues({ ...values, guests: e.target.value })}
-              >
-                <MenuItem value='bruce'>Bruce</MenuItem>
-                <MenuItem value='clark'>Clark</MenuItem>
-                <MenuItem value='diana'>Diana</MenuItem>
-                <MenuItem value='john'>John</MenuItem>
-                <MenuItem value='barry'>Barry</MenuItem>
-              </Select>
-            </FormControl>
+           
             <TextField
               rows={4}
               multiline

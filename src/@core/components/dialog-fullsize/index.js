@@ -15,6 +15,8 @@ import Slide from '@mui/material/Slide';
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineConnector, TimelineContent, TimelineDot, TimelineOppositeContent, timelineOppositeContentClasses } from '@mui/lab';
 
+import { unixToDate } from 'src/@core/components/unixToDate';
+
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -79,7 +81,7 @@ const dictionary = {
           {title}
         </Typography>
         <Typography sx={{ mb: 1.5 }} color="textSecondary">
-          Área {area} | Fecha de inicio: {start}
+          Área {area} | Fecha de inicio: {start&&unixToDate(start.seconds)}
         </Typography>
         <Typography variant="body2" sx={{ mb: 5 }}>
         {description}
@@ -87,7 +89,7 @@ const dictionary = {
 
       <TimelineItem>
         <TimelineOppositeContent color="textSecondary">
-        Fecha en UNIX {date && date.seconds}
+        {date && unixToDate(date.seconds)}
         </TimelineOppositeContent>
         <TimelineSeparator>
           <TimelineDot />
@@ -104,7 +106,7 @@ const dictionary = {
           <div key={id}>
             <TimelineItem>
         <TimelineOppositeContent color="textSecondary">
-        Fecha en UNIX {element.date.seconds}
+        {unixToDate(element.date.seconds)}
         </TimelineOppositeContent>
         <TimelineSeparator>
           <TimelineDot />
