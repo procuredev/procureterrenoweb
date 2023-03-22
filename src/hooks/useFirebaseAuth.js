@@ -93,7 +93,7 @@ const useFirebaseAuth = () => {
 
   // Evita que el user logueado esté en login
   useEffect(() => {
-    if (authUser !== null && (router.pathname.includes('login') || router.asPath === ('/'))) {
+    if (authUser !== null && (router.pathname.includes('login'))) {
       router.replace('/home')
     }
 

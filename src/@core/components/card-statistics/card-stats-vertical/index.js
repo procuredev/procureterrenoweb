@@ -22,14 +22,6 @@ const CardStatsVertical = props => {
           <CustomAvatar skin='light' variant='rounded' color={color}>
             {icon}
           </CustomAvatar>
-          <Box
-            sx={{ display: 'flex', alignItems: 'center', color: trend === 'positive' ? 'success.main' : 'error.main' }}
-          >
-            <Typography variant='subtitle2' sx={{ color: trend === 'positive' ? 'success.main' : 'error.main' }}>
-              {trendNumber}
-            </Typography>
-            <Icon icon={trend === 'positive' ? 'mdi:chevron-up' : 'mdi:chevron-down'} fontSize='1.25rem' />
-          </Box>
         </Box>
         <Typography variant='h6' sx={{ mb: 1 }}>
           {stats}
@@ -37,13 +29,6 @@ const CardStatsVertical = props => {
         <Typography variant='body2' sx={{ mb: 5 }}>
           {title}
         </Typography>
-        <CustomChip
-          skin='light'
-          size='small'
-          label={chipText}
-          color='secondary'
-          sx={{ height: 20, fontWeight: 500, fontSize: '0.75rem', alignSelf: 'flex-start', color: 'text.secondary' }}
-        />
       </CardContent>
     </Card>
   )
