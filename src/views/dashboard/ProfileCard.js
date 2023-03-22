@@ -7,6 +7,7 @@ import CardContent from '@mui/material/CardContent'
 import Grid from '@mui/material/Grid'
 import { styled, useTheme } from '@mui/material/styles'
 import { Height } from '@mui/icons-material'
+import { useRouter } from 'next/router'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
@@ -20,7 +21,8 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
 const ProfileCard = () => {
   // ** Hook
   const theme = useTheme()
-
+  const router = useRouter()
+  
   return (
     <Card sx={{ position: 'relative',height:'auto'}}>
       <CardContent>
@@ -35,7 +37,7 @@ const ProfileCard = () => {
             <Typography variant='body2' sx={{ mb: 7 }}>
               Explora las distintas vistas o revisa la actividad reciente aquí.
             </Typography>
-            <Button href='/solicitudes' variant='contained'>Ver Solicitudes</Button>
+            <Button onClick={()=>router.replace('/solicitudes/')} variant='contained'>Ver Solicitudes</Button>
           </Grid>
       </CardContent>
     </Card>

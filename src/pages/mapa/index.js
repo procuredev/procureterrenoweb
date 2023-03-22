@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import { GoogleMap, LoadScript, Polygon, InfoWindow, Marker } from '@react-google-maps/api'
+import IconButton from '@mui/material/IconButton'
+import GpsFixed from '@mui/icons-material/GpsFixed'
 
 const apiKey = 'AIzaSyC1XlvMbqs2CN_BWXFtk4BPwYWwD29cVww'
 
@@ -10,99 +12,130 @@ const UserLocationIcon = `
 </svg>
 `
 
-const polygons = [
+const plantas = [
   {
-    // Los Colorados
-    paths: [
-      { lat: -24.261986, lng: -69.060333 },
-      { lat: -24.26402, lng: -69.05958 },
-      { lat: -24.26361, lng: -69.058039 },
-      { lat: -24.261324, lng: -69.05869 }
-    ],
-    name: '2300 - Molienda',
-    n: 1,
-    visible: true
+    nombre: 'Los Colorados',
+    color: '#FF0000',
+    centro: { lat: -24.2625, lng: -69.059 },
+    areas: [
+      {
+        paths: [
+          { lat: -24.261986, lng: -69.060333 },
+          { lat: -24.26402, lng: -69.05958 },
+          { lat: -24.26361, lng: -69.058039 },
+          { lat: -24.261324, lng: -69.05869 }
+        ],
+        name: '2300 - Molienda',
+        visible: true
+      },
+      {
+        paths: [
+          { lat: -24.264679, lng: -69.058169 },
+          { lat: -24.264777, lng: -69.056966 },
+          { lat: -24.262995, lng: -69.056107 },
+          { lat: -24.261324, lng: -69.056057 },
+          { lat: -24.260808, lng: -69.054589 },
+          { lat: -24.260155, lng: -69.054081 },
+          { lat: -24.259365, lng: -69.054782 },
+          { lat: -24.260253, lng: -69.056959 },
+          { lat: -24.261382, lng: -69.057618 },
+          { lat: -24.263243, lng: -69.057704 },
+          { lat: -24.263948, lng: -69.058219 }
+        ],
+        name: '2500 - Espesadores',
+        visible: true
+      }
+    ]
   },
   {
-    // Los Colorados
-    paths: [
-      { lat: -24.264679, lng: -69.058169 },
-      { lat: -24.264777, lng: -69.056966 },
-      { lat: -24.262995, lng: -69.056107 },
-      { lat: -24.261324, lng: -69.056057 },
-      { lat: -24.260808, lng: -69.054589 },
-      { lat: -24.260155, lng: -69.054081 },
-      { lat: -24.259365, lng: -69.054782 },
-      { lat: -24.260253, lng: -69.056959 },
-      { lat: -24.261382, lng: -69.057618 },
-      { lat: -24.263243, lng: -69.057704 },
-      { lat: -24.263948, lng: -69.058219 }
-    ],
-    name: '2500 - Espesadores',
-    n: 2,
-    visible: true
+    nombre: 'Laguna Seca 1',
+    color: '#FF0000',
+    centro: { lat: -24.3429, lng: -69.064 },
+    areas: [
+      {
+        paths: [
+          { lat: -24.345462, lng: -69.069127 },
+          { lat: -24.347056, lng: -69.065716 },
+          { lat: -24.340793, lng: -69.062342 },
+          { lat: -24.339379, lng: -69.065175 }
+        ],
+        name: '3800 - Espesadores',
+        visible: true
+      },
+      {
+        paths: [
+          { lat: -24.347056, lng: -69.065716 },
+          { lat: -24.340793, lng: -69.062342 },
+          { lat: -24.342486, lng: -69.059275 },
+          { lat: -24.34847, lng: -69.062468 }
+        ],
+        name: '4500 - Flotacion',
+        visible: true
+      },
+      {
+        paths: [
+          { lat: -24.340793, lng: -69.062342 },
+          { lat: -24.339379, lng: -69.065175 },
+          { lat: -24.337287, lng: -69.06391 },
+          { lat: -24.338807, lng: -69.061023 }
+        ],
+        name: '5863 - Area',
+        visible: true
+      }
+    ]
   },
   {
-    // Laguna Seca 1
-    paths: [
-      { lat: -24.345462, lng: -69.069127 },
-      { lat: -24.347056, lng: -69.065716 },
-      { lat: -24.340793, lng: -69.062342 },
-      { lat: -24.339379, lng: -69.065175 }
-    ],
-    name: '3800 - Espesadores',
-    n: 3,
-    visible: true
+    nombre: 'Chancado y Correas',
+    color: '#FF0000',
+    centro: { lat: -24.272899, lng: -69.050887 },
+    areas: [
+      {
+        paths: [
+          { lat: -24.275178, lng: -69.055543 },
+          { lat: -24.27418, lng: -69.046187 },
+          { lat: -24.268948, lng: -69.046649 },
+          { lat: -24.269124, lng: -69.056712 }
+        ],
+        name: '4000 - Chancado',
+        visible: true
+      }
+    ]
   },
   {
-    // Laguna Seca 1
-    paths: [
-      { lat: -24.347056, lng: -69.065716 },
-      { lat: -24.340793, lng: -69.062342 },
-      { lat: -24.342486, lng: -69.059275 },
-      { lat: -24.34847, lng: -69.062468 }
-    ],
-    name: '4500 - Flotacion',
-    n: 4,
-    visible: true
+    nombre: 'Puerto Coloso',
+    color: '#FF0000',
+    centro: { lat: -23.7627, lng: -70.468 },
+    areas: [
+      {
+        paths: [
+          { lat: -23.768948, lng: -70.472057 },
+          { lat: -23.766141, lng: -70.471642 },
+          { lat: -23.758825, lng: -70.464623 },
+          { lat: -23.756331, lng: -70.463956 },
+          { lat: -23.75595, lng: -70.46763 },
+          { lat: -23.764409, lng: -70.476489 }
+        ],
+        name: '6000 - Puerto Coloso',
+        visible: true
+      }
+    ]
   },
   {
-    // Laguna Seca 1
-    paths: [
-      { lat: -24.340793, lng: -69.062342 },
-      { lat: -24.339379, lng: -69.065175 },
-      { lat: -24.337287, lng: -69.06391 },
-      { lat: -24.338807, lng: -69.061023 }
-    ],
-    name: '5863 - Area',
-    n: 5,
-    visible: true
-  },
-  {
-    // Puerto Coloso
-    paths: [
-      { lat: -23.768948, lng: -70.472057 },
-      { lat: -23.766141, lng: -70.471642 },
-      { lat: -23.758825, lng: -70.464623 },
-      { lat: -23.756331, lng: -70.463956 },
-      { lat: -23.75595, lng: -70.46763 },
-      { lat: -23.764409, lng: -70.476489 }
-    ],
-    name: '6000 - Puerto Coloso',
-    n: 6,
-    visible: true
-  },
-  {
-    // Sulfuros
-    paths: [
-      { lat: -24.270763, lng: -69.025669 },
-      { lat: -24.279488, lng: -69.017937 },
-      { lat: -24.268868, lng: -69.006186 },
-      { lat: -24.262813, lng: -69.015689 }
-    ],
-    name: 'Sulfuros',
-    n: 7,
-    visible: true
+    nombre: 'Catodos',
+    color: '#FF0000',
+    centro: { lat: -24.234813, lng: -69.128289 },
+    areas: [
+      {
+        paths: [
+          { lat: -24.236574, lng: -69.131625 },
+          { lat: -24.236496, lng: -69.128686 },
+          { lat: -24.233414, lng: -69.126164 },
+          { lat: -24.232328, lng: -69.129061 }
+        ],
+        name: '3259 - Catodos',
+        visible: true
+      }
+    ]
   }
 ]
 
@@ -113,22 +146,11 @@ class Map extends Component {
       position: { lat: -24.261986, lng: -69.060333 },
       showInfoWindow: false,
       infoWindowPosition: null,
-      losColoradosVisible: false,
-      lagunaSeca1Visible: false,
-      lagunaSeca2Visible: false,
-      chancadoCorreasVisible: false,
-      puertoColosoVisible: false,
-      vatodoVisible: false,
-      lixiviacionSulfurosVisible: false
+      plantasVisible: Array(plantas.length).fill(false),
+      userLocation: null
     }
     this.handlePolygonClick = this.handlePolygonClick.bind(this)
-    this.toggleLosColorados = this.toggleLosColorados.bind(this)
-    this.toggleLagunaSeca1 = this.toggleLagunaSeca1.bind(this)
-    this.toggleLagunaSeca2 = this.toggleLagunaSeca2.bind(this)
-    this.toggleChancadoCorreas = this.toggleChancadoCorreas.bind(this)
-    this.togglePuertoColoso = this.togglePuertoColoso.bind(this)
-    this.toggleCatodo = this.toggleCatodo.bind(this)
-    this.toggleLixiviacionSulfuros = this.toggleLixiviacionSulfuros.bind(this)
+    this.togglePlantaVisibility = this.togglePlantaVisibility.bind(this)
   }
 
   handlePolygonClick(e, index) {
@@ -140,32 +162,20 @@ class Map extends Component {
     })
   }
 
-  toggleLosColorados() {
-    this.setState(prevState => ({ losColoradosVisible: !prevState.losColoradosVisible }))
-  }
+  togglePlantaVisibility(index) {
+    this.setState(
+      prevState => {
+        const plantasVisible = [...prevState.plantasVisible]
+        plantasVisible[index] = !plantasVisible[index]
 
-  toggleLagunaSeca1() {
-    this.setState(prevState => ({ lagunaSeca1Visible: !prevState.lagunaSeca1Visible }))
-  }
-
-  toggleLagunaSeca2() {
-    this.setState(prevState => ({ lagunaSeca2Visible: !prevState.lagunaSeca2Visible }))
-  }
-
-  toggleChancadoCorreas() {
-    this.setState(prevState => ({ chancadoCorreasVisible: !prevState.chancadoCorreasVisible }))
-  }
-
-  togglePuertoColoso() {
-    this.setState(prevState => ({ puertoColosoVisible: !prevState.puertoColosoVisible }))
-  }
-
-  toggleCatodo() {
-    this.setState(prevState => ({ catodoVisible: !prevState.catodoVisible }))
-  }
-
-  toggleLixiviacionSulfuros() {
-    this.setState(prevState => ({ lixiviacionSulfurosVisible: !prevState.lixiviacionSulfurosVisible }))
+        return { plantasVisible }
+      },
+      () => {
+        if (this.state.plantasVisible[index]) {
+          this.setState({ position: plantas[index].centro })
+        }
+      }
+    )
   }
 
   //
@@ -199,64 +209,19 @@ class Map extends Component {
               marginBottom: '5px'
             }}
           >
-            <label>
-              <input
-                type='checkbox'
-                checked={this.state.visibleLosColorados}
-                onChange={() => this.toggleLosColorados()}
-              />
-              Los Colorados
-            </label>
-            <br />
-            <label>
-              <input
-                type='checkbox'
-                checked={this.state.visibleLagunaSeca1}
-                onChange={() => this.toggleLagunaSeca1()}
-              />
-              Laguna Seca - 1
-            </label>
-            <br />
-            <label>
-              <input
-                type='checkbox'
-                checked={this.state.visibleLagunaSeca2}
-                onChange={() => this.toggleLagunaSeca2()}
-              />
-              Laguna Seca - 2
-            </label>
-            <br />
-            <label>
-              <input
-                type='checkbox'
-                checked={this.state.visibleChancadoCorreas}
-                onChange={() => this.toggleChancadoCorreas()}
-              />
-              Chancado y Correas
-            </label>
-            <br />
-            <label>
-              <input
-                type='checkbox'
-                checked={this.state.visiblePuertoColoso}
-                onChange={() => this.togglePuertoColoso()}
-              />
-              Puerto Coloso
-            </label>
-            <br />
-            <label>
-              <input type='checkbox' checked={this.state.visibleCatodo} onChange={() => this.toggleCatodo()} />
-              Cátodo
-            </label>
-            <br />
-            <label>
-              <input
-                type='checkbox'
-                checked={this.state.visibleLixiviacionSulfuros}
-                onChange={() => this.toggleLixiviacionSulfuros()}
-              />
-              Lixiviación Sulfuros
-            </label>
+            {plantas.map((planta, index) => (
+              <div key={index}>
+                <label>
+                  <input
+                    type='checkbox'
+                    checked={this.state.plantasVisible[index]}
+                    onChange={() => this.togglePlantaVisibility(index)}
+                  />
+                  {planta.nombre}
+                </label>
+                <br />
+              </div>
+            ))}
           </div>
           <GoogleMap
             mapContainerStyle={{ height: '700px', width: '100%' }}
@@ -264,26 +229,23 @@ class Map extends Component {
             zoom={13}
             mapTypeId='satellite'
           >
-            {polygons.map((polygon, index) => (
-              <Polygon
-                key={index}
-                paths={polygon.paths}
-                onClick={e => this.handlePolygonClick(e, polygon.name)}
-                visible={
-                  ((polygon.n === 1 || polygon.n === 2) && this.state.losColoradosVisible) ||
-                  ((polygon.n === 3 || polygon.n === 4 || polygon.n === 5) && this.state.lagunaSeca1Visible) ||
-                  (polygon.n === 6 && this.state.puertoColosoVisible) ||
-                  (polygon.n === 7 && this.state.lixiviacionSulfurosVisible)
-                }
-                options={{
-                  fillColor: polygon.n === 1 || polygon.n === 2 ? '#FF0000' : '#0000FF',
-                  fillOpacity: 0.1,
-                  strokeColor: polygon.n === 1 || polygon.n === 2 ? '#FF0000' : '#0000FF',
-                  strokeOpacity: 0.5,
-                  strokeWeight: 2
-                }}
-              />
-            ))}
+            {plantas.map((planta, plantaIndex) =>
+              planta.areas.map((area, areaIndex) => (
+                <Polygon
+                  key={`${plantaIndex}-${areaIndex}`}
+                  paths={area.paths}
+                  onClick={e => this.handlePolygonClick(e, area.name)}
+                  visible={this.state.plantasVisible[plantaIndex]}
+                  options={{
+                    fillColor: planta.color,
+                    fillOpacity: 0.01,
+                    strokeColor: planta.color,
+                    strokeOpacity: 0.5,
+                    strokeWeight: 2
+                  }}
+                />
+              ))
+            )}
             {this.state.showInfoWindow && (
               <InfoWindow
                 position={this.state.infoWindowPosition}
@@ -302,6 +264,24 @@ class Map extends Component {
                 }}
               />
             )}
+            <IconButton
+              style={{
+                position: 'absolute',
+                left: '10px',
+                bottom: '10px',
+                backgroundColor: 'white',
+                color: 'black',
+                zIndex: 1,
+                width: '40px'
+              }}
+              onClick={() => {
+                if (this.state.userLocation) {
+                  this.setState({ position: this.state.userLocation })
+                }
+              }}
+            >
+              <GpsFixed />
+            </IconButton>
           </GoogleMap>
         </div>
       </LoadScript>

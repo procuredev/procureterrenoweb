@@ -132,7 +132,7 @@ const TableBasic = (rows) => {
             <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
               <Check sx={{ fontSize: 18 }} />
             </Button>
-            <Button variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+            <Button onClick={() => handleClickOpen(row)}variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
               <Edit sx={{ fontSize: 18 }} />
             </Button>
             <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>

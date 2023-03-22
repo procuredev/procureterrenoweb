@@ -8,6 +8,7 @@ import Grid from '@mui/material/Grid'
 import { CardMedia } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 import Link from '@mui/material/Link'
+import Router, { useRouter } from 'next/router'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
@@ -21,7 +22,8 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
 const ShowMap = () => {
   // ** Hook
   const theme = useTheme()
-
+  const router = useRouter()
+  
   return (
     <Card sx={{ position: 'relative' }}>
       <CardContent>
@@ -30,7 +32,7 @@ const ShowMap = () => {
              ¿No sabes en qué area te encuentras? 📍
             </Typography>
             <Typography variant='body2' sx={{ mb: 4.5 }}>
-              Puedes consultar el mapa <Link href="/mapa">aquí.</Link>
+              Puedes consultar el mapa <Link onClick={()=>router.replace('/mapa/')}>aquí.</Link>
             </Typography>
 
           </Grid>
