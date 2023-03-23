@@ -2,6 +2,9 @@ import React, { Component } from 'react'
 import { GoogleMap, LoadScript, Polygon, InfoWindow, Marker } from '@react-google-maps/api'
 import IconButton from '@mui/material/IconButton'
 import GpsFixed from '@mui/icons-material/GpsFixed'
+import Checkbox from '@mui/material/Checkbox'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import ReactDOM from 'react-dom'
 
 const apiKey = 'AIzaSyC1XlvMbqs2CN_BWXFtk4BPwYWwD29cVww'
 
@@ -54,32 +57,45 @@ const plantas = [
     areas: [
       {
         paths: [
-          { lat: -24.345462, lng: -69.069127 },
-          { lat: -24.347056, lng: -69.065716 },
-          { lat: -24.340793, lng: -69.062342 },
-          { lat: -24.339379, lng: -69.065175 }
+          { lat: -24.34539, lng: -69.058671 },
+          { lat: -24.34453, lng: -69.060241 },
+          { lat: -24.344134, lng: -69.060075 },
+          { lat: -24.342519, lng: -69.063583 },
+          { lat: -24.343751, lng: -69.064349 },
+          { lat: -24.343274, lng: -69.065382 },
+          { lat: -24.342833, lng: -69.065727 },
+          { lat: -24.342391, lng: -69.066748 },
+          { lat: -24.341345, lng: -69.066773 },
+          { lat: -24.337183, lng: -69.064234 },
+          { lat: -24.33888, lng: -69.061057 },
+          { lat: -24.340973, lng: -69.056847 }
         ],
-        name: '3800 - Espesadores',
+        name: '3800 - Laguna Seca 1',
         visible: true
-      },
+      }
+    ]
+  },
+  {
+    nombre: 'Laguna Seca 2',
+    color: '#0000FF',
+    centro: { lat: -24.345134, lng: -69.063545 },
+    areas: [
       {
         paths: [
-          { lat: -24.347056, lng: -69.065716 },
-          { lat: -24.340793, lng: -69.062342 },
-          { lat: -24.342486, lng: -69.059275 },
-          { lat: -24.34847, lng: -69.062468 }
+          { lat: -24.342391, lng: -69.066748 },
+          { lat: -24.345564, lng: -69.069274 },
+          { lat: -24.348308, lng: -69.064796 },
+          { lat: -24.348098, lng: -69.063328 },
+          { lat: -24.346669, lng: -69.059577 },
+          { lat: -24.34539, lng: -69.058671 },
+          { lat: -24.34453, lng: -69.060241 },
+          { lat: -24.344134, lng: -69.060075 },
+          { lat: -24.342519, lng: -69.063583 },
+          { lat: -24.343751, lng: -69.064349 },
+          { lat: -24.343274, lng: -69.065382 },
+          { lat: -24.342833, lng: -69.065727 }
         ],
-        name: '4500 - Flotacion',
-        visible: true
-      },
-      {
-        paths: [
-          { lat: -24.340793, lng: -69.062342 },
-          { lat: -24.339379, lng: -69.065175 },
-          { lat: -24.337287, lng: -69.06391 },
-          { lat: -24.338807, lng: -69.061023 }
-        ],
-        name: '5863 - Area',
+        name: '4000 - Laguna Seca 2',
         visible: true
       }
     ]
@@ -139,6 +155,28 @@ const plantas = [
   }
 ]
 
+class LocationButton extends Component {
+  render() {
+    return (
+      <div className='location-button'>
+        <IconButton
+          style={{
+            backgroundColor: 'white',
+            color: 'black',
+            zIndex: 1000,
+            width: '40px',
+            left: '10px',
+            bottom: '10px'
+          }}
+          onClick={this.props.onClick}
+        >
+          <GpsFixed />
+        </IconButton>
+      </div>
+    )
+  }
+}
+
 class Map extends Component {
   constructor(props) {
     super(props)
@@ -151,6 +189,12 @@ class Map extends Component {
     }
     this.handlePolygonClick = this.handlePolygonClick.bind(this)
     this.togglePlantaVisibility = this.togglePlantaVisibility.bind(this)
+  }
+
+  handleMapClick() {
+    if (this.state.showInfoWindow) {
+      this.setState({ showInfoWindow: false })
+    }
   }
 
   handlePolygonClick(e, index) {
@@ -197,6 +241,21 @@ class Map extends Component {
     }
   }
 
+  addLocationButton(map) {
+    const locationButtonDiv = document.createElement('div')
+    ReactDOM.render(
+      <LocationButton
+        onClick={() => {
+          if (this.state.userLocation) {
+            this.setState({ position: this.state.userLocation })
+          }
+        }}
+      />,
+      locationButtonDiv
+    )
+    map.controls[window.google.maps.ControlPosition.LEFT_BOTTOM].push(locationButtonDiv)
+  }
+
   render() {
     return (
       <LoadScript googleMapsApiKey={apiKey}>
@@ -211,15 +270,24 @@ class Map extends Component {
           >
             {plantas.map((planta, index) => (
               <div key={index}>
-                <label>
-                  <input
-                    type='checkbox'
-                    checked={this.state.plantasVisible[index]}
-                    onChange={() => this.togglePlantaVisibility(index)}
-                  />
-                  {planta.nombre}
-                </label>
-                <br />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={this.state.plantasVisible[index]}
+                      onChange={() => this.togglePlantaVisibility(index)}
+                      sx={{
+                        '& .MuiSvgIcon-root': {
+                          width: '0.8em', // Cambia el tamaño de la casilla aquí
+                          height: '0.8em' // Cambia el tamaño de la casilla aquí
+                        }
+                      }}
+                    />
+                  }
+                  label={planta.nombre}
+                  sx={{
+                    fontSize: '0.8rem' // Cambia el tamaño de la letra aquí
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -228,6 +296,8 @@ class Map extends Component {
             center={this.state.position}
             zoom={13}
             mapTypeId='satellite'
+            onLoad={this.addLocationButton.bind(this)}
+            onClick={this.handleMapClick.bind(this)}
           >
             {plantas.map((planta, plantaIndex) =>
               planta.areas.map((area, areaIndex) => (
@@ -264,24 +334,6 @@ class Map extends Component {
                 }}
               />
             )}
-            <IconButton
-              style={{
-                position: 'absolute',
-                left: '10px',
-                bottom: '10px',
-                backgroundColor: 'white',
-                color: 'black',
-                zIndex: 1,
-                width: '40px'
-              }}
-              onClick={() => {
-                if (this.state.userLocation) {
-                  this.setState({ position: this.state.userLocation })
-                }
-              }}
-            >
-              <GpsFixed />
-            </IconButton>
           </GoogleMap>
         </div>
       </LoadScript>
@@ -291,7 +343,9 @@ class Map extends Component {
 
 export default Map
 
-/*Map.acl = {
+/*
+Map.acl = {
   action: 'manage',
   subject: 'mapa'
-}*/
+}
+*/
