@@ -4,9 +4,11 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from 'src/context/FirebaseContext'
 
+import dictionary from 'src/@core/components/dictionary/index'
 import {unixToDate} from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
+import CustomChip from 'src/@core/components/mui/chip'
 import { Typography, IconButton } from '@mui/material';
 import { Button } from '@mui/material';
 import Box from '@mui/material/Box'
@@ -66,7 +68,7 @@ const TableBasic = (rows) => {
     {
       field: 'title',
       headerName: 'Solicitud',
-      flex: 1,
+      flex: 0.8,
       minWidth: 150,
       editable: true,
       renderCell: params => {
@@ -88,10 +90,22 @@ const TableBasic = (rows) => {
       }
     },
     {
-      field: 'receiver',
-      headerName: 'Destinatario',
-      flex: 0.7,
-      editable: true,
+      field: 'state',
+      headerName: 'Estado',
+      flex: 0.4,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+
+          <CustomChip
+            size='small'
+            color={dictionary[row.state].color}
+            label={dictionary[row.state].title}
+            sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
+          />
+        )
+      }
     },
     {
       field: 'area',
@@ -148,7 +162,7 @@ const TableBasic = (rows) => {
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGrid rows={rows.rows} columns={columns} columnVisibilityModel={{
+        <DataGrid hideFooterSelectedRowCount rows={rows.rows} columns={columns} columnVisibilityModel={{
           receiver: md,
           area: false,
           user: sm,

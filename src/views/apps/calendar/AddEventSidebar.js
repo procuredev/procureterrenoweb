@@ -78,8 +78,8 @@ const AddEventSidebar = props => {
     event.preventDefault()
 
     const modifiedEvent = {
-      //title: data.title,
-      //end: values.endDate,
+      title: data.title,
+      end: values.endDate,
       start: values.startDate,
       description: values.description
     }
@@ -266,7 +266,7 @@ const AddEventSidebar = props => {
                 }
               />
             </FormControl>
-           
+
             <TextField
               rows={4}
               multiline
