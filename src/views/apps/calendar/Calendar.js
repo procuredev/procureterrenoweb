@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 
 // ** Hooks
 import { useAuth } from 'src/context/FirebaseContext'
+import { useSnapshot } from 'src/hooks/useSnapshot'
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from '@fullcalendar/react'
@@ -15,6 +16,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import Icon from 'src/@core/components/icon'
 import FullScreenDialog from 'src/@core/components/dialog-fullsize'
 import { date } from 'yup'
+
 
 const blankEvent = {
   title: '',
@@ -31,19 +33,8 @@ const blankEvent = {
 }
 
 const Calendar = (props) => {
-
+  const data = useSnapshot()
   const auth = useAuth()
-  const [data, setData] = useState([]);
-  useEffect(() => {
-    async function fetch() {
-      const allDocs = await auth.getDocuments()
-      console.log(allDocs)
-      setData(allDocs)
-
-      return allDocs
-    }
-    fetch();
-  }, []);
 
 
   // ** Props

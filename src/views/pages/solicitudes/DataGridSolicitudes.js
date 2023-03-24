@@ -3,7 +3,8 @@ import { Fragment, useState, useEffect } from 'react'
 
 // ** Hooks
 import { useAuth } from 'src/context/FirebaseContext'
-
+import { Firebase, db } from 'src/configs/firebase'
+import { query, collection, onSnapshot } from 'firebase/firestore'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
@@ -22,22 +23,12 @@ import TableBasicSort from 'src/views/table/data-grid/TableBasicSort'
 import TableSelection from 'src/views/table/data-grid/TableSelection'
 import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 
+import { useSnapshot } from 'src/hooks/useSnapshot'
+
 const DataGrid = () => {
 
   const auth = useAuth()
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    async function fetch() {
-      const allDocs = await auth.getDocuments()
-      console.log(allDocs)
-      setData(allDocs)
-
-      return allDocs
-    }
-    fetch();
-  }, []);
-
+  const data = useSnapshot()
 
 
   return (

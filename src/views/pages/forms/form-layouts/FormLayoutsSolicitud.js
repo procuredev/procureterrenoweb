@@ -70,7 +70,14 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 }))
 
 const FormLayoutsSolicitud = () => {
-  //Imagen
+  const [values, setValues] = useState({
+    title: '',
+    start: '',
+    description: '',
+    area: '',
+    objective: '',
+    receiver: ''
+  })
 
   // ** State Solo para Image Uploader
   const [files, setFiles] = useState([])
@@ -151,24 +158,19 @@ const FormLayoutsSolicitud = () => {
 
   const handleSubmit = () => {
     //event.preventDefault();
-    auth.newDoc(title, date, area, objective, receiver, description)
-    setTitle('')
-    setDate('')
-    setArea('')
-    setObjective('')
-    setReceiver('')
-    setDescription('')
-    setFiles([])
+    auth.newDoc(values)
+    setValues({
+      title: '',
+      start: '',
+      description: '',
+      area: '',
+      objective: '',
+      receiver: ''
+    })
   }
 
   const [addUserOpen, setAddUserOpen] = useState(false)
 
-  const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
-  const [area, setArea] = useState('')
-  const [objective, setObjective] = useState('')
-  const [receiver, setReceiver] = useState('')
-  const [description, setDescription] = useState('')
 
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
 
@@ -181,25 +183,27 @@ const FormLayoutsSolicitud = () => {
           <Grid container spacing={5}>
             <Grid item xs={12}>
               <TextField
+                InputLabelProps={{ required: true }}
                 fullWidth type='text'
                 label='Título'
-                value={title}
-                onChange={() => setTitle(event.target.value)} />
+                value={values.title}
+                onChange={() => setValues({ ...values, title: event.target.value })} />
             </Grid>
             <Grid item xs={12}>
               <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha'
-                onChange={() => setDate(new Date (Number((event.srcElement.value).split('-')[0]),Number((event.srcElement.value).split('-')[1]-1),Number((event.srcElement.value).split('-')[2])))} />
+                onChange={() => setValues({ ...values, start: (new Date(Number((event.srcElement.value).split('-')[0]), Number((event.srcElement.value).split('-')[1] - 1), Number((event.srcElement.value).split('-')[2]))) })} />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel id='input-label-area'>Área</InputLabel>
                 <Select
+                  InputLabelProps={{ required: true }}
                   label='Área'
                   defaultValue=''
                   id='id-area'
                   labelId='labelId-area'
-                  value={area}
-                  onChange={() => setArea(event.target.dataset.value)}>
+                  value={values.area}
+                  onChange={() => setValues({ ...values, area: event.target.dataset.value })}>
                   <MenuItem value='2100'>2100</MenuItem>
                   <MenuItem value='3500'>3500</MenuItem>
                   <MenuItem value='3600'>3600</MenuItem>
@@ -219,12 +223,13 @@ const FormLayoutsSolicitud = () => {
               <FormControl fullWidth>
                 <InputLabel id='input-label-objetivo'>Objetivo</InputLabel>
                 <Select
+                  InputLabelProps={{ required: true }}
                   label='Objetivo'
                   defaultValue=''
                   id='id-objetivo'
                   labelId='labelId-objetivo'
-                  value={objective}
-                  onChange={() => setObjective(event.target.dataset.value)}>
+                  value={values.objective}
+                  onChange={() => setValues({ ...values, objective: event.target.dataset.value })}>
                   <MenuItem value='Sketch'>Sketch</MenuItem>
                   <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
                   <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
@@ -238,8 +243,9 @@ const FormLayoutsSolicitud = () => {
               <FormControl fullWidth>
                 <InputLabel id='input-label-destinatario'>Destinatario</InputLabel>
                 <Select
-                  value={receiver}
-                  onChange={() => setReceiver(event.target.dataset.value)}
+                  InputLabelProps={{ required: true }}
+                  value={values.receiver}
+                  onChange={() => setValues({ ...values, receiver: event.target.dataset.value })}
                   label='Destinatario'
                   defaultValue=''
                   id='id-destinatario'
@@ -263,11 +269,12 @@ const FormLayoutsSolicitud = () => {
               <FormControl fullWidth>
 
                 <TextField
+                  InputLabelProps={{ required: true }}
                   fullWidth
                   type='Text'
                   label='Descripción'
-                  value={description}
-                  onChange={() => setDescription(event.target.value)}
+                  value={values.description}
+                  onChange={() => setValues({ ...values, description: event.target.value })}
 
                 //placeholder='carterleonard@gmail.com'
                 //helperText='You can use letters, numbers & periods'
@@ -280,7 +287,7 @@ const FormLayoutsSolicitud = () => {
                   <div {...getRootProps({ className: 'dropzone' })}>
                     <input {...getInputProps()} />
                     <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
-                    <Icon icon='mdi:file-document-outline' />
+                      <Icon icon='mdi:file-document-outline' />
                       <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: ['center', 'center', 'inherit'] }}>
                         <HeadingTypography variant='h5'>Subir archivos</HeadingTypography>
                         <Typography color='textSecondary'>

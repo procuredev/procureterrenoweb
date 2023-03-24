@@ -1,7 +1,7 @@
 import "firebase/compat/firestore";
 import { useState, useEffect } from 'react'
 import { Firebase, db } from 'src/configs/firebase'
-import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, querySnapShot, updateDoc, where, FieldValue,dataObject, arrayUnion} from "firebase/firestore";
+import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
 
 // ** Next Imports
 import Head from 'next/head'
@@ -23,7 +23,7 @@ const useFirebaseAuth = () => {
 
   const router = useRouter()
 
-// Observador estado logueado
+  // Observador estado logueado
 
   const authStateChanged = async authState => {
     if (!authState) {
@@ -68,18 +68,18 @@ const useFirebaseAuth = () => {
 
 
   // Escribe documentos en Firestore Database
-  const newDoc = async (title, date, area, objective, receiver, description) => {
+  const newDoc = async (values) => {
     const user = Firebase.auth().currentUser
     if (user !== null) {
       const docRef = await addDoc(collection(db, 'solicitudes'), {
         //name: user.displayName,
-        title,
+        title:values.title,
         user: user.email,
-        start: date,
-        area,
-        objective,
-        receiver,
-        description,
+        start: values.start,
+        area:values.area,
+        objective:values.objective,
+        receiver:values.receiver,
+        description:values.description,
         date: Timestamp.fromDate(new Date()),
         uid: user.uid,
 
@@ -108,18 +108,17 @@ const useFirebaseAuth = () => {
   }, [authUser, router])
 
   // Get docs - Consulta documentos db
-  const getDocuments = async () => {
-    const querySnapshot = await getDocs(collection(db, "solicitudes"));
-    const allDocs = [];
-    querySnapshot.forEach((doc) => {
+  const getDocuments =  () => {
 
-      // doc.data() is never undefined for query doc snapshots
-      //console.log(doc.id, " => ", doc.data());
-      allDocs.push({ ...doc.data(), id: doc.id });
+    const q = query(collection(db, "solicitudes"));
+    onSnapshot(q, (querySnapshot) => {
+      const allDocs = [];
+      querySnapshot.forEach((doc) => {
+        allDocs.push({...doc.data(), id:doc.id});
     });
 
-    return allDocs;
-  };
+return allDocs
+  })};
 
   // Modifica estado documentos
 
@@ -128,12 +127,12 @@ const useFirebaseAuth = () => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref);
     const prevState = querySnapshot.data().state;
-    const newState = approves ? prevState+1 : 0;
+    const newState = approves ? prevState + 1 : 0;
 
     //const newState = prevState+1
 
     //Guarda estado anterior, autor y fecha modificación
-    const newEvent = {prevState, newState, author: Firebase.auth().currentUser.email, date:Timestamp.fromDate(new Date())}
+    const newEvent = { prevState, newState, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
 
     await updateDoc(ref, {
       events: arrayUnion(newEvent),
@@ -148,7 +147,7 @@ const useFirebaseAuth = () => {
 
     //save previous version?
     const prevDoc = querySnapshot.data();
-    const newEvent = {prevDoc, author: Firebase.auth().currentUser.email, date:Timestamp.fromDate(new Date())}
+    const newEvent = { prevDoc, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
     await updateDoc(ref, obj);
   }
 

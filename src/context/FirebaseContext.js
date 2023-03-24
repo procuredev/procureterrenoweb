@@ -13,7 +13,6 @@ const authUserContext = createContext({
   signInWithEmailAndPassword: async () => Promise.resolve(),
   createUserWithEmailAndPassword: async () => Promise.resolve(),
   newDoc: async () => Promise.resolve,
-  getDocuments: async () => Promise.resolve(),
   reviewDocs: async () => Promise.resolve(),
   updateDocs: async () => Promise.resolve(),
 
