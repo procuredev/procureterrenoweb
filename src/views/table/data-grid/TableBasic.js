@@ -70,7 +70,6 @@ const TableBasic = (rows) => {
       headerName: 'Solicitud',
       flex: 0.8,
       minWidth: 150,
-      editable: true,
       renderCell: params => {
         const { row } = params
 
@@ -92,6 +91,7 @@ const TableBasic = (rows) => {
     {
       field: 'state',
       headerName: 'Estado',
+      minWidth: 110,
       flex: 0.4,
       renderCell: params => {
         const { row } = params
@@ -108,30 +108,53 @@ const TableBasic = (rows) => {
       }
     },
     {
-      field: 'area',
-      headerName: 'Area',
-      flex: 0.3,
-      editable: true,
-    },
-    {
-      field: 'user',
-      headerName: 'Autor',
-      flex: 0.7,
-      editable: true,
-    },
-    {
       field: 'start',
-      headerName: 'Fecha',
-      flex: 0.5,
-      editable: true,
+      headerName: 'Inicio',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const {row} = params
 
         return(<div>
-          {unixToDate(row.date.seconds)}
+          {unixToDate(row.start.seconds)[0]}
         </div>
           )
       }
+    },
+    {
+      field: 'end',
+      headerName: 'Término',
+      flex: 0.4,
+      minWidth: 120,
+      renderCell: params => {
+        const {row} = params
+
+        return(<div>
+          {(row.end&&unixToDate(row.end.seconds)[0])||'No Definido'}
+        </div>
+          )
+      }
+    },
+    {
+      field: 'ot',
+      headerName: 'OT',
+      flex: 0.3,
+      minWidth: 80,
+      renderCell: params => {
+        const {row} = params
+
+        return(<div>
+          {row.ot||'N/A'}
+        </div>
+          )
+      }
+
+    },
+    {
+      field: 'user',
+      headerName: 'Autor',
+      flex: 0.6,
+      minWidth: 120,
     },
     {
       flex: 0.3,
@@ -163,10 +186,9 @@ const TableBasic = (rows) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid hideFooterSelectedRowCount rows={rows.rows} columns={columns} columnVisibilityModel={{
-          receiver: md,
-          area: false,
-          user: sm,
-          start: sm,
+          ot: md,
+          user: md,
+          end: sm,
         }} />
         <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback}></AlertDialog>
         <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />
