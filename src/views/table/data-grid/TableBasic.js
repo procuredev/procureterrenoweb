@@ -100,8 +100,8 @@ const TableBasic = (rows) => {
 
           <CustomChip
             size='small'
-            color={dictionary[row.state].color}
-            label={dictionary[row.state].title}
+            color={dictionary[row.state?row.state:100].color}
+            label={dictionary[row.state?row.state:100].title}
             sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )
