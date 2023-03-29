@@ -127,6 +127,8 @@ const UserDropdown = props => {
           </Box>
         </Box>
         <Divider sx={{ mt: '0 !important' }} />
+
+{/*
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
@@ -165,6 +167,8 @@ const UserDropdown = props => {
           </Box>
         </MenuItem>
         <Divider />
+            */}
+
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
