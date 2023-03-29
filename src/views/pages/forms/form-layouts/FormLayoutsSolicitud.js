@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 
 // ** Hooks
 import { useAuth } from 'src/context/FirebaseContext'
+import { useRouter } from 'next/router'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -81,6 +82,7 @@ const FormLayoutsSolicitud = () => {
     receiver: ''
   })
   const [plants,setPlants] = useState([])
+  const router = useRouter()
 
   const findAreas = (plant) => {
     setPlants(areas.find((obj)=>  obj.name === plant))
@@ -251,11 +253,12 @@ const FormLayoutsSolicitud = () => {
             <Grid item xs={12}>
               <Typography sx={{ mr: 2 }}>
                 ¿No sabe en qué área está? {`  `}
-                <Link target='_blank' href='/mapa-escondida'>
-                  Haga click acá para saber
+                <Link onClick={()=>router.replace('/mapa/')}>
+                    Haga clic acá para saber
                 </Link>
               </Typography>
             </Grid>
+
 
             {/* Box con tipo de operación y sap */}
             <Grid item xs={12}>
