@@ -282,7 +282,7 @@ const FormLayoutsSolicitud = () => {
               onChange={e => setValues({ ...values, ot: e.target.value })}
               label="SAP"
               id="sap-input"
-              defaultValue='Asignar SAP'
+              defaultValue='Número SAP'
             />
             </FormControl>
             </Box>
