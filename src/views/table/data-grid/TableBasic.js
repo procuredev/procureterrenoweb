@@ -95,13 +95,14 @@ const TableBasic = (rows) => {
       flex: 0.4,
       renderCell: params => {
         const { row } = params
-
+        let state = typeof row.state === 'number' ? row.state : 100
+        
         return (
 
           <CustomChip
             size='small'
-            color={dictionary[row.state?row.state:100].color}
-            label={dictionary[row.state?row.state:100].title}
+            color={dictionary[state].color}
+            label={dictionary[state].title}
             sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )

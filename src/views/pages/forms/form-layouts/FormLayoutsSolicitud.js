@@ -85,9 +85,10 @@ const FormLayoutsSolicitud = () => {
   const router = useRouter()
 
   const findAreas = (plant) => {
-    setPlants(areas.find((obj)=>  obj.name === plant))
+      let setOfAreas = (areas.find((obj)=>  obj.name === plant)).allAreas
+      let areaNames = setOfAreas.map((element)=>Object.values(element).toString())
+      setPlants(Object.values(areaNames))
   }
-
 
   // ** State Solo para Image Uploader
   const [files, setFiles] = useState([])
@@ -215,7 +216,7 @@ const FormLayoutsSolicitud = () => {
                 <Select
                   InputLabelProps={{ required: true }}
                   label='Plant'
-                  defaultValue=''
+                  defaultValue='...'
                   id='id-plant'
                   labelId='labelId-plant'
                   value={values.plant}
@@ -240,10 +241,7 @@ const FormLayoutsSolicitud = () => {
                   value={values.area}
                   onChange={() => setValues({ ...values, area: event.target.dataset.value })}>
 
-                  {plants.allAreas ? (Object.values(plants.allAreas)).map(a=>{ console.log(a);
-                    let val = Object.values(a)
-
-                    return(<MenuItem key={val} value={val}>{val}</MenuItem>)}):null}
+                  {(plants.map(plant=>{return(<MenuItem key={plant} value={plant}>{plant}</MenuItem>)}))}
 
                 </Select>
               </FormControl>
@@ -369,11 +367,11 @@ const FormLayoutsSolicitud = () => {
                 <Fragment>
                   <div {...getRootProps({ className: 'dropzone' })}>
                     <input {...getInputProps()} />
-                    <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
-                      <Icon icon='mdi:file-document-outline' />
-                      <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: ['center', 'center', 'inherit'] }}>
+                    <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center', margin:'auto'}}>
+                      <Box sx={{pl:2, display: 'flex', flexDirection: 'column', alignItems: ['center'] ,  margin:'auto'}}>
                         <HeadingTypography variant='h5'>Subir archivos</HeadingTypography>
-                        <Typography color='textSecondary'>
+                        <Icon icon='mdi:file-document-outline' />
+                        <Typography sx={{mt:5}} color='textSecondary'>
                           Arrastra las imágenes acá o{' '}
                           <Link onClick={() => handleLinkClick}>
                             haz click acá
