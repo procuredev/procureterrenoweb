@@ -4,6 +4,9 @@ import IconButton from '@mui/material/IconButton'
 import GpsFixed from '@mui/icons-material/GpsFixed'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import FormGroup from '@mui/material/FormGroup'
+import Grid from '@mui/material/Grid'
+import Box from '@mui/material/Box'
 import ReactDOM from 'react-dom'
 
 const apiKey = 'AIzaSyC1XlvMbqs2CN_BWXFtk4BPwYWwD29cVww'
@@ -20,6 +23,7 @@ const plantas = [
     nombre: 'Los Colorados',
     color: '#FF0000',
     centro: { lat: -24.2625, lng: -69.059 },
+    zoom: 17,
     areas: [
       {
         paths: [
@@ -52,8 +56,9 @@ const plantas = [
   },
   {
     nombre: 'Laguna Seca 1',
-    color: '#FF0000',
+    color: '#00FF00',
     centro: { lat: -24.3429, lng: -69.064 },
+    zoom: 16,
     areas: [
       {
         paths: [
@@ -79,6 +84,7 @@ const plantas = [
     nombre: 'Laguna Seca 2',
     color: '#0000FF',
     centro: { lat: -24.345134, lng: -69.063545 },
+    zoom: 16,
     areas: [
       {
         paths: [
@@ -102,8 +108,9 @@ const plantas = [
   },
   {
     nombre: 'Chancado y Correas',
-    color: '#FF0000',
+    color: '#F0F000',
     centro: { lat: -24.272899, lng: -69.050887 },
+    zoom: 15,
     areas: [
       {
         paths: [
@@ -119,8 +126,9 @@ const plantas = [
   },
   {
     nombre: 'Puerto Coloso',
-    color: '#FF0000',
+    color: '#F0F0F0',
     centro: { lat: -23.7627, lng: -70.468 },
+    zoom: 16,
     areas: [
       {
         paths: [
@@ -138,8 +146,9 @@ const plantas = [
   },
   {
     nombre: 'Catodos',
-    color: '#FF0000',
+    color: '#61DFF2',
     centro: { lat: -24.234813, lng: -69.128289 },
+    zoom: 15,
     areas: [
       {
         paths: [
@@ -182,9 +191,10 @@ class Map extends Component {
     super(props)
     this.state = {
       position: { lat: -24.261986, lng: -69.060333 },
+      zoom: 13,
       showInfoWindow: false,
       infoWindowPosition: null,
-      plantasVisible: Array(plantas.length).fill(false),
+      plantasVisible: Array(plantas.length).fill(true),
       userLocation: null
     }
     this.handlePolygonClick = this.handlePolygonClick.bind(this)
@@ -216,7 +226,10 @@ class Map extends Component {
       },
       () => {
         if (this.state.plantasVisible[index]) {
-          this.setState({ position: plantas[index].centro })
+          this.setState({
+            position: plantas[index].centro,
+            zoom: plantas[index].zoom // Agregamos el valor de zoom al estado
+          })
         }
       }
     )
@@ -260,41 +273,36 @@ class Map extends Component {
     return (
       <LoadScript googleMapsApiKey={apiKey}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div
-            style={{
-              padding: '5px',
-              borderRadius: '0px',
-              marginRight: '0px',
-              marginBottom: '5px'
-            }}
-          >
-            {plantas.map((planta, index) => (
-              <div key={index}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={this.state.plantasVisible[index]}
-                      onChange={() => this.togglePlantaVisibility(index)}
-                      sx={{
-                        '& .MuiSvgIcon-root': {
-                          width: '0.8em', // Cambia el tamaño de la casilla aquí
-                          height: '0.8em' // Cambia el tamaño de la casilla aquí
-                        }
-                      }}
-                    />
-                  }
-                  label={planta.nombre}
-                  sx={{
-                    fontSize: '0.8rem' // Cambia el tamaño de la letra aquí
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+          <FormGroup row>
+            <Grid container spacing={0}>
+              {plantas.map((planta, index) => (
+                <Grid item xs={4} key={index}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={this.state.plantasVisible[index]}
+                        onChange={() => this.togglePlantaVisibility(index)}
+                        sx={{
+                          '& .MuiSvgIcon-root': {
+                            width: '0.8em', // Cambia el tamaño de la casilla aquí
+                            height: '0.8em' // Cambia el tamaño de la casilla aquí
+                          }
+                        }}
+                      />
+                    }
+                    label={planta.nombre}
+                    sx={{
+                      fontSize: '0.8rem' // Cambia el tamaño de la letra aquí
+                    }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </FormGroup>
           <GoogleMap
             mapContainerStyle={{ height: '700px', width: '100%' }}
             center={this.state.position}
-            zoom={13}
+            zoom={this.state.zoom}
             mapTypeId='satellite'
             onLoad={this.addLocationButton.bind(this)}
             onClick={this.handleMapClick.bind(this)}
@@ -343,9 +351,7 @@ class Map extends Component {
 
 export default Map
 
-/*
-Map.acl = {
+/*Map.acl = {
   action: 'manage',
   subject: 'mapa'
-}
-*/
+}*/
