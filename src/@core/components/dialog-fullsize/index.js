@@ -147,7 +147,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
               size="small"
               sx={{ mb: 5, mr: 2, flex: 'auto' }}
             /></Box> : <Typography sx={{ mb: 4 }} color="textSecondary">
-            Área {area} | Fecha de inicio: {start && unixToDate(start.seconds)}
+            Área {area} | Fecha de inicio: {start && unixToDate(start.seconds)[0]}
           </Typography>}
 
           {editable && <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>

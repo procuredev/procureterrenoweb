@@ -86,7 +86,7 @@ const FormLayoutsSolicitud = () => {
 
   const findAreas = (plant) => {
       let setOfAreas = (areas.find((obj)=>  obj.name === plant)).allAreas
-      let areaNames = setOfAreas.map((element)=>Object.values(element).toString())
+      let areaNames = setOfAreas.map((element)=>Object.keys(element).toString() + ' - ' + Object.values(element).toString())
       setPlants(Object.values(areaNames))
   }
 
