@@ -17,7 +17,7 @@ import DocStates from 'src/views/dashboard/DocStates'
 
 const Home = () => {
   return (
-    <Grid container spacing={6} alignItems="stretch" className='match-height' sx={{display:'flex', flexDirection:'column'}}>
+    <Grid container spacing={6} alignItems="stretch" className='match-height' sx={{display:'flex'}}>
       <Grid item height='auto' xs={12} sm={4}>
         <ProfileCard />
       </Grid>
