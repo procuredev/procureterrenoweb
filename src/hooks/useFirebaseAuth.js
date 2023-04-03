@@ -1,5 +1,5 @@
-import "firebase/compat/firestore";
 import { useState, useEffect } from 'react'
+import { updateProfile } from "firebase/auth";
 import { Firebase, db } from 'src/configs/firebase'
 import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
 
@@ -11,7 +11,9 @@ import { DataSaverOn } from '@mui/icons-material';
 const formatAuthUser = user => {
   return {
     uid: user.uid,
-    email: user.email
+    email: user.email,
+    displayName: user.displayName,
+    pfp: user.photoURL
   }
 }
 
@@ -151,6 +153,23 @@ return allDocs
     await updateDoc(ref, obj);
   }
 
+// Actualiza datos usuario
+
+const updateUser = () =>{
+updateProfile(Firebase.auth().currentUser, {
+  //hardcoded pero pueden -deben- pasársele argumentos
+    displayName: "Pamela Carrizo", photoURL: "https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/PC.png"
+  }).then(() => {
+    console.log(Firebase.auth().currentUser)
+
+    // Profile updated!
+    // ...
+  }).catch((error) => {
+    // An error occurred
+    // ...
+  });
+}
+
 
   return {
     loading,
@@ -161,7 +180,8 @@ return allDocs
     newDoc,
     getDocuments,
     reviewDocs,
-    updateDocs
+    updateDocs,
+    updateUser
   }
 }
 

@@ -68,7 +68,7 @@ const LoginIllustration = styled('img')(({ theme }) => ({
 const RightWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
   [theme.breakpoints.down('sm')]: {
-  margin:20
+    margin: 20
   },
   [theme.breakpoints.up('sm')]: {
     maxWidth: 400
@@ -84,7 +84,7 @@ const BoxWrapper = styled(Box)(({ theme }) => ({
 
 const TypographyStyled = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
-  textAlign:'center',
+  textAlign: 'center',
   letterSpacing: '0.18px',
   marginBottom: theme.spacing(1.5),
   [theme.breakpoints.down('md')]: { marginTop: theme.spacing(8) }
@@ -149,11 +149,11 @@ const LoginPage = () => {
   return (
     <Box className='content-right'>
 
-      <RightWrapper sx={{ margin:'auto'}}>
+      <RightWrapper sx={{ margin: 'auto' }}>
         <Paper
-        elevation={9}
+          elevation={9}
           sx={{
-            margin:'auto',
+            margin: 'auto',
             p: 7,
             height: '100%',
             display: 'flex',
@@ -165,9 +165,9 @@ const LoginPage = () => {
           <BoxWrapper>
 
             <Box sx={{ mb: 6 }}>
-            <Box sx={{ display:'flex',flexDirection:'column' , alignItems:'center'}}>
-              <Box component='img'  sx={{ width: '60%' }} src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png' />
-              <TypographyStyled sx={{mt:5, mb:5}} variant='h7'>{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box component='img' sx={{ width: '60%' }} src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png' />
+                <TypographyStyled sx={{ mt: 5, mb: 5 }} variant='h7'>{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
               </Box>
               <Typography variant='body2'>Iniciar sesión</Typography>
             </Box>

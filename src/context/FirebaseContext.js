@@ -15,6 +15,7 @@ const authUserContext = createContext({
   newDoc: async () => Promise.resolve,
   reviewDocs: async () => Promise.resolve(),
   updateDocs: async () => Promise.resolve(),
+  updateUser: async () => Promise.resolve()
 
 })
 

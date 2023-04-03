@@ -75,7 +75,7 @@ const UserDropdown = props => {
     handleDropdownClose()
   }
 
-  let username = (authUser === null) ? 'not logged' : authUser.email
+  let username = (authUser === null) ? 'not logged' : authUser.displayName
 
 
 
@@ -85,7 +85,7 @@ const UserDropdown = props => {
         overlap='circular'
         onClick={handleDropdownOpen}
         sx={{ ml: 2, cursor: 'pointer' }}
-        badgeContent={<BadgeContentSpan />}
+       
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right'
@@ -95,7 +95,7 @@ const UserDropdown = props => {
           alt='John Doe'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
+          src={authUser.pfp}
         />
       </Badge>
       <Menu
@@ -108,20 +108,13 @@ const UserDropdown = props => {
       >
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Badge
-              overlap='circular'
-              badgeContent={<BadgeContentSpan />}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right'
-              }}
-            >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
-            </Badge>
+
+              <Avatar alt='Profile picture' src={authUser.pfp} sx={{ width: '2.5rem', height: '2.5rem' }} />
+
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{username}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+                Contract Owner
               </Typography>
             </Box>
           </Box>
