@@ -69,18 +69,18 @@ const TableBasic = (rows) => {
       field: 'title',
       headerName: 'Solicitud',
       flex: 0.8,
-      minWidth: 150,
+      minWidth: 220,
       renderCell: params => {
         const { row } = params
 
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ overflow:'hidden', display: 'flex', alignItems: 'center' }}>
             <IconButton onClick={() => handleClickOpen(row)}>
               <OpenInNewOutlined sx={{ fontSize: 18 }} />
             </IconButton>
 
 
-            <Typography noWrap variant='string'>
+            <Typography variant='string'>
               {row.title}
             </Typography>
 
@@ -91,21 +91,35 @@ const TableBasic = (rows) => {
     {
       field: 'state',
       headerName: 'Estado',
-      minWidth: 110,
+      minWidth: 120,
       flex: 0.4,
       renderCell: params => {
         const { row } = params
         let state = typeof row.state === 'number' ? row.state : 100
-        
+
         return (
 
           <CustomChip
             size='small'
             color={dictionary[state].color}
             label={dictionary[state].title}
-            sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
+            sx={{'& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )
+      }
+    },
+    {
+      field: 'date',
+      headerName: 'Creación',
+      flex: 0.4,
+      minWidth: 90,
+      renderCell: params => {
+        const {row} = params
+
+        return(<div>
+          {unixToDate(row.date.seconds)[0]}
+        </div>
+          )
       }
     },
     {
@@ -124,14 +138,14 @@ const TableBasic = (rows) => {
     },
     {
       field: 'end',
-      headerName: 'Término',
+      headerName: 'Entrega',
       flex: 0.4,
-      minWidth: 120,
+      minWidth: 90,
       renderCell: params => {
         const {row} = params
 
         return(<div>
-          {(row.end&&unixToDate(row.end.seconds)[0])||'No Definido'}
+          {(row.end&&unixToDate(row.end.seconds)[0])||'Pendiente'}
         </div>
           )
       }
@@ -140,7 +154,7 @@ const TableBasic = (rows) => {
       field: 'ot',
       headerName: 'OT',
       flex: 0.3,
-      minWidth: 80,
+      minWidth:50,
       renderCell: params => {
         const {row} = params
 
@@ -189,7 +203,6 @@ const TableBasic = (rows) => {
         <DataGrid hideFooterSelectedRowCount rows={rows.rows} columns={columns} columnVisibilityModel={{
           ot: md,
           user: md,
-          end: sm,
         }} />
         <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback}></AlertDialog>
         <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />

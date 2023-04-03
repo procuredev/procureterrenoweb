@@ -17,20 +17,20 @@ import DocStates from 'src/views/dashboard/DocStates'
 
 const Home = () => {
   return (
-    <Grid container spacing={6} alignItems="stretch" className='match-height'>
-      <Grid item height='auto' xs={4}>
+    <Grid container spacing={6} alignItems="stretch" className='match-height' sx={{display:'flex', flexDirection:'column'}}>
+      <Grid item height='auto' xs={12} sm={4}>
         <ProfileCard />
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={12} sm={4}>
         <DocsByDay />
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={12} sm={4}>
         <DocStates />
       </Grid>
-      <Grid item xs={6}>
+      <Grid item xs={12} sm={6}>
         <ShowMap />
       </Grid>
-      <Grid item xs={6}>
+      <Grid item xs={12} sm={6}>
       <CardStatisticsVertical
                 stats='18 solicitudes'
                 color='success'
