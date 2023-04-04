@@ -76,7 +76,7 @@ const UserDropdown = props => {
   }
 
   let username = (authUser === null) ? 'not logged' : authUser.displayName
-
+  let pfp = (authUser === null) ? 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg' : authUser.pfp
 
 
   return (
@@ -85,17 +85,17 @@ const UserDropdown = props => {
         overlap='circular'
         onClick={handleDropdownOpen}
         sx={{ ml: 2, cursor: 'pointer' }}
-       
+
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right'
         }}
       >
         <Avatar
-          alt='John Doe'
+          alt='Profile picture'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src={authUser.pfp}
+          src={pfp}
         />
       </Badge>
       <Menu
@@ -109,7 +109,7 @@ const UserDropdown = props => {
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
 
-              <Avatar alt='Profile picture' src={authUser.pfp} sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt='Profile picture' src={pfp} sx={{ width: '2.5rem', height: '2.5rem' }} />
 
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{username}</Typography>
@@ -167,7 +167,7 @@ const UserDropdown = props => {
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
         >
           <Icon icon='mdi:logout-variant' />
-          Logout
+         Salir
         </MenuItem>
       </Menu>
     </Fragment>

@@ -5,9 +5,11 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from 'src/context/FirebaseContext'
 
 import dictionary from 'src/@core/components/dictionary/index'
-import {unixToDate} from 'src/@core/components/unixToDate'
+import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Grow from '@mui/material/Grow';
 import CustomChip from 'src/@core/components/mui/chip'
 import { Typography, IconButton } from '@mui/material';
 import { Button } from '@mui/material';
@@ -22,19 +24,17 @@ import { Container } from '@mui/system';
 import AlertDialog from 'src/@core/components/dialog-warning';
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize';
 import { Check, Clear, Edit } from '@mui/icons-material';
-import { use } from 'i18next';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
 
 const TableBasic = (rows) => {
+  const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [doc, setDoc] = useState('');
   const [approve, setApprove] = useState(true);
   const auth = useAuth();
-
-  //set id as state: done
-  //find id in data aka rows
-  //render only id data
-
 
   const handleClickOpen = (doc) => {
     setDoc(doc)
@@ -64,6 +64,7 @@ const TableBasic = (rows) => {
   const sm = useMediaQuery(theme.breakpoints.up('sm'));
   const md = useMediaQuery(theme.breakpoints.up('md'));
 
+
   const columns = [
     {
       field: 'title',
@@ -74,7 +75,7 @@ const TableBasic = (rows) => {
         const { row } = params
 
         return (
-          <Box sx={{ overflow:'hidden', display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
             <IconButton onClick={() => handleClickOpen(row)}>
               <OpenInNewOutlined sx={{ fontSize: 18 }} />
             </IconButton>
@@ -103,7 +104,7 @@ const TableBasic = (rows) => {
             size='small'
             color={dictionary[state].color}
             label={dictionary[state].title}
-            sx={{'& .MuiChip-label': { textTransform: 'capitalize' } }}
+            sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )
       }
@@ -114,12 +115,12 @@ const TableBasic = (rows) => {
       flex: 0.4,
       minWidth: 90,
       renderCell: params => {
-        const {row} = params
+        const { row } = params
 
-        return(<div>
+        return (<div>
           {unixToDate(row.date.seconds)[0]}
         </div>
-          )
+        )
       }
     },
     {
@@ -128,12 +129,12 @@ const TableBasic = (rows) => {
       flex: 0.4,
       minWidth: 90,
       renderCell: params => {
-        const {row} = params
+        const { row } = params
 
-        return(<div>
+        return (<div>
           {unixToDate(row.start.seconds)[0]}
         </div>
-          )
+        )
       }
     },
     {
@@ -142,26 +143,26 @@ const TableBasic = (rows) => {
       flex: 0.4,
       minWidth: 90,
       renderCell: params => {
-        const {row} = params
+        const { row } = params
 
-        return(<div>
-          {(row.end&&unixToDate(row.end.seconds)[0])||'Pendiente'}
+        return (<div>
+          {(row.end && unixToDate(row.end.seconds)[0]) || 'Pendiente'}
         </div>
-          )
+        )
       }
     },
     {
       field: 'ot',
       headerName: 'OT',
       flex: 0.3,
-      minWidth:50,
+      minWidth: 50,
       renderCell: params => {
-        const {row} = params
+        const { row } = params
 
-        return(<div>
-          {row.ot||'N/A'}
+        return (<div>
+          {row.ot || 'N/A'}
         </div>
-          )
+        )
       }
 
     },
@@ -181,15 +182,36 @@ const TableBasic = (rows) => {
 
         return (
           <>
-            <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+            {sm ? <> <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
               <Check sx={{ fontSize: 18 }} />
             </Button>
-            <Button onClick={() => handleClickOpen(row)}variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
-              <Edit sx={{ fontSize: 18 }} />
-            </Button>
-            <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
-              <Clear sx={{ fontSize: 18 }} />
-            </Button>
+              <Button onClick={() => handleClickOpen(row)} variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                <Edit sx={{ fontSize: 18 }} />
+              </Button>
+              <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                <Clear sx={{ fontSize: 18 }} />
+              </Button></> : <>
+              <ClickAwayListener mouseEvent="onMouseDown" touchEvent="onTouchStart" onClickAway={() => { setOptions('') }}>
+                <Button onClick={() => {
+                  setOptions(row.title)
+                }} variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                  ...
+                </Button>
+              </ClickAwayListener>
+              <Grow in={options === row.title} >
+                <div>
+                  <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                    <Check sx={{ fontSize: 18 }} />
+                  </Button>
+                  <Button onClick={() => handleClickOpen(row)} variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                    <Edit sx={{ fontSize: 18 }} />
+                  </Button>
+                  <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                    <Clear sx={{ fontSize: 18 }} />
+                  </Button>
+                </div>
+              </Grow></>
+            }
           </>
         )
       }
