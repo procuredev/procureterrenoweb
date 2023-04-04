@@ -74,8 +74,8 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState({
     title: '',
-    author:'Jorge Acuña - +569 1234 5678',
-    counterpart: 'Oscar Rivera - +569 3456 7890',
+    author:'',
+    counterpart: '',
     start: '',
     description: '',
     area: '',
@@ -205,44 +205,6 @@ const FormLayoutsSolicitud = () => {
                 onChange={() => setValues({ ...values, title: event.target.value })} />
             </Grid>
 
-            {/* Solicitante - nombre + num */}
-
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
-                <Select
-                  InputLabelProps={{ required: true }}
-                  value={values.author}
-                  onChange={() => setValues({ ...values, author: event.target.dataset.value })}
-                  label='Solicitante'
-                  id='id-solicitante'
-                  labelId='labelId-solicitante'>
-                  <MenuItem selected value='Jorge Acuña - +569 1234 5678'>
-                    Jorge Acuña - +569 1234 5678
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Contraturno del solicitante - nombre + num */}
-
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
-                <Select
-                  InputLabelProps={{ required: true }}
-                  value={values.counterpart}
-                  onChange={() => setValues({ ...values, counterpart: event.target.dataset.value })}
-                  label='Contraturno del solicitante'
-                  id='id-contraturno'
-                  labelId='labelId-contraturno'>
-                  <MenuItem selected value='Oscar Rivera - +569 3456 7890'>
-                    Oscar Rivera - +569 3456 7890
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha'
@@ -283,6 +245,44 @@ const FormLayoutsSolicitud = () => {
 
                   {(plants.map(plant=>{return(<MenuItem key={plant} value={plant}>{plant}</MenuItem>)}))}
 
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Solicitante - nombre + num */}
+
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
+                <Select
+                  InputLabelProps={{ required: true }}
+                  value={values.author}
+                  onChange={() => setValues({ ...values, author: event.target.dataset.value })}
+                  label='Solicitante'
+                  id='id-solicitante'
+                  labelId='labelId-solicitante'>
+                  <MenuItem value='Jorge Acuña - +569 1234 5678'>
+                    Jorge Acuña - +569 1234 5678
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Contraturno del solicitante - nombre + num */}
+
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
+                <Select
+                  InputLabelProps={{ required: true }}
+                  value={values.counterpart}
+                  onChange={() => setValues({ ...values, counterpart: event.target.dataset.value })}
+                  label='Contraturno del solicitante'
+                  id='id-contraturno'
+                  labelId='labelId-contraturno'>
+                  <MenuItem value='Oscar Rivera - +569 3456 7890'>
+                    Oscar Rivera - +569 3456 7890
+                  </MenuItem>
                 </Select>
               </FormControl>
             </Grid>
