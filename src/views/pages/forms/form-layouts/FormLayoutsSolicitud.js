@@ -208,23 +208,39 @@ const FormLayoutsSolicitud = () => {
             {/* Solicitante - nombre + num */}
 
             <Grid item xs={12}>
-              <TextField
-                InputLabelProps={{ required: true }}
-                fullWidth type='text'
-                label='Solicitante'
-                value={values.author}
-                onChange={() => setValues({ ...values, author: event.target.value })} />
+              <FormControl fullWidth>
+                <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
+                <Select
+                  InputLabelProps={{ required: true }}
+                  value={values.author}
+                  onChange={() => setValues({ ...values, author: event.target.dataset.value })}
+                  label='Solicitante'
+                  id='id-solicitante'
+                  labelId='labelId-solicitante'>
+                  <MenuItem selected value='Jorge Acuña - +569 1234 5678'>
+                    Jorge Acuña - +569 1234 5678
+                  </MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
 
             {/* Contraturno del solicitante - nombre + num */}
 
             <Grid item xs={12}>
-              <TextField
-
-                fullWidth type='text'
-                label='Contraturno del solicitante'
-                value={values.counterpart}
-                onChange={() => setValues({ ...values, counterpart: event.target.value })} />
+              <FormControl fullWidth>
+                <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
+                <Select
+                  InputLabelProps={{ required: true }}
+                  value={values.counterpart}
+                  onChange={() => setValues({ ...values, counterpart: event.target.dataset.value })}
+                  label='Contraturno del solicitante'
+                  id='id-contraturno'
+                  labelId='labelId-contraturno'>
+                  <MenuItem selected value='Oscar Rivera - +569 3456 7890'>
+                    Oscar Rivera - +569 3456 7890
+                  </MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
 
             {/* Fecha inicio */}
@@ -340,15 +356,15 @@ const FormLayoutsSolicitud = () => {
             {/*Entregables */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='input-label-objetivo'>Entregables del levantamiento</InputLabel>
+                <InputLabel id='input-label-entregable'>Entregables del levantamiento</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
                   label='Entregables del levantamiento'
                   defaultValue=''
-                  id='id-objetivo'
-                  labelId='labelId-objetivo'
-                  value={values.objective}
-                  onChange={() => setValues({ ...values, objective: event.target.dataset.value })}>
+                  id='id-entregable'
+                  labelId='labelId-entregable'
+                  value={values.deliverable}
+                  onChange={() => setValues({ ...values, deliverable: event.target.dataset.value })}>
                     <MenuItem value='Sketch'>Sketch</MenuItem>
                   <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
                   <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
