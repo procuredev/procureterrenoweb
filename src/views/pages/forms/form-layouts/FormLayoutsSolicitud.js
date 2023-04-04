@@ -74,6 +74,8 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState({
     title: '',
+    author:'Jorge Acuña - +569 1234 5678',
+    counterpart: 'Oscar Rivera - +569 3456 7890',
     start: '',
     description: '',
     area: '',
@@ -203,6 +205,28 @@ const FormLayoutsSolicitud = () => {
                 onChange={() => setValues({ ...values, title: event.target.value })} />
             </Grid>
 
+            {/* Solicitante - nombre + num */}
+
+            <Grid item xs={12}>
+              <TextField
+                InputLabelProps={{ required: true }}
+                fullWidth type='text'
+                label='Solicitante'
+                value={values.author}
+                onChange={() => setValues({ ...values, author: event.target.value })} />
+            </Grid>
+
+            {/* Contraturno del solicitante - nombre + num */}
+
+            <Grid item xs={12}>
+              <TextField
+
+                fullWidth type='text'
+                label='Contraturno del solicitante'
+                value={values.counterpart}
+                onChange={() => setValues({ ...values, counterpart: event.target.value })} />
+            </Grid>
+
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha'
@@ -279,22 +303,22 @@ const FormLayoutsSolicitud = () => {
                 </FormControl>
                 <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
             <TextField
-              onChange={e => setValues({ ...values, ot: e.target.value })}
-              label="SAP"
+              onChange={e => setValues({ ...values, sap: e.target.value })}
+              label="Número SAP"
               id="sap-input"
-              defaultValue='Número SAP'
+
             />
             </FormControl>
             </Box>
             </Grid>
 
-            {/* Objetivo */}
-            <Grid item xs={12} sx={{pt:'0 !important'}}>
+            {/* Objetivo - Tipo de levantamiento */}
+            <Grid item xs={12}  sx={{pt:'0 !important'}}>
               <FormControl fullWidth>
-                <InputLabel id='input-label-objetivo'>Objetivo</InputLabel>
+                <InputLabel id='input-label-objetivo'>Tipo de levantamiento</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
-                  label='Objetivo'
+                  label='Tipo de levantamiento'
                   defaultValue=''
                   id='id-objetivo'
                   labelId='labelId-objetivo'
@@ -312,6 +336,28 @@ const FormLayoutsSolicitud = () => {
                 </Select>
               </FormControl>
             </Grid>
+
+            {/*Entregables */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel id='input-label-objetivo'>Entregables del levantamiento</InputLabel>
+                <Select
+                  InputLabelProps={{ required: true }}
+                  label='Entregables del levantamiento'
+                  defaultValue=''
+                  id='id-objetivo'
+                  labelId='labelId-objetivo'
+                  value={values.objective}
+                  onChange={() => setValues({ ...values, objective: event.target.dataset.value })}>
+                    <MenuItem value='Sketch'>Sketch</MenuItem>
+                  <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
+                  <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
+                  <MenuItem value='Memoria de Cálculo'>Memoria de Cálculo</MenuItem>
+                  <MenuItem value='Informe'>Informe</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
 
             {/* Destinatario */}
             <Grid item xs={12}>
@@ -334,6 +380,7 @@ const FormLayoutsSolicitud = () => {
                 </Select>
               </FormControl>
             </Grid>
+
 
             {/* Botón nuevo destinatario */}
             <Grid item xs={12}>
