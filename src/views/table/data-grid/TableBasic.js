@@ -8,6 +8,8 @@ import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import Select from '@mui/material/Select';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Grow from '@mui/material/Grow';
 import CustomChip from 'src/@core/components/mui/chip'
@@ -23,7 +25,7 @@ import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined';
 import { Container } from '@mui/system';
 import AlertDialog from 'src/@core/components/dialog-warning';
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize';
-import { Check, Clear, Edit } from '@mui/icons-material';
+import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -174,7 +176,7 @@ const TableBasic = (rows) => {
     },
     {
       flex: 0.3,
-      minWidth: 190,
+      minWidth: (sm?190:100),
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
@@ -182,7 +184,8 @@ const TableBasic = (rows) => {
 
         return (
           <>
-            {sm ? <> <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+            {sm ? <>
+            <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
               <Check sx={{ fontSize: 18 }} />
             </Button>
               <Button onClick={() => handleClickOpen(row)} variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
@@ -190,27 +193,28 @@ const TableBasic = (rows) => {
               </Button>
               <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
                 <Clear sx={{ fontSize: 18 }} />
-              </Button></> : <>
-              <ClickAwayListener mouseEvent="onMouseDown" touchEvent="onTouchStart" onClickAway={() => { setOptions('') }}>
-                <Button onClick={() => {
-                  setOptions(row.title)
-                }} variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
-                  ...
+              </Button>
+              </> : <>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                size='small'
+                IconComponent={()=><MoreHorizIcon/>}
+                sx={{'& .MuiSvgIcon-root':{position:'absolute', margin:'20%', pointerEvents: 'none !important'}, '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { minWidth: 'min-content !important', maxWidth: 'min-content !important', backgroundColor: theme.palette.customColors.tableHeaderBg }, '& .MuiOutlinedInput-input':{maxWidth: 'min-content !important'}, '& .MuiOutlinedInput-notchedOutline': { border: 'none'},  '& .MuiList-root': { display: 'flex', flexDirection: 'column' } }}
+              >
+                <Container sx={{display:'flex',flexDirection: 'column' }}>
+                <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                  <Check sx={{ fontSize: 18 }} />
                 </Button>
-              </ClickAwayListener>
-              <Grow in={options === row.title} >
-                <div>
-                  <Button onClick={() => handleClickOpenAlert(row, true)} variant='contained' color='success' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
-                    <Check sx={{ fontSize: 18 }} />
-                  </Button>
-                  <Button onClick={() => handleClickOpen(row)} variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
-                    <Edit sx={{ fontSize: 18 }} />
-                  </Button>
-                  <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
-                    <Clear sx={{ fontSize: 18 }} />
-                  </Button>
-                </div>
-              </Grow></>
+                <Button onClick={() => handleClickOpen(row)} variant='contained' color='secondary' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                  <Edit sx={{ fontSize: 18 }} />
+                </Button>
+                <Button onClick={() => handleClickOpenAlert(row, false)} variant='contained' color='error' sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}>
+                  <Clear sx={{ fontSize: 18 }} />
+                </Button>
+                </Container>
+              </Select>
+            </>
             }
           </>
         )

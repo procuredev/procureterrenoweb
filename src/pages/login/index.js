@@ -103,7 +103,6 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  password: 'admin1',
   email: 'admin@materialize.com'
 }
 
@@ -200,9 +199,8 @@ const LoginPage = () => {
                   name='password'
                   control={control}
                   rules={{ required: true }}
-                  render={({ field: { value, onChange, onBlur } }) => (
+                  render={({ field: {onChange, onBlur } }) => (
                     <OutlinedInput
-                      value={value}
                       onBlur={onBlur}
                       label='Password'
                       onChange={onChange}
