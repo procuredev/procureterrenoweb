@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useAuth } from 'src/context/FirebaseContext';
+import { auth, updateDocs } from 'src/context/useFirebaseAuth';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import Button from '@mui/material/Button';
@@ -34,7 +34,6 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
 
-  const auth = useAuth();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   let display = fullScreen ? 'auto' : 'none'
@@ -59,7 +58,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
   };
 
   const writeCallback = (values) => {
-    auth.updateDocs(id, values)
+    updateDocs(id, values)
     handleCloseAlert()
   }
 

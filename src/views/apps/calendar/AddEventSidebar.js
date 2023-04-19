@@ -1,6 +1,6 @@
 // ** React Imports
 import { useState, useEffect, forwardRef, useCallback, Fragment } from 'react'
-import { useAuth } from 'src/context/FirebaseContext'
+import { useFirebase } from 'src/context/useFirebaseAuth'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -56,7 +56,7 @@ const AddEventSidebar = props => {
   } = props
 
   // ** States
-  const auth = useAuth();
+  const {auth} = useFirebase();
   const [values, setValues] = useState(defaultState)
 
   const {
@@ -108,7 +108,7 @@ const AddEventSidebar = props => {
     }
   }
 
-  const resetToStoredValues = useCallback(() => {
+  /* const resetToStoredValues = useCallback(() => {
     if (store.selectedEvent !== null) {
       const event = store.selectedEvent
       setValue('title', event.title || '')
@@ -123,9 +123,9 @@ const AddEventSidebar = props => {
         startDate: event.start !== null ? event.start : new Date()
       })
     }
-  }, [setValue, store.selectedEvent])
+  }, [setValue, store.selectedEvent]) */
 
-  const resetToEmptyValues = useCallback(() => {
+  /* const resetToEmptyValues = useCallback(() => {
     setValue('title', '')
     setValues(defaultState)
   }, [setValue])
@@ -136,7 +136,7 @@ const AddEventSidebar = props => {
       resetToEmptyValues()
     }
   }, [addEventSidebarOpen, resetToStoredValues, resetToEmptyValues, store.selectedEvent])
-
+ */
   const PickersComponent = forwardRef(({ ...props }, ref) => {
     return (
       <TextField
@@ -151,7 +151,7 @@ const AddEventSidebar = props => {
   })
 
   const RenderSidebarFooter = () => {
-    if (store.selectedEvent === null || (store.selectedEvent !== null && !store.selectedEvent.title.length)) {
+    /* if (store.selectedEvent === null || (store.selectedEvent !== null && !store.selectedEvent.title.length)) {
       return (
         <Fragment>
           <Button size='large' type='submit' variant='contained' sx={{ mr: 4 }}>
@@ -162,18 +162,20 @@ const AddEventSidebar = props => {
           </Button>
         </Fragment>
       )
-    } else {
+    } else { */
       return (
         <Fragment>
           <Button size='large' type='submit' variant='contained' sx={{ mr: 4 }}>
             Update
           </Button>
-          <Button size='large' variant='outlined' color='secondary' onClick={resetToStoredValues}>
+          <Button size='large' variant='outlined' color='secondary'
+          onClick={()=>console.log('reset')}>
             Reset
           </Button>
         </Fragment>
       )
-    }
+
+    //}
   }
 
   return (
@@ -193,11 +195,11 @@ const AddEventSidebar = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>
+      {/*   <Typography variant='h6'>
           {store.selectedEvent !== null && store.selectedEvent.title.length ? 'Update Event' : 'Add Event'}
-        </Typography>
+        </Typography> */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {store.selectedEvent !== null && store.selectedEvent.title.length ? (
+    {/*       {store.selectedEvent !== null && store.selectedEvent.title.length ? (
             <IconButton
               size='small'
               onClick={handleDeleteEvent}
@@ -205,7 +207,7 @@ const AddEventSidebar = props => {
             >
               <Icon icon='mdi:delete-outline' fontSize={20} />
             </IconButton>
-          ) : null}
+          ) : null} */}
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>

@@ -1,31 +1,36 @@
-import { useState, useEffect } from 'react'
+import  React, { createContext, useState, useEffect, useContext } from 'react'
 import { updateProfile } from "firebase/auth";
-import { Firebase, db } from 'src/configs/firebase'
+import { Firebase, db, app } from 'src/configs/firebase'
 import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 // ** Next Imports
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { DataSaverOn } from '@mui/icons-material';
 
-const formatAuthUser = user => {
-  return {
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-    pfp: user.photoURL
-  }
-}
 
-const useFirebaseAuth = () => {
 
+export const FirebaseContext = createContext();
+
+const FirebaseContextProvider = (props) => {
+
+  const auth = getAuth(app)
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [docs, setDocs] = useState([])
 
   const router = useRouter()
+  console.log(authUser)
 
-  // Observador estado logueado
+  const formatAuthUser = user => {
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      pfp: user.photoURL
+    }
+  }
 
   const authStateChanged = async authState => {
     if (!authState) {
@@ -102,13 +107,13 @@ const useFirebaseAuth = () => {
   }, [authUser, router])
 
   // Evita que el no logueado esté en home
-  useEffect(() => {
+ /*  useEffect(() => {
     if (authUser === null && router.asPath !== ('/login/')) {
       router.replace('/login/')
     }
 
   }, [authUser, router])
-
+ */
   // Get docs - Consulta documentos db
   const getDocuments =  () => {
 
@@ -119,7 +124,7 @@ const useFirebaseAuth = () => {
         allDocs.push({...doc.data(), id:doc.id});
     });
 
-return allDocs
+  return allDocs
   })};
 
   // Modifica estado documentos
@@ -129,7 +134,7 @@ return allDocs
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref);
     const prevState = querySnapshot.data().state;
-    const newState = approves ? prevState + 1 : 0;
+    const newState = approves ? prevState + 1 : 9;
 
     //const newState = prevState+1
 
@@ -153,10 +158,10 @@ return allDocs
     await updateDoc(ref, obj);
   }
 
-// Actualiza datos usuario
+  // Actualiza datos usuario
 
-const updateUser = () =>{
-updateProfile(Firebase.auth().currentUser, {
+  const updateUser = () =>{
+  updateProfile(Firebase.auth().currentUser, {
   //hardcoded pero pueden -deben- pasársele argumentos
     displayName: "Pamela Carrizo", photoURL: "https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/PC.png"
   }).then(() => {
@@ -168,10 +173,10 @@ updateProfile(Firebase.auth().currentUser, {
     // An error occurred
     // ...
   });
-}
+  }
 
-
-  return {
+  const value = {
+    auth,
     loading,
     signOut,
     authUser,
@@ -182,7 +187,17 @@ updateProfile(Firebase.auth().currentUser, {
     reviewDocs,
     updateDocs,
     updateUser
-  }
-}
+  };
 
-export default useFirebaseAuth
+  return (
+    <FirebaseContext.Provider value={value}>
+      {props.children}
+    </FirebaseContext.Provider>
+  );
+};
+
+export default FirebaseContextProvider;
+
+
+// custom hook to use the authUserContext and access authUser and loading
+export const useFirebase = () => useContext(FirebaseContext)

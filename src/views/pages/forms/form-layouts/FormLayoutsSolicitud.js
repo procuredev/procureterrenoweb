@@ -2,7 +2,7 @@
 import { Fragment, useState } from 'react'
 
 // ** Hooks
-import { useAuth } from 'src/context/FirebaseContext'
+import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
@@ -96,7 +96,7 @@ const FormLayoutsSolicitud = () => {
   const [files, setFiles] = useState([])
 
   // ** Hooks
-  const auth = useAuth();
+  const auth = useFirebase();
 
 
   const { getRootProps, getInputProps } = useDropzone({

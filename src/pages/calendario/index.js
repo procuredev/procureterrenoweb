@@ -1,33 +1,30 @@
-// ** React Imports
-import { useEffect, useState } from 'react'
-
-
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
-// ** Redux Imports
-import { useDispatch, useSelector } from 'react-redux'
-
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useSnapshot } from 'src/hooks/useSnapshot'
 
 // ** FullCalendar & App Components Imports
 import Calendar from 'src/views/apps/calendar/Calendar'
-import SidebarLeft from 'src/views/apps/calendar/SidebarLeft'
 import CalendarWrapper from 'src/@core/styles/libs/fullcalendar'
-import AddEventSidebar from 'src/views/apps/calendar/AddEventSidebar'
 
-// ** Actions
-import {
-  addEvent,
-  fetchEvents,
-  deleteEvent,
-  updateEvent,
-  handleSelectEvent,
-  handleAllCalendars,
-  handleCalendarsUpdate
-} from 'src/store/apps/calendar'
+// ** React Import
+import { useState, useEffect, useRef } from 'react'
+
+// ** Full Calendar & it's Plugins
+import FullCalendar from '@fullcalendar/react'
+import listPlugin from '@fullcalendar/list'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+import FullScreenDialog from 'src/@core/components/dialog-fullsize'
+import { date } from 'yup'
 
 // ** CalendarColors
 const calendarsColor = {
@@ -40,38 +37,68 @@ const calendarsColor = {
 
 const AppCalendar = () => {
 
-  let events={events: [{
-    id: 1,
-    url: '',
-    title: 'Design Review',
-    start: '2023-01-01',
-    end: '2023-01-02',
-    allDay: false,
-    extendedProps: {
-      calendar: 'Business'
-    }
-  }]}
 
-  // ** States
-  const [calendarApi, setCalendarApi] = useState(null)
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
-  const [addEventSidebarOpen, setAddEventSidebarOpen] = useState(false)
+  let events = {
+    events: [{
+      id: 1,
+      url: '',
+      title: 'Design Review',
+      start: '2023-01-01',
+      end: '2023-01-02',
+      allDay: false,
+      extendedProps: {
+        calendar: 'Business'
+      }
+    }]
+  }
 
   // ** Hooks
   const { settings } = useSettings()
-  const dispatch = useDispatch()
-  const store = useSelector(state => state.Calendar)
 
   // ** Vars
   const leftSidebarWidth = 260
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  useEffect(() => {
-    dispatch(fetchEvents(store.selectedCalendars))
-  }, [dispatch, store.selectedCalendars])
-  const handleLeftSidebarToggle = () => setLeftSidebarOpen(!leftSidebarOpen)
-  const handleAddEventSidebarToggle = () => setAddEventSidebarOpen(!addEventSidebarOpen)
+
+
+  const blankEvent = {
+    title: '',
+    start: '',
+    end: '',
+    allDay: false,
+    url: '',
+    extendedProps: {
+      calendar: '',
+      guests: [],
+      location: '',
+      description: ''
+    }
+  }
+
+  const data = useSnapshot()
+
+  // ** Refs
+  const calendarRef = useRef()
+
+
+  const calendarOptions = {
+    //falta agregar todos los demás atributos, este evento es el que después queda como store.selectedevent
+
+    events: data.map(a => ({ title: a.title, start: a.start.seconds * 1000, allDay: true, id: a.id, description: a.description })),
+    plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      start: 'sidebarToggle, prev, next, title',
+      end: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+    },
+    views: {
+      week: {
+        titleFormat: { year: 'numeric', month: 'long', day: 'numeric' }
+      }
+    }
+  }
+
 
   return (
 
@@ -82,19 +109,7 @@ const AppCalendar = () => {
         ...(skin === 'bordered' && { border: theme => `1px solid ${theme.palette.divider}` })
       }}
     >
-      {/*<SidebarLeft
-        store={store}
-        mdAbove={mdAbove}
-        dispatch={dispatch}
-        calendarsColor={calendarsColor}
-        leftSidebarOpen={leftSidebarOpen}
-        leftSidebarWidth={leftSidebarWidth}
-        handleSelectEvent={handleSelectEvent}
-        handleAllCalendars={handleAllCalendars}
-        handleCalendarsUpdate={handleCalendarsUpdate}
-        handleLeftSidebarToggle={handleLeftSidebarToggle}
-        handleAddEventSidebarToggle={handleAddEventSidebarToggle}
-    />*/}
+
       <Box
         sx={{
           px: 5,
@@ -103,36 +118,13 @@ const AppCalendar = () => {
           borderRadius: 1,
           boxShadow: 'none',
           backgroundColor: 'background.paper',
-          
-          //...(mdAbove ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : {})
+
+          ...(mdAbove ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : {})
+
         }}
       >
-        <Calendar
-          events={events.events}
-          store={store}
-          dispatch={dispatch}
-          direction={direction}
-          updateEvent={updateEvent}
-          calendarApi={calendarApi}
-          calendarsColor={calendarsColor}
-          setCalendarApi={setCalendarApi}
-          handleSelectEvent={handleSelectEvent}
-          handleLeftSidebarToggle={handleLeftSidebarToggle}
-          handleAddEventSidebarToggle={handleAddEventSidebarToggle}
-        />
+        <FullCalendar {...calendarOptions} />
       </Box>
-      <AddEventSidebar
-        store={store}
-        dispatch={dispatch}
-        addEvent={addEvent}
-        updateEvent={updateEvent}
-        deleteEvent={deleteEvent}
-        calendarApi={calendarApi}
-        drawerWidth={addEventSidebarWidth}
-        handleSelectEvent={handleSelectEvent}
-        addEventSidebarOpen={addEventSidebarOpen}
-        handleAddEventSidebarToggle={handleAddEventSidebarToggle}
-      />
     </CalendarWrapper>
   )
 }

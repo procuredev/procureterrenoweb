@@ -33,7 +33,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Hooks
-import { useAuth } from 'src/context/FirebaseContext'
+import { useFirebase } from 'src/context/useFirebaseAuth'
 import useBgColor from 'src/@core/hooks/useBgColor'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
@@ -111,8 +111,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false)
 
   // ** Hooks
-  const auth = useAuth()
-  const { authUser } = useAuth()
+
   const theme = useTheme()
   const bgColors = useBgColor()
   const { settings } = useSettings()
@@ -120,7 +119,7 @@ const LoginPage = () => {
 
   // ** Vars
   const { skin } = settings
-  const { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } = useAuth()
+  const { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } = useFirebase()
   const router = useRouter()
 
   const {
@@ -137,7 +136,7 @@ const LoginPage = () => {
   const onSubmit = data => {
     const { email, password } = data
 
-    auth.signInWithEmailAndPassword(email, password)
+    signInWithEmailAndPassword(email, password)
 
     //viendo como meter el condicional aca (ruteo)
 
@@ -199,7 +198,7 @@ const LoginPage = () => {
                   name='password'
                   control={control}
                   rules={{ required: true }}
-                  render={({ field: {onChange, onBlur } }) => (
+                  render={({ field: { onChange, onBlur } }) => (
                     <OutlinedInput
                       onBlur={onBlur}
                       label='Password'

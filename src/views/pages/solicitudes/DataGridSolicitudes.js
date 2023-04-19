@@ -2,7 +2,7 @@
 import { Fragment, useState, useEffect } from 'react'
 
 // ** Hooks
-import { useAuth } from 'src/context/FirebaseContext'
+import { useFirebase } from 'src/context/useFirebaseAuth'
 import { Firebase, db } from 'src/configs/firebase'
 import { query, collection, onSnapshot } from 'firebase/firestore'
 
@@ -27,7 +27,7 @@ import { useSnapshot } from 'src/hooks/useSnapshot'
 
 const DataGrid = () => {
 
-  const auth = useAuth()
+  const auth = useFirebase()
   const data = useSnapshot()
 
 

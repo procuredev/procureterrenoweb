@@ -18,7 +18,7 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 
 // ** Context
-import { useAuth } from 'src/context/FirebaseContext'
+import { useFirebase } from 'src/context/useFirebaseAuth'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -32,14 +32,14 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 const UserDropdown = props => {
   // ** Props
   const { settings } = props
-  const { authUser, loading } = useAuth()
+  const { authUser, loading } = useFirebase()
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
 
   // ** Hooks
   const router = useRouter()
-  const { signOut } = useAuth()
+  const { signOut } = useFirebase()
 
   // ** Vars
   const { direction } = settings
@@ -109,7 +109,7 @@ const UserDropdown = props => {
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
 
-              <Avatar alt='Profile picture' src={pfp} sx={{ width: '2.5rem', height: '2.5rem' }} />
+            <Avatar alt='Profile picture' src={pfp} sx={{ width: '2.5rem', height: '2.5rem' }} />
 
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{username}</Typography>
@@ -121,7 +121,7 @@ const UserDropdown = props => {
         </Box>
         <Divider sx={{ mt: '0 !important' }} />
 
-{/*
+        {/*
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
@@ -167,7 +167,7 @@ const UserDropdown = props => {
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
         >
           <Icon icon='mdi:logout-variant' />
-         Salir
+          Salir
         </MenuItem>
       </Menu>
     </Fragment>

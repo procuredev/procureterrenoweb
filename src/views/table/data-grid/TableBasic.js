@@ -2,8 +2,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useAuth } from 'src/context/FirebaseContext'
-
+import { useFirebase } from 'src/context/useFirebaseAuth'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
@@ -36,7 +35,7 @@ const TableBasic = (rows) => {
   const [openAlert, setOpenAlert] = useState(false);
   const [doc, setDoc] = useState('');
   const [approve, setApprove] = useState(true);
-  const auth = useAuth();
+  const {auth, reviewDocs} = useFirebase();
 
   const handleClickOpen = (doc) => {
     setDoc(doc)
@@ -54,7 +53,7 @@ const TableBasic = (rows) => {
   };
 
   const writeCallback = () => {
-    auth.reviewDocs(doc.id, approve);
+    reviewDocs(doc.id, approve);
     setOpenAlert(false);
   }
 

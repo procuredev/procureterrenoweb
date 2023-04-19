@@ -1,7 +1,4 @@
-import { FirebaseAuthProvider } from 'src/context/FirebaseContext'
-
-import { store } from 'src/store'
-import { Provider } from 'react-redux'
+import FirebaseContextProvider from 'src/context/useFirebaseAuth'
 
 // ** Fake-DB Import
 import 'src/@fake-db'
@@ -85,39 +82,37 @@ const App = props => {
 
 
   return (
-<Provider store={store}>
-    <CacheProvider value={emotionCache}>
-      <Head>
-        <title>{`${themeConfig.templateName} `}</title>
-        <meta
-          name='description'
-          content={`${themeConfig.templateName}]`}
-        />
-        <meta name='keywords' content='Material Design, MUI, Admin Template, React Admin Template' />
-        <meta name='viewport' content='initial-scale=1, width=device-width' />
-      </Head>
-      <FirebaseAuthProvider>
-      <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-        <SettingsConsumer>
-          {({ settings }) => {
-            return (
-              <ThemeComponent settings={settings}>
-                <WindowWrapper>
+    <FirebaseContextProvider>
+      <CacheProvider value={emotionCache}>
+        <Head>
+          <title>{`${themeConfig.templateName} `}</title>
+          <meta
+            name='description'
+            content={`${themeConfig.templateName}]`}
+          />
+          <meta name='keywords' content='Material Design, MUI, Admin Template, React Admin Template' />
+          <meta name='viewport' content='initial-scale=1, width=device-width' />
+        </Head>
 
-                {getLayout(<Component {...pageProps} />)}
+        <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+          <SettingsConsumer>
+            {({ settings }) => {
+              return (
+                <ThemeComponent settings={settings}>
+                  <WindowWrapper>
+                    {getLayout(<Component {...pageProps} />)}
+                  </WindowWrapper>
+                  <ReactHotToast>
+                    <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
+                  </ReactHotToast>
+                </ThemeComponent>
+              )
+            }}
+          </SettingsConsumer>
+        </SettingsProvider>
+      </CacheProvider>
+    </FirebaseContextProvider>
 
-                </WindowWrapper>
-                <ReactHotToast>
-                  <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
-                </ReactHotToast>
-              </ThemeComponent>
-            )
-          }}
-        </SettingsConsumer>
-      </SettingsProvider>
-      </FirebaseAuthProvider>
-    </CacheProvider>
-</Provider>
   )
 }
 

@@ -8,7 +8,7 @@ import { useRouter } from 'next/router'
 import Spinner from 'src/@core/components/spinner'
 
 // ** Hook Imports
-import { useAuth } from 'src/context/FirebaseContext'
+import { useFirebase } from 'src/context/useFirebaseAuth'
 
 export const getHomeRoute = () => {
   return '/dashboards/analytics'
@@ -17,7 +17,7 @@ export const getHomeRoute = () => {
 
 const Home = () => {
   // ** Hooks
-  const auth = useAuth()
+  const auth = useFirebase()
   const router = useRouter()
 
   useEffect(() => {
