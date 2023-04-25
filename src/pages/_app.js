@@ -1,7 +1,5 @@
 import FirebaseContextProvider from 'src/context/useFirebaseAuth'
 
-// ** Fake-DB Import
-import 'src/@fake-db'
 
 // ** Next Imports
 import Head from 'next/head'

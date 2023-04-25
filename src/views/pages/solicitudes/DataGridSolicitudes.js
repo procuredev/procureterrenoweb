@@ -30,7 +30,6 @@ const DataGrid = () => {
   const auth = useFirebase()
   const data = useSnapshot()
 
-
   return (
     <Grid container spacing={6}>
       <PageHeader

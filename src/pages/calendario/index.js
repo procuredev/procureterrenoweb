@@ -8,7 +8,7 @@ import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useSnapshot } from 'src/hooks/useSnapshot'
 
 // ** FullCalendar & App Components Imports
-import Calendar from 'src/views/apps/calendar/Calendar'
+
 import CalendarWrapper from 'src/@core/styles/libs/fullcalendar'
 
 // ** React Import
@@ -37,19 +37,12 @@ const calendarsColor = {
 
 const AppCalendar = () => {
 
+  const [modalOpen, setModalOpen] = useState(false)
 
-  let events = {
-    events: [{
-      id: 1,
-      url: '',
-      title: 'Design Review',
-      start: '2023-01-01',
-      end: '2023-01-02',
-      allDay: false,
-      extendedProps: {
-        calendar: 'Business'
-      }
-    }]
+  const handleModalToggle = (clickedEvent) => {
+    console.log(clickedEvent)
+
+    //setModalOpen(!modalOpen)
   }
 
   // ** Hooks
@@ -61,29 +54,9 @@ const AppCalendar = () => {
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
 
-
-  const blankEvent = {
-    title: '',
-    start: '',
-    end: '',
-    allDay: false,
-    url: '',
-    extendedProps: {
-      calendar: '',
-      guests: [],
-      location: '',
-      description: ''
-    }
-  }
-
   const data = useSnapshot()
 
-  // ** Refs
-  const calendarRef = useRef()
-
-
   const calendarOptions = {
-    //falta agregar todos los demás atributos, este evento es el que después queda como store.selectedevent
 
     events: data.map(a => ({ title: a.title, start: a.start.seconds * 1000, allDay: true, id: a.id, description: a.description })),
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
@@ -91,6 +64,9 @@ const AppCalendar = () => {
     headerToolbar: {
       start: 'sidebarToggle, prev, next, title',
       end: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+    },
+    eventClick: ({ event: clickedEvent }) => {
+     handleModalToggle(clickedEvent)
     },
     views: {
       week: {

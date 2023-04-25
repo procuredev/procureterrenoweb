@@ -101,7 +101,6 @@ const FormLayoutsSolicitud = () => {
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
-      console.log(acceptedFiles)
       setFiles(acceptedFiles.map(file => Object.assign(file)))
     }
   })

@@ -21,7 +21,7 @@ const FirebaseContextProvider = (props) => {
   const [docs, setDocs] = useState([])
 
   const router = useRouter()
-  console.log(authUser)
+  
 
   const formatAuthUser = user => {
     return {
