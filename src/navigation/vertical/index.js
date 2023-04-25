@@ -25,6 +25,11 @@ const navigation = () => {
       path: '/nueva-solicitud',
       icon: 'mdi:email-outline',
     },
+    {
+      title: 'Nuevo Usuario',
+      path: '/nuevo-usuario',
+      icon: 'mdi:person-add-outline',
+    }
   ]
 }
 

@@ -95,7 +95,8 @@ const AppCalendar = () => {
           boxShadow: 'none',
           backgroundColor: 'background.paper',
 
-          ...(mdAbove ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : {})
+          //si tiene barra en el lado derecho, para que los bordes no sean redondos 
+          /* ...(mdAbove ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : {}) */
 
         }}
       >
