@@ -12,6 +12,7 @@ import FormLayoutsRegister from 'src/views/pages/forms/form-layouts/FormLayoutsR
 
 const NuevoUsuario = () => {
 
+
   return (
     <Box>
       <FormLayoutsRegister />

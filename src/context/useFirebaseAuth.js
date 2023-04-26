@@ -2,7 +2,7 @@ import  React, { createContext, useState, useEffect, useContext } from 'react'
 import { updateProfile } from "firebase/auth";
 import { Firebase, db, app } from 'src/configs/firebase'
 import { collection, doc, addDoc, Timestamp, query, getDoc, getDocs, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, User } from "firebase/auth";
 
 // ** Next Imports
 import Head from 'next/head'
@@ -21,7 +21,8 @@ const FirebaseContextProvider = (props) => {
   const [docs, setDocs] = useState([])
 
   const router = useRouter()
-  
+
+  const claims = auth.currentUser.getIdTokenResult()
 
   const formatAuthUser = user => {
     return {
@@ -186,7 +187,8 @@ const FirebaseContextProvider = (props) => {
     getDocuments,
     reviewDocs,
     updateDocs,
-    updateUser
+    updateUser,
+    claims
   };
 
   return (

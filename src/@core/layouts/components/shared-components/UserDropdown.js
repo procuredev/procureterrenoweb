@@ -30,6 +30,10 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 }))
 
 const UserDropdown = props => {
+  useFirebase().claims.then((value)=>{
+    console.log(value)
+  })
+
   // ** Props
   const { settings } = props
   const { authUser, loading } = useFirebase()
@@ -77,6 +81,7 @@ const UserDropdown = props => {
 
   let username = (authUser === null) ? 'not logged' : authUser.displayName
   let pfp = (authUser === null) ? 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg' : authUser.pfp
+
 
 
   return (

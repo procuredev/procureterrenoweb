@@ -1,4 +1,5 @@
 // ** React Imports
+import * as React from 'react';
 import { useState } from 'react'
 
 // ** Hooks Imports
@@ -21,40 +22,32 @@ import FormControl from '@mui/material/FormControl'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import InputAdornment from '@mui/material/InputAdornment'
 import FormHelperText from '@mui/material/FormHelperText'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
+import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search';
+
 const FormLayoutsBasic = () => {
   // ** States
   const [values, setValues] = useState({
-    password: '',
-    showPassword: false
-  })
-
-  const [confirmPassValues, setConfirmPassValues] = useState({
-    password: '',
-    showPassword: false
+    name:'',
+    rut:'',
+    phone:'',
+    email:'',
+    plant:'',
+    shift:'',
+    company:'',
+    role:'',
+    contop:'',
+    opshift:''
   })
 
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
-  }
-
-  const handleConfirmPassChange = prop => event => {
-    setConfirmPassValues({ ...confirmPassValues, [prop]: event.target.value })
-  }
-
-  const handleClickShowPassword = () => {
-    setValues({ ...values, showPassword: !values.showPassword })
-  }
-
-  const handleClickConfirmPassShow = () => {
-    setConfirmPassValues({ ...confirmPassValues, showPassword: !confirmPassValues.showPassword })
-  }
-
-  const handleMouseDownPassword = event => {
-    event.preventDefault()
   }
 
   return (
@@ -64,72 +57,99 @@ const FormLayoutsBasic = () => {
         <form onSubmit={e => e.preventDefault()}>
           <Grid container spacing={5}>
             <Grid item xs={12}>
-              <TextField fullWidth label='Name' placeholder='Leonard Carter' />
+              <TextField fullWidth label='Nombre' placeholder='Nombres' onChange={handleChange('name')} />
+            </Grid>
+            {/* <Grid item xs={6}>
+              <TextField fullWidth label='Apellidos' placeholder='Apellidos' />
+            </Grid> */}
+            <Grid item xs={6}>
+              <TextField fullWidth label='RUT' placeholder='RUT' onChange={handleChange('rut')}/>
+            </Grid>
+            <Grid item xs={6}>
+              <TextField fullWidth label='Teléfono' placeholder='Teléfono' onChange={handleChange('phone')}/>
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 type='email'
                 label='Email'
-                placeholder='carterleonard@gmail.com'
-                helperText='You can use letters, numbers & periods'
+                placeholder='email@ejemplo.com'
+                onChange={handleChange('email')}
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel htmlFor='form-layouts-basic-password'>Password</InputLabel>
-                <OutlinedInput
-                  label='Password'
-                  value={values.password}
-                  id='form-layouts-basic-password'
-                  onChange={handleChange('password')}
-                  type={values.showPassword ? 'text' : 'password'}
-                  aria-describedby='form-layouts-basic-password-helper'
-                  endAdornment={
-                    <InputAdornment position='end'>
-                      <IconButton
-                        edge='end'
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                        aria-label='toggle password visibility'
-                      >
-                        <Icon icon={values.showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} />
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                />
-                <FormHelperText id='form-layouts-basic-password-helper'>
-                  Use 8 or more characters with a mix of letters, numbers & symbols
-                </FormHelperText>
+            <FormControl fullWidth>
+            <InputLabel id="id">Planta</InputLabel>
+              <Select
+                labelId="id"
+                label="Planta"
+                id="id"
+                value={values.plant}
+                onChange={handleChange('plant')}
+              >
+                <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
+                <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
+                <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
+                <MenuItem value={'Chancado y correas'}>Chancado y correas</MenuItem>
+                <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
+                <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
+              </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel htmlFor='form-layouts-confirm-password'>Confirm Password</InputLabel>
-                <OutlinedInput
-                  label='Confirm Password'
-                  value={confirmPassValues.password}
-                  id='form-layouts-confirm-password'
-                  onChange={handleConfirmPassChange('password')}
-                  aria-describedby='form-layouts-confirm-password-helper'
-                  type={confirmPassValues.showPassword ? 'text' : 'password'}
-                  endAdornment={
-                    <InputAdornment position='end'>
-                      <IconButton
-                        edge='end'
-                        onClick={handleClickConfirmPassShow}
-                        onMouseDown={handleMouseDownPassword}
-                        aria-label='toggle password visibility'
-                      >
-                        <Icon icon={confirmPassValues.showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} />
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                />
-                <FormHelperText id='form-layouts-confirm-password-helper'>
-                  Make sure to type the same password as above
-                </FormHelperText>
+            <FormControl fullWidth>
+            <InputLabel id="id">Turno</InputLabel>
+              <Select
+                labelId="id"
+                label="Turno"
+                id="id"
+                value={values.shift}
+                onChange={handleChange('shift')}
+              >
+                <MenuItem value={'A'}>Turno A</MenuItem>
+                <MenuItem value={'B'}>Turno B</MenuItem>
+              </Select>
               </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+            <FormControl fullWidth>
+            <InputLabel id="id">Empresa</InputLabel>
+              <Select
+                labelId="id"
+                label="Empresa"
+                id="id"
+                value={values.company}
+                onChange={handleChange('company')}
+              >
+                <MenuItem value={'MEL'}>MEL</MenuItem>
+                <MenuItem value={'Procure'}>Procure</MenuItem>
+              </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+            <FormControl fullWidth>
+            <InputLabel id="id">Rol</InputLabel>
+              <Select
+                labelId="id"
+                label="Rol"
+                id="id"
+                value={values.role}
+                onChange={handleChange('role')}
+              >
+                <MenuItem value={'Solicitante'}>Solicitante</MenuItem>
+                <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>
+                <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>
+                <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>
+                <MenuItem value={'Supervisor'}>Supervisor</MenuItem>
+                <MenuItem value={'Gerente'}>Gerente</MenuItem>
+              </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FreeSoloCreateOptionDialog label='Contract Operator' placeholder='Contract Operator' onChange={handleChange('contop')} />
+            </Grid>
+            <Grid item xs={12}>
+            <FreeSoloCreateOptionDialog label='Contraturno' placeholder='Contraturno' onChange={handleChange('opshift')} />
             </Grid>
             <Grid item xs={12}>
               <Box
@@ -142,14 +162,14 @@ const FormLayoutsBasic = () => {
                 }}
               >
                 <Button type='submit' variant='contained' size='large'>
-                  Get Started!
+                  Crear usuario
                 </Button>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography sx={{ mr: 2 }}>Already have an account?</Typography>
                   <Link href='/' onClick={e => e.preventDefault()}>
                     Log in
                   </Link>
-                </Box>
+                </Box> */}
               </Box>
             </Grid>
           </Grid>
