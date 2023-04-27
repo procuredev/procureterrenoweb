@@ -30,9 +30,9 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 }))
 
 const UserDropdown = props => {
-  useFirebase().claims.then((value)=>{
-    console.log(value)
-  })
+
+    console.log(useFirebase().claims)
+
 
   // ** Props
   const { settings } = props
@@ -166,6 +166,10 @@ const UserDropdown = props => {
         </MenuItem>
         <Divider />
             */}
+
+        <MenuItem onClick={useFirebase().addCustomClaims}>
+        Customclaims
+        </MenuItem>
 
         <MenuItem
           onClick={handleLogout}

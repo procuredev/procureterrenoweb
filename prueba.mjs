@@ -3,7 +3,7 @@ import { getAuth } from 'firebase-admin/auth'
 import admin from 'firebase-admin'
 
 import serviceAccount from './procureterrenoweb-firebase-adminsdk-ii0ix-fc477c019d.json' assert { type: "json" }
-import { get } from 'http';
+
 
 initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -31,15 +31,15 @@ const auth = getAuth();
       .then(() => {
         console.log("Custom claims added to user:", uid);
 
-        //SE TRAE EL RECORD PARA REVISAR QUE FUNCIONÓ
-          auth.getUser(uid)
-          .then((userRecord) => {
-            // See the UserRecord reference doc for the contents of userRecord.
-            console.log(userRecord)
-          })
-          .catch((error) => {
-            console.log('Error fetching user data:', error);
-          });
+              //SE TRAE EL RECORD PARA REVISAR QUE FUNCIONÓ (puede borrarse)
+                auth.getUser(uid)
+                .then((userRecord) => {
+                  // See the UserRecord reference doc for the contents of userRecord.
+                  console.log(userRecord)
+                })
+                .catch((error) => {
+                  console.log('Error fetching user data:', error);
+                });
       })
       .catch((error) => {
         console.log(error);
