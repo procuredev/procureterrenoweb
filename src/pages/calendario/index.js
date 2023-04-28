@@ -5,7 +5,6 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useFirebase } from 'src/context/useFirebaseAuth'
-import { useSnapshot } from 'src/hooks/useSnapshot'
 
 // ** FullCalendar & App Components Imports
 
@@ -53,8 +52,7 @@ const AppCalendar = () => {
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-
-  const data = useSnapshot()
+  const data = useFirebase().useSnapshot()
 
   const calendarOptions = {
 
@@ -95,7 +93,7 @@ const AppCalendar = () => {
           boxShadow: 'none',
           backgroundColor: 'background.paper',
 
-          //si tiene barra en el lado derecho, para que los bordes no sean redondos 
+          //si tiene barra en el lado derecho, para que los bordes no sean redondos
           /* ...(mdAbove ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : {}) */
 
         }}

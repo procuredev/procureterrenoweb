@@ -31,7 +31,6 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 
 const UserDropdown = props => {
 
-    console.log(useFirebase().claims)
 
 
   // ** Props
@@ -166,11 +165,7 @@ const UserDropdown = props => {
         </MenuItem>
         <Divider />
             */}
-
-        <MenuItem onClick={useFirebase().addCustomClaims}>
-        Customclaims
-        </MenuItem>
-
+            
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}

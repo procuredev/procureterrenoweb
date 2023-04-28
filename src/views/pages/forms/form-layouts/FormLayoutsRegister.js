@@ -4,7 +4,6 @@ import { useState } from 'react'
 
 // ** Hooks Imports
 import { useFirebase } from 'src/context/useFirebaseAuth'
-import { useSnapshot } from 'src/hooks/useSnapshot'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'

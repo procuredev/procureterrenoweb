@@ -3,8 +3,6 @@ import { Fragment, useState, useEffect } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebaseAuth'
-import { Firebase, db } from 'src/configs/firebase'
-import { query, collection, onSnapshot } from 'firebase/firestore'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
@@ -23,12 +21,10 @@ import TableBasicSort from 'src/views/table/data-grid/TableBasicSort'
 import TableSelection from 'src/views/table/data-grid/TableSelection'
 import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 
-import { useSnapshot } from 'src/hooks/useSnapshot'
 
 const DataGrid = () => {
 
-  const auth = useFirebase()
-  const data = useSnapshot()
+  const data = useFirebase().useSnapshot()
 
   return (
     <Grid container spacing={6}>
