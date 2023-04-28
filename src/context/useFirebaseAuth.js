@@ -210,7 +210,6 @@ const FirebaseContextProvider = (props) => {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     newDoc,
-    getDocuments,
     reviewDocs,
     updateDocs,
     updateUser,
