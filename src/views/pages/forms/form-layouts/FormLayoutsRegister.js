@@ -32,28 +32,65 @@ import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search';
 
 const FormLayoutsBasic = () => {
   // ** States
+  const [errors, setErrors] = useState({});
+
   const [values, setValues] = useState({
-    name:'',
-    rut:'',
-    phone:'',
-    email:'',
-    plant:'',
-    shift:'',
-    company:'',
-    role:'',
-    contop:'',
-    opshift:''
+    name: '',
+    rut: '',
+    phone: '',
+    email: '',
+    plant: '',
+    shift: '',
+    company: '',
+    role: '',
+    contop: '',
+    opshift: ''
   })
 
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
   }
 
+  const validationRegex = {
+    name: /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/,
+    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    phone: /^\d{10}$/,
+  };
+
+  const validateForm = (values) => {
+    if (!values.name || !validationRegex.name.test(values.name)) {
+      errors.name = 'Por favor, introduce un nombre válido';
+    }
+
+    if (!values.email || !validationRegex.email.test(values.email)) {
+      errors.email = 'Por favor, introduce un correo electrónico válido';
+    }
+
+    if (!values.phone || !validationRegex.phone.test(values.phone)) {
+      errors.phone = 'Por favor, introduce un número de teléfono válido';
+    }
+
+    return errors;
+  };
+
+  const onSubmit = (event) => {
+    event.preventDefault();
+    const errors = validateForm(values);
+
+    if (Object.keys(errors).length === 0) {
+      // enviar el formulario
+    } else {
+      setErrors(errors);
+      console.log(errors)
+    }
+  };
+
+
   return (
     <Card>
       <CardHeader title='Registrar usuario' />
       <CardContent>
-        <form onSubmit={e => e.preventDefault()}>
+        <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             <Grid item xs={12}>
               <TextField fullWidth label='Nombre' placeholder='Nombres' onChange={handleChange('name')} />
@@ -62,93 +99,92 @@ const FormLayoutsBasic = () => {
               <TextField fullWidth label='Apellidos' placeholder='Apellidos' />
             </Grid> */}
             <Grid item xs={6}>
-              <TextField fullWidth label='RUT' placeholder='RUT' onChange={handleChange('rut')}/>
+              <TextField fullWidth label='RUT' placeholder='RUT' onChange={handleChange('rut')} />
             </Grid>
             <Grid item xs={6}>
-              <TextField fullWidth label='Teléfono' placeholder='Teléfono' onChange={handleChange('phone')}/>
+              <TextField fullWidth label='Teléfono' placeholder='Teléfono' onChange={handleChange('phone')} />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                type='email'
                 label='Email'
                 placeholder='email@ejemplo.com'
                 onChange={handleChange('email')}
               />
             </Grid>
             <Grid item xs={12}>
-            <FormControl fullWidth>
-            <InputLabel id="id">Planta</InputLabel>
-              <Select
-                labelId="id"
-                label="Planta"
-                id="id"
-                value={values.plant}
-                onChange={handleChange('plant')}
-              >
-                <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
-                <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
-                <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
-                <MenuItem value={'Chancado y correas'}>Chancado y correas</MenuItem>
-                <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
-                <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
-              </Select>
+              <FormControl fullWidth>
+                <InputLabel id="id">Planta</InputLabel>
+                <Select
+                  labelId="id"
+                  label="Planta"
+                  id="id"
+                  value={values.plant}
+                  onChange={handleChange('plant')}
+                >
+                  <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
+                  <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
+                  <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
+                  <MenuItem value={'Chancado y correas'}>Chancado y correas</MenuItem>
+                  <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
+                  <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
+                </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-            <FormControl fullWidth>
-            <InputLabel id="id">Turno</InputLabel>
-              <Select
-                labelId="id"
-                label="Turno"
-                id="id"
-                value={values.shift}
-                onChange={handleChange('shift')}
-              >
-                <MenuItem value={'A'}>Turno A</MenuItem>
-                <MenuItem value={'B'}>Turno B</MenuItem>
-              </Select>
+              <FormControl fullWidth>
+                <InputLabel id="id">Turno</InputLabel>
+                <Select
+                  labelId="id"
+                  label="Turno"
+                  id="id"
+                  value={values.shift}
+                  onChange={handleChange('shift')}
+                >
+                  <MenuItem value={'A'}>Turno A</MenuItem>
+                  <MenuItem value={'B'}>Turno B</MenuItem>
+                </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-            <FormControl fullWidth>
-            <InputLabel id="id">Empresa</InputLabel>
-              <Select
-                labelId="id"
-                label="Empresa"
-                id="id"
-                value={values.company}
-                onChange={handleChange('company')}
-              >
-                <MenuItem value={'MEL'}>MEL</MenuItem>
-                <MenuItem value={'Procure'}>Procure</MenuItem>
-              </Select>
+              <FormControl fullWidth>
+                <InputLabel id="id">Empresa</InputLabel>
+                <Select
+                  labelId="id"
+                  label="Empresa"
+                  id="id"
+                  value={values.company}
+                  onChange={handleChange('company')}
+                >
+                  <MenuItem value={'MEL'}>MEL</MenuItem>
+                  <MenuItem value={'Procure'}>Procure</MenuItem>
+                </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-            <FormControl fullWidth>
-            <InputLabel id="id">Rol</InputLabel>
-              <Select
-                labelId="id"
-                label="Rol"
-                id="id"
-                value={values.role}
-                onChange={handleChange('role')}
-              >
-                <MenuItem value={'Solicitante'}>Solicitante</MenuItem>
-                <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>
-                <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>
-                <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>
-                <MenuItem value={'Supervisor'}>Supervisor</MenuItem>
-                <MenuItem value={'Gerente'}>Gerente</MenuItem>
-              </Select>
+              <FormControl fullWidth>
+                <InputLabel id="id">Rol</InputLabel>
+                <Select
+                  labelId="id"
+                  label="Rol"
+                  id="id"
+                  value={values.role}
+                  onChange={handleChange('role')}
+                >
+                  <MenuItem value={'Solicitante'}>Solicitante</MenuItem>
+                  <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>
+                  <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>
+                  <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>
+                  <MenuItem value={'Supervisor'}>Supervisor</MenuItem>
+                  <MenuItem value={'Gerente'}>Gerente</MenuItem>
+                </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12}>
               <FreeSoloCreateOptionDialog label='Contract Operator' placeholder='Contract Operator' onChange={handleChange('contop')} />
             </Grid>
             <Grid item xs={12}>
-            <FreeSoloCreateOptionDialog label='Contraturno' placeholder='Contraturno' onChange={handleChange('opshift')} />
+              <FreeSoloCreateOptionDialog label='Contraturno' placeholder='Contraturno' onChange={handleChange('opshift')} />
             </Grid>
             <Grid item xs={12}>
               <Box
@@ -163,6 +199,7 @@ const FormLayoutsBasic = () => {
                 <Button type='submit' variant='contained' size='large'>
                   Crear usuario
                 </Button>
+
                 {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography sx={{ mr: 2 }}>Already have an account?</Typography>
                   <Link href='/' onClick={e => e.preventDefault()}>
