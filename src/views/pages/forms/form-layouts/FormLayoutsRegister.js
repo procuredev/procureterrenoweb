@@ -58,7 +58,8 @@ const FormLayoutsBasic = () => {
   const validationRegex = {
     name: /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^\d{10}$/
+    phone: /^\d{10}$/,
+    rut: /[\s\S]*/
   }
 
   const validateForm = values => {
@@ -72,17 +73,22 @@ const FormLayoutsBasic = () => {
 
     for (const key in validationRegex) {
       if (!trimmedValues[key] || !validationRegex[key].test(trimmedValues[key])) {
-        errors[key] = `Por favor, introduce un ${key} válido`
+        errors[key] = `Por favor, introduce un ${document.getElementById(key).getAttribute('placeholder')} válido`
       }
     }
 
     if (isRutLike(values.rut)) {
       values.rut = formatRut(values.rut)
-      validateRut(values.rut)
+
+      /*chatgpt dice: Sin embargo, hay un problema en la validación del RUT.
+      En la función validateForm, cuando el RUT es válido, se llama a la función validateRut, pero no se hace nada con su resultado.
+      Deberías actualizar el código para hacer algo con el resultado, por ejemplo, si el RUT no es válido, establecer el mensaje de error correspondiente en el estado errors.*/
+      if (!validateRut(values.rut)) {
+        errors['rut'] = 'dígito verificador incorrecto'
+      }
     } else {
-      errors['rut'] = 'Rut invalido'
+      errors['rut'] = 'Por favor, introduce un rut válido'
     }
-    console.log(errors)
 
     return errors
   }
@@ -90,14 +96,16 @@ const FormLayoutsBasic = () => {
   const onSubmit = event => {
     event.preventDefault()
     const formErrors = validateForm(values)
-    if (formErrors === {}) {
-      // enviar el formulario
-      console.log('enviar el formulario')
+    if (Object.keys(formErrors).length === 0) {
+      window.alert('Usuario registrado')
       setValues(initialValues)
+      setErrors({})
     } else {
       setErrors(formErrors)
     }
   }
+
+  //si existe errors.key, mostrar esto como helpertext y darle el atributo error
 
   return (
     <Card>
@@ -106,19 +114,55 @@ const FormLayoutsBasic = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             <Grid item xs={12}>
-              <TextField fullWidth label='Nombre' placeholder='Nombres' onChange={handleChange('name')} />
+              <TextField
+                fullWidth
+                id='name'
+                label='Nombre'
+                placeholder='Nombres'
+                onChange={handleChange('name')}
+                value={values.name}
+                error={errors.name ? true : false}
+                helperText={errors.name}
+              />
             </Grid>
             {/* <Grid item xs={6}>
               <TextField fullWidth label='Apellidos' placeholder='Apellidos' />
             </Grid> */}
             <Grid item xs={6}>
-              <TextField fullWidth label='RUT' placeholder='RUT' onChange={handleChange('rut')} />
+              <TextField
+                fullWidth
+                label='RUT'
+                id='rut'
+                placeholder='RUT'
+                onChange={handleChange('rut')}
+                value={values.rut}
+                error={errors.rut ? true : false}
+                helperText={errors.rut}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField fullWidth label='Teléfono' placeholder='Teléfono' onChange={handleChange('phone')} />
+              <TextField
+                fullWidth
+                id='telefono'
+                label='Teléfono'
+                placeholder='Teléfono'
+                onChange={handleChange('phone')}
+                value={values.phone}
+                error={errors.phone ? true : false}
+                helperText={errors.phone}
+              />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth label='Email' placeholder='email@ejemplo.com' onChange={handleChange('email')} />
+              <TextField
+                fullWidth
+                id='email'
+                label='Email'
+                placeholder='email@ejemplo.com'
+                onChange={handleChange('email')}
+                value={values.email}
+                error={errors.email ? true : false}
+                helperText={errors.email}
+              />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
