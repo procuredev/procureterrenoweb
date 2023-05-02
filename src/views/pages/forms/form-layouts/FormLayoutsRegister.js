@@ -27,13 +27,13 @@ import MenuItem from '@mui/material/MenuItem'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
+// **Validar RUT
+import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
+
 import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search'
 
 const FormLayoutsBasic = () => {
-  // ** States
-  const [errors, setErrors] = useState({})
-
-  const [values, setValues] = useState({
+  const initialValues = {
     name: '',
     rut: '',
     phone: '',
@@ -44,7 +44,12 @@ const FormLayoutsBasic = () => {
     role: '',
     contop: '',
     opshift: ''
-  })
+  }
+
+  // ** States
+  const [errors, setErrors] = useState({})
+
+  const [values, setValues] = useState(initialValues)
 
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
@@ -57,30 +62,40 @@ const FormLayoutsBasic = () => {
   }
 
   const validateForm = values => {
-    if (!values.name || !validationRegex.name.test(values.name)) {
-      errors.name = 'Por favor, introduce un nombre válido'
+    const trimmedValues = {}
+    const errors = {}
+    for (const key in values) {
+      trimmedValues[key] = values[key].replace(/\s+$/, '')
     }
 
-    if (!values.email || !validationRegex.email.test(values.email)) {
-      errors.email = 'Por favor, introduce un correo electrónico válido'
+    // Si es nulo/falsy o el test devuelve false, entrega mensaje de error
+
+    for (const key in validationRegex) {
+      if (!trimmedValues[key] || !validationRegex[key].test(trimmedValues[key])) {
+        errors[key] = `Por favor, introduce un ${key} válido`
+      }
     }
 
-    if (!values.phone || !validationRegex.phone.test(values.phone)) {
-      errors.phone = 'Por favor, introduce un número de teléfono válido'
+    if (isRutLike(values.rut)) {
+      values.rut = formatRut(values.rut)
+      validateRut(values.rut)
+    } else {
+      errors['rut'] = 'Rut invalido'
     }
+    console.log(errors)
 
     return errors
   }
 
   const onSubmit = event => {
     event.preventDefault()
-    const errors = validateForm(values)
-
-    if (Object.keys(errors).length === 0) {
+    const formErrors = validateForm(values)
+    if (formErrors === {}) {
       // enviar el formulario
+      console.log('enviar el formulario')
+      setValues(initialValues)
     } else {
-      setErrors(errors)
-      console.log(errors)
+      setErrors(formErrors)
     }
   }
 
