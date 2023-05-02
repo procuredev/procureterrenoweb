@@ -1,5 +1,5 @@
 // ** React Imports
-import * as React from 'react';
+import * as React from 'react'
 import { useState } from 'react'
 
 // ** Hooks Imports
@@ -24,15 +24,14 @@ import FormHelperText from '@mui/material/FormHelperText'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search';
+import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search'
 
 const FormLayoutsBasic = () => {
   // ** States
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({})
 
   const [values, setValues] = useState({
     name: '',
@@ -54,37 +53,36 @@ const FormLayoutsBasic = () => {
   const validationRegex = {
     name: /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^\d{10}$/,
-  };
+    phone: /^\d{10}$/
+  }
 
-  const validateForm = (values) => {
+  const validateForm = values => {
     if (!values.name || !validationRegex.name.test(values.name)) {
-      errors.name = 'Por favor, introduce un nombre válido';
+      errors.name = 'Por favor, introduce un nombre válido'
     }
 
     if (!values.email || !validationRegex.email.test(values.email)) {
-      errors.email = 'Por favor, introduce un correo electrónico válido';
+      errors.email = 'Por favor, introduce un correo electrónico válido'
     }
 
     if (!values.phone || !validationRegex.phone.test(values.phone)) {
-      errors.phone = 'Por favor, introduce un número de teléfono válido';
+      errors.phone = 'Por favor, introduce un número de teléfono válido'
     }
 
-    return errors;
-  };
+    return errors
+  }
 
-  const onSubmit = (event) => {
-    event.preventDefault();
-    const errors = validateForm(values);
+  const onSubmit = event => {
+    event.preventDefault()
+    const errors = validateForm(values)
 
     if (Object.keys(errors).length === 0) {
       // enviar el formulario
     } else {
-      setErrors(errors);
+      setErrors(errors)
       console.log(errors)
     }
-  };
-
+  }
 
   return (
     <Card>
@@ -105,23 +103,12 @@ const FormLayoutsBasic = () => {
               <TextField fullWidth label='Teléfono' placeholder='Teléfono' onChange={handleChange('phone')} />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label='Email'
-                placeholder='email@ejemplo.com'
-                onChange={handleChange('email')}
-              />
+              <TextField fullWidth label='Email' placeholder='email@ejemplo.com' onChange={handleChange('email')} />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id="id">Planta</InputLabel>
-                <Select
-                  labelId="id"
-                  label="Planta"
-                  id="id"
-                  value={values.plant}
-                  onChange={handleChange('plant')}
-                >
+                <InputLabel id='id'>Planta</InputLabel>
+                <Select labelId='id' label='Planta' id='id' value={values.plant} onChange={handleChange('plant')}>
                   <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
                   <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
                   <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
@@ -133,14 +120,8 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id="id">Turno</InputLabel>
-                <Select
-                  labelId="id"
-                  label="Turno"
-                  id="id"
-                  value={values.shift}
-                  onChange={handleChange('shift')}
-                >
+                <InputLabel id='id'>Turno</InputLabel>
+                <Select labelId='id' label='Turno' id='id' value={values.shift} onChange={handleChange('shift')}>
                   <MenuItem value={'A'}>Turno A</MenuItem>
                   <MenuItem value={'B'}>Turno B</MenuItem>
                 </Select>
@@ -148,14 +129,8 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id="id">Empresa</InputLabel>
-                <Select
-                  labelId="id"
-                  label="Empresa"
-                  id="id"
-                  value={values.company}
-                  onChange={handleChange('company')}
-                >
+                <InputLabel id='id'>Empresa</InputLabel>
+                <Select labelId='id' label='Empresa' id='id' value={values.company} onChange={handleChange('company')}>
                   <MenuItem value={'MEL'}>MEL</MenuItem>
                   <MenuItem value={'Procure'}>Procure</MenuItem>
                 </Select>
@@ -163,14 +138,8 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id="id">Rol</InputLabel>
-                <Select
-                  labelId="id"
-                  label="Rol"
-                  id="id"
-                  value={values.role}
-                  onChange={handleChange('role')}
-                >
+                <InputLabel id='id'>Rol</InputLabel>
+                <Select labelId='id' label='Rol' id='id' value={values.role} onChange={handleChange('role')}>
                   <MenuItem value={'Solicitante'}>Solicitante</MenuItem>
                   <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>
                   <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>
@@ -181,10 +150,18 @@ const FormLayoutsBasic = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <FreeSoloCreateOptionDialog label='Contract Operator' placeholder='Contract Operator' onChange={handleChange('contop')} />
+              <FreeSoloCreateOptionDialog
+                label='Contract Operator'
+                placeholder='Contract Operator'
+                onChange={handleChange('contop')}
+              />
             </Grid>
             <Grid item xs={12}>
-              <FreeSoloCreateOptionDialog label='Contraturno' placeholder='Contraturno' onChange={handleChange('opshift')} />
+              <FreeSoloCreateOptionDialog
+                label='Contraturno'
+                placeholder='Contraturno'
+                onChange={handleChange('opshift')}
+              />
             </Grid>
             <Grid item xs={12}>
               <Box
