@@ -1,19 +1,28 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
 
 // ** Firebase Imports
-import { updateProfile } from "firebase/auth";
+import { updateProfile } from 'firebase/auth'
 import { Firebase, db, app } from 'src/configs/firebase'
-import { collection, doc, addDoc, Timestamp, query, getDoc, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import {
+  collection,
+  doc,
+  addDoc,
+  Timestamp,
+  query,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  onSnapshot
+} from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
 
 // ** Next Imports
 import { useRouter } from 'next/router'
 
 // ** Crea contexto
-export const FirebaseContext = createContext();
+export const FirebaseContext = createContext()
 
-const FirebaseContextProvider = (props) => {
-
+const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -53,16 +62,17 @@ const FirebaseContextProvider = (props) => {
 
   // ** Inicio de sesión
   const signInWithEmailAndPassword = (email, password) => {
-    Firebase.auth().signInWithEmailAndPassword(email, password)
+    Firebase.auth()
+      .signInWithEmailAndPassword(email, password)
       .then(user => console.log(user))
       .catch(err => console.log(err))
   }
 
   // ** Registro de usuarios
-  const createUserWithEmailAndPassword = (email, password) => {
-
+  const createUserWithEmailAndPassword = values => {
     // Crea usuario
-    Firebase.auth().createUserWithEmailAndPassword(email, password)
+    Firebase.auth().createUserWithEmailAndPassword(values.email, 'password')
+    window.alert('Usuario registrado')
 
     // Pendiente hasta martes 2 de mayo:
     // Actualiza datos usuario (foto, etc)
@@ -70,9 +80,7 @@ const FirebaseContextProvider = (props) => {
   }
 
   // ** Log out
-  const signOut = () => Firebase.auth().signOut()
-    .then(resetUser)
-    .then(router.push('/login/'))
+  const signOut = () => Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
 
   // ** Observador cambios de estado de Firebase
   useEffect(() => {
@@ -82,7 +90,7 @@ const FirebaseContextProvider = (props) => {
   }, [])
 
   // ** Escribe documentos en Firestore Database
-  const newDoc = async (values) => {
+  const newDoc = async values => {
     const user = Firebase.auth().currentUser
     if (user !== null) {
       const docRef = await addDoc(collection(db, 'solicitudes'), {
@@ -94,20 +102,19 @@ const FirebaseContextProvider = (props) => {
         receiver: values.receiver,
         description: values.description,
         date: Timestamp.fromDate(new Date()),
-        uid: user.uid,
-      });
-      console.log('Document written with ID: ', docRef.id);
+        uid: user.uid
+      })
+      console.log('Document written with ID: ', docRef.id)
 
-      return docRef.uid;
+      return docRef.uid
     }
   }
 
   // ** Evita que el user logueado esté en login
   useEffect(() => {
-    if (authUser !== null && (router.pathname.includes('login'))) {
+    if (authUser !== null && router.pathname.includes('login')) {
       router.replace('/home')
     }
-
   }, [authUser, router])
 
   // ** Evita que el no logueado esté en home
@@ -125,30 +132,35 @@ const FirebaseContextProvider = (props) => {
   const reviewDocs = async (id, approves) => {
     // If approves is true, state+1, if false back to 0
     const ref = doc(db, 'solicitudes', id)
-    const querySnapshot = await getDoc(ref);
-    const prevState = querySnapshot.data().state;
-    const newState = approves ? prevState + 1 : 9;
+    const querySnapshot = await getDoc(ref)
+    const prevState = querySnapshot.data().state
+    const newState = approves ? prevState + 1 : 9
 
     // const newState = prevState+1
 
     // Guarda estado anterior, autor y fecha modificación
-    const newEvent = { prevState, newState, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
+    const newEvent = {
+      prevState,
+      newState,
+      author: Firebase.auth().currentUser.email,
+      date: Timestamp.fromDate(new Date())
+    }
 
     await updateDoc(ref, {
       events: arrayUnion(newEvent),
       state: newState
-    });
+    })
   }
 
   // ** Modifica otros campos documentos
   const updateDocs = async (id, obj) => {
     const ref = doc(db, 'solicitudes', id)
-    const querySnapshot = await getDoc(ref);
+    const querySnapshot = await getDoc(ref)
 
     // Save previous version of document
-    const prevDoc = querySnapshot.data();
+    const prevDoc = querySnapshot.data()
     const newEvent = { prevDoc, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
-    await updateDoc(ref, obj);
+    await updateDoc(ref, obj)
   }
 
   // ** Actualiza datos usuario
@@ -156,48 +168,49 @@ const FirebaseContextProvider = (props) => {
   const updateUser = () => {
     updateProfile(Firebase.auth().currentUser, {
       // Hardcoded pero pueden -deben- pasársele argumentos cuando la usemos
-      displayName: "Pamela Carrizo", photoURL: "https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/PC.png"
-    }).then(() => {
-      console.log(Firebase.auth().currentUser)
+      displayName: 'Pamela Carrizo',
+      photoURL: 'https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/PC.png'
+    })
+      .then(() => {
+        console.log(Firebase.auth().currentUser)
 
-      // Profile updated!
-      // ...
-    }).catch((error) => {
-      // An error occurred
-      // ...
-    });
+        // Profile updated!
+        // ...
+      })
+      .catch(error => {
+        // An error occurred
+        // ...
+      })
   }
 
   // ** Escucha cambios en los documentos en tiempo real
   const useSnapshot = () => {
-
-    const [data, setData] = useState([]);
+    const [data, setData] = useState([])
 
     useEffect(() => {
-      const q = query(collection(db, "solicitudes"));
+      const q = query(collection(db, 'solicitudes'))
 
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const unsubscribe = onSnapshot(q, querySnapshot => {
         try {
-          const allDocs = [];
+          const allDocs = []
 
           // Una llamada inicial con la devolución de llamada que proporcionas crea una instantánea del documento de inmediato con los contenidos actuales de ese documento.
           // Después, cada vez que cambian los contenidos, otra llamada actualiza la instantánea del documento.
 
-          querySnapshot.forEach((doc) => {
-            allDocs.push({ ...doc.data(), id: doc.id });
-          });
-          setData(allDocs);
+          querySnapshot.forEach(doc => {
+            allDocs.push({ ...doc.data(), id: doc.id })
+          })
+          setData(allDocs)
         } catch (error) {
-          console.error("Error al obtener los documentos de Firestore: ", error);
+          console.error('Error al obtener los documentos de Firestore: ', error)
 
           // Aquí puedes mostrar un mensaje de error
         }
-      });
+      })
 
       // Devuelve una función de limpieza que se ejecuta al desmontar el componente
-      return () => unsubscribe();
-
-    }, []);
+      return () => unsubscribe()
+    }, [])
 
     return data
   }
@@ -214,16 +227,12 @@ const FirebaseContextProvider = (props) => {
     updateDocs,
     updateUser,
     useSnapshot
-  };
+  }
 
-  return (
-    <FirebaseContext.Provider value={value}>
-      {props.children}
-    </FirebaseContext.Provider>
-  );
-};
+  return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
+}
 
-export default FirebaseContextProvider;
+export default FirebaseContextProvider
 
 // ** Custom hook para acceder a estas funciones
 export const useFirebase = () => useContext(FirebaseContext)

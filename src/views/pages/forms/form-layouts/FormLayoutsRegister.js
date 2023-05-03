@@ -51,6 +51,9 @@ const FormLayoutsBasic = () => {
 
   const [values, setValues] = useState(initialValues)
 
+  // ** Hooks
+  const { createUserWithEmailAndPassword } = useFirebase()
+
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
   }
@@ -58,8 +61,7 @@ const FormLayoutsBasic = () => {
   const validationRegex = {
     name: /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^\d{10}$/,
-    rut: /[\s\S]*/
+    phone: /^\d{10}$/
   }
 
   const validateForm = values => {
@@ -73,7 +75,7 @@ const FormLayoutsBasic = () => {
 
     for (const key in validationRegex) {
       if (!trimmedValues[key] || !validationRegex[key].test(trimmedValues[key])) {
-        errors[key] = `Por favor, introduce un ${document.getElementById(key).getAttribute('placeholder')} válido`
+        errors[key] = `Por favor, introduce un ${key} válido`
       }
     }
 
@@ -97,7 +99,7 @@ const FormLayoutsBasic = () => {
     event.preventDefault()
     const formErrors = validateForm(values)
     if (Object.keys(formErrors).length === 0) {
-      window.alert('Usuario registrado')
+      createUserWithEmailAndPassword(values)
       setValues(initialValues)
       setErrors({})
     } else {
@@ -116,7 +118,6 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                id='name'
                 label='Nombre'
                 placeholder='Nombres'
                 onChange={handleChange('name')}
@@ -132,7 +133,6 @@ const FormLayoutsBasic = () => {
               <TextField
                 fullWidth
                 label='RUT'
-                id='rut'
                 placeholder='RUT'
                 onChange={handleChange('rut')}
                 value={values.rut}
@@ -143,7 +143,6 @@ const FormLayoutsBasic = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                id='telefono'
                 label='Teléfono'
                 placeholder='Teléfono'
                 onChange={handleChange('phone')}
@@ -155,7 +154,6 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                id='email'
                 label='Email'
                 placeholder='email@ejemplo.com'
                 onChange={handleChange('email')}
