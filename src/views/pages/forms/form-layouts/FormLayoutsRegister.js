@@ -37,6 +37,7 @@ import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
 import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search'
 import { SettingsVoice } from '@mui/icons-material'
 
+
 const FormLayoutsBasic = () => {
   const initialValues = {
     name: '',
@@ -50,6 +51,7 @@ const FormLayoutsBasic = () => {
     contop: '',
     opshift: ''
   }
+
 
   // ** States
   const [errors, setErrors] = useState({})
@@ -66,7 +68,7 @@ const FormLayoutsBasic = () => {
   const validationRegex = {
     name: /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^\d{10}$/
+    phone: /^\d{9}$/
   }
 
   const validateForm = values => {

@@ -7,6 +7,7 @@ import {
   collection,
   doc,
   addDoc,
+  setDoc,
   Timestamp,
   query,
   getDoc,
@@ -26,8 +27,8 @@ const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const[oldEmail, setOldEmail] = useState('')
-  const[dialog, setDialog]= useState(false);
+  const [oldEmail, setOldEmail] = useState('')
+  const [dialog, setDialog] = useState(false);
 
   const router = useRouter()
 
@@ -72,40 +73,50 @@ const FirebaseContextProvider = props => {
   }
 
   // ** Registro de usuarios
-  const createUser = values => {
-    // Guarda correo del admin
-    setOldEmail(authUser.email)
+  const createUser = async values => {
+    try {
+      // Guarda correo del admin
+      setOldEmail(authUser.email)
 
-    // Crea usuario
-    Firebase.auth().createUserWithEmailAndPassword(values.email, 'password')
+      // Crea usuario
+      await Firebase.auth().createUserWithEmailAndPassword(values.email, 'password')
+      setDialog(true);
 
-       .then((userCredential) => {
-         // Abre dialog
-         setDialog(true);
-        })
-        .catch((error)=>{console.log(error);}
-        );
+      // Guardar info en bd
+      await setDoc(doc(db, "users", Firebase.auth().currentUser.uid), {
+        nombre: "",
+        apellido: "",
+        email: values.email,
+        displayName: "",
+        photoURL: "",
+        provider: "",
+        phoneNumber: "",
+        empresa: "",
+        cargo: "",
+        turno: "",
+        planta: ""
+      })
+      window.alert('Usuario creado exitosamente')
 
-    // Pendiente hasta martes 2 de mayo:
-    // Actualiza datos usuario (foto, etc)
-    // Crea documento en la base de datos para agregar rol, empresa y datos custom
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   // ** Permite que el admin entre de vuelta
   const signAdminBack = (password) => {
     Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
-    .then((userCredential)=>{
-            //Admin de vuelta
-            //Cierra dialog
-            setDialog(false)
-            window.alert('Usuario creado exitosamente')
-          })
-    .catch((err)=>{
-            console.log(err);
-            window.alert(err)
-            setDialog(false)
-            Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
-          });
+      .then((userCredential) => {
+        //Admin de vuelta
+        //Cierra dialog
+        setDialog(false)
+      })
+      .catch((err) => {
+        console.log(err);
+        window.alert(err)
+        setDialog(false)
+        Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
+      });
   }
 
   // ** Log out
