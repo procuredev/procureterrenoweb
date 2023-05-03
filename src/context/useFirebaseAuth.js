@@ -26,6 +26,9 @@ const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const[oldEmail, setOldEmail] = useState('')
+  const[dialog, setDialog]= useState(false);
+
   const router = useRouter()
 
   // ** Variables
@@ -69,14 +72,40 @@ const FirebaseContextProvider = props => {
   }
 
   // ** Registro de usuarios
-  const createUserWithEmailAndPassword = values => {
+  const createUser = values => {
+    // Guarda correo del admin
+    setOldEmail(authUser.email)
+
     // Crea usuario
     Firebase.auth().createUserWithEmailAndPassword(values.email, 'password')
-    window.alert('Usuario registrado')
+
+       .then((userCredential) => {
+         // Abre dialog
+         setDialog(true);
+        })
+        .catch((error)=>{console.log(error);}
+        );
 
     // Pendiente hasta martes 2 de mayo:
     // Actualiza datos usuario (foto, etc)
     // Crea documento en la base de datos para agregar rol, empresa y datos custom
+  }
+
+  // ** Permite que el admin entre de vuelta
+  const signAdminBack = (password) => {
+    Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
+    .then((userCredential)=>{
+            //Admin de vuelta
+            //Cierra dialog
+            setDialog(false)
+            window.alert('Usuario creado exitosamente')
+          })
+    .catch((err)=>{
+            console.log(err);
+            window.alert(err)
+            setDialog(false)
+            Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
+          });
   }
 
   // ** Log out
@@ -216,12 +245,14 @@ const FirebaseContextProvider = props => {
   }
 
   const value = {
+    dialog,
     auth,
     loading,
     signOut,
     authUser,
     signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
+    createUser,
+    signAdminBack,
     newDoc,
     reviewDocs,
     updateDocs,

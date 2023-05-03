@@ -23,6 +23,10 @@ import InputAdornment from '@mui/material/InputAdornment'
 import FormHelperText from '@mui/material/FormHelperText'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogActions from '@mui/material/DialogActions'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -31,6 +35,7 @@ import Icon from 'src/@core/components/icon'
 import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
 
 import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search'
+import { SettingsVoice } from '@mui/icons-material'
 
 const FormLayoutsBasic = () => {
   const initialValues = {
@@ -48,11 +53,11 @@ const FormLayoutsBasic = () => {
 
   // ** States
   const [errors, setErrors] = useState({})
-
   const [values, setValues] = useState(initialValues)
+  const [password, setPassword] = useState('')
 
   // ** Hooks
-  const { createUserWithEmailAndPassword } = useFirebase()
+  const { createUser, dialog, signAdminBack } = useFirebase()
 
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
@@ -99,7 +104,7 @@ const FormLayoutsBasic = () => {
     event.preventDefault()
     const formErrors = validateForm(values)
     if (Object.keys(formErrors).length === 0) {
-      createUserWithEmailAndPassword(values)
+      createUser(values)
       setValues(initialValues)
       setErrors({})
     } else {
@@ -233,7 +238,23 @@ const FormLayoutsBasic = () => {
                 <Button type='submit' variant='contained' size='large'>
                   Crear usuario
                 </Button>
-
+                <Dialog open={dialog}>
+                  <DialogContent>
+                    <DialogContentText sx={{mb:5}}>
+                     Ingresa tu contraseña para confirmar
+                    </DialogContentText>
+                    <TextField
+                        label="Contraseña"
+                        type="password"
+                        onInput={(e)=>setPassword(e.target.value)}
+                      />
+                  </DialogContent>
+                  <DialogActions>
+                  <Button onClick={()=>signAdminBack(password)}>
+                    Confirmar
+                  </Button>
+                  </DialogActions>
+                </Dialog>
                 {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography sx={{ mr: 2 }}>Already have an account?</Typography>
                   <Link href='/' onClick={e => e.preventDefault()}>

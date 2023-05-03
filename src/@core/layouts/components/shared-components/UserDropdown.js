@@ -78,7 +78,7 @@ const UserDropdown = props => {
     handleDropdownClose()
   }
 
-  let username = (authUser === null) ? 'not logged' : authUser.displayName
+  let username = (authUser === null) ? 'not logged' : authUser.email
   let pfp = (authUser === null) ? 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg' : authUser.pfp
 
 
@@ -118,7 +118,7 @@ const UserDropdown = props => {
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{username}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Contract Owner
+              {username}
               </Typography>
             </Box>
           </Box>
@@ -165,7 +165,7 @@ const UserDropdown = props => {
         </MenuItem>
         <Divider />
             */}
-            
+
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
