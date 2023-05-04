@@ -11,13 +11,13 @@ import Spinner from 'src/@core/components/spinner'
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
 export const getHomeRoute = () => {
-  return '/dashboards/analytics'
+  return '/home'
 }
 
 
 const Home = () => {
   // ** Hooks
-  const auth = useFirebase()
+  const { authUser } = useFirebase()
   const router = useRouter()
 
   useEffect(() => {
@@ -25,14 +25,16 @@ const Home = () => {
       return
     }
 
-    if (auth.user && auth.user.role) {
+
+    if (authUser && authUser.role) {
       const homeRoute = getHomeRoute()
 
       // Redirect user to Home URL
       router.replace(homeRoute)
+      console.log(authUser)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [authUser])
 
   return <Spinner />
 }

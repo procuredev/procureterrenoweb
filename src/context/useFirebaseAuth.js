@@ -35,15 +35,30 @@ const FirebaseContextProvider = props => {
   // ** Variables
   const auth = getAuth(app)
 
-  // ** Formatea al usuario que viene de firebase
-  const formatAuthUser = user => {
+  // ** Consultar rol del usuario
+
+  const getRole = async (id) => {
+    const docRef = doc(db, "users", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().role;
+    } else {
+      return undefined;
+    }
+  }
+
+  const formatAuthUser = async (user) => {
+    const role = await getRole(user.uid);
+
     return {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
-      pfp: user.photoURL
+      pfp: user.photoURL,
+      role: role
     }
   }
+
 
   // ** Observador para cambios de estado - Define el estado authUser
   const authStateChanged = async authState => {
@@ -52,7 +67,7 @@ const FirebaseContextProvider = props => {
       setLoading(false)
     } else {
       setLoading(true)
-      const formattedUser = formatAuthUser(authState)
+      const formattedUser = await formatAuthUser(authState);
       setAuthUser(formattedUser)
       setLoading(false)
     }
@@ -124,10 +139,12 @@ const FirebaseContextProvider = props => {
 
   // ** Observador cambios de estado de Firebase
   useEffect(() => {
+    setAuthUser(null);
     const unsubscribe = Firebase.auth().onAuthStateChanged(authStateChanged)
 
     return () => unsubscribe()
   }, [])
+
 
   // ** Escribe documentos en Firestore Database
   const newDoc = async values => {
@@ -256,6 +273,7 @@ const FirebaseContextProvider = props => {
   }
 
   const value = {
+    authUser,
     dialog,
     auth,
     loading,
