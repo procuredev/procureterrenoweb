@@ -62,13 +62,21 @@ const FormLayoutsBasic = () => {
   const { createUser, dialog, signAdminBack } = useFirebase()
 
   const handleChange = prop => event => {
-    setValues({ ...values, [prop]: event.target.value })
+    let newValue = event.target.value;
+    if (prop === 'rut') {
+      // Eliminar cualquier caracter que no sea un número o letra k
+      newValue = newValue.replace(/[^0-9kK]/g, "");
+
+      // Aplicar expresión regular para formatear el RUT
+      newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, "$1.$2.$3-$4");
+    }
+    setValues({ ...values, [prop]: newValue });
   }
 
   const validationRegex = {
-    name: /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/,
+    name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s]+$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^\d{9}$/
+    phone: /^[0-9+]{8,12}$/,
   }
 
   const validateForm = values => {
