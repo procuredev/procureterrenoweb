@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useFirebase } from 'src/context/useFirebaseAuth'
@@ -65,6 +65,15 @@ const TableBasic = (rows) => {
   const sm = useMediaQuery(theme.breakpoints.up('sm'));
   const md = useMediaQuery(theme.breakpoints.up('md'));
 
+  useEffect(() => {
+    // Busca el documento actualizado en rows
+    const updatedDoc = rows.rows.find((row) => row.id === doc.id);
+
+    // Actualiza el estado de doc con el documento actualizado
+    if (updatedDoc) {
+      setDoc(updatedDoc);
+    }
+  }, [rows]);
 
   const columns = [
     {
