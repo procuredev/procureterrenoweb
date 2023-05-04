@@ -226,6 +226,7 @@ const FormLayoutsBasic = () => {
                 label='Contract Operator'
                 placeholder='Contract Operator'
                 onChange={handleChange('contop')}
+                value={values.contop}
               />
             </Grid>
             <Grid item xs={12}>
@@ -233,6 +234,7 @@ const FormLayoutsBasic = () => {
                 label='Contraturno'
                 placeholder='Contraturno'
                 onChange={handleChange('opshift')}
+                value={values.opshift}
               />
             </Grid>
             <Grid item xs={12}>

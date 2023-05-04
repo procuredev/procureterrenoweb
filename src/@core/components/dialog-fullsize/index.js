@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { auth, updateDocs } from 'src/context/useFirebaseAuth';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import Button from '@mui/material/Button';
@@ -21,6 +20,7 @@ import { Timeline, TimelineItem, TimelineSeparator, TimelineConnector, TimelineC
 import AlertDialog from 'src/@core/components/dialog-warning';
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate';
+import { useFirebase } from 'src/context/useFirebaseAuth';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -34,6 +34,8 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
 
+  const { updateDocs } = useFirebase()
+
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   let display = fullScreen ? 'auto' : 'none'
@@ -44,6 +46,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
 // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
     setValues({
+      id: doc.id,
       title: doc.title,
       description: doc.description,
       start: doc.start,
@@ -57,8 +60,8 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
     setOpenAlert(true)
   };
 
-  const writeCallback = (values) => {
-    updateDocs(id, values)
+  const writeCallback = () => {
+    updateDocs(values.id, values)
     handleCloseAlert()
   }
 
@@ -95,7 +98,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
         </Toolbar>
       </AppBar>
 
-      <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback(values)}></AlertDialog>
+      <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
 
       <Paper sx={{ maxWidth: 700, margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
         <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>

@@ -59,7 +59,6 @@ const FirebaseContextProvider = props => {
     }
   }
 
-
   // ** Observador para cambios de estado - Define el estado authUser
   const authStateChanged = async authState => {
     if (!authState) {
@@ -89,32 +88,49 @@ const FirebaseContextProvider = props => {
 
   // ** Registro de usuarios
   const createUser = async values => {
+    const {name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
     try {
       // Guarda correo del admin
       setOldEmail(authUser.email)
 
       // Crea usuario
-      await Firebase.auth().createUserWithEmailAndPassword(values.email, 'password')
+      await Firebase.auth().createUserWithEmailAndPassword(email, 'password')
       setDialog(true);
+
+      // Actualiza usuario
+      updateProfile(Firebase.auth().currentUser, {
+        // Hardcoded pero pueden -deben- pasársele argumentos cuando la usemos
+        displayName: name,
+        photoURL: ''
+      })
+        .then(() => {
+          console.log(Firebase.auth().currentUser)
+
+          // Profile updated!
+          // ...
+        })
+        .catch(error => {
+          // An error occurred
+          // ...
+        })
 
       // Guardar info en bd
       await setDoc(doc(db, "users", Firebase.auth().currentUser.uid), {
-        nombre: "",
-        apellido: "",
-        email: values.email,
-        displayName: "",
-        photoURL: "",
-        provider: "",
-        phoneNumber: "",
-        empresa: "",
-        cargo: "",
-        turno: "",
-        planta: ""
+        email: email,
+        rut: rut,
+        phone: phone,
+        plant: plant,
+        shift: shift,
+        company: company,
+        role: role,
+        contop: contop,
+        opshift: opshift
       })
       window.alert('Usuario creado exitosamente')
 
     } catch (error) {
       console.log(error);
+      window.alert(error)
     }
   }
 
@@ -220,26 +236,6 @@ const FirebaseContextProvider = props => {
     await updateDoc(ref, obj)
   }
 
-  // ** Actualiza datos usuario
-
-  const updateUser = () => {
-    updateProfile(Firebase.auth().currentUser, {
-      // Hardcoded pero pueden -deben- pasársele argumentos cuando la usemos
-      displayName: 'Pamela Carrizo',
-      photoURL: 'https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/PC.png'
-    })
-      .then(() => {
-        console.log(Firebase.auth().currentUser)
-
-        // Profile updated!
-        // ...
-      })
-      .catch(error => {
-        // An error occurred
-        // ...
-      })
-  }
-
   // ** Escucha cambios en los documentos en tiempo real
   const useSnapshot = () => {
     const [data, setData] = useState([])
@@ -285,7 +281,6 @@ const FirebaseContextProvider = props => {
     newDoc,
     reviewDocs,
     updateDocs,
-    updateUser,
     useSnapshot
   }
 
