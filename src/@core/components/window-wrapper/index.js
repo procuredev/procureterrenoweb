@@ -1,6 +1,9 @@
 // ** React Imports
 import { useState, useEffect } from 'react'
 
+// ** MUI Import
+import Alert from '@mui/material/Alert'
+
 // ** Next Import
 import { useRouter } from 'next/router'
 
@@ -28,9 +31,12 @@ const WindowWrapper = ({ children }) => {
     }
   }, [authUser]);
 
+  console.log(children)
 
   if (windowReadyFlag) {
-    return <>{children}</>
+    return <>
+    <Alert severity="success">Navegando como: {authUser ? authUser.role : 'Usuario no autenticado'}</Alert>
+    {children}</>
   } else {
     return null
   }
