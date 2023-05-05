@@ -183,12 +183,7 @@ const FirebaseContextProvider = props => {
     }
   }
 
-  // ** Evita que el user logueado esté en login
-  useEffect(() => {
-    if (authUser !== null && router.pathname.includes('login')) {
-      router.replace('/home')
-    }
-  }, [authUser, router])
+
 
   // ** Evita que el no logueado esté en home
   /* Pendiente revisión.

@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -119,7 +119,7 @@ const LoginPage = () => {
 
   // ** Vars
   const { skin } = settings
-  const { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } = useFirebase()
+  const { authUser, signInWithEmailAndPassword } = useFirebase()
   const router = useRouter()
 
   const {
@@ -138,11 +138,14 @@ const LoginPage = () => {
 
     signInWithEmailAndPassword(email, password)
 
-    //viendo como meter el condicional aca (ruteo)
-
-
   }
   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
+
+  useEffect(() => {
+    if (authUser) {
+      router.push('/home');
+    }
+  }, [authUser]);
 
   return (
     <Box className='content-right'>

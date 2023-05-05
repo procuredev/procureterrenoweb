@@ -10,8 +10,12 @@ import Spinner from 'src/@core/components/spinner'
 // ** Hook Imports
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
-export const getHomeRoute = () => {
+export const getHomeRoute = (authUser) => {
+  if (authUser){
   return '/home'
+}
+
+  return '/login'
 }
 
 
@@ -25,14 +29,12 @@ const Home = () => {
       return
     }
 
-
-    if (authUser && authUser.role) {
       const homeRoute = getHomeRoute()
 
       // Redirect user to Home URL
       router.replace(homeRoute)
       console.log(authUser)
-    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser])
 
