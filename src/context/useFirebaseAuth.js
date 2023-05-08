@@ -28,6 +28,7 @@ const FirebaseContextProvider = props => {
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [oldEmail, setOldEmail] = useState('')
+  const [newUID, setNewUID] = useState('')
   const [dialog, setDialog] = useState(false);
 
   const router = useRouter()
@@ -88,7 +89,7 @@ const FirebaseContextProvider = props => {
 
   // ** Registro de usuarios
   const createUser = async values => {
-    const {name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
+    const {name, email} = values
     try {
       // Guarda correo del admin
       setOldEmail(authUser.email)
@@ -96,6 +97,9 @@ const FirebaseContextProvider = props => {
       // Crea usuario
       await Firebase.auth().createUserWithEmailAndPassword(email, 'password')
       setDialog(true);
+
+      // Guardar uid en un estado
+      setNewUID(Firebase.auth().currentUser.uid)
 
       // Actualiza usuario
       updateProfile(Firebase.auth().currentUser, {
@@ -114,8 +118,22 @@ const FirebaseContextProvider = props => {
           // ...
         })
 
-      // Guardar info en bd
-      await setDoc(doc(db, "users", Firebase.auth().currentUser.uid), {
+    } catch (error) {
+      console.log(error);
+      window.alert(error)
+    }
+  }
+
+  // ** Permite que el admin entre de vuelta
+  const signAdminBack = async (values, password) => {
+    const { rut, phone, email, plant, shift, company, role, contop, opshift } = values
+
+    try {
+      await Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
+      setDialog(false)
+
+       // Guardar info en bd
+       await setDoc(doc(db, "users", newUID), {
         email: email,
         rut: rut,
         phone: phone,
@@ -126,29 +144,27 @@ const FirebaseContextProvider = props => {
         contop: contop,
         opshift: opshift
       })
-      window.alert('Usuario creado exitosamente')
 
+      setNewUID('')
     } catch (error) {
       console.log(error);
       window.alert(error)
+      setDialog(false)
+
+      // Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
+
     }
   }
 
-  // ** Permite que el admin entre de vuelta
-  const signAdminBack = (password) => {
-    Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
-      .then((userCredential) => {
-        //Admin de vuelta
-        //Cierra dialog
-        setDialog(false)
-      })
-      .catch((err) => {
-        console.log(err);
-        window.alert(err)
-        setDialog(false)
-        Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
-      });
-  }
+  //     .then((userCredential) => {
+
+  //       //Admin de vuelta
+
+  //       //Cierra dialog
+  //     })
+  //     .catch((err) => {
+  //     });
+  // }
 
   // ** Log out
   const signOut = () => Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))

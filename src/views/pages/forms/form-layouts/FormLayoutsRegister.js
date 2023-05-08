@@ -115,11 +115,15 @@ const FormLayoutsBasic = () => {
     const formErrors = validateForm(values)
     if (Object.keys(formErrors).length === 0) {
       createUser(values)
-      setValues(initialValues)
       setErrors({})
     } else {
       setErrors(formErrors)
     }
+  }
+
+  const handleConfirm = () => {
+    signAdminBack(values, password)
+    setValues(initialValues)
   }
 
   //si existe errors.key, mostrar esto como helpertext y darle el atributo error
@@ -262,7 +266,7 @@ const FormLayoutsBasic = () => {
                       />
                   </DialogContent>
                   <DialogActions>
-                  <Button onClick={()=>signAdminBack(password)}>
+                  <Button onClick={()=>handleConfirm()}>
                     Confirmar
                   </Button>
                   </DialogActions>
