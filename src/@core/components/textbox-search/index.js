@@ -43,6 +43,7 @@ export default function FreeSoloCreateOptionDialog(props) {
       <Autocomplete
         value={value}
         onChange={(event, newValue) => {
+          props.setterFunction(event.target.innerText)
           if (typeof newValue === 'string') {
             // timeout to avoid instant validation of the dialog's form.
             setTimeout(() => {

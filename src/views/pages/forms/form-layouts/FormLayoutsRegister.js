@@ -73,6 +73,10 @@ const FormLayoutsBasic = () => {
     setValues({ ...values, [prop]: newValue });
   }
 
+  const handleSelectorChange = (prop)=>(newValue) => {
+    setValues({ ...values, [prop]: newValue });
+  }
+
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s]+$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -110,6 +114,8 @@ const FormLayoutsBasic = () => {
     return errors
   }
 
+  // agregar codigo que crea un error cuando hay campos "" y que diga "por favor, selecciona un "coso"
+
   const onSubmit = event => {
     event.preventDefault()
     const formErrors = validateForm(values)
@@ -125,8 +131,6 @@ const FormLayoutsBasic = () => {
     signAdminBack(values, password)
     setValues(initialValues)
   }
-
-  //si existe errors.key, mostrar esto como helpertext y darle el atributo error
 
   return (
     <Card>
@@ -183,8 +187,8 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='id'>Planta</InputLabel>
-                <Select labelId='id' label='Planta' id='id' value={values.plant} onChange={handleChange('plant')}>
+                <InputLabel>Planta</InputLabel>
+                <Select label='Planta' value={values.plant} onChange={handleChange('plant')}>
                   <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
                   <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
                   <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
@@ -196,8 +200,8 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='id'>Turno</InputLabel>
-                <Select labelId='id' label='Turno' id='id' value={values.shift} onChange={handleChange('shift')}>
+                <InputLabel>Turno</InputLabel>
+                <Select label='Turno' value={values.shift} onChange={handleChange('shift')}>
                   <MenuItem value={'A'}>Turno A</MenuItem>
                   <MenuItem value={'B'}>Turno B</MenuItem>
                 </Select>
@@ -205,8 +209,8 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='id'>Empresa</InputLabel>
-                <Select labelId='id' label='Empresa' id='id' value={values.company} onChange={handleChange('company')}>
+                <InputLabel>Empresa</InputLabel>
+                <Select label='Empresa' value={values.company} onChange={handleChange('company')}>
                   <MenuItem value={'MEL'}>MEL</MenuItem>
                   <MenuItem value={'Procure'}>Procure</MenuItem>
                 </Select>
@@ -214,8 +218,8 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='id'>Rol</InputLabel>
-                <Select labelId='id' label='Rol' id='id' value={values.role} onChange={handleChange('role')}>
+                <InputLabel>Rol</InputLabel>
+                <Select label='Rol' value={values.role} onChange={handleChange('role')}>
                   <MenuItem value={'Solicitante'}>Solicitante</MenuItem>
                   <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>
                   <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>
@@ -229,7 +233,7 @@ const FormLayoutsBasic = () => {
               <FreeSoloCreateOptionDialog
                 label='Contract Operator'
                 placeholder='Contract Operator'
-                onChange={handleChange('contop')}
+                setterFunction={handleSelectorChange('contop')}
                 value={values.contop}
               />
             </Grid>
@@ -237,7 +241,7 @@ const FormLayoutsBasic = () => {
               <FreeSoloCreateOptionDialog
                 label='Contraturno'
                 placeholder='Contraturno'
-                onChange={handleChange('opshift')}
+                setterFunction={handleSelectorChange('opshift')}
                 value={values.opshift}
               />
             </Grid>
