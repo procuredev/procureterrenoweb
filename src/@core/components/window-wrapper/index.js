@@ -29,7 +29,7 @@ const WindowWrapper = ({ children }) => {
     if (!authUser && !loading) {
       router.push('/login');
     }
-  }, [authUser]);
+  }, [authUser, loading]);
 
   if (windowReadyFlag) {
     return <>
