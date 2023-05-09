@@ -87,6 +87,12 @@ const FormLayoutsBasic = () => {
     const trimmedValues = {}
     const errors = {}
     for (const key in values) {
+      // Error campos vacíos
+      if (values[key]==="" ||!values[key]) {
+        errors[key] = 'Por favor, selecciona una opción'
+      }
+
+      // Saca espacios en los values
       trimmedValues[key] = values[key].replace(/\s+$/, '')
     }
 
@@ -119,7 +125,10 @@ const FormLayoutsBasic = () => {
   const onSubmit = event => {
     event.preventDefault()
     const formErrors = validateForm(values)
-    if (Object.keys(formErrors).length === 0) {
+    const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role'];
+    const areFieldsValid = requiredKeys.every((key) => !errors[key]);
+    if (Object.keys(formErrors).length === 0 ||
+    (values.company==='Procure' && areFieldsValid)) {
       createUser(values)
       setErrors({})
     } else {
@@ -187,8 +196,65 @@ const FormLayoutsBasic = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
+                <InputLabel>Empresa</InputLabel>
+                <Select
+                label='Empresa'
+                value={values.company}
+                onChange={handleChange('company')}
+                error={errors.company ? true : false}
+                >
+                  <MenuItem value={'MEL'}>MEL</MenuItem>
+                  <MenuItem value={'Procure'}>Procure</MenuItem>
+                </Select>
+                {errors.company && <FormHelperText error>{errors.company}</FormHelperText>}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Rol</InputLabel>
+                <Select
+                label='Rol'
+                value={values.role}
+                onChange={handleChange('role')}
+                error={errors.role ? true : false}
+                >
+                  {values.company==='MEL' && <MenuItem value={'Solicitante'}>Solicitante</MenuItem>}
+                  {values.company==='MEL' && <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>}
+                  {values.company==='MEL' && <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>}
+                  {values.company==='Procure' && <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>}
+                  {values.company==='Procure' && <MenuItem value={'Supervisor'}>Supervisor</MenuItem>}
+                  {values.company==='Procure' && <MenuItem value={'Gerente'}>Gerente</MenuItem>}
+                </Select>
+                {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
+              </FormControl>
+            </Grid>
+
+            {(values.company==='MEL' /* && values.role==='Solicitante' */) &&
+            <>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Turno</InputLabel>
+                <Select
+                label='Turno'
+                value={values.shift}
+                onChange={handleChange('shift')}
+                error={errors.shift ? true : false}
+                >
+                  <MenuItem value={'A'}>Turno A</MenuItem>
+                  <MenuItem value={'B'}>Turno B</MenuItem>
+                </Select>
+                {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
                 <InputLabel>Planta</InputLabel>
-                <Select label='Planta' value={values.plant} onChange={handleChange('plant')}>
+                <Select
+                label='Planta'
+                value={values.plant}
+                onChange={handleChange('plant')}
+                error={errors.plant ? true : false}
+                >
                   <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
                   <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
                   <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
@@ -196,55 +262,31 @@ const FormLayoutsBasic = () => {
                   <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
                   <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
                 </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Turno</InputLabel>
-                <Select label='Turno' value={values.shift} onChange={handleChange('shift')}>
-                  <MenuItem value={'A'}>Turno A</MenuItem>
-                  <MenuItem value={'B'}>Turno B</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Empresa</InputLabel>
-                <Select label='Empresa' value={values.company} onChange={handleChange('company')}>
-                  <MenuItem value={'MEL'}>MEL</MenuItem>
-                  <MenuItem value={'Procure'}>Procure</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Rol</InputLabel>
-                <Select label='Rol' value={values.role} onChange={handleChange('role')}>
-                  <MenuItem value={'Solicitante'}>Solicitante</MenuItem>
-                  <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>
-                  <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>
-                  <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>
-                  <MenuItem value={'Supervisor'}>Supervisor</MenuItem>
-                  <MenuItem value={'Gerente'}>Gerente</MenuItem>
-                </Select>
+                {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
               </FormControl>
             </Grid>
             <Grid item xs={12}>
               <FreeSoloCreateOptionDialog
                 label='Contract Operator'
                 placeholder='Contract Operator'
+                error={errors.contop ? true : false}
                 setterFunction={handleSelectorChange('contop')}
                 value={values.contop}
               />
+              {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
             </Grid>
             <Grid item xs={12}>
               <FreeSoloCreateOptionDialog
                 label='Contraturno'
                 placeholder='Contraturno'
+                error={errors.opshift ? true : false}
                 setterFunction={handleSelectorChange('opshift')}
                 value={values.opshift}
               />
+              {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
             </Grid>
+            </>
+            }
             <Grid item xs={12}>
               <Box
                 sx={{

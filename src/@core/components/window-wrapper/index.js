@@ -13,7 +13,7 @@ const WindowWrapper = ({ children }) => {
   // ** State
   const [windowReadyFlag, setWindowReadyFlag] = useState(false)
   const router = useRouter()
-  const { authUser } = useFirebase()
+  const { authUser, loading } = useFirebase()
 
   useEffect(
     () => {
@@ -26,16 +26,14 @@ const WindowWrapper = ({ children }) => {
   )
 
   useEffect(() => {
-    if (!authUser) {
+    if (!authUser && !loading) {
       router.push('/login');
     }
   }, [authUser]);
 
-  console.log(children)
-
   if (windowReadyFlag) {
     return <>
-    <Alert severity="success">Navegando como: {authUser ? authUser.role : 'Usuario no autenticado'}</Alert>
+    <Alert severity="success">Navegando como: {authUser ? authUser.role : 'No definido'}</Alert>
     {children}</>
   } else {
     return null

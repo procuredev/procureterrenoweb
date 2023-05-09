@@ -93,7 +93,7 @@ export default function FreeSoloCreateOptionDialog(props) {
         handleHomeEndKeys
         renderOption={(props, option) => <li {...props}>{option.title}</li>}
         freeSolo
-        renderInput={(params) => <TextField {...params} label={props.label} />}
+        renderInput={(params) => <TextField {...params} label={props.label} error={props.error} />}
       />
       <Dialog open={open} onClose={handleClose}>
         <form onSubmit={handleSubmit}>
