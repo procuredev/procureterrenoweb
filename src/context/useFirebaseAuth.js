@@ -261,6 +261,7 @@ const FirebaseContextProvider = props => {
     useEffect(() => {
       if (authUser) {
         const q = authUser.role === 'admin' ? query(collection(db, 'solicitudes')) : query(collection(db, 'solicitudes'), where("uid", "==", authUser.uid))
+
         const unsubscribe = onSnapshot(q, querySnapshot => {
           try {
             const allDocs = []
