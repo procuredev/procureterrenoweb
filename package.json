@@ -48,6 +48,7 @@
     "draft-js": "0.11.7",
     "firebase": "9.13.0",
     "firebase-admin": "^11.7.0",
+    "generate-password": "^1.7.0",
     "google-maps": "^4.3.3",
     "http": "^0.0.1-security",
     "i18next": "22.0.4",

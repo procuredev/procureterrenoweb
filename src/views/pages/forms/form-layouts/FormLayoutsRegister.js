@@ -37,7 +37,6 @@ import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
 import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search'
 import { SettingsVoice } from '@mui/icons-material'
 
-
 const FormLayoutsBasic = () => {
   const initialValues = {
     name: '',
@@ -52,7 +51,6 @@ const FormLayoutsBasic = () => {
     opshift: ''
   }
 
-
   // ** States
   const [errors, setErrors] = useState({})
   const [values, setValues] = useState(initialValues)
@@ -62,25 +60,25 @@ const FormLayoutsBasic = () => {
   const { createUser, dialog, signAdminBack } = useFirebase()
 
   const handleChange = prop => event => {
-    let newValue = event.target.value;
+    let newValue = event.target.value
     if (prop === 'rut') {
       // Eliminar cualquier caracter que no sea un número o letra k
-      newValue = newValue.replace(/[^0-9kK]/g, "");
+      newValue = newValue.replace(/[^0-9kK]/g, '')
 
       // Aplicar expresión regular para formatear el RUT
-      newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, "$1.$2.$3-$4");
+      newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
     }
-    setValues({ ...values, [prop]: newValue });
+    setValues({ ...values, [prop]: newValue })
   }
 
-  const handleSelectorChange = (prop)=>(newValue) => {
-    setValues({ ...values, [prop]: newValue });
+  const handleSelectorChange = prop => newValue => {
+    setValues({ ...values, [prop]: newValue })
   }
 
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s]+$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^[0-9+]{8,12}$/,
+    phone: /^[0-9+]{8,12}$/
   }
 
   const validateForm = values => {
@@ -88,7 +86,7 @@ const FormLayoutsBasic = () => {
     const errors = {}
     for (const key in values) {
       // Error campos vacíos
-      if (values[key]==="" ||!values[key]) {
+      if (values[key] === '' || !values[key]) {
         errors[key] = 'Por favor, selecciona una opción'
       }
 
@@ -104,12 +102,14 @@ const FormLayoutsBasic = () => {
       }
     }
 
+    // Si, el valor ingresado tiene formato de rut (26909763-9 o 26.909.763-9)
+
     if (isRutLike(values.rut)) {
+      // si es 26.909.763-9 lo formatea para eliminar los puntos quedando: 26909763-9
       values.rut = formatRut(values.rut)
 
-      /*chatgpt dice: Sin embargo, hay un problema en la validación del RUT.
-      En la función validateForm, cuando el RUT es válido, se llama a la función validateRut, pero no se hace nada con su resultado.
-      Deberías actualizar el código para hacer algo con el resultado, por ejemplo, si el RUT no es válido, establecer el mensaje de error correspondiente en el estado errors.*/
+      // comprueba con el módulo 11 para corroborar el digito verificador
+
       if (!validateRut(values.rut)) {
         errors['rut'] = 'dígito verificador incorrecto'
       }
@@ -125,10 +125,9 @@ const FormLayoutsBasic = () => {
   const onSubmit = event => {
     event.preventDefault()
     const formErrors = validateForm(values)
-    const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role'];
-    const areFieldsValid = requiredKeys.every((key) => !errors[key]);
-    if (Object.keys(formErrors).length === 0 ||
-    (values.company==='Procure' && areFieldsValid)) {
+    const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
+    const areFieldsValid = requiredKeys.every(key => !errors[key])
+    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
       createUser(values)
       setErrors({})
     } else {
@@ -198,10 +197,10 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Empresa</InputLabel>
                 <Select
-                label='Empresa'
-                value={values.company}
-                onChange={handleChange('company')}
-                error={errors.company ? true : false}
+                  label='Empresa'
+                  value={values.company}
+                  onChange={handleChange('company')}
+                  error={errors.company ? true : false}
                 >
                   <MenuItem value={'MEL'}>MEL</MenuItem>
                   <MenuItem value={'Procure'}>Procure</MenuItem>
@@ -213,80 +212,82 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Rol</InputLabel>
                 <Select
-                label='Rol'
-                value={values.role}
-                onChange={handleChange('role')}
-                error={errors.role ? true : false}
+                  label='Rol'
+                  value={values.role}
+                  onChange={handleChange('role')}
+                  error={errors.role ? true : false}
                 >
-                  {values.company==='MEL' && <MenuItem value={'Solicitante'}>Solicitante</MenuItem>}
-                  {values.company==='MEL' && <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>}
-                  {values.company==='MEL' && <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>}
-                  {values.company==='Procure' && <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>}
-                  {values.company==='Procure' && <MenuItem value={'Supervisor'}>Supervisor</MenuItem>}
-                  {values.company==='Procure' && <MenuItem value={'Gerente'}>Gerente</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={'Solicitante'}>Solicitante</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>}
+                  {values.company === 'Procure' && (
+                    <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>
+                  )}
+                  {values.company === 'Procure' && <MenuItem value={'Supervisor'}>Supervisor</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={'Gerente'}>Gerente</MenuItem>}
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
 
-            {(values.company==='MEL' /* && values.role==='Solicitante' */) &&
-            <>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Turno</InputLabel>
-                <Select
-                label='Turno'
-                value={values.shift}
-                onChange={handleChange('shift')}
-                error={errors.shift ? true : false}
-                >
-                  <MenuItem value={'A'}>Turno A</MenuItem>
-                  <MenuItem value={'B'}>Turno B</MenuItem>
-                </Select>
-                {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Planta</InputLabel>
-                <Select
-                label='Planta'
-                value={values.plant}
-                onChange={handleChange('plant')}
-                error={errors.plant ? true : false}
-                >
-                  <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
-                  <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
-                  <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
-                  <MenuItem value={'Chancado y correas'}>Chancado y correas</MenuItem>
-                  <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
-                  <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
-                </Select>
-                {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FreeSoloCreateOptionDialog
-                label='Contract Operator'
-                placeholder='Contract Operator'
-                error={errors.contop ? true : false}
-                setterFunction={handleSelectorChange('contop')}
-                value={values.contop}
-              />
-              {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
-            </Grid>
-            <Grid item xs={12}>
-              <FreeSoloCreateOptionDialog
-                label='Contraturno'
-                placeholder='Contraturno'
-                error={errors.opshift ? true : false}
-                setterFunction={handleSelectorChange('opshift')}
-                value={values.opshift}
-              />
-              {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
-            </Grid>
-            </>
-            }
+            {values.company === 'MEL' /* && values.role==='Solicitante' */ && (
+              <>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Turno</InputLabel>
+                    <Select
+                      label='Turno'
+                      value={values.shift}
+                      onChange={handleChange('shift')}
+                      error={errors.shift ? true : false}
+                    >
+                      <MenuItem value={'A'}>Turno A</MenuItem>
+                      <MenuItem value={'B'}>Turno B</MenuItem>
+                    </Select>
+                    {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Planta</InputLabel>
+                    <Select
+                      label='Planta'
+                      value={values.plant}
+                      onChange={handleChange('plant')}
+                      error={errors.plant ? true : false}
+                    >
+                      <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
+                      <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
+                      <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
+                      <MenuItem value={'Chancado y correas'}>Chancado y correas</MenuItem>
+                      <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
+                      <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
+                    </Select>
+                    {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <FreeSoloCreateOptionDialog
+                    label='Contract Operator'
+                    placeholder='Contract Operator'
+                    error={errors.contop ? true : false}
+                    setterFunction={handleSelectorChange('contop')}
+                    value={values.contop}
+                  />
+                  {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
+                </Grid>
+                <Grid item xs={12}>
+                  <FreeSoloCreateOptionDialog
+                    label='Contraturno'
+                    placeholder='Contraturno'
+                    error={errors.opshift ? true : false}
+                    setterFunction={handleSelectorChange('opshift')}
+                    value={values.opshift}
+                  />
+                  {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
+                </Grid>
+              </>
+            )}
             <Grid item xs={12}>
               <Box
                 sx={{
@@ -302,19 +303,11 @@ const FormLayoutsBasic = () => {
                 </Button>
                 <Dialog open={dialog}>
                   <DialogContent>
-                    <DialogContentText sx={{mb:5}}>
-                     Ingresa tu contraseña para confirmar
-                    </DialogContentText>
-                    <TextField
-                        label="Contraseña"
-                        type="password"
-                        onInput={(e)=>setPassword(e.target.value)}
-                      />
+                    <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar</DialogContentText>
+                    <TextField label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
                   </DialogContent>
                   <DialogActions>
-                  <Button onClick={()=>handleConfirm()}>
-                    Confirmar
-                  </Button>
+                    <Button onClick={() => handleConfirm()}>Confirmar</Button>
                   </DialogActions>
                 </Dialog>
                 {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>

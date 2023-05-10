@@ -24,6 +24,9 @@ import { useRouter } from 'next/router'
 // ** Crea contexto
 export const FirebaseContext = createContext()
 
+// ** Genera contraseña unica y aleatoria
+const generatorPassword = require('generate-password')
+
 const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
@@ -31,6 +34,7 @@ const FirebaseContextProvider = props => {
   const [oldEmail, setOldEmail] = useState('')
   const [newUID, setNewUID] = useState('')
   const [dialog, setDialog] = useState(false)
+  const [newPass, setNewPass] = useState('')
 
   const router = useRouter()
 
@@ -95,8 +99,15 @@ const FirebaseContextProvider = props => {
       // Guarda correo del admin
       setOldEmail(authUser.email)
 
+      // Crea contraseña alfanumerica de 10 digitos
+      const newPassword = generatorPassword.generate({
+        length: 10,
+        numbers: true
+      })
+      setNewPass(newPassword)
+
       // Crea usuario
-      await Firebase.auth().createUserWithEmailAndPassword(email, 'password')
+      await Firebase.auth().createUserWithEmailAndPassword(email, newPassword)
       setDialog(true)
 
       // Guardar uid en un estado
@@ -143,7 +154,8 @@ const FirebaseContextProvider = props => {
         company: company,
         role: role,
         contop: contop,
-        opshift: opshift
+        opshift: opshift,
+        pass: newPass
       })
 
       setNewUID('')
@@ -260,7 +272,10 @@ const FirebaseContextProvider = props => {
 
     useEffect(() => {
       if (authUser) {
-        const q = authUser.role === 'admin' ? query(collection(db, 'solicitudes')) : query(collection(db, 'solicitudes'), where("uid", "==", authUser.uid))
+        const q =
+          authUser.role === 'admin'
+            ? query(collection(db, 'solicitudes'))
+            : query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
           try {
