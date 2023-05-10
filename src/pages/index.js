@@ -10,10 +10,8 @@ import Spinner from 'src/@core/components/spinner'
 // ** Hook Imports
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
-export const getHomeRoute = async (authUser) => {
-  await authUser(); // esperar a que se resuelva la promesa
-  const user = await authUser(); // obtener el valor de la promesa
-  if (user) {
+const getHomeRoute = (authUser) => {
+  if (authUser) {
     return '/home'
   }
 
@@ -22,22 +20,27 @@ export const getHomeRoute = async (authUser) => {
 
 const Home = () => {
   // ** Hooks
-  const { authUser } = useFirebase()
+  const { authUser, loading } = useFirebase()
   const router = useRouter()
 
   useEffect(() => {
     if (!router.isReady) {
       return
     }
+    if (!loading) {
+      const fetchHomeRoute = async () => {
+        const homeRoute = getHomeRoute(authUser)
 
-    const fetchHomeRoute = async () => {
-      const homeRoute = await getHomeRoute(authUser)
+        // Wait for authUser to change
+        await authUser
 
-      // Redirect user to Home URL
-      router.replace(homeRoute)
+        // Redirect user to Home URL
+        router.replace(homeRoute)
+      }
+
+      fetchHomeRoute()
     }
 
-    fetchHomeRoute()
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser, router.isReady])

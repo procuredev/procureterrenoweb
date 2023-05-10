@@ -13,7 +13,8 @@ import {
   getDoc,
   updateDoc,
   arrayUnion,
-  onSnapshot
+  onSnapshot,
+  where
 } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
@@ -258,29 +259,30 @@ const FirebaseContextProvider = props => {
     const [data, setData] = useState([])
 
     useEffect(() => {
-      const q = query(collection(db, 'solicitudes'))
+      if (authUser) {
+        const q = authUser.role === 'admin' ? query(collection(db, 'solicitudes')) : query(collection(db, 'solicitudes'), where("uid", "==", authUser.uid))
+        const unsubscribe = onSnapshot(q, querySnapshot => {
+          try {
+            const allDocs = []
 
-      const unsubscribe = onSnapshot(q, querySnapshot => {
-        try {
-          const allDocs = []
+            // Una llamada inicial con la devolución de llamada que proporcionas crea una instantánea del documento de inmediato con los contenidos actuales de ese documento.
+            // Después, cada vez que cambian los contenidos, otra llamada actualiza la instantánea del documento.
 
-          // Una llamada inicial con la devolución de llamada que proporcionas crea una instantánea del documento de inmediato con los contenidos actuales de ese documento.
-          // Después, cada vez que cambian los contenidos, otra llamada actualiza la instantánea del documento.
+            querySnapshot.forEach(doc => {
+              allDocs.push({ ...doc.data(), id: doc.id })
+            })
+            setData(allDocs)
+          } catch (error) {
+            console.error('Error al obtener los documentos de Firestore: ', error)
 
-          querySnapshot.forEach(doc => {
-            allDocs.push({ ...doc.data(), id: doc.id })
-          })
-          setData(allDocs)
-        } catch (error) {
-          console.error('Error al obtener los documentos de Firestore: ', error)
+            // Aquí puedes mostrar un mensaje de error
+          }
+        })
 
-          // Aquí puedes mostrar un mensaje de error
-        }
-      })
-
-      // Devuelve una función de limpieza que se ejecuta al desmontar el componente
-      return () => unsubscribe()
-    }, [])
+        // Devuelve una función de limpieza que se ejecuta al desmontar el componente
+        return () => unsubscribe()
+      }
+    }, [authUser])
 
     return data
   }
