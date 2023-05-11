@@ -34,7 +34,7 @@ const UserLayout = ({ children, contentHeightFixed }) => {
    *  to know more about what values can be passed to this hook.
    *  ! Do not change this value unless you know what you are doing. It can break the template.
    */
-  const hidden = useMediaQuery(theme => theme.breakpoints.down('lg'))
+  const hidden = useMediaQuery(theme => theme.breakpoints.up('xs'))
   if (hidden && settings.layout === 'horizontal') {
     settings.layout = 'vertical'
   }
@@ -78,7 +78,7 @@ const UserLayout = ({ children, contentHeightFixed }) => {
       })}
     >
       {children}
-      
+
     </Layout>
   )
 }
