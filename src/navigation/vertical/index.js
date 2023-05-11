@@ -26,10 +26,15 @@ const navigation = () => {
       icon: 'mdi:email-outline',
     },
     {
-      title: 'Nuevo Usuario',
-      path: '/nuevo-usuario',
-      icon: 'mdi:person-add-outline',
-    }
+      title: 'Administración',
+      icon: 'mdi:shield-account-outline',
+      children: [
+        {
+          title: 'Nuevo Usuario',
+          path: '/nuevo-usuario',
+        },
+      ]
+    },
   ]
 }
 
