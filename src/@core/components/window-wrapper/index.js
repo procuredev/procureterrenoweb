@@ -36,7 +36,7 @@ const WindowWrapper = ({ children }) => {
   }, [authUser, loading]);
 
   useEffect(() => {
-    if (windowReadyFlag && !loading && (authUser || router.asPath === '/login/')) {
+    if (windowReadyFlag && !loading && (authUser || router.asPath === '/login/' || router.asPath === '/forgot-password/'  )) {
       setShowContent(true) // Actualiza el estado para mostrar el contenido
     }
   }, [windowReadyFlag, authUser, loading, router.route])

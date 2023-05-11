@@ -225,6 +225,7 @@ const FormLayoutsBasic = () => {
                   )}
                   {values.company === 'Procure' && <MenuItem value={'Supervisor'}>Supervisor</MenuItem>}
                   {values.company === 'Procure' && <MenuItem value={'Gerente'}>Gerente</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={'Proyectista'}>Proyectista</MenuItem>}
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
