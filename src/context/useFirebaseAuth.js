@@ -27,6 +27,9 @@ export const FirebaseContext = createContext()
 // ** Genera contraseña unica y aleatoria
 const generatorPassword = require('generate-password')
 
+// ** Trae funcion que valida los campos del registro
+import { registerValidator } from './helperRegisterValidator'
+
 const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
@@ -34,7 +37,6 @@ const FirebaseContextProvider = props => {
   const [oldEmail, setOldEmail] = useState('')
   const [newUID, setNewUID] = useState('')
   const [dialog, setDialog] = useState(false)
-  const [newPass, setNewPass] = useState('')
 
   const router = useRouter()
 
@@ -84,6 +86,16 @@ const FirebaseContextProvider = props => {
     setLoading(true)
   }
 
+  // Recuperar password (envia cooreo)
+  const resetPassword = async email => {
+    return await Firebase.auth().sendPasswordResetEmail(email)
+  }
+
+  // Actualizar password (para actualizar desde mi perfil)
+  const updatePassword = async password => {
+    return await Firebase.auth().updatePassword(password)
+  }
+
   // ** Inicio de sesión
   const signInWithEmailAndPassword = (email, password) => {
     Firebase.auth()
@@ -96,19 +108,22 @@ const FirebaseContextProvider = props => {
   const createUser = async values => {
     const { name, email } = values
     try {
+      registerValidator(values)
+
       // Guarda correo del admin
       setOldEmail(authUser.email)
 
       // Crea contraseña alfanumerica de 10 digitos
-      const newPassword = generatorPassword.generate({
+      /* const newPassword = generatorPassword.generate({
         length: 10,
         numbers: true
-      })
-      setNewPass(newPassword)
+      })  ** Se comenta esta funcion para posterior uso en producción */
 
       // Crea usuario
-      await Firebase.auth().createUserWithEmailAndPassword(email, newPassword)
+      await Firebase.auth().createUserWithEmailAndPassword(email, 'password') // ** Reemplazar 'password por newPassword
       setDialog(true)
+
+      // resetPassword(email) ** Envia correo para cambiar password
 
       // Guardar uid en un estado
       setNewUID(Firebase.auth().currentUser.uid)
@@ -177,16 +192,6 @@ const FirebaseContextProvider = props => {
   //     .catch((err) => {
   //     });
   // }
-
-  // Recuperar password
-  const resetPassword = email => {
-    return Firebase.auth().sendPasswordResetEmail(email)
-  }
-
-  // Actualizar password
-  const updatePassword = password => {
-    return Firebase.auth().updatePassword(password)
-  }
 
   // ** Log out
   const signOut = () => Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))

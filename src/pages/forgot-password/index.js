@@ -81,10 +81,15 @@ const ForgotPassword = () => {
     setEmail(event.target.value)
   }
 
-  const handleSubmit = async e => {
+  const handleSubmit = e => {
     e.preventDefault()
 
-    resetPassword(email)
+    try {
+      resetPassword(email)
+      alert('Revisa el link que enviamos a tu correo para actualizar la contraseña')
+    } catch (error) {
+      alert(error.message)
+    }
   }
 
   const imageSource =
