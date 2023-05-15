@@ -171,8 +171,7 @@ const FirebaseContextProvider = props => {
         company: company,
         role: role,
         contop: contop,
-        opshift: opshift,
-        pass: newPass
+        opshift: opshift
       })
 
       setNewUID('')
