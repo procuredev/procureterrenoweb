@@ -43,12 +43,8 @@ const FormLayoutsBasic = () => {
     rut: '',
     phone: '',
     email: '',
-    plant: '',
-    shift: '',
     company: '',
     role: '',
-    contop: '',
-    opshift: ''
   }
 
   // ** States
@@ -131,7 +127,10 @@ const FormLayoutsBasic = () => {
       createUser(values)
       setErrors({})
     } else {
-      setErrors(formErrors)
+      createUser(values)
+
+      //Comentar linea 130 y borrar 133 cuando ya esté probado
+      //setErrors(formErrors)
     }
   }
 
