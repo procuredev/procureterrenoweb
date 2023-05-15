@@ -63,8 +63,8 @@ const FirebaseContextProvider = props => {
       email: user.email,
       displayName: user.displayName,
       pfp: user.photoURL,
-      role: data.role,
-      company:data.company
+      role: data ? data.role : 'no definido',
+      company: data? data.company : 'no definido'
 
     }
   }
@@ -166,13 +166,14 @@ const FirebaseContextProvider = props => {
         email: email,
         rut: rut,
         phone: phone,
-        plant: plant,
-        shift: shift,
         company: company,
         role: role,
-        contop: contop,
-        opshift: opshift
-      })
+        ...(plant ? { plant: plant } : {}),
+        ...(contop ? { contop: contop } : {}),
+        ...(shift ? { shift: shift } : {}),
+        ...(opshift ? { opshift: opshift } : {})
+      });
+
 
       setNewUID('')
     } catch (error) {

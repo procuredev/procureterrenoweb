@@ -34,12 +34,12 @@ export function registerValidator(values) {
       message: 'El RUT no cumple con la validación del dígito verificador.'
     },
     company: {
-      validate: (value) => value === 'Mel' || value === 'Procure',
+      validate: (value) => value === 'MEL' || value === 'Procure',
       message: 'Debe seleccionar solo las Empresas sugeridas.'
     },
     role: {
       validate: (value) => {
-        if (values.company === 'Mel') {
+        if (values.company === 'MEL') {
           return valRoleMel.includes(value);
         } else if (values.company === 'Procure') {
           return valRoleProcure.includes(value);
