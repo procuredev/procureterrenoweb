@@ -45,25 +45,27 @@ const FirebaseContextProvider = props => {
 
   // ** Consultar rol del usuario
 
-  const getRole = async id => {
+  const getData = async id => {
     const docRef = doc(db, 'users', id)
     const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
-      return docSnap.data().role
+      return docSnap.data()
     } else {
       return undefined
     }
   }
 
   const formatAuthUser = async user => {
-    const role = await getRole(user.uid)
+    const data = await getData(user.uid)
 
     return {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
       pfp: user.photoURL,
-      role: role
+      role: data.role,
+      company:data.company
+
     }
   }
 
