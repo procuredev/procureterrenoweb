@@ -63,8 +63,13 @@ const FirebaseContextProvider = props => {
       email: user.email,
       displayName: user.displayName,
       pfp: user.photoURL,
-      role: data ? data.role : 'no definido',
-      company: data ? data.company : 'no definido'
+      phone: data ? (data.phone || 'No definido') : 'No disponible',
+      role: data ? (data.role || 'No definido') : 'No disponible',
+      plant: data ? (data.plant || 'No definido') : 'No disponible',
+      shift: data ? (data.shift || 'No definido') : 'No disponible',
+      company: data ? (data.company || 'No definido') : 'No disponible',
+      contop: data ? (data.contop || 'No definido') : 'No disponible',
+      opshift: data ? (data.opshift || 'No definido') : 'No disponible'
     }
   }
 

@@ -31,8 +31,6 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 
 const UserDropdown = props => {
 
-
-
   // ** Props
   const { settings } = props
   const { authUser, loading } = useFirebase()
@@ -75,6 +73,11 @@ const UserDropdown = props => {
 
   const handleLogout = () => {
     signOut()
+    handleDropdownClose()
+  }
+
+  const handleProfile = () => {
+    router.push('/user-profile')
     handleDropdownClose()
   }
 
@@ -126,12 +129,7 @@ const UserDropdown = props => {
         <Divider sx={{ mt: '0 !important' }} />
 
         {/*
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <Icon icon='mdi:account-outline' />
-            Profile
-          </Box>
-        </MenuItem>
+
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:email-outline' />
@@ -165,7 +163,12 @@ const UserDropdown = props => {
         </MenuItem>
         <Divider />
             */}
-
+        <MenuItem sx={{ p: 0 }} onClick={() => handleProfile()}>
+          <Box sx={styles}>
+            <Icon icon='mdi:account-outline' />
+            Mi Perfil
+          </Box>
+          </MenuItem>
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
