@@ -64,8 +64,7 @@ const FirebaseContextProvider = props => {
       displayName: user.displayName,
       pfp: user.photoURL,
       role: data ? data.role : 'no definido',
-      company: data? data.company : 'no definido'
-
+      company: data ? data.company : 'no definido'
     }
   }
 
@@ -103,7 +102,16 @@ const FirebaseContextProvider = props => {
     Firebase.auth()
       .signInWithEmailAndPassword(email, password)
       .then(user => console.log(user))
-      .catch(err => console.log(err))
+      .catch(err => {
+        if (err.message === 'Firebase: Error (auth/wrong-password).') {
+          alert('Contraseña incorrecta, intente denuevo')
+        }
+        if (err.message === 'Firebase: Error (auth/user-not-found).') {
+          alert('Este usuario no se encuentra registrado')
+        }
+
+        console.log(err.message)
+      })
   }
 
   // ** Registro de usuarios
@@ -172,8 +180,7 @@ const FirebaseContextProvider = props => {
         ...(contop ? { contop: contop } : {}),
         ...(shift ? { shift: shift } : {}),
         ...(opshift ? { opshift: opshift } : {})
-      });
-
+      })
 
       setNewUID('')
     } catch (error) {
