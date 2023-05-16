@@ -31,7 +31,6 @@ import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 
 // Styled Components
 
-
 const RightWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
   [theme.breakpoints.down('sm')]: {
@@ -81,14 +80,16 @@ const ForgotPassword = () => {
     setEmail(event.target.value)
   }
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault()
 
     try {
-      resetPassword(email)
-      alert('Revisa el link que enviamos a tu correo para actualizar la contraseña')
+      await resetPassword(email)
+      alert('Revise su email donde deberá seguir las indicaciones para cambiar su contraseña')
     } catch (error) {
-      alert(error.message)
+      if (error.message === 'Firebase: Error (auth/user-not-found).') {
+        alert('El e-mail ingresado no existe dentro de nuestro sistema')
+      }
     }
   }
 
@@ -97,29 +98,33 @@ const ForgotPassword = () => {
 
   return (
     <Box className='content-right'>
-
-<RightWrapper sx={{ margin: 'auto' }}>
-  <Paper
-    elevation={9}
-    sx={{
-      margin: 'auto',
-      p: 7,
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'background.paper'
-    }}
-  >
-    <BoxWrapper>
-
-      <Box sx={{ mb: 6 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Box component='img' sx={{ width: '60%' }} src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png' />
-          <TypographyStyled sx={{ mt: 5, mb: 5 }} variant='h7'>¿Olvidaste tu contraseña? 🔒</TypographyStyled>
-        </Box>
-        <Typography variant='body2'>Ingresa tu mail y recibirás un correo para reestablecerla.</Typography>
-      </Box>
+      <RightWrapper sx={{ margin: 'auto' }}>
+        <Paper
+          elevation={9}
+          sx={{
+            margin: 'auto',
+            p: 7,
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'background.paper'
+          }}
+        >
+          <BoxWrapper>
+            <Box sx={{ mb: 6 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box
+                  component='img'
+                  sx={{ width: '60%' }}
+                  src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png'
+                />
+                <TypographyStyled sx={{ mt: 5, mb: 5 }} variant='h7'>
+                  ¿Olvidaste tu contraseña? 🔒
+                </TypographyStyled>
+              </Box>
+              <Typography variant='body2'>Ingresa tu mail y recibirás un correo para reestablecerla.</Typography>
+            </Box>
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>
               <TextField
@@ -142,18 +147,13 @@ const ForgotPassword = () => {
                 </LinkStyled>
               </Typography>
             </form>
-
-
-    </BoxWrapper>
-  </Paper>
-</RightWrapper>
-</Box>
-
-
+          </BoxWrapper>
+        </Paper>
+      </RightWrapper>
+    </Box>
   )
 }
 ForgotPassword.guestGuard = true
 ForgotPassword.getLayout = page => <BlankLayout>{page}</BlankLayout>
 
 export default ForgotPassword
-
