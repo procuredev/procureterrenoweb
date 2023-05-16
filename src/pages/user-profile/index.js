@@ -57,7 +57,7 @@ const TabAccount = () => {
 
   // ** State
   const [inputValue, setInputValue] = useState('')
-  const [formData, setFormData] = useState('')
+  const [formData, setFormData] = useState(authUser.phone)
   const [imgSrc, setImgSrc] = useState(initialImg)
 
 
@@ -135,10 +135,11 @@ const TabAccount = () => {
                     fullWidth
                     type='tel'
                     label='Teléfono'
-                    value={authUser.phone}
+                    value={formData}
                     placeholder='9 1234 5678'
                     onChange={e => handleFormChange(e.target.value)}
-                    InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
+                    inputProps={{ maxLength: 12 }}
+                    InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment>}}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
