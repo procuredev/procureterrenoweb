@@ -8,9 +8,9 @@ export function registerValidator(values) {
   const valRoleProcure = ['Administrador de Contrato', 'Supervisor', 'Gerente', 'Proyectista'];
 
   const valPlant = [
-    'Planta Concentradora Los Colorados',
-    'Planta Concentradora Laguna Seca | Línea 1',
-    'Planta Concentradora Laguna Seca | Línea 2',
+    'Los Colorados',
+    'Laguna Seca 1',
+    'Laguna Seca 2',
     'Chancado y correas',
     'Puerto Coloso',
     'Instalaciones Cátodo'
