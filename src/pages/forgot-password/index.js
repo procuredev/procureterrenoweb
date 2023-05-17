@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 // ** Next Import
 import Link from 'next/link'
 
+import toast from 'react-hot-toast'
+
 // ** MUI Components
 import Paper from '@mui/material/Paper'
 import Button from '@mui/material/Button'
@@ -12,6 +14,9 @@ import Box from '@mui/material/Box'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
+import FormHelperText from '@mui/material/FormHelperText'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -73,25 +78,52 @@ const ForgotPassword = () => {
   const { skin } = settings
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
   const { resetPassword } = useFirebase()
-
+  const [helperText, setHelperText] = useState('')
+  const [errorMessage, setErrorMessage] = useState('');
   const [email, setEmail] = useState('')
 
   const handleEmailChange = event => {
-    setEmail(event.target.value)
-  }
+    const updatedEmail = event.target.value;
+    setEmail(updatedEmail);
+    if (/^\S+@\S+\.\S+$/.test(updatedEmail) && helperText) {
+      setHelperText('');
+    }
+  };
 
-  const handleSubmit = async e => {
-    e.preventDefault()
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!email || email.trim() === '') {
+      setHelperText('Por favor, ingresa tu correo.');
+
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setHelperText('Por favor, ingresa un e-mail válido');
+
+      return;
+    }
 
     try {
-      await resetPassword(email)
-      alert('Revise su email donde deberá seguir las indicaciones para cambiar su contraseña')
+      await resetPassword(email);
+      toast.success(
+        'Se ha enviado un correo con indicaciones para cambiar tu contraseña', {
+          position: 'top-right'}
+      );
     } catch (error) {
-      if (error.message === 'Firebase: Error (auth/user-not-found).') {
-        alert('El e-mail ingresado no existe dentro de nuestro sistema')
+      let errorMessage = error.message;
+
+      if (errorMessage === 'Firebase: Error (auth/user-not-found).') {
+        errorMessage = 'El e-mail ingresado no existe dentro de nuestro sistema';
+      } else if (errorMessage === 'Firebase: Error (auth/invalid-email).') {
+        errorMessage = 'Por favor, ingresa un e-mail válido';
       }
+      setErrorMessage(errorMessage);
     }
-  }
+  };
+
+
 
   const imageSource =
     skin === 'bordered' ? 'auth-v2-forgot-password-illustration-bordered' : 'auth-v2-forgot-password-illustration'
@@ -123,11 +155,17 @@ const ForgotPassword = () => {
                   ¿Olvidaste tu contraseña? 🔒
                 </TypographyStyled>
               </Box>
-              <Typography variant='body2'>Ingresa tu mail y recibirás un correo para reestablecerla.</Typography>
+              {errorMessage ?
+                  <Alert severity="error" onClose={() => setErrorMessage('')}>
+                    <AlertTitle>Error</AlertTitle>
+                    {errorMessage}
+                  </Alert>
+                  : <Typography variant='body2' sx={{ textAlign: 'center' }}>Ingresa tu mail y recibirás un correo para reestablecerla.</Typography>}
             </Box>
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>
               <TextField
+                error={helperText}
                 autoFocus
                 type='email'
                 id='email'
@@ -137,7 +175,8 @@ const ForgotPassword = () => {
                 label='Email'
                 sx={{ display: 'flex', mb: 4 }}
               />
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5.25 }}>
+              {helperText && <FormHelperText sx={{ color: 'error.main' }}>{helperText}</FormHelperText>}
+              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mt: 5.25, mb: 5.25 }}>
                 Reestablecer contraseña
               </Button>
               <Typography sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

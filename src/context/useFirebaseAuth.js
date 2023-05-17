@@ -93,9 +93,20 @@ const FirebaseContextProvider = props => {
   }
 
   // Recuperar password (envia cooreo)
-  const resetPassword = async email => {
-    return await Firebase.auth().sendPasswordResetEmail(email)
-  }
+  const resetPassword = (email) => {
+    return new Promise((resolve, reject) => {
+      Firebase.auth()
+        .sendPasswordResetEmail(email)
+        .then(() => {
+          resolve();
+        })
+        .catch((err) => {
+          reject(err);
+          console.log(err.message);
+        });
+    });
+  };
+
 
   // Actualizar password (para actualizar desde mi perfil)
   const updatePassword = async password => {
@@ -104,20 +115,32 @@ const FirebaseContextProvider = props => {
 
   // ** Inicio de sesión
   const signInWithEmailAndPassword = (email, password) => {
-    Firebase.auth()
-      .signInWithEmailAndPassword(email, password)
-      .then(user => console.log(user))
-      .catch(err => {
-        if (err.message === 'Firebase: Error (auth/wrong-password).') {
-          alert('Contraseña incorrecta, intente denuevo')
-        }
-        if (err.message === 'Firebase: Error (auth/user-not-found).') {
-          alert('Este usuario no se encuentra registrado')
-        }
+    return new Promise((resolve, reject) => {
+      Firebase.auth()
+        .signInWithEmailAndPassword(email, password)
+        .then(user => {
+          // Iniciar sesión exitosamente
+          resolve(user);
+        })
+        .catch(err => {
+          if (err.message === 'Firebase: Error (auth/wrong-password).') {
+            const errorMessage = 'Contraseña incorrecta, intente de nuevo';
 
-        console.log(err.message)
-      })
-  }
+            // Lanzar un nuevo error personalizado
+            reject(new Error(errorMessage));
+          } else if (err.message === 'Firebase: Error (auth/user-not-found).') {
+            const errorMessage = 'Este usuario no se encuentra registrado';
+
+            // Lanzar un nuevo error personalizado
+            reject(new Error(errorMessage));
+          } else {
+            // Lanzar otros errores
+            reject(err);
+          }
+          console.log(err.message);
+        });
+    });
+  };
 
   // ** Registro de usuarios
   const createUser = async values => {

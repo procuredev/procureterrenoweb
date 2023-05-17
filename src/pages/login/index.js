@@ -8,6 +8,7 @@ import { useRouter } from 'next/router'
 // ** MUI Components
 import Paper from '@mui/material/Paper'
 import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
@@ -69,8 +70,6 @@ const TypographyStyled = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
   textAlign: 'center',
   letterSpacing: '0.18px',
-  marginBottom: theme.spacing(1.5),
-  [theme.breakpoints.down('md')]: { marginTop: theme.spacing(8) }
 }))
 
 const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
@@ -90,6 +89,7 @@ const defaultValues = {
 }
 
 const LoginPage = () => {
+  const [errorMessage, setErrorMessage] = useState('');
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -120,6 +120,15 @@ const LoginPage = () => {
     const { email, password } = data
 
     signInWithEmailAndPassword(email, password)
+      .then(user => {
+        // Manejar la respuesta exitosa
+        console.log(user);
+      })
+      .catch(error => {
+        // Manejar el error y mostrar el mensaje al usuario
+        const errorMessage = error.message;
+        setErrorMessage(errorMessage);
+      });
 
   }
 
@@ -147,13 +156,24 @@ const LoginPage = () => {
         >
           <BoxWrapper>
 
-            <Box sx={{ mb: 6 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Box component='img' sx={{ width: '60%' }} src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png' />
-                <TypographyStyled sx={{ mt: 5, mb: 5 }} variant='h7'>{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
+
+            <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Box component='img' sx={{ width: '60%', m: 3 }} src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png' />
+              <TypographyStyled variant='h7' sx={{ m: 2 }}>{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
+
+
+
+              <Box sx={{ m: 2 }}>
+                {errorMessage ?
+                  <Alert severity="error" onClose={() => setErrorMessage('')}>
+                    <AlertTitle>Error</AlertTitle>
+                    {errorMessage}
+                  </Alert>
+                  : <TypographyStyled variant='body2' sx={{ textAlign: 'center' }}>Iniciar sesión</TypographyStyled>}
               </Box>
-              <Typography variant='body2'>Iniciar sesión</Typography>
             </Box>
+
+
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
               <FormControl fullWidth sx={{ mb: 4 }}>
