@@ -81,8 +81,8 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  email: yup.string().email().required(),
-  password: yup.string().min(5).required()
+  email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'),
+  password: yup.string().min(6, 'La contraseña debe tener al menos 6 caracteres').required('Por favor, ingresa tu contraseña')
 })
 
 const defaultValues = {
@@ -122,7 +122,7 @@ const LoginPage = () => {
     signInWithEmailAndPassword(email, password)
 
   }
-  
+
   useEffect(() => {
     if (authUser) {
       router.push('/home');
