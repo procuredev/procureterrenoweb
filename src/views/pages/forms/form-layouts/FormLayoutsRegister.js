@@ -55,35 +55,69 @@ const FormLayoutsBasic = () => {
   // ** Hooks
   const { createUser, dialog, signAdminBack } = useFirebase()
 
-  const handleChange = prop => event => {
-    let newValue = event.target.value
-    if (prop === 'rut') {
-      // Eliminar cualquier caracter que no sea un número o letra k
-      newValue = newValue.replace(/[^0-9kK]/g, '')
+  const handleChange = (prop) => (event) => {
+    let newValue = event.target.value;
 
-      // Aplicar expresión regular para formatear el RUT
-      newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
+    if (newValue) {
+      switch (prop) {
+        case 'phone':
+          newValue = newValue.replace(/\D/g, '');
+          break;
+          case 'email':
+            newValue = newValue.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim();
+          break;
+        case 'name':
+          // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+          newValue = newValue.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '');
+          break;
+        case 'rut':
+          // Eliminar cualquier caracter que no sea un número o letra k
+          newValue = newValue.replace(/[^0-9kK]/g, '');
+
+          // Aplicar expresión regular para formatear el RUT
+          newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4');
+          break;
+        default:
+          break;
+      }
     }
-    setValues({ ...values, [prop]: newValue })
-  }
+
+    setValues((prevValues) => ({ ...prevValues, [prop]: newValue }));
+
+    // Deshacer errores al dar formato correcto
+    if (newValue && validationRegex[prop] && validationRegex[prop].test(newValue) && errors[prop]) {
+      setErrors((current) => {
+        const updatedErrors = Object.keys(current).reduce((obj, key) => {
+          if (key !== prop) {
+            obj[key] = current[key];
+          }
+
+          return obj;
+        }, {});
+
+        return updatedErrors;
+      });
+    }
+  };
+
 
   const handleSelectorChange = prop => newValue => {
-    setValues({ ...values, [prop]: newValue })
+    setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
   }
 
   const validationRegex = {
-    name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s]+$/,
-    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^[0-9+]{8,12}$/
+    name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
+    email: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i,
+    phone: /^[0-9]{9}$/
   }
 
   const validateForm = values => {
     const trimmedValues = {}
-    const errors = {}
+    const newErrors = {}
     for (const key in values) {
       // Error campos vacíos
       if (values[key] === '' || !values[key]) {
-        errors[key] = 'Por favor, selecciona una opción'
+        newErrors[key] = 'Por favor, selecciona una opción'
       }
 
       // Saca espacios en los values
@@ -94,7 +128,7 @@ const FormLayoutsBasic = () => {
 
     for (const key in validationRegex) {
       if (!trimmedValues[key] || !validationRegex[key].test(trimmedValues[key])) {
-        errors[key] = `Por favor, introduce un ${key} válido`
+        newErrors[key] = `Por favor, introduce un ${key} válido`
       }
     }
 
@@ -107,13 +141,13 @@ const FormLayoutsBasic = () => {
       // comprueba con el módulo 11 para corroborar el digito verificador
 
       if (!validateRut(values.rut)) {
-        errors['rut'] = 'dígito verificador incorrecto'
+        newErrors['rut'] = 'Dígito verificador incorrecto'
       }
     } else {
-      errors['rut'] = 'Por favor, introduce un rut válido'
+      newErrors['rut'] = 'Por favor, introduce un rut válido'
     }
 
-    return errors
+    return newErrors
   }
 
   // agregar codigo que crea un error cuando hay campos "" y que diga "por favor, selecciona un "coso"
@@ -122,14 +156,11 @@ const FormLayoutsBasic = () => {
     event.preventDefault()
     const formErrors = validateForm(values)
     const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
-    const areFieldsValid = requiredKeys.every(key => !errors[key])
+    const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
       createUser(values)
       setErrors({})
     } else {
-      createUser(values)
-
-      //Comentar linea 130 y borrar 133 cuando ya esté probado
       setErrors(formErrors)
     }
   }
@@ -149,11 +180,13 @@ const FormLayoutsBasic = () => {
               <TextField
                 fullWidth
                 label='Nombre'
+                type='text'
                 placeholder='Nombres'
                 onChange={handleChange('name')}
                 value={values.name}
                 error={errors.name ? true : false}
                 helperText={errors.name}
+                inputProps={{ maxLength: 20 }}
               />
             </Grid>
             {/* <Grid item xs={6}>
@@ -162,34 +195,41 @@ const FormLayoutsBasic = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
+                type='tel'
                 label='RUT'
                 placeholder='RUT'
                 onChange={handleChange('rut')}
                 value={values.rut}
                 error={errors.rut ? true : false}
                 helperText={errors.rut}
+                inputProps={{ maxLength: 12, pattern: "[0-9kK.-]*" }}
               />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 label='Teléfono'
+                type='tel'
                 placeholder='Teléfono'
                 onChange={handleChange('phone')}
                 value={values.phone}
                 error={errors.phone ? true : false}
                 helperText={errors.phone}
+                inputProps={{ maxLength: 9, pattern: "[0-9]*" }}
+                InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment>}}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label='Email'
+                type='email'
                 placeholder='email@ejemplo.com'
                 onChange={handleChange('email')}
                 value={values.email}
                 error={errors.email ? true : false}
                 helperText={errors.email}
+                inputProps={{ maxLength: 25 }}
               />
             </Grid>
             <Grid item xs={12}>
