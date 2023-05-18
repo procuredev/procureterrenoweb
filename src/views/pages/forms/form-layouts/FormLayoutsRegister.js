@@ -130,7 +130,7 @@ const FormLayoutsBasic = () => {
       createUser(values)
 
       //Comentar linea 130 y borrar 133 cuando ya esté probado
-      //setErrors(formErrors)
+      setErrors(formErrors)
     }
   }
 
