@@ -79,51 +79,48 @@ const ForgotPassword = () => {
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
   const { resetPassword } = useFirebase()
   const [helperText, setHelperText] = useState('')
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('')
   const [email, setEmail] = useState('')
 
   const handleEmailChange = event => {
-    const updatedEmail = event.target.value;
-    setEmail(updatedEmail);
+    const updatedEmail = event.target.value
+    setEmail(updatedEmail)
     if (/^\S+@\S+\.\S+$/.test(updatedEmail) && helperText) {
-      setHelperText('');
+      setHelperText('')
     }
-  };
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async e => {
+    e.preventDefault()
 
     if (!email || email.trim() === '') {
-      setHelperText('Por favor, ingresa tu correo.');
+      setHelperText('Por favor, ingresa tu correo.')
 
-      return;
+      return
     }
 
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setHelperText('Por favor, ingresa un e-mail válido');
+      setHelperText('Por favor, ingresa un e-mail válido')
 
-      return;
+      return
     }
 
     try {
-      await resetPassword(email);
-      toast.success(
-        'Se ha enviado un correo con indicaciones para cambiar tu contraseña', {
-          position: 'top-right'}
-      );
+      await resetPassword(email)
+      toast.success('Se ha enviado un correo con indicaciones para cambiar tu contraseña', {
+        position: 'top-right'
+      })
     } catch (error) {
-      let errorMessage = error.message;
+      let errorMessage = error.message
 
       if (errorMessage === 'Firebase: Error (auth/user-not-found).') {
-        errorMessage = 'El e-mail ingresado no existe dentro de nuestro sistema';
+        errorMessage = 'El e-mail ingresado no existe dentro de nuestro sistema'
       } else if (errorMessage === 'Firebase: Error (auth/invalid-email).') {
-        errorMessage = 'Por favor, ingresa un e-mail válido';
+        errorMessage = 'Por favor, ingresa un e-mail válido'
       }
-      setErrorMessage(errorMessage);
+      setErrorMessage(errorMessage)
     }
-  };
-
-
+  }
 
   const imageSource =
     skin === 'bordered' ? 'auth-v2-forgot-password-illustration-bordered' : 'auth-v2-forgot-password-illustration'
@@ -155,12 +152,16 @@ const ForgotPassword = () => {
                   ¿Olvidaste tu contraseña? 🔒
                 </TypographyStyled>
               </Box>
-              {errorMessage ?
-                  <Alert severity="error" onClose={() => setErrorMessage('')}>
-                    <AlertTitle>Error</AlertTitle>
-                    {errorMessage}
-                  </Alert>
-                  : <Typography variant='body2' sx={{ textAlign: 'center' }}>Ingresa tu mail y recibirás un correo para reestablecerla.</Typography>}
+              {errorMessage ? (
+                <Alert severity='error' onClose={() => setErrorMessage('')}>
+                  <AlertTitle>Error</AlertTitle>
+                  {errorMessage}
+                </Alert>
+              ) : (
+                <Typography variant='body2' sx={{ textAlign: 'center' }}>
+                  Ingresa tu mail y recibirás un correo para reestablecerla.
+                </Typography>
+              )}
             </Box>
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>

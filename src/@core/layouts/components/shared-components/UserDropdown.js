@@ -30,7 +30,6 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 }))
 
 const UserDropdown = props => {
-
   // ** Props
   const { settings } = props
   const { authUser, loading } = useFirebase()
@@ -74,6 +73,7 @@ const UserDropdown = props => {
   const handleLogout = () => {
     signOut()
     handleDropdownClose()
+    router.push('/login')
   }
 
   const handleProfile = () => {
@@ -81,10 +81,12 @@ const UserDropdown = props => {
     handleDropdownClose()
   }
 
-  let username = (authUser === null) ? 'not logged' : authUser.email
-  let pfp = (authUser === null) ? 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg' : authUser.pfp
+  let username = authUser === null ? 'not logged' : authUser.email
 
-
+  let pfp =
+    authUser === null
+      ? 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+      : authUser.pfp
 
   return (
     <Fragment>
@@ -92,18 +94,12 @@ const UserDropdown = props => {
         overlap='circular'
         onClick={handleDropdownOpen}
         sx={{ ml: 2, cursor: 'pointer' }}
-
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right'
         }}
       >
-        <Avatar
-          alt='Profile picture'
-          onClick={handleDropdownOpen}
-          sx={{ width: 40, height: 40 }}
-          src={pfp}
-        />
+        <Avatar alt='Profile picture' onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} src={pfp} />
       </Badge>
       <Menu
         anchorEl={anchorEl}
@@ -115,13 +111,12 @@ const UserDropdown = props => {
       >
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-
             <Avatar alt='Profile picture' src={pfp} sx={{ width: '2.5rem', height: '2.5rem' }} />
 
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{username}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-              {username}
+                {username}
               </Typography>
             </Box>
           </Box>
@@ -168,7 +163,7 @@ const UserDropdown = props => {
             <Icon icon='mdi:account-outline' />
             Mi Perfil
           </Box>
-          </MenuItem>
+        </MenuItem>
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}

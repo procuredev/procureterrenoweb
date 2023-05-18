@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -20,11 +20,14 @@ import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
 import Button from '@mui/material/Button'
 
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 import { useFirebase } from 'src/context/useFirebaseAuth'
+
+//const { updateUserProfile } = useFirebase()
+
+//import { updateUserProfile } from '../../context/useFirebaseAuth'
 
 const ImgStyled = styled('img')(({ theme }) => ({
   width: 120,
@@ -52,37 +55,98 @@ const ResetButtonStyled = styled(Button)(({ theme }) => ({
 
 const TabAccount = () => {
   // ** Hooks
-  const { authUser } = useFirebase()
-  const initialImg = authUser.pfp || 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+  const { authUser, updateUserProfile, updateUserPhone } = useFirebase()
+
+  const initialImg =
+    authUser.pfp || 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
 
   // ** State
   const [inputValue, setInputValue] = useState('')
   const [formData, setFormData] = useState(authUser.phone)
   const [imgSrc, setImgSrc] = useState(initialImg)
 
+  useEffect(() => {
+    console.log(inputValue, 'inputValue')
+    console.log(imgSrc, 'imgSrc')
+  }, [inputValue, imgSrc])
 
-  const handleInputImageChange = file => {
+  const handleInputImageChange = archivo => {
+    const file = archivo.target.files[0]
     const reader = new FileReader()
-    const { files } = file.target
-    if (files && files.length !== 0) {
-      reader.onload = () => setImgSrc(reader.result)
-      reader.readAsDataURL(files[0])
+
+    const readImage = new Promise((resolve, reject) => {
+      reader.onloadend = () => {
+        if (reader.result !== null) {
+          resolve(reader.result)
+        } else {
+          reject('Error al leer la imagen')
+        }
+      }
+
+      reader.readAsDataURL(file)
+    })
+
+    readImage
+      .then(result => {
+        setImgSrc(result)
+        setInputValue(result)
+      })
+      .catch(error => {
+        console.error(error)
+      })
+  }
+
+  /* const handleInputImageChange = archivo => {
+    const file = archivo.target.files[0]
+
+    uploadFileToStorage(file)
+      .then(snapshot => {
+        console.log('Archivo subido exitosamente')
+
+        // Aquí puedes realizar acciones adicionales después de subir el archivo
+      })
+      .catch(error => {
+        console.error('Error al subir el archivo:', error)
+      })
+  } */
+
+  /*  const handleInputImageChange = archivo => {
+    const file = archivo.target.files[0]
+    const reader = new FileReader()
+    reader.onloadend = () => {
       if (reader.result !== null) {
+        setImgSrc(reader.result)
+
         setInputValue(reader.result)
+
+        console.log(inputValue, 'inputValue')
+        console.log(imgSrc, 'imgSrc')
       }
     }
-  }
+
+    reader.readAsDataURL(file)
+  } */
 
   const handleInputImageReset = () => {
     setInputValue('')
     setImgSrc(initialImg)
   }
 
-  const handleFormChange = (value) => {
+  const handleFormChange = value => {
     setFormData(value)
   }
 
   const handleSubmit = () => {
+    // e.preventDefault()
+    /* console.log(formData, 'formData')
+    console.log(inputValue, 'inputValue') */
+    if (formData !== authUser.phone) {
+      updateUserPhone(authUser.uid, formData)
+    }
+    if (inputValue !== '') {
+      updateUserProfile(inputValue)
+    }
+
     console.log('Manejar subida de foto y cambio de teléfono')
   }
 
@@ -102,7 +166,6 @@ const TabAccount = () => {
                     <input
                       hidden
                       type='file'
-                      value={inputValue}
                       accept='image/png, image/jpeg'
                       onChange={handleInputImageChange}
                       id='account-settings-upload-image'
@@ -118,14 +181,12 @@ const TabAccount = () => {
             <Divider />
             <CardContent>
               <Grid container spacing={6}>
-
-
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     disabled
                     type='email'
-                    id="outlined-disabled"
+                    id='outlined-disabled'
                     label='Email'
                     value={authUser.email}
                   />
@@ -139,41 +200,23 @@ const TabAccount = () => {
                     placeholder='9 1234 5678'
                     onChange={e => handleFormChange(e.target.value)}
                     inputProps={{ maxLength: 12 }}
-                    InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment>}}
+                    InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
                   />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth disabled id='outlined-disabled' label='Empresa' value={authUser.company} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth disabled id='outlined-disabled' label='Turno' value={authUser.shift} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth disabled id='outlined-disabled' label='Contraturno' value={authUser.opshift} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     disabled
-                    id="outlined-disabled"
-                    label='Empresa'
-                    value={authUser.company}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    disabled
-                    id="outlined-disabled"
-                    label='Turno'
-                    value={authUser.shift}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    disabled
-                    id="outlined-disabled"
-                    label='Contraturno'
-                    value={authUser.opshift}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    disabled
-                    id="outlined-disabled"
+                    id='outlined-disabled'
                     label='Contract Operator'
                     value={authUser.opshift}
                   />

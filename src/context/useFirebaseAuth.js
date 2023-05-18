@@ -16,7 +16,9 @@ import {
   onSnapshot,
   where
 } from 'firebase/firestore'
+
 import { getAuth } from 'firebase/auth'
+import { getStorage, ref, uploadString } from 'firebase/storage'
 
 // ** Next Imports
 import { useRouter } from 'next/router'
@@ -42,6 +44,7 @@ const FirebaseContextProvider = props => {
 
   // ** Variables
   const auth = getAuth(app)
+  const storage = getStorage()
 
   // ** Consultar rol del usuario
 
@@ -63,13 +66,13 @@ const FirebaseContextProvider = props => {
       email: user.email,
       displayName: user.displayName,
       pfp: user.photoURL,
-      phone: data ? (data.phone || 'No definido') : 'No disponible',
-      role: data ? (data.role || 'No definido') : 'No disponible',
-      plant: data ? (data.plant || 'No definido') : 'No disponible',
-      shift: data ? (data.shift || 'No definido') : 'No disponible',
-      company: data ? (data.company || 'No definido') : 'No disponible',
-      contop: data ? (data.contop || 'No definido') : 'No disponible',
-      opshift: data ? (data.opshift || 'No definido') : 'No disponible'
+      phone: data ? data.phone || 'No definido' : 'No disponible',
+      role: data ? data.role || 'No definido' : 'No disponible',
+      plant: data ? data.plant || 'No definido' : 'No disponible',
+      shift: data ? data.shift || 'No definido' : 'No disponible',
+      company: data ? data.company || 'No definido' : 'No disponible',
+      contop: data ? data.contop || 'No definido' : 'No disponible',
+      opshift: data ? data.opshift || 'No definido' : 'No disponible'
     }
   }
 
@@ -93,20 +96,19 @@ const FirebaseContextProvider = props => {
   }
 
   // Recuperar password (envia cooreo)
-  const resetPassword = (email) => {
+  const resetPassword = email => {
     return new Promise((resolve, reject) => {
       Firebase.auth()
         .sendPasswordResetEmail(email)
         .then(() => {
-          resolve();
+          resolve()
         })
-        .catch((err) => {
-          reject(err);
-          console.log(err.message);
-        });
-    });
-  };
-
+        .catch(err => {
+          reject(err)
+          console.log(err.message)
+        })
+    })
+  }
 
   // Actualizar password (para actualizar desde mi perfil)
   const updatePassword = async password => {
@@ -120,27 +122,27 @@ const FirebaseContextProvider = props => {
         .signInWithEmailAndPassword(email, password)
         .then(user => {
           // Iniciar sesión exitosamente
-          resolve(user);
+          resolve(user)
         })
         .catch(err => {
           if (err.message === 'Firebase: Error (auth/wrong-password).') {
-            const errorMessage = 'Contraseña incorrecta, intente de nuevo';
+            const errorMessage = 'Contraseña incorrecta, intente de nuevo'
 
             // Lanzar un nuevo error personalizado
-            reject(new Error(errorMessage));
+            reject(new Error(errorMessage))
           } else if (err.message === 'Firebase: Error (auth/user-not-found).') {
-            const errorMessage = 'Este usuario no se encuentra registrado';
+            const errorMessage = 'Este usuario no se encuentra registrado'
 
             // Lanzar un nuevo error personalizado
-            reject(new Error(errorMessage));
+            reject(new Error(errorMessage))
           } else {
             // Lanzar otros errores
-            reject(err);
+            reject(err)
           }
-          console.log(err.message);
-        });
-    });
-  };
+          console.log(err.message)
+        })
+    })
+  }
 
   // ** Registro de usuarios
   const createUser = async values => {
@@ -188,6 +190,27 @@ const FirebaseContextProvider = props => {
     }
   }
 
+  // ** Actualiza Perfil de usuario
+  const updateUserProfile = async inputValue => {
+    const user = authUser.uid
+
+    const newPhoto = inputValue
+
+    if (newPhoto !== null && newPhoto != '') {
+      console.log(newPhoto, 'PARAMETROS')
+      console.log(`fotoPerfil/${user}/${newPhoto.data}`)
+
+      //const ref = Firebase.storage().ref(`fotoPerfil/${user}/${newPhoto.name}`)
+      const storageRef = ref(storage, `fotoPerfil/${user}/nuevaFoto`)
+
+      uploadString(storageRef, newPhoto, 'data_url')
+        .then(snapshot => {
+          console.log('Uploaded a data_url string!')
+        })
+        .catch(error => alert(error, 'errordesubida'))
+    }
+  }
+
   // ** Permite que el admin entre de vuelta
   const signAdminBack = async (values, password) => {
     const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
@@ -219,16 +242,6 @@ const FirebaseContextProvider = props => {
       // Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
     }
   }
-
-  //     .then((userCredential) => {
-
-  //       //Admin de vuelta
-
-  //       //Cierra dialog
-  //     })
-  //     .catch((err) => {
-  //     });
-  // }
 
   // ** Log out
   const signOut = () => Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
@@ -262,17 +275,6 @@ const FirebaseContextProvider = props => {
     }
   }
 
-  // ** Evita que el no logueado esté en home
-  /* Pendiente revisión.
-  Este era el hook que daba problemas cuando uno recargaba la página.
-   useEffect(() => {
-     if (authUser === null && router.asPath !== ('/login/')) {
-       router.replace('/login/')
-     }
-
-   }, [authUser, router])
-  */
-
   // ** Modifica estado documentos
   const reviewDocs = async (id, approves) => {
     // If approves is true, state+1, if false back to 0
@@ -297,9 +299,17 @@ const FirebaseContextProvider = props => {
     })
   }
 
+  // ** Modifica otros campos Usuarios
+  const updateUserPhone = async (id, obj) => {
+    const ref = doc(db, 'users', id)
+    const querySnapshot = await getDoc(ref)
+
+    await updateDoc(ref, { phone: obj })
+  }
+
   // ** Modifica otros campos documentos
   const updateDocs = async (id, obj) => {
-    const ref = doc(db, 'solicitudes', id)
+    const ref = doc(db, 'users', id)
     const querySnapshot = await getDoc(ref)
 
     // Save previous version of document
@@ -307,6 +317,16 @@ const FirebaseContextProvider = props => {
     const newEvent = { prevDoc, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
     await updateDoc(ref, obj)
   }
+
+  /*
+  // Sube documentos
+  const uploadFileToStorage = file => {
+    const storageRef = storage().ref()
+    const fileRef = storageRef.child(file.name)
+
+    return fileRef.put(file)
+  }
+ */
 
   // ** Escucha cambios en los documentos en tiempo real
   const useSnapshot = () => {
@@ -356,10 +376,12 @@ const FirebaseContextProvider = props => {
     authUser,
     signInWithEmailAndPassword,
     createUser,
+    updateUserProfile,
     signAdminBack,
     newDoc,
     reviewDocs,
     updateDocs,
+    updateUserPhone,
     useSnapshot
   }
 
