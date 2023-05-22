@@ -1,3 +1,4 @@
+//Hola
 // ** React Imports
 import { useState, useEffect } from 'react'
 
@@ -69,7 +70,7 @@ const BoxWrapper = styled(Box)(({ theme }) => ({
 const TypographyStyled = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
   textAlign: 'center',
-  letterSpacing: '0.18px',
+  letterSpacing: '0.18px'
 }))
 
 const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
@@ -81,7 +82,10 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 
 const schema = yup.object().shape({
   email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'),
-  password: yup.string().min(6, 'La contraseña debe tener al menos 6 caracteres').required('Por favor, ingresa tu contraseña')
+  password: yup
+    .string()
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .required('Por favor, ingresa tu contraseña')
 })
 
 const defaultValues = {
@@ -89,7 +93,7 @@ const defaultValues = {
 }
 
 const LoginPage = () => {
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -122,25 +126,23 @@ const LoginPage = () => {
     signInWithEmailAndPassword(email, password)
       .then(user => {
         // Manejar la respuesta exitosa
-        console.log(user);
+        console.log(user)
       })
       .catch(error => {
         // Manejar el error y mostrar el mensaje al usuario
-        const errorMessage = error.message;
-        setErrorMessage(errorMessage);
-      });
-
+        const errorMessage = error.message
+        setErrorMessage(errorMessage)
+      })
   }
 
   useEffect(() => {
     if (authUser) {
-      router.push('/home');
+      router.push('/home')
     }
-  }, [authUser]);
+  }, [authUser])
 
   return (
     <Box className='content-right'>
-
       <RightWrapper sx={{ margin: 'auto' }}>
         <Paper
           elevation={9}
@@ -155,25 +157,30 @@ const LoginPage = () => {
           }}
         >
           <BoxWrapper>
-
-
             <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Box component='img' sx={{ width: '60%', m: 3 }} src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png' />
-              <TypographyStyled variant='h7' sx={{ m: 2 }}>{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
-
-
+              <Box
+                component='img'
+                sx={{ width: '60%', m: 3 }}
+                src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png'
+              />
+              <TypographyStyled
+                variant='h7'
+                sx={{ m: 2 }}
+              >{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
 
               <Box sx={{ m: 2 }}>
-                {errorMessage ?
-                  <Alert severity="error" onClose={() => setErrorMessage('')}>
+                {errorMessage ? (
+                  <Alert severity='error' onClose={() => setErrorMessage('')}>
                     <AlertTitle>Error</AlertTitle>
                     {errorMessage}
                   </Alert>
-                  : <TypographyStyled variant='body2' sx={{ textAlign: 'center' }}>Iniciar sesión</TypographyStyled>}
+                ) : (
+                  <TypographyStyled variant='body2' sx={{ textAlign: 'center' }}>
+                    Iniciar sesión
+                  </TypographyStyled>
+                )}
               </Box>
             </Box>
-
-
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
               <FormControl fullWidth sx={{ mb: 4 }}>
@@ -285,7 +292,6 @@ const LoginPage = () => {
                   <Icon icon='mdi:google' />
                 </IconButton>
               </Box>*/}
-
             </form>
           </BoxWrapper>
         </Paper>
