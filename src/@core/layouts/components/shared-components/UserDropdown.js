@@ -32,14 +32,13 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 const UserDropdown = props => {
   // ** Props
   const { settings } = props
-  const { authUser, loading } = useFirebase()
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
 
   // ** Hooks
   const router = useRouter()
-  const { signOut } = useFirebase()
+  const { auth, authUser, signOut } = useFirebase()
 
   // ** Vars
   const { direction } = settings
@@ -70,15 +69,15 @@ const UserDropdown = props => {
     }
   }
 
-  const handleLogout = () => {
-    signOut()
-    handleDropdownClose()
-    router.push('/login')
-  }
+  function handleLogout() {
+    signOut(auth).then(() => {
+      // Sign-out successful.
+      handleDropdownClose('/login')
+    }).catch((error) => {
+      // An error happened.
+      console.log(error)
+    })
 
-  const handleProfile = () => {
-    router.push('/user-profile')
-    handleDropdownClose()
   }
 
   let username = authUser === null ? 'not logged' : authUser.email
@@ -158,14 +157,14 @@ const UserDropdown = props => {
         </MenuItem>
         <Divider />
             */}
-        <MenuItem sx={{ p: 0 }} onClick={() => handleProfile()}>
+        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/user-profile')}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
             Mi Perfil
           </Box>
         </MenuItem>
         <MenuItem
-          onClick={handleLogout}
+          onClick={() => handleLogout()}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
         >
           <Icon icon='mdi:logout-variant' />

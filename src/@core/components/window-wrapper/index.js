@@ -29,16 +29,20 @@ const WindowWrapper = ({ children }) => {
     [router.route]
   )
 
+  // ** Redirige al login si no hay user
   useEffect(() => {
     if (!authUser && !loading) {
       router.push('/login');
     }
-  }, [authUser, loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser, loading, router.route]);
 
+  // ** Permite mostrar contenido si existe user o si va a entrar (login o forgotpass)
   useEffect(() => {
     if (windowReadyFlag && !loading && (authUser || router.asPath === '/login/' || router.asPath === '/forgot-password/'  )) {
       setShowContent(true) // Actualiza el estado para mostrar el contenido
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowReadyFlag, authUser, loading, router.route])
 
   return (

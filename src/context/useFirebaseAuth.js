@@ -17,7 +17,7 @@ import {
   where
 } from 'firebase/firestore'
 
-import { getAuth } from 'firebase/auth'
+import { getAuth, signOut } from 'firebase/auth'
 import { getStorage, ref, uploadString } from 'firebase/storage'
 
 // ** Next Imports
@@ -243,8 +243,6 @@ const FirebaseContextProvider = props => {
     }
   }
 
-  // ** Log out
-  const signOut = () => Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
 
   // ** Observador cambios de estado de Firebase
   useEffect(() => {
