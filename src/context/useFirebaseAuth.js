@@ -17,7 +17,7 @@ import {
   where
 } from 'firebase/firestore'
 
-import { getAuth, signOut } from 'firebase/auth'
+import { getAuth, signOut, deleteUser } from 'firebase/auth'
 import { getStorage, ref, uploadString } from 'firebase/storage'
 
 // ** Next Imports
@@ -38,7 +38,6 @@ const FirebaseContextProvider = props => {
   const [loading, setLoading] = useState(true)
   const [oldEmail, setOldEmail] = useState('')
   const [newUID, setNewUID] = useState('')
-  const [dialog, setDialog] = useState(false)
 
   const router = useRouter()
 
@@ -144,52 +143,6 @@ const FirebaseContextProvider = props => {
     })
   }
 
-  // ** Registro de usuarios
-  const createUser = async values => {
-    const { name, email } = values
-    try {
-      registerValidator(values)
-
-      // Guarda correo del admin
-      setOldEmail(authUser.email)
-
-      // Crea contraseña alfanumerica de 10 digitos
-      /* const newPassword = generatorPassword.generate({
-        length: 10,
-        numbers: true
-      })  ** Se comenta esta funcion para posterior uso en producción */
-
-      // Crea usuario
-      await Firebase.auth().createUserWithEmailAndPassword(email, 'password') // ** Reemplazar 'password por newPassword
-      setDialog(true)
-
-      // resetPassword(email) ** Envia correo para cambiar password
-
-      // Guardar uid en un estado
-      setNewUID(Firebase.auth().currentUser.uid)
-
-      // Actualiza usuario
-      updateProfile(Firebase.auth().currentUser, {
-        // Hardcoded pero pueden -deben- pasársele argumentos cuando la usemos
-        displayName: name,
-        photoURL: ''
-      })
-        .then(() => {
-          console.log(Firebase.auth().currentUser)
-
-          // Profile updated!
-          // ...
-        })
-        .catch(error => {
-          // An error occurred
-          // ...
-        })
-    } catch (error) {
-      console.log(error)
-      window.alert(error)
-    }
-  }
-
   // ** Actualiza Perfil de usuario
   const updateUserProfile = async inputValue => {
     const user = authUser.uid
@@ -211,15 +164,57 @@ const FirebaseContextProvider = props => {
     }
   }
 
-  // ** Permite que el admin entre de vuelta
-  const signAdminBack = async (values, password) => {
-    const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
-
+  // ** Registro de usuarios
+  const createUser = async values => {
+    const { name, email } = values
     try {
-      await Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
-      setDialog(false)
+      registerValidator(values)
 
-      // Guardar info en bd
+      // Guarda correo del admin
+      setOldEmail(authUser.email)
+
+      // Crea contraseña alfanumerica de 10 digitos
+      /* const newPassword = generatorPassword.generate({
+        length: 10,
+        numbers: true
+      })  ** Se comenta esta funcion para posterior uso en producción */
+
+      // Crea usuario
+      await Firebase.auth().createUserWithEmailAndPassword(email, 'password') // Reemplazar 'password' por newPassword
+
+      //Envia correo para cambiar password
+      //resetPassword(email)
+
+      // Guardar uid en un estado
+      setNewUID(Firebase.auth().currentUser.uid)
+
+      // Actualiza usuario
+      updateProfile(Firebase.auth().currentUser, {
+        // Hardcoded pero pueden -deben- pasársele argumentos cuando la usemos
+        displayName: name,
+        photoURL: ''
+      })
+        .then(() => {
+          console.log(Firebase.auth().currentUser)
+
+          // Profile updated!
+          // ...
+        })
+        .catch(error => {
+          console.log(error)
+
+          // An error occurred
+          // ...
+        })
+    } catch (error) {
+      console.log(error)
+      window.alert(error)
+    }
+  }
+
+  const createUserInDatabase = async (values) => {
+    const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
+    try {
       await setDoc(doc(db, 'users', newUID), {
         name: name,
         email: email,
@@ -232,158 +227,186 @@ const FirebaseContextProvider = props => {
         ...(shift ? { shift: shift } : {}),
         ...(opshift ? { opshift: opshift } : {})
       })
-
-      setNewUID('')
     } catch (error) {
-      console.log(error)
-      window.alert(error)
-      setDialog(false)
-
-      // Firebase.auth().signOut().then(resetUser).then(router.push('/login/'))
+      console.log(error);
+      throw new Error('Error al crear el usuario en la base de datos: '+error);
     }
   }
 
+  // ** Permite que el admin entre de vuelta y escribe en db
+  const signAdminBack = async (values, password) => {
 
-  // ** Observador cambios de estado de Firebase
-  useEffect(() => {
-    setAuthUser(null)
-    const unsubscribe = Firebase.auth().onAuthStateChanged(authStateChanged)
+    try {
+      await Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
+      await createUserInDatabase(values);
+      setNewUID('');
 
-    return () => unsubscribe()
-  }, [])
+      // Realizar acciones adicionales si es necesario
 
-  // ** Escribe documentos en Firestore Database
-  const newDoc = async values => {
-    const user = Firebase.auth().currentUser
-    if (user !== null) {
-      const docRef = await addDoc(collection(db, 'solicitudes'), {
-        title: values.title,
-        user: user.email,
-        start: values.start,
-        area: values.area,
-        objective: values.objective,
-        receiver: values.receiver,
-        description: values.description,
-        date: Timestamp.fromDate(new Date()),
-        uid: user.uid
-      })
-      console.log('Document written with ID: ', docRef.id)
-
-      return docRef.uid
-    }
-  }
-
-  // ** Modifica estado documentos
-  const reviewDocs = async (id, approves) => {
-    // If approves is true, state+1, if false back to 0
-    const ref = doc(db, 'solicitudes', id)
-    const querySnapshot = await getDoc(ref)
-    const prevState = querySnapshot.data().state
-    const newState = approves ? prevState + 1 : 9
-
-    // const newState = prevState+1
-
-    // Guarda estado anterior, autor y fecha modificación
-    const newEvent = {
-      prevState,
-      newState,
-      author: Firebase.auth().currentUser.email,
-      date: Timestamp.fromDate(new Date())
-    }
-
-    await updateDoc(ref, {
-      events: arrayUnion(newEvent),
-      state: newState
-    })
-  }
-
-  // ** Modifica otros campos Usuarios
-  const updateUserPhone = async (id, obj) => {
-    const ref = doc(db, 'users', id)
-    const querySnapshot = await getDoc(ref)
-
-    await updateDoc(ref, { phone: obj })
-  }
-
-  // ** Modifica otros campos documentos
-  const updateDocs = async (id, obj) => {
-    const ref = doc(db, 'users', id)
-    const querySnapshot = await getDoc(ref)
-
-    // Save previous version of document
-    const prevDoc = querySnapshot.data()
-    const newEvent = { prevDoc, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
-    await updateDoc(ref, obj)
-  }
-
-  /*
-  // Sube documentos
-  const uploadFileToStorage = file => {
-    const storageRef = storage().ref()
-    const fileRef = storageRef.child(file.name)
-
-    return fileRef.put(file)
-  }
- */
-
-  // ** Escucha cambios en los documentos en tiempo real
-  const useSnapshot = () => {
-    const [data, setData] = useState([])
-
-    useEffect(() => {
-      if (authUser) {
-        const q =
-          authUser.role === 'admin'
-            ? query(collection(db, 'solicitudes'))
-            : query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
-
-        const unsubscribe = onSnapshot(q, querySnapshot => {
-          try {
-            const allDocs = []
-
-            // Una llamada inicial con la devolución de llamada que proporcionas crea una instantánea del documento de inmediato con los contenidos actuales de ese documento.
-            // Después, cada vez que cambian los contenidos, otra llamada actualiza la instantánea del documento.
-
-            querySnapshot.forEach(doc => {
-              allDocs.push({ ...doc.data(), id: doc.id })
-            })
-            setData(allDocs)
-          } catch (error) {
-            console.error('Error al obtener los documentos de Firestore: ', error)
-
-            // Aquí puedes mostrar un mensaje de error
-          }
-        })
-
-        // Devuelve una función de limpieza que se ejecuta al desmontar el componente
-        return () => unsubscribe()
+      // Redirigir o realizar otras acciones, como volver a la página de inicio de sesión
+      // router.push('/login/');
+    } catch (error) {
+      console.log(error);
+      throw new Error("Ha ocurrido un error: "+error)
       }
-    }, [authUser])
+    }
 
-    return data
+
+    async function signAdminFailure() {
+      const user = auth.currentUser;
+
+      return new Promise(async (resolve, reject) => {
+        try {
+          await deleteUser(user);
+          resolve(new Error('Excediste el número de intentos. No se creó ningún usuario.'));
+        } catch (error) {
+          reject(new Error(error));
+        }
+      });
+    }
+
+
+
+// ** Observador cambios de estado de Firebase
+useEffect(() => {
+  setAuthUser(null)
+  const unsubscribe = Firebase.auth().onAuthStateChanged(authStateChanged)
+
+  return () => unsubscribe()
+}, [])
+
+// ** Escribe documentos en Firestore Database
+const newDoc = async values => {
+  const user = Firebase.auth().currentUser
+  if (user !== null) {
+    const docRef = await addDoc(collection(db, 'solicitudes'), {
+      title: values.title,
+      user: user.email,
+      start: values.start,
+      area: values.area,
+      objective: values.objective,
+      receiver: values.receiver,
+      description: values.description,
+      date: Timestamp.fromDate(new Date()),
+      uid: user.uid
+    })
+    console.log('Document written with ID: ', docRef.id)
+
+    return docRef.uid
+  }
+}
+
+// ** Modifica estado documentos
+const reviewDocs = async (id, approves) => {
+  // If approves is true, state+1, if false back to 0
+  const ref = doc(db, 'solicitudes', id)
+  const querySnapshot = await getDoc(ref)
+  const prevState = querySnapshot.data().state
+  const newState = approves ? prevState + 1 : 9
+
+  // const newState = prevState+1
+
+  // Guarda estado anterior, autor y fecha modificación
+  const newEvent = {
+    prevState,
+    newState,
+    author: Firebase.auth().currentUser.email,
+    date: Timestamp.fromDate(new Date())
   }
 
-  const value = {
-    authUser,
-    dialog,
-    auth,
-    loading,
-    signOut,
-    resetPassword,
-    updatePassword,
-    authUser,
-    signInWithEmailAndPassword,
-    createUser,
-    updateUserProfile,
-    signAdminBack,
-    newDoc,
-    reviewDocs,
-    updateDocs,
-    updateUserPhone,
-    useSnapshot
-  }
+  await updateDoc(ref, {
+    events: arrayUnion(newEvent),
+    state: newState
+  })
+}
 
-  return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
+// ** Modifica otros campos Usuarios
+const updateUserPhone = async (id, obj) => {
+  const ref = doc(db, 'users', id)
+  const querySnapshot = await getDoc(ref)
+
+  await updateDoc(ref, { phone: obj })
+}
+
+// ** Modifica otros campos documentos
+const updateDocs = async (id, obj) => {
+  const ref = doc(db, 'users', id)
+  const querySnapshot = await getDoc(ref)
+
+  // Save previous version of document
+  const prevDoc = querySnapshot.data()
+  const newEvent = { prevDoc, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
+  await updateDoc(ref, obj)
+}
+
+/*
+// Sube documentos
+const uploadFileToStorage = file => {
+  const storageRef = storage().ref()
+  const fileRef = storageRef.child(file.name)
+
+  return fileRef.put(file)
+}
+*/
+
+// ** Escucha cambios en los documentos en tiempo real
+const useSnapshot = () => {
+  const [data, setData] = useState([])
+
+  useEffect(() => {
+    if (authUser) {
+      const q =
+        authUser.role === 'admin'
+          ? query(collection(db, 'solicitudes'))
+          : query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
+
+      const unsubscribe = onSnapshot(q, querySnapshot => {
+        try {
+          const allDocs = []
+
+          // Una llamada inicial con la devolución de llamada que proporcionas crea una instantánea del documento de inmediato con los contenidos actuales de ese documento.
+          // Después, cada vez que cambian los contenidos, otra llamada actualiza la instantánea del documento.
+
+          querySnapshot.forEach(doc => {
+            allDocs.push({ ...doc.data(), id: doc.id })
+          })
+          setData(allDocs)
+        } catch (error) {
+          console.error('Error al obtener los documentos de Firestore: ', error)
+
+          // Aquí puedes mostrar un mensaje de error
+        }
+      })
+
+      // Devuelve una función de limpieza que se ejecuta al desmontar el componente
+      return () => unsubscribe()
+    }
+  }, [authUser])
+
+  return data
+}
+
+const value = {
+  authUser,
+  auth,
+  loading,
+  signOut,
+  resetPassword,
+  updatePassword,
+  authUser,
+  signInWithEmailAndPassword,
+  createUser,
+  updateUserProfile,
+  signAdminBack,
+  newDoc,
+  reviewDocs,
+  updateDocs,
+  updateUserPhone,
+  useSnapshot,
+  signAdminFailure
+}
+
+return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
 }
 
 export default FirebaseContextProvider

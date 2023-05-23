@@ -51,9 +51,11 @@ const FormLayoutsBasic = () => {
   const [errors, setErrors] = useState({})
   const [values, setValues] = useState(initialValues)
   const [password, setPassword] = useState('')
+  const [dialog, setDialog] = useState(false)
+  const [attempts, setAttempts] = useState(0); // Estado para realizar un seguimiento de los intentos realizados
 
   // ** Hooks
-  const { createUser, dialog, signAdminBack } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure } = useFirebase()
 
   const handleChange = (prop) => (event) => {
     let newValue = event.target.value;
@@ -152,23 +154,48 @@ const FormLayoutsBasic = () => {
 
   // agregar codigo que crea un error cuando hay campos "" y que diga "por favor, selecciona un "coso"
 
-  const onSubmit = event => {
+  const onSubmit = async event => {
     event.preventDefault()
     const formErrors = validateForm(values)
     const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
-      createUser(values)
-      setErrors({})
+      try {
+        await createUser(values)
+        setDialog(true)
+         setErrors({})
+      } catch (error) {
+        alert(error);
+      }
     } else {
       setErrors(formErrors)
     }
   }
 
-  const handleConfirm = () => {
-    signAdminBack(values, password)
-    setValues(initialValues)
-  }
+  const handleConfirm = async (values, password) => {
+    const maxAttempts = 2; // Número máximo de intentos permitidos
+
+    try {
+      await signAdminBack(values, password);
+      setValues(initialValues);
+      setAttempts(0); // Reiniciar el contador de intentos si el inicio de sesión es exitoso
+      setDialog(false)
+    } catch (error) {
+      console.log(error);
+      window.alert(error+' intentos: '+attempts);
+      setAttempts(attempts + 1); // Incrementar el contador de intentos
+      console.log(attempts)
+      if (attempts + 1 >= maxAttempts) {
+        // Si se supera el número máximo de intentos, realizar alguna acción adicional, como redirigir al usuario o mostrar un mensaje de error.
+        signAdminFailure().then(error => {
+          window.alert(error); // "Excediste el número de intentos. No se creó ningún usuario."
+        }).catch(error => {
+          window.alert(error)
+        });
+
+      }
+    }
+  };
 
   return (
     <Card>
@@ -347,7 +374,7 @@ const FormLayoutsBasic = () => {
                     <TextField label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
                   </DialogContent>
                   <DialogActions>
-                    <Button onClick={() => handleConfirm()}>Confirmar</Button>
+                    <Button onClick={() => handleConfirm(values, password)}>Confirmar</Button>
                   </DialogActions>
                 </Dialog>
                 {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
