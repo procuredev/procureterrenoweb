@@ -59,7 +59,7 @@ const FormLayoutsBasic = () => {
   const [dialogError, setDialogError] = useState('')
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, addNewContact } = useFirebase()
 
   const handleChange = (prop) => (event) => {
     let newValue = event.target.value;
@@ -189,6 +189,16 @@ const FormLayoutsBasic = () => {
       setAttempts(attempts + 1); // Incrementar el contador de intentos
       if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
         setDialogError('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts));
+      }
+      if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
+        setDialogError('Error, no se creó ningún usuario. Serás redirigid@ al login.')
+        setTimeout(() => {
+          signAdminFailure().catch(error => {
+            console.log(error.message)
+          })
+          setDialog(false)
+          setDialogError('')
+        }, 1500);
       }
       if (attempts >= maxAttempts) {
         setDialogError('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
@@ -353,6 +363,7 @@ const FormLayoutsBasic = () => {
                     error={errors.contop ? true : false}
                     setterFunction={handleSelectorChange('contop')}
                     value={values.contop}
+                    saveContact={addNewContact}
                   />
                   {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
                 </Grid>
@@ -363,6 +374,7 @@ const FormLayoutsBasic = () => {
                     error={errors.opshift ? true : false}
                     setterFunction={handleSelectorChange('opshift')}
                     value={values.opshift}
+                    saveContact={addNewContact}
                   />
                   {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
                 </Grid>

@@ -255,8 +255,8 @@ const FormLayoutsSolicitud = () => {
                 <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
-                  value={values.author}
-                  onChange={() => setValues({ ...values, author: event.target.dataset.value })}
+                  value={values.petitioner                  }
+                  onChange={() => setValues({ ...values, petitioner: event.target.dataset.value })}
                   label='Solicitante'
                   id='id-solicitante'
                   labelId='labelId-solicitante'>
@@ -274,8 +274,8 @@ const FormLayoutsSolicitud = () => {
                 <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
-                  value={values.counterpart}
-                  onChange={() => setValues({ ...values, counterpart: event.target.dataset.value })}
+                  value={values.opshift}
+                  onChange={() => setValues({ ...values, opshift: event.target.dataset.value })}
                   label='Contraturno del solicitante'
                   id='id-contraturno'
                   labelId='labelId-contraturno'>

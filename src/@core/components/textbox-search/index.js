@@ -18,23 +18,23 @@ export default function FreeSoloCreateOptionDialog(props) {
 
   const handleClose = () => {
     setDialogValue({
-      title: '',
-      year: '',
+      name: '',
+      contact: '',
     });
     toggleOpen(false);
   };
 
   const [dialogValue, setDialogValue] = useState({
-    title: '',
-    year: '',
+    name: '',
+    contact: '',
   });
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     setValue({
-      title: dialogValue.title,
-      year: parseInt(dialogValue.year, 10),
+      name: dialogValue.name,
+      contact: dialogValue.contact
     });
+    props.saveContact(dialogValue)
     handleClose();
   };
 
@@ -49,15 +49,15 @@ export default function FreeSoloCreateOptionDialog(props) {
             setTimeout(() => {
               toggleOpen(true);
               setDialogValue({
-                title: newValue,
-                year: '',
+                name: newValue,
+                contact: '',
               });
             });
           } else if (newValue && newValue.inputValue) {
             toggleOpen(true);
             setDialogValue({
-              title: newValue.inputValue,
-              year: '',
+              name: newValue.inputValue,
+              contact: '',
             });
           } else {
             setValue(newValue);
@@ -69,7 +69,7 @@ export default function FreeSoloCreateOptionDialog(props) {
           if (params.inputValue !== '') {
             filtered.push({
               inputValue: params.inputValue,
-              title: `Add "${params.inputValue}"`,
+              name: `Agregar "${params.inputValue}"`,
             });
           }
 
@@ -86,18 +86,18 @@ export default function FreeSoloCreateOptionDialog(props) {
             return option.inputValue;
           }
 
-          return option.title;
+          return option.name;
         }}
         selectOnFocus
         clearOnBlur
         handleHomeEndKeys
-        renderOption={(props, option) => <li {...props}>{option.title}</li>}
+        renderOption={(props, option) => <li {...props}>{option.name}</li>}
         freeSolo
         renderInput={(params) => <TextField {...params} label={props.label} error={props.error} />}
       />
       <Dialog open={open} onClose={handleClose}>
         <form onSubmit={handleSubmit}>
-          <DialogTitle>Add a new film</DialogTitle>
+          <DialogTitle>Agregar nuevo {props.label}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               Si la persona que buscas no está disponible, agrégal@ aquí
@@ -106,11 +106,11 @@ export default function FreeSoloCreateOptionDialog(props) {
               autoFocus
               margin="dense"
               id="name"
-              value={dialogValue.title}
+              value={dialogValue.name}
               onChange={(event) =>
                 setDialogValue({
                   ...dialogValue,
-                  title: event.target.value,
+                  name: event.target.value,
                 })
               }
               label="Nombre"
@@ -120,11 +120,11 @@ export default function FreeSoloCreateOptionDialog(props) {
             <TextField
               margin="dense"
               id="name"
-              value={dialogValue.year}
+              value={dialogValue.contact}
               onChange={(event) =>
                 setDialogValue({
                   ...dialogValue,
-                  year: event.target.value,
+                  contact: event.target.value,
                 })
               }
               label="Contacto"
@@ -132,8 +132,8 @@ export default function FreeSoloCreateOptionDialog(props) {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Cancelar</Button>
-            <Button type="submit">Agregar</Button>
+            <Button onClick={()=>handleClose()}>Cancelar</Button>
+            <Button onClick={()=>handleSubmit()}>Agregar</Button>
           </DialogActions>
         </form>
       </Dialog>
@@ -143,6 +143,6 @@ export default function FreeSoloCreateOptionDialog(props) {
 
 // Top 100 films as rated by IMDb users. http://www.imdb.com/chart/top
 const top100Films = [
-  { title: 'Opción 1', year: 1994 },
-  { title: 'Opción 2', year: 1972 }
+  { name: 'Opción 1', contact: 1994 },
+  { name: 'Opción 2', contact: 1972 }
 ]

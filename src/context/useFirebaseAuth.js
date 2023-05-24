@@ -277,7 +277,13 @@ const FirebaseContextProvider = props => {
         receiver: values.receiver,
         description: values.description,
         date: Timestamp.fromDate(new Date()),
-        uid: user.uid
+        uid: user.uid,
+        plant: values.plant,
+        petitioner: values.petitioner,
+        opshift: values.opshift,
+        type:values.type,
+        sap: values.sap,
+        deliverable: values.deliverable
       })
       console.log('Document written with ID: ', docRef.id)
 
@@ -326,6 +332,12 @@ const FirebaseContextProvider = props => {
     const prevDoc = querySnapshot.data()
     const newEvent = { prevDoc, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
     await updateDoc(ref, obj)
+  }
+
+  // ** Guarda datos contraturno u otros contactos no registrados
+  const addNewContact = async (values) => {
+    await setDoc(doc(db, 'contacts', 'test'), values);
+
   }
 
   /*
@@ -378,6 +390,7 @@ const FirebaseContextProvider = props => {
   const value = {
     authUser,
     auth,
+    addNewContact,
     loading,
     signOut,
     resetPassword,
