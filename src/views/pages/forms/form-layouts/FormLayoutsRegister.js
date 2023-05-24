@@ -6,6 +6,8 @@ import { useState } from 'react'
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
 // ** MUI Imports
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
@@ -53,6 +55,8 @@ const FormLayoutsBasic = () => {
   const [password, setPassword] = useState('')
   const [dialog, setDialog] = useState(false)
   const [attempts, setAttempts] = useState(0); // Estado para realizar un seguimiento de los intentos realizados
+  const [errorMessage, setErrorMessage] = useState('')
+  const [dialogError, setDialogError] = useState('')
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure } = useFirebase()
@@ -65,8 +69,8 @@ const FormLayoutsBasic = () => {
         case 'phone':
           newValue = newValue.replace(/\D/g, '');
           break;
-          case 'email':
-            newValue = newValue.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim();
+        case 'email':
+          newValue = newValue.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim();
           break;
         case 'name':
           // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
@@ -163,9 +167,9 @@ const FormLayoutsBasic = () => {
       try {
         await createUser(values)
         setDialog(true)
-         setErrors({})
+        setErrors({})
       } catch (error) {
-        alert(error);
+        setErrorMessage(error.message);
       }
     } else {
       setErrors(formErrors)
@@ -182,17 +186,19 @@ const FormLayoutsBasic = () => {
       setDialog(false)
     } catch (error) {
       console.log(error);
-      window.alert(error+' intentos: '+attempts);
       setAttempts(attempts + 1); // Incrementar el contador de intentos
-      console.log(attempts)
-      if (attempts + 1 >= maxAttempts) {
-        // Si se supera el número máximo de intentos, realizar alguna acción adicional, como redirigir al usuario o mostrar un mensaje de error.
-        signAdminFailure().then(error => {
-          window.alert(error); // "Excediste el número de intentos. No se creó ningún usuario."
-        }).catch(error => {
-          window.alert(error)
-        });
-
+      if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
+        setDialogError('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts));
+      }
+      if (attempts >= maxAttempts) {
+        setDialogError('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
+        setTimeout(() => {
+          signAdminFailure().catch(error => {
+            console.log(error.message)
+          })
+          setDialog(false)
+          setDialogError('')
+        }, 1500);
       }
     }
   };
@@ -200,6 +206,13 @@ const FormLayoutsBasic = () => {
   return (
     <Card>
       <CardHeader title='Registrar usuario' />
+      {errorMessage &&
+        <CardContent>
+          <Alert severity='error' onClose={() => setErrorMessage('')}>
+            <AlertTitle>Error</AlertTitle>
+            {errorMessage}
+          </Alert>
+        </CardContent>}
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
@@ -243,7 +256,7 @@ const FormLayoutsBasic = () => {
                 error={errors.phone ? true : false}
                 helperText={errors.phone}
                 inputProps={{ maxLength: 9, pattern: "[0-9]*" }}
-                InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment>}}
+                InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -369,6 +382,11 @@ const FormLayoutsBasic = () => {
                   Crear usuario
                 </Button>
                 <Dialog open={dialog}>
+                  {dialogError &&
+                    <Alert severity='error' onClose={() => setDialogError('')}>
+                      <AlertTitle>Error</AlertTitle>
+                      {dialogError}
+                    </Alert>}
                   <DialogContent>
                     <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar</DialogContentText>
                     <TextField label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
