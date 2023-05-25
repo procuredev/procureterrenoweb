@@ -51,7 +51,7 @@ const WindowWrapper = ({ children }) => {
     <>
       {showContent ? ( // Renderiza condicionalmente el contenido
         <>
-          <Alert severity="success">Navegando como: { authUser ? dictionary[authUser.role].name : 'No definido'}</Alert>
+          <Alert severity="success">Navegando como: { (authUser && typeof authUser.role === 'number') ? dictionary[authUser.role].name : 'No definido'}</Alert>
           {children}
         </>
       ) : (
