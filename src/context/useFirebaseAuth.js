@@ -97,15 +97,16 @@ const FirebaseContextProvider = props => {
 
   // Recuperar password (envia cooreo)
   const resetPassword = email => {
-    return Firebase.auth().sendPasswordResetEmail(email)
+    return Firebase.auth()
+      .sendPasswordResetEmail(email)
       .catch(err => {
         if (err.code === 'auth/user-not-found') {
           throw new Error('Este usuario no se encuentra registrado')
         } else {
           throw new Error('Error al restablecer la contraseña')
         }
-      });
-  };
+      })
+  }
 
   // Actualizar password (para actualizar desde mi perfil)
   const updatePassword = async password => {
@@ -114,18 +115,19 @@ const FirebaseContextProvider = props => {
 
   // ** Inicio de sesión
   const signInWithEmailAndPassword = (email, password) => {
-    return Firebase.auth().signInWithEmailAndPassword(email, password)
+    return Firebase.auth()
+      .signInWithEmailAndPassword(email, password)
       .catch(err => {
         switch (err.code) {
           case 'auth/wrong-password':
-            throw new Error('Contraseña incorrecta, intente de nuevo');
+            throw new Error('Contraseña incorrecta, intente de nuevo')
           case 'auth/user-not-found':
-            throw new Error('Este usuario no se encuentra registrado');
+            throw new Error('Este usuario no se encuentra registrado')
           default:
-            throw new Error('Error al iniciar sesión');
+            throw new Error('Error al iniciar sesión')
         }
-      });
-  };
+      })
+  }
 
   // ** Actualiza Perfil de usuario
   const updateUserProfile = async inputValue => {
@@ -169,7 +171,7 @@ const FirebaseContextProvider = props => {
         await Firebase.auth().createUserWithEmailAndPassword(email, 'password') // Reemplazar 'password' por newPassword
       } catch (createError) {
         console.log('Error al crear el usuario:', createError)
-        throw createError; // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
+        throw createError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
       }
 
       // Envía correo para cambiar la contraseña
@@ -188,7 +190,7 @@ const FirebaseContextProvider = props => {
         console.log(Firebase.auth().currentUser)
       } catch (updateError) {
         console.log('Error al actualizar el perfil:', updateError)
-        throw updateError; // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
+        throw updateError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
       }
     } catch (error) {
       if (error.message === 'Firebase: Error (auth/email-already-in-use).') {
@@ -200,8 +202,7 @@ const FirebaseContextProvider = props => {
     }
   }
 
-
-  const createUserInDatabase = async (values) => {
+  const createUserInDatabase = async values => {
     const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
     try {
       await setDoc(doc(db, 'users', newUID), {
@@ -217,44 +218,40 @@ const FirebaseContextProvider = props => {
         ...(opshift && { opshift })
       })
     } catch (error) {
-      console.log(error);
-      throw new Error('Error al crear el usuario en la base de datos: ' + error);
+      console.log(error)
+      throw new Error('Error al crear el usuario en la base de datos: ' + error)
     }
   }
 
   // ** Permite que el admin entre de vuelta y escribe en db
   const signAdminBack = async (values, password) => {
-
     try {
       await Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
-      await createUserInDatabase(values);
-      setNewUID('');
+      await createUserInDatabase(values)
+      setNewUID('')
 
       // Realizar acciones adicionales si es necesario
 
       // Redirigir o realizar otras acciones, como volver a la página de inicio de sesión
       // router.push('/login/');
     } catch (error) {
-      console.log(error);
+      console.log(error)
       throw new Error(error)
     }
   }
 
-
   async function signAdminFailure() {
-    const user = auth.currentUser;
+    const user = auth.currentUser
 
     return new Promise(async (resolve, reject) => {
       try {
-        await deleteUser(user);
-        resolve('Excediste el número de intentos. No se creó ningún usuario.');
+        await deleteUser(user)
+        resolve('Excediste el número de intentos. No se creó ningún usuario.')
       } catch (error) {
-        reject(new Error(error));
+        reject(new Error(error))
       }
-    });
+    })
   }
-
-
 
   // ** Observador cambios de estado de Firebase
   useEffect(() => {
@@ -268,26 +265,55 @@ const FirebaseContextProvider = props => {
   const newDoc = async values => {
     const user = Firebase.auth().currentUser
     if (user !== null) {
-      const docRef = await addDoc(collection(db, 'solicitudes'), {
-        title: values.title,
-        user: user.email,
-        start: values.start,
-        area: values.area,
-        objective: values.objective,
-        receiver: values.receiver,
-        description: values.description,
-        date: Timestamp.fromDate(new Date()),
-        uid: user.uid,
-        plant: values.plant,
-        petitioner: values.petitioner,
-        opshift: values.opshift,
-        type:values.type,
-        sap: values.sap,
-        deliverable: values.deliverable
-      })
-      console.log('Document written with ID: ', docRef.id)
+      try {
+        const docRef = await addDoc(collection(db, 'solicitudes'), {
+          title: values.title,
+          user: user.email,
+          start: values.start,
+          area: values.area,
+          objective: values.objective,
+          receiver: values.receiver,
+          description: values.description,
+          date: Timestamp.fromDate(new Date()),
+          uid: user.uid
+        })
 
-      return docRef.uid
+        const newEvent = {
+          prevState: 0,
+          newState: 1,
+          user: Firebase.auth().currentUser.email,
+          date: Timestamp.fromDate(new Date())
+        }
+
+        /* // Obtenemos una referencia a la colección "solicitudes"
+      const solicitudesRef = Firebase.firestore().collection('solicitudes')
+
+      // Creamos un nuevo documento en la colección "solicitudes" sin datos
+      const nuevaSolicitudRef = await solicitudesRef.add({}) */
+
+        // Obtenemos el ID del nuevo documento de solicitud
+        const nuevaSolicitudId = docRef.id
+
+        // Obtenemos una referencia a la subcolección "eventos" dentro del documento de solicitud
+        const eventosRef = doc(db, `solicitudes/${nuevaSolicitudId}/eventos/${user.email}`)
+
+        // Creamos un nuevo documento en la subcolección "eventos" con los datos del evento
+        const newDocEvent = await addDoc(collection(db, `solicitudes/${nuevaSolicitudId}/eventos`), newEvent)
+
+        // Establecemos los campos adicionales de la solicitud
+        await updateDoc(docRef, {
+          ...newDoc,
+          state: 1,
+          eventoId: newDocEvent.id // Agregamos el ID del evento como campo en la solicitud (opcional)
+        })
+
+        console.log('Nueva solicitud creada con éxito.')
+
+        return nuevaSolicitudId
+      } catch (error) {
+        console.error('Error al crear la nueva solicitud:', error)
+        throw error
+      }
     }
   }
 
@@ -309,8 +335,9 @@ const FirebaseContextProvider = props => {
       date: Timestamp.fromDate(new Date())
     }
 
+    const newDocEvent = await addDoc(collection(db, `solicitudes/${id}/eventos`), newEvent)
     await updateDoc(ref, {
-      events: arrayUnion(newEvent),
+      //eventos: arrayUnion(newDocEvent),
       state: newState
     })
   }
@@ -335,9 +362,8 @@ const FirebaseContextProvider = props => {
   }
 
   // ** Guarda datos contraturno u otros contactos no registrados
-  const addNewContact = async (values) => {
-    await setDoc(doc(db, 'contacts', 'test'), values);
-
+  const addNewContact = async values => {
+    await setDoc(doc(db, 'contacts', 'test'), values)
   }
 
   /*
