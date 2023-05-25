@@ -70,6 +70,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
     setEditable(false);
   };
 
+
   return (
 
     <Dialog
@@ -104,7 +105,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
         <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Chip label={dictionary[state].title} color={dictionary[state].color} size='small' sx={{ width: 90 }} />
+            <Chip label={state? dictionary[state].title:'Cargando...'} color={state? dictionary[state].color:'primary'} size='small' sx={{ width: 90 }} />
             <Box>
               <IconButton onClick={() => setEditable(prev => !prev)} color="primary" aria-label="edit" component="button">
                 <Edit />
@@ -117,7 +118,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
           </Box>
 
           <Typography variant='button' sx={{ fontSize: 14, mb: 2 }} color="textSecondary">
-            {dictionary[state].details}
+            {state? dictionary[state].details:''}
           </Typography>
           {editable ? <TextField
             onChange={e => setValues({ ...values, title: e.target.value })}
@@ -205,7 +206,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
               <TimelineConnector />
             </TimelineSeparator>
             <TimelineContent>
-              <Typography >{dictionary[events ? (events && events[0].prevState) : state].details}</Typography>
+              <Typography >{state ? (dictionary[state].details) : ''}</Typography>
               <Typography variant="body2"> Creado por {user}</Typography>
             </TimelineContent>
           </TimelineItem>

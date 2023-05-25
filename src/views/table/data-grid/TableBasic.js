@@ -106,7 +106,7 @@ const TableBasic = (rows) => {
       flex: 0.4,
       renderCell: params => {
         const { row } = params
-        let state = typeof row.state === 'number' ? row.state : 100
+        let state = (row.state && typeof row.state === 'number') ? row.state : 100
 
         return (
 
