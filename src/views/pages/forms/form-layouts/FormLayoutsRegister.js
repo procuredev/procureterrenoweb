@@ -313,7 +313,7 @@ const FormLayoutsBasic = () => {
               </FormControl>
             </Grid>
 
-            {values.company === 'MEL' && values.role === (2 || 3) && (
+            {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
               <>
                 <Grid item xs={12}>
                   <FormControl fullWidth>
