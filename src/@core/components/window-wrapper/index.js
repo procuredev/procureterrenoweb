@@ -12,6 +12,8 @@ import { useRouter } from 'next/router'
 
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
+import dictionary from 'src/@core/components/dictionary/index'
+
 const WindowWrapper = ({ children }) => {
   // ** State
   const [windowReadyFlag, setWindowReadyFlag] = useState(false)
@@ -49,7 +51,7 @@ const WindowWrapper = ({ children }) => {
     <>
       {showContent ? ( // Renderiza condicionalmente el contenido
         <>
-          <Alert severity="success">Navegando como: {authUser ? authUser.role : 'No definido'}</Alert>
+          <Alert severity="success">Navegando como: { authUser ? dictionary[authUser.role].name : 'No definido'}</Alert>
           {children}
         </>
       ) : (

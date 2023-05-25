@@ -383,7 +383,7 @@ const FirebaseContextProvider = props => {
     useEffect(() => {
       if (authUser) {
         const q =
-          authUser.role === 'admin'
+          authUser.role === 1
             ? query(collection(db, 'solicitudes'))
             : query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
 

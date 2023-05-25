@@ -304,21 +304,21 @@ const FormLayoutsBasic = () => {
                   onChange={handleChange('role')}
                   error={errors.role ? true : false}
                 >
-                  {values.company === 'MEL' && <MenuItem value={1}>Solicitante</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={2}>Contract Operator</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={3}>Contract Owner</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={4}>Planificador</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={5}>Administrador de Contrato</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={6}>Supervisor</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={7}>Proyectista</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={8}>Gerente</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={2}>Solicitante</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={3}>Contract Operator</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={4}>Contract Owner</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={5}>Planificador</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={6}>Administrador de Contrato</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={7}>Supervisor</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={8}>Proyectista</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={9}>Gerente</MenuItem>}
 
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
 
-            {values.company === 'MEL' /* && values.role==='Solicitante' */ && (
+            {values.company === 'MEL' && values.role===(2||3) && (
               <>
                 <Grid item xs={12}>
                   <FormControl fullWidth>

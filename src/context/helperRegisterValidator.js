@@ -4,8 +4,8 @@ export function registerValidator(values) {
   const valName = /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s]+$/;
   const valEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const valPhone = /^[0-9+]{8,12}$/;
-  const valRoleMel = ['Solicitante', 'Contract Operator', 'Contract Owner'];
-  const valRoleProcure = ['Administrador de Contrato', 'Supervisor', 'Gerente', 'Proyectista'];
+  const valRoleMel = [2,3,4];
+  const valRoleProcure = [5,6,7,8,9];
 
   const valPlant = [
     'Los Colorados',
