@@ -8,6 +8,8 @@ import Grid from '@mui/material/Grid'
 import { styled, useTheme } from '@mui/material/styles'
 import { Height } from '@mui/icons-material'
 import { useRouter } from 'next/router'
+import { useFirebase } from 'src/context/useFirebaseAuth'
+import dictionary from 'src/@core/components/dictionary/index'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
@@ -22,7 +24,8 @@ const ProfileCard = () => {
   // ** Hook
   const theme = useTheme()
   const router = useRouter()
-  
+  const { authUser } = useFirebase()
+
   return (
     <Card sx={{ position: 'relative',height:'auto'}}>
       <CardContent>
@@ -30,7 +33,7 @@ const ProfileCard = () => {
             <Typography variant='h5' sx={{ mb: 6 }}>
              Hola,{' '}
               <Box component='span' sx={{ fontWeight: 'bold', mb:4.5 }}>
-                admin
+              {authUser && (authUser.displayName || typeof authUser.role === 'number' ? dictionary[authUser.role].name : 'No definido')}
               </Box>
               ! 👋
             </Typography>

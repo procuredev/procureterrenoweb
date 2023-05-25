@@ -317,21 +317,6 @@ const FormLayoutsBasic = () => {
               <>
                 <Grid item xs={12}>
                   <FormControl fullWidth>
-                    <InputLabel>Turno</InputLabel>
-                    <Select
-                      label='Turno'
-                      value={values.shift}
-                      onChange={handleChange('shift')}
-                      error={errors.shift ? true : false}
-                    >
-                      <MenuItem value={'A'}>Turno A</MenuItem>
-                      <MenuItem value={'B'}>Turno B</MenuItem>
-                    </Select>
-                    {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
                     <InputLabel>Planta</InputLabel>
                     <Select
                       label='Planta'
@@ -349,16 +334,33 @@ const FormLayoutsBasic = () => {
                     {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
                   </FormControl>
                 </Grid>
+                {values.role === (2) && (
+                  <Grid item xs={12}>
+                    <FreeSoloCreateOptionDialog
+                      label='Contract Operator'
+                      placeholder='Contract Operator'
+                      error={errors.contop ? true : false}
+                      setterFunction={handleSelectorChange('contop')}
+                      value={values.contop}
+                      saveContact={addNewContact}
+                    />
+                    {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
+                  </Grid>
+                )}
                 <Grid item xs={12}>
-                  <FreeSoloCreateOptionDialog
-                    label='Contract Operator'
-                    placeholder='Contract Operator'
-                    error={errors.contop ? true : false}
-                    setterFunction={handleSelectorChange('contop')}
-                    value={values.contop}
-                    saveContact={addNewContact}
-                  />
-                  {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
+                  <FormControl fullWidth>
+                    <InputLabel>Turno</InputLabel>
+                    <Select
+                      label='Turno'
+                      value={values.shift}
+                      onChange={handleChange('shift')}
+                      error={errors.shift ? true : false}
+                    >
+                      <MenuItem value={'A'}>Turno A</MenuItem>
+                      <MenuItem value={'B'}>Turno B</MenuItem>
+                    </Select>
+                    {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12}>
                   <FreeSoloCreateOptionDialog
