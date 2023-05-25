@@ -156,8 +156,6 @@ const FormLayoutsBasic = () => {
     return newErrors
   }
 
-  // agregar codigo que crea un error cuando hay campos "" y que diga "por favor, selecciona un "coso"
-
   const onSubmit = async event => {
     event.preventDefault()
     const formErrors = validateForm(values)
@@ -306,15 +304,15 @@ const FormLayoutsBasic = () => {
                   onChange={handleChange('role')}
                   error={errors.role ? true : false}
                 >
-                  {values.company === 'MEL' && <MenuItem value={'Solicitante'}>Solicitante</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={'Contract Operator'}>Contract Operator</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={'Contract Owner'}>Contract Owner</MenuItem>}
-                  {values.company === 'Procure' && (
-                    <MenuItem value={'Administrador de Contrato'}>Administrador de Contrato</MenuItem>
-                  )}
-                  {values.company === 'Procure' && <MenuItem value={'Supervisor'}>Supervisor</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={'Gerente'}>Gerente</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={'Proyectista'}>Proyectista</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={1}>Solicitante</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={2}>Contract Operator</MenuItem>}
+                  {values.company === 'MEL' && <MenuItem value={3}>Contract Owner</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={4}>Planificador</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={5}>Administrador de Contrato</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={6}>Supervisor</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={7}>Proyectista</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={8}>Gerente</MenuItem>}
+
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
