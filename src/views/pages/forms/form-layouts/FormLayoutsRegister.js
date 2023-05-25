@@ -46,7 +46,7 @@ const FormLayoutsBasic = () => {
     phone: '',
     email: '',
     company: '',
-    role: '',
+    role: ''
   }
 
   // ** States
@@ -54,58 +54,57 @@ const FormLayoutsBasic = () => {
   const [values, setValues] = useState(initialValues)
   const [password, setPassword] = useState('')
   const [dialog, setDialog] = useState(false)
-  const [attempts, setAttempts] = useState(0); // Estado para realizar un seguimiento de los intentos realizados
+  const [attempts, setAttempts] = useState(0) // Estado para realizar un seguimiento de los intentos realizados
   const [errorMessage, setErrorMessage] = useState('')
   const [dialogError, setDialogError] = useState('')
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, addNewContact } = useFirebase()
 
-  const handleChange = (prop) => (event) => {
-    let newValue = event.target.value;
+  const handleChange = prop => event => {
+    let newValue = event.target.value
 
     if (newValue) {
       switch (prop) {
         case 'phone':
-          newValue = newValue.replace(/\D/g, '');
-          break;
+          newValue = newValue.replace(/\D/g, '')
+          break
         case 'email':
-          newValue = newValue.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim();
-          break;
+          newValue = newValue.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
+          break
         case 'name':
           // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
-          newValue = newValue.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '');
-          break;
+          newValue = newValue.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+          break
         case 'rut':
           // Eliminar cualquier caracter que no sea un número o letra k
-          newValue = newValue.replace(/[^0-9kK]/g, '');
+          newValue = newValue.replace(/[^0-9kK]/g, '')
 
           // Aplicar expresión regular para formatear el RUT
-          newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4');
-          break;
+          newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
+          break
         default:
-          break;
+          break
       }
     }
 
-    setValues((prevValues) => ({ ...prevValues, [prop]: newValue }));
+    setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
 
     // Deshacer errores al dar formato correcto
     if (newValue && validationRegex[prop] && validationRegex[prop].test(newValue) && errors[prop]) {
-      setErrors((current) => {
+      setErrors(current => {
         const updatedErrors = Object.keys(current).reduce((obj, key) => {
           if (key !== prop) {
-            obj[key] = current[key];
+            obj[key] = current[key]
           }
 
-          return obj;
-        }, {});
+          return obj
+        }, {})
 
-        return updatedErrors;
-      });
+        return updatedErrors
+      })
     }
-  };
-
+  }
 
   const handleSelectorChange = prop => newValue => {
     setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
@@ -126,31 +125,27 @@ const FormLayoutsBasic = () => {
         newErrors[key] = 'Por favor, selecciona una opción'
       }
 
-      // Saca espacios en los values
-      trimmedValues[key] = values[key].replace(/\s+$/, '')
-    }
+      // Validaciones solo para claves de tipo string
+      if (typeof values[key] === 'string') {
+        // Saca espacios en los values
+        trimmedValues[key] = values[key].replace(/\s+$/, '')
 
-    // Si es nulo/falsy o el test devuelve false, entrega mensaje de error
+        // Si, el valor ingresado tiene formato de rut (26909763-9 o 26.909.763-9)
+        if (key === 'rut' && isRutLike(values.rut)) {
+          // si es 26.909.763-9 lo formatea para eliminar los puntos quedando: 26909763-9
+          values.rut = formatRut(values.rut)
 
-    for (const key in validationRegex) {
-      if (!trimmedValues[key] || !validationRegex[key].test(trimmedValues[key])) {
-        newErrors[key] = `Por favor, introduce un ${key} válido`
+          // comprueba con el módulo 11 para corroborar el digito verificador
+          if (!validateRut(values.rut)) {
+            newErrors['rut'] = 'Dígito verificador incorrecto'
+          }
+        } else {
+          // Validación regex para otras claves de tipo string
+          if (!trimmedValues[key] || (validationRegex[key] && !validationRegex[key].test(trimmedValues[key]))) {
+            newErrors[key] = `Por favor, introduce un ${key} válido`
+          }
+        }
       }
-    }
-
-    // Si, el valor ingresado tiene formato de rut (26909763-9 o 26.909.763-9)
-
-    if (isRutLike(values.rut)) {
-      // si es 26.909.763-9 lo formatea para eliminar los puntos quedando: 26909763-9
-      values.rut = formatRut(values.rut)
-
-      // comprueba con el módulo 11 para corroborar el digito verificador
-
-      if (!validateRut(values.rut)) {
-        newErrors['rut'] = 'Dígito verificador incorrecto'
-      }
-    } else {
-      newErrors['rut'] = 'Por favor, introduce un rut válido'
     }
 
     return newErrors
@@ -167,7 +162,7 @@ const FormLayoutsBasic = () => {
         setDialog(true)
         setErrors({})
       } catch (error) {
-        setErrorMessage(error.message);
+        setErrorMessage(error.message)
       }
     } else {
       setErrors(formErrors)
@@ -175,18 +170,18 @@ const FormLayoutsBasic = () => {
   }
 
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 2; // Número máximo de intentos permitidos
+    const maxAttempts = 2 // Número máximo de intentos permitidos
 
     try {
-      await signAdminBack(values, password);
-      setValues(initialValues);
-      setAttempts(0); // Reiniciar el contador de intentos si el inicio de sesión es exitoso
+      await signAdminBack(values, password)
+      setValues(initialValues)
+      setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
       setDialog(false)
     } catch (error) {
-      console.log(error);
-      setAttempts(attempts + 1); // Incrementar el contador de intentos
+      console.log(error)
+      setAttempts(attempts + 1) // Incrementar el contador de intentos
       if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-        setDialogError('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts));
+        setDialogError('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts))
       }
       if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
         setDialogError('Error, no se creó ningún usuario. Serás redirigid@ al login.')
@@ -196,7 +191,7 @@ const FormLayoutsBasic = () => {
           })
           setDialog(false)
           setDialogError('')
-        }, 1500);
+        }, 1500)
       }
       if (attempts >= maxAttempts) {
         setDialogError('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
@@ -206,21 +201,22 @@ const FormLayoutsBasic = () => {
           })
           setDialog(false)
           setDialogError('')
-        }, 1500);
+        }, 1500)
       }
     }
-  };
+  }
 
   return (
     <Card>
       <CardHeader title='Registrar usuario' />
-      {errorMessage &&
+      {errorMessage && (
         <CardContent>
           <Alert severity='error' onClose={() => setErrorMessage('')}>
             <AlertTitle>Error</AlertTitle>
             {errorMessage}
           </Alert>
-        </CardContent>}
+        </CardContent>
+      )}
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
@@ -234,7 +230,7 @@ const FormLayoutsBasic = () => {
                 value={values.name}
                 error={errors.name ? true : false}
                 helperText={errors.name}
-                inputProps={{ maxLength: 20 }}
+                inputProps={{ maxLength: 45 }}
               />
             </Grid>
             {/* <Grid item xs={6}>
@@ -250,7 +246,7 @@ const FormLayoutsBasic = () => {
                 value={values.rut}
                 error={errors.rut ? true : false}
                 helperText={errors.rut}
-                inputProps={{ maxLength: 12, pattern: "[0-9kK.-]*" }}
+                inputProps={{ maxLength: 12, pattern: '[0-9kK.-]*' }}
               />
             </Grid>
             <Grid item xs={6}>
@@ -263,7 +259,7 @@ const FormLayoutsBasic = () => {
                 value={values.phone}
                 error={errors.phone ? true : false}
                 helperText={errors.phone}
-                inputProps={{ maxLength: 9, pattern: "[0-9]*" }}
+                inputProps={{ maxLength: 9, pattern: '[0-9]*' }}
                 InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
               />
             </Grid>
@@ -277,7 +273,7 @@ const FormLayoutsBasic = () => {
                 value={values.email}
                 error={errors.email ? true : false}
                 helperText={errors.email}
-                inputProps={{ maxLength: 25 }}
+                inputProps={{ maxLength: 45 }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -312,13 +308,12 @@ const FormLayoutsBasic = () => {
                   {values.company === 'Procure' && <MenuItem value={7}>Supervisor</MenuItem>}
                   {values.company === 'Procure' && <MenuItem value={8}>Proyectista</MenuItem>}
                   {values.company === 'Procure' && <MenuItem value={9}>Gerente</MenuItem>}
-
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
 
-            {values.company === 'MEL' && values.role===(2||3) && (
+            {values.company === 'MEL' && values.role === (2 || 3) && (
               <>
                 <Grid item xs={12}>
                   <FormControl fullWidth>
@@ -392,11 +387,12 @@ const FormLayoutsBasic = () => {
                   Crear usuario
                 </Button>
                 <Dialog open={dialog}>
-                  {dialogError &&
+                  {dialogError && (
                     <Alert severity='error' onClose={() => setDialogError('')}>
                       <AlertTitle>Error</AlertTitle>
                       {dialogError}
-                    </Alert>}
+                    </Alert>
+                  )}
                   <DialogContent>
                     <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar</DialogContentText>
                     <TextField label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
