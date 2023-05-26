@@ -285,20 +285,11 @@ const FirebaseContextProvider = props => {
           date: Timestamp.fromDate(new Date())
         }
 
-        /* // Obtenemos una referencia a la colección "solicitudes"
-      const solicitudesRef = Firebase.firestore().collection('solicitudes')
-
-      // Creamos un nuevo documento en la colección "solicitudes" sin datos
-      const nuevaSolicitudRef = await solicitudesRef.add({}) */
-
         // Obtenemos el ID del nuevo documento de solicitud
         const nuevaSolicitudId = docRef.id
 
-        // Obtenemos una referencia a la subcolección "eventos" dentro del documento de solicitud
-        const eventosRef = doc(db, `solicitudes/${nuevaSolicitudId}/eventos/${user.email}`)
-
         // Creamos un nuevo documento en la subcolección "eventos" con los datos del evento
-        const newDocEvent = await addDoc(collection(db, `solicitudes/${nuevaSolicitudId}/eventos`), newEvent)
+        const newDocEvent = await addDoc(collection(db, `solicitudes/${nuevaSolicitudId}/events`), newEvent)
 
         // Establecemos los campos adicionales de la solicitud
         await updateDoc(docRef, {
@@ -319,13 +310,11 @@ const FirebaseContextProvider = props => {
 
   // ** Modifica estado documentos
   const reviewDocs = async (id, approves) => {
-    // If approves is true, state+1, if false back to 0
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
-    const prevState = querySnapshot.data().state
-    const newState = approves ? prevState + 1 : 9
 
-    // const newState = prevState+1
+    const prevState = 'estado anterior'
+    const newState = approves ? authUser.role : 'rechazado'
 
     // Guarda estado anterior, autor y fecha modificación
     const newEvent = {
@@ -335,11 +324,29 @@ const FirebaseContextProvider = props => {
       date: Timestamp.fromDate(new Date())
     }
 
-    const newDocEvent = await addDoc(collection(db, `solicitudes/${id}/eventos`), newEvent)
     await updateDoc(ref, {
-      //eventos: arrayUnion(newDocEvent),
       state: newState
     })
+    await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
+  }
+
+  // ** Modifica otros campos documentos
+  const updateDocs = async (id, obj) => {
+    const ref = doc(db, 'solicitudes', id)
+    const querySnapshot = await getDoc(ref)
+    const prevState = 'estado anterior'
+    const newState = authUser.role || 'no definido'
+
+    // Save previous version of document
+    const prevDoc = querySnapshot.data()
+
+    const newEvent = { prevDoc,
+      author: Firebase.auth().currentUser.email,
+      date: Timestamp.fromDate(new Date()),
+      prevState,
+      newState}
+    await updateDoc(ref, obj)
+    await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
   }
 
   // ** Modifica otros campos Usuarios
@@ -348,17 +355,6 @@ const FirebaseContextProvider = props => {
     const querySnapshot = await getDoc(ref)
 
     await updateDoc(ref, { phone: obj })
-  }
-
-  // ** Modifica otros campos documentos
-  const updateDocs = async (id, obj) => {
-    const ref = doc(db, 'users', id)
-    const querySnapshot = await getDoc(ref)
-
-    // Save previous version of document
-    const prevDoc = querySnapshot.data()
-    const newEvent = { prevDoc, author: Firebase.auth().currentUser.email, date: Timestamp.fromDate(new Date()) }
-    await updateDoc(ref, obj)
   }
 
   // ** Guarda datos contraturno u otros contactos no registrados
