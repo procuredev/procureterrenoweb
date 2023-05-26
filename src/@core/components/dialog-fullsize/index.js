@@ -34,7 +34,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
 
-  const { updateDocs } = useFirebase()
+  const { updateDocs, useEvents } = useFirebase()
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -42,6 +42,8 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
 
 // Verifica estado
   state = typeof state === 'number' ? state : 100
+
+  const eventData = useEvents(id)
 
 // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
@@ -211,8 +213,8 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
             </TimelineContent>
           </TimelineItem>
 
-          {events && events.length > 0 && events.map((element) => {
-            let modified = (element.newState === 0) ? 'Modificado' : 'Aprobado'
+          {eventData && eventData.length > 0 && eventData.map((element) => {
+            let modified = (element.prevDoc) ? 'Modificado' : 'Aprobado'
             let status = (element.newState === 9) ? 'Rechazado' : modified
 
 

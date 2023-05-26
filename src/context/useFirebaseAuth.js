@@ -372,6 +372,40 @@ const FirebaseContextProvider = props => {
   }
   */
 
+  // ** Trae colección de eventos
+  const useEvents = (id) => {
+    const [data, setData] = useState([])
+
+    useEffect(() => {
+      if (authUser && id) {
+        const q = query(collection(db, 'solicitudes', id, 'events'))
+
+        const unsubscribe = onSnapshot(q, querySnapshot => {
+          try {
+            const allDocs = []
+
+            // Una llamada inicial con la devolución de llamada que proporcionas crea una instantánea del documento de inmediato con los contenidos actuales de ese documento.
+            // Después, cada vez que cambian los contenidos, otra llamada actualiza la instantánea del documento.
+
+            querySnapshot.forEach(doc => {
+              allDocs.push({ ...doc.data(), id: doc.id })
+            })
+            setData(allDocs)
+          } catch (error) {
+            console.error('Error al obtener los documentos de Firestore: ', error)
+
+            // Aquí puedes mostrar un mensaje de error
+          }
+        })
+
+        // Devuelve una función de limpieza que se ejecuta al desmontar el componente
+        return () => unsubscribe()
+      }
+    }, [authUser, id])
+
+    return data
+  }
+
   // ** Escucha cambios en los documentos en tiempo real
   const useSnapshot = () => {
     const [data, setData] = useState([])
@@ -423,6 +457,7 @@ const FirebaseContextProvider = props => {
     updateUserProfile,
     signAdminBack,
     newDoc,
+    useEvents,
     reviewDocs,
     updateDocs,
     updateUserPhone,
