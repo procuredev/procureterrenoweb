@@ -280,7 +280,7 @@ const FirebaseContextProvider = props => {
 
         const newEvent = {
           prevState: 0,
-          newState: 1,
+          newState: authUser.role || 'no definido',
           user: Firebase.auth().currentUser.email,
           date: Timestamp.fromDate(new Date())
         }
@@ -294,7 +294,7 @@ const FirebaseContextProvider = props => {
         // Establecemos los campos adicionales de la solicitud
         await updateDoc(docRef, {
           ...newDoc,
-          state: 1,
+          state: authUser.role || 'no definido',
           eventoId: newDocEvent.id // Agregamos el ID del evento como campo en la solicitud (opcional)
         })
 
@@ -313,7 +313,7 @@ const FirebaseContextProvider = props => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
 
-    const prevState = 'estado anterior'
+    const prevState = querySnapshot.data().state // 'estado anterior'
     const newState = approves ? authUser.role : 'rechazado'
 
     // Guarda estado anterior, autor y fecha modificación
@@ -334,17 +334,26 @@ const FirebaseContextProvider = props => {
   const updateDocs = async (id, obj) => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
-    const prevState = 'estado anterior'
-    const newState = authUser.role || 'no definido'
+    const prevState = querySnapshot.data().state // 'estado anterior'
+
+    const userRef = doc(db, 'users', querySnapshot.data().uid)
+    const userQuerySnapshot = await getDoc(userRef)
+
+    const initialState = userQuerySnapshot.data().role
+
+    const newState = initialState // authUser.role || 'no definido'
 
     // Save previous version of document
     const prevDoc = querySnapshot.data()
 
-    const newEvent = { prevDoc,
+    const newEvent = {
+      prevDoc,
       author: Firebase.auth().currentUser.email,
       date: Timestamp.fromDate(new Date()),
       prevState,
-      newState}
+      newState
+    }
+    obj.state = newState
     await updateDoc(ref, obj)
     await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
   }
