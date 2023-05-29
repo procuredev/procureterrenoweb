@@ -471,13 +471,6 @@ const FirebaseContextProvider = props => {
 
             // Aquí puedes mostrar un mensaje de error
           }
-
-          const getRoleData = async role => {
-            const docRef = doc(db, 'roles', role)
-            const docSnap = await getDoc(docRef)
-
-            return docSnap.data()
-          }
         })
 
         // Devuelve una función de limpieza que se ejecuta al desmontar el componente
@@ -486,6 +479,13 @@ const FirebaseContextProvider = props => {
     }, [authUser])
 
     return data
+  }
+
+  const getRoleData = async role => {
+    const docRef = doc(db, 'roles', role)
+    const docSnap = await getDoc(docRef)
+
+    return docSnap.data()
   }
 
   const value = {
