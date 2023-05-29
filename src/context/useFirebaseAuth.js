@@ -270,6 +270,7 @@ const FirebaseContextProvider = props => {
           title: values.title,
           user: user.email,
           start: values.start,
+          plant: values.plant,
           area: values.area,
           objective: values.objective,
           receiver: values.receiver,
@@ -314,13 +315,13 @@ const FirebaseContextProvider = props => {
     const querySnapshot = await getDoc(ref)
 
     const prevState = querySnapshot.data().state // 'estado anterior'
-    const newState = approves ? authUser.role : 'rechazado'
+    const newState = approves ? authUser.role : 10
 
     // Guarda estado anterior, autor y fecha modificación
     const newEvent = {
       prevState,
       newState,
-      author: Firebase.auth().currentUser.email,
+      user: Firebase.auth().currentUser.email,
       date: Timestamp.fromDate(new Date())
     }
 
@@ -341,21 +342,38 @@ const FirebaseContextProvider = props => {
 
     const initialState = userQuerySnapshot.data().role
 
-    const newState = initialState // authUser.role || 'no definido'
+    if (obj.start !== querySnapshot.data().start) {
+      const newState = initialState // authUser.role || 'no definido'
 
-    // Save previous version of document
-    const prevDoc = querySnapshot.data()
+      // Save previous version of document
+      const prevDoc = querySnapshot.data()
 
-    const newEvent = {
-      prevDoc,
-      author: Firebase.auth().currentUser.email,
-      date: Timestamp.fromDate(new Date()),
-      prevState,
-      newState
+      const newEvent = {
+        prevDoc,
+        user: Firebase.auth().currentUser.email,
+        date: Timestamp.fromDate(new Date()),
+        prevState,
+        newState
+      }
+      obj.state = newState
+      await updateDoc(ref, obj)
+      await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
+    } else if ((obj.start === querySnapshot.data().start && authUser.role === 5) || authUser.rolee === 1) {
+      const newState = authUser.role
+
+      // Guarda estado anterior, autor y fecha modificación
+      const newEvent = {
+        prevState,
+        newState,
+        user: Firebase.auth().currentUser.email,
+        date: Timestamp.fromDate(new Date())
+      }
+
+      await updateDoc(ref, {
+        state: newState
+      })
+      await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
     }
-    obj.state = newState
-    await updateDoc(ref, obj)
-    await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
   }
 
   // ** Modifica otros campos Usuarios
@@ -382,7 +400,7 @@ const FirebaseContextProvider = props => {
   */
 
   // ** Trae colección de eventos
-  const useEvents = (id) => {
+  const useEvents = id => {
     const [data, setData] = useState([])
 
     useEffect(() => {
@@ -421,10 +439,21 @@ const FirebaseContextProvider = props => {
 
     useEffect(() => {
       if (authUser) {
-        const q =
-          authUser.role === 1
-            ? query(collection(db, 'solicitudes'))
-            : query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
+        console.log(authUser.role, 'USER PLANT')
+
+        let q
+
+        const getAllDocs = [1, 4, 5, 6, 7, 9]
+
+        if (authUser.role === 2) {
+          q = query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
+        } else if (authUser.role === 3) {
+          q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
+        } else {
+          q = getAllDocs.includes(authUser.role)
+            ? query(collection(db, 'solicitudes'), where('state', '==', 3))
+            : undefined
+        }
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
           try {
@@ -441,6 +470,13 @@ const FirebaseContextProvider = props => {
             console.error('Error al obtener los documentos de Firestore: ', error)
 
             // Aquí puedes mostrar un mensaje de error
+          }
+
+          const getRoleData = async role => {
+            const docRef = doc(db, 'roles', role)
+            const docSnap = await getDoc(docRef)
+
+            return docSnap.data()
           }
         })
 
@@ -471,7 +507,8 @@ const FirebaseContextProvider = props => {
     updateDocs,
     updateUserPhone,
     useSnapshot,
-    signAdminFailure
+    signAdminFailure,
+    getRoleData
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
