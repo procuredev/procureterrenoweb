@@ -8,6 +8,11 @@ import { useFirebase } from 'src/context/useFirebaseAuth'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 
 // ** Custom Components Imports
 import PageHeader from 'src/@core/components/page-header'
@@ -23,11 +28,50 @@ import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 
 
 const DataGrid = () => {
+  const [value, setValue] = useState('1');
+  const [roleData, setRoleData] = useState({});
 
-  const data = useFirebase().useSnapshot()
+  const { useSnapshot, authUser, getRoleData } = useFirebase()
+  const data = useSnapshot()
+  console.log(data)
+  useEffect(() => {
+    const role = async () => {
+      if (authUser) {
+        const role = await getRoleData(authUser.role.toString())
+        setRoleData(role)
+      }
+    }
+
+    role();
+  }, []);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  const tabContent = [
+    {
+      data: data,
+      label: 'Todas las solicitudes'
+    },
+    {
+      data: data.filter(doc => doc.state === authUser.role-1),
+      label: 'Por aprobar'
+    },
+    {
+      data: data.filter(doc => doc.state >= 7 && doc.state < 10),
+      label: 'Aprobadas'
+    },
+    {
+      data: data.filter(doc => doc.state === 10),
+      label: 'Rechazadas'
+    },
+  ]
+
+
 
   return (
-    <Grid container spacing={6}>
+    <Box sx={{ width: '100%', typography: 'body1' }}>
       <PageHeader
         title={
           <Typography variant='h5'>
@@ -36,15 +80,23 @@ const DataGrid = () => {
             </Link>
           </Typography>
         }
-        subtitle={
-          <Typography variant='body2'>Todas las solicitudes
-          </Typography>
-        }
       />
-      <Grid item xs={12}>
-        <TableBasic rows={data} />
-      </Grid>
-    </Grid>
+      <TabContext value={value}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <TabList onChange={handleChange} aria-label="lab API tabs example">
+            {tabContent.map((element, index) => (
+              <Tab label={element.label} value={`${index + 1}`} key={index} />
+            ))}
+          </TabList>
+        </Box>
+        {tabContent.map((element, index) => (
+          <Grid item xs={12} key={index}>
+            <TabPanel key={index} value={`${index + 1}`}><TableBasic rows={element.data} showActions={roleData.name}/>
+            </TabPanel>
+          </Grid>
+        ))}
+      </TabContext>
+    </Box>
   )
 }
 
