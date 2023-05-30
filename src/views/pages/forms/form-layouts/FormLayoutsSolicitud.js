@@ -28,6 +28,8 @@ import ListItem from '@mui/material/ListItem'
 import { styled } from '@mui/material/styles'
 import CardSnippet from 'src/@core/components/card-snippet'
 import areas from 'src/@core/components/plants-areas/index'
+import InfoIcon from '@mui/icons-material/Info';
+import Tooltip from '@mui/material/Tooltip'
 
 // ** Source code imports
 // import * as source from 'src/views/forms/form-elements/file-uploader/FileUploaderSourceCode'
@@ -74,22 +76,22 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState({
     title: '',
-    author:'',
+    author: '',
     counterpart: '',
     start: '',
     description: '',
     area: '',
-    plant:'',
+    plant: '',
     objective: '',
     receiver: ''
   })
-  const [plants,setPlants] = useState([])
+  const [plants, setPlants] = useState([])
   const router = useRouter()
 
   const findAreas = (plant) => {
-      let setOfAreas = (areas.find((obj)=>  obj.name === plant)).allAreas
-      let areaNames = setOfAreas.map((element)=>Object.keys(element).toString() + ' - ' + Object.values(element).toString())
-      setPlants(Object.values(areaNames))
+    let setOfAreas = (areas.find((obj) => obj.name === plant)).allAreas
+    let areaNames = setOfAreas.map((element) => Object.keys(element).toString() + ' - ' + Object.values(element).toString())
+    setPlants(Object.values(areaNames))
   }
 
   // ** State Solo para Image Uploader
@@ -223,8 +225,9 @@ const FormLayoutsSolicitud = () => {
                   value={values.plant}
                   onChange={() => {
                     setValues({ ...values, plant: event.target.dataset.value })
-                    findAreas(event.target.dataset.value)}}>
-                  {areas.map(plant=>{return(<MenuItem key={plant.name} value={plant.name}>{plant.name}</MenuItem>)})}
+                    findAreas(event.target.dataset.value)
+                  }}>
+                  {areas.map(plant => { return (<MenuItem key={plant.name} value={plant.name}>{plant.name}</MenuItem>) })}
                 </Select>
               </FormControl>
             </Grid>
@@ -242,7 +245,7 @@ const FormLayoutsSolicitud = () => {
                   value={values.area}
                   onChange={() => setValues({ ...values, area: event.target.dataset.value })}>
 
-                  {(plants.map(plant=>{return(<MenuItem key={plant} value={plant}>{plant}</MenuItem>)}))}
+                  {(plants.map(plant => { return (<MenuItem key={plant} value={plant}>{plant}</MenuItem>) }))}
 
                 </Select>
               </FormControl>
@@ -255,7 +258,7 @@ const FormLayoutsSolicitud = () => {
                 <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
-                  value={values.petitioner                  }
+                  value={values.petitioner}
                   onChange={() => setValues({ ...values, petitioner: event.target.dataset.value })}
                   label='Solicitante'
                   id='id-solicitante'
@@ -290,8 +293,8 @@ const FormLayoutsSolicitud = () => {
             <Grid item xs={12}>
               <Typography sx={{ mr: 2 }}>
                 ¿No sabe en qué área está? {`  `}
-                <Link onClick={()=>router.replace('/mapa/')}>
-                    Haga clic acá para saber
+                <Link onClick={() => router.replace('/mapa/')}>
+                  Haga clic acá para saber
                 </Link>
               </Typography>
             </Grid>
@@ -299,36 +302,44 @@ const FormLayoutsSolicitud = () => {
 
             {/* Box con tipo de operación y sap */}
             <Grid item xs={12}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
 
-            <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
-                <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
-                <Select
-                  InputLabelProps={{ required: true }}
-                  label='Tipo de trabajo'
-                  defaultValue=''
-                  id='id-type'
-                  labelId='labelId-type'
-                  value={values.type}
-                  onChange={() => setValues({ ...values, type: event.target.dataset.value })}>
-                  <MenuItem value='Normal'>Normal</MenuItem>
-                  <MenuItem value='Outage'>Outage</MenuItem>
-                  <MenuItem value='Shutdown'>Shutdown</MenuItem>
-                </Select>
+                <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
+                  <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
+                  <Select
+                    InputLabelProps={{ required: true }}
+                    label='Tipo de trabajo'
+                    defaultValue=''
+                    id='id-type'
+                    labelId='labelId-type'
+                    value={values.type}
+                    onChange={() => setValues({ ...values, type: event.target.dataset.value })}>
+                    <MenuItem value='Normal'>Normal</MenuItem>
+                    <MenuItem value='Outage'>Outage</MenuItem>
+                    <MenuItem value='Shutdown'>Shutdown</MenuItem>
+                  </Select>
                 </FormControl>
                 <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
-            <TextField
-              onChange={e => setValues({ ...values, sap: e.target.value })}
-              label="Número SAP"
-              id="sap-input"
 
-            />
-            </FormControl>
-            </Box>
+                  <TextField
+                    onChange={e => setValues({ ...values, sap: e.target.value })}
+                    label="Número SAP"
+                    id="sap-input"
+                    InputProps={{
+                      endAdornment: (
+                        <Tooltip title="Rellena este campo sólo si conoces el número SAP">
+                          <InfoIcon color="action" />
+                        </Tooltip>
+                      ),
+                    }}
+                  />
+
+                </FormControl>
+              </Box>
             </Grid>
 
             {/* Objetivo - Tipo de levantamiento */}
-            <Grid item xs={12}  sx={{pt:'0 !important'}}>
+            <Grid item xs={12} sx={{ pt: '0 !important' }}>
               <FormControl fullWidth>
                 <InputLabel id='input-label-objetivo'>Tipo de levantamiento</InputLabel>
                 <Select
@@ -364,7 +375,7 @@ const FormLayoutsSolicitud = () => {
                   labelId='labelId-entregable'
                   value={values.deliverable}
                   onChange={() => setValues({ ...values, deliverable: event.target.dataset.value })}>
-                    <MenuItem value='Sketch'>Sketch</MenuItem>
+                  <MenuItem value='Sketch'>Sketch</MenuItem>
                   <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
                   <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
                   <MenuItem value='Memoria de Cálculo'>Memoria de Cálculo</MenuItem>
@@ -429,11 +440,11 @@ const FormLayoutsSolicitud = () => {
                 <Fragment>
                   <div {...getRootProps({ className: 'dropzone' })}>
                     <input {...getInputProps()} />
-                    <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center', margin:'auto'}}>
-                      <Box sx={{pl:2, display: 'flex', flexDirection: 'column', alignItems: ['center'] ,  margin:'auto'}}>
+                    <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center', margin: 'auto' }}>
+                      <Box sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto' }}>
                         <HeadingTypography variant='h5'>Subir archivos</HeadingTypography>
                         <Icon icon='mdi:file-document-outline' />
-                        <Typography sx={{mt:5}} color='textSecondary'>
+                        <Typography sx={{ mt: 5 }} color='textSecondary'>
                           Arrastra las imágenes acá o{' '}
                           <Link onClick={() => handleLinkClick}>
                             haz click acá
