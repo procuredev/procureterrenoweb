@@ -451,7 +451,7 @@ const FirebaseContextProvider = props => {
           q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
         } else {
           q = getAllDocs.includes(authUser.role)
-            ? query(collection(db, 'solicitudes'), where('state', '==', 3))
+            ? query(collection(db, 'solicitudes'), where('state', '>=', (authUser.role - 1)))
             : undefined
         }
 
