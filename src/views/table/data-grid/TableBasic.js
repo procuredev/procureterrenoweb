@@ -9,8 +9,6 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 // ** MUI Imports
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
-import ClickAwayListener from '@mui/material/ClickAwayListener'
-import Grow from '@mui/material/Grow'
 import CustomChip from 'src/@core/components/mui/chip'
 import { Typography, IconButton } from '@mui/material'
 import { Button } from '@mui/material'
@@ -167,7 +165,7 @@ const TableBasic = ({rows, role, showActions}) => {
     },
     {
       flex: 0.3,
-      minWidth: sm ? 190 : 100,
+      minWidth: md ? 190 : 100,
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
@@ -210,16 +208,10 @@ const TableBasic = ({rows, role, showActions}) => {
                   size='small'
                   IconComponent={() => <MoreHorizIcon />}
                   sx={{
-                    maxWidth: 'min-content !important',
                     '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
                     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': {
-                      minWidth: 'min-content !important',
-                      backgroundColor: theme.palette.customColors.tableHeaderBg
-                    },
-                    '& .MuiOutlinedInput-input': { maxWidth: 'min-content !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                    '& .MuiSelect-select': {backgroundColor: theme.palette.customColors.tableHeaderBg},
+                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' },
                   }}
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
