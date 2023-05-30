@@ -451,8 +451,10 @@ const FirebaseContextProvider = props => {
           q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
         } else {
           q = getAllDocs.includes(authUser.role)
+          ? ![1, 9].includes(authUser.role)
             ? query(collection(db, 'solicitudes'), where('state', '>=', (authUser.role - 1)))
-            : undefined
+            : query(collection(db, 'solicitudes'))
+          : undefined;
         }
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
