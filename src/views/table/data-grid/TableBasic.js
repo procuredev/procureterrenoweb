@@ -64,6 +64,7 @@ const TableBasic = ({rows, role, showActions}) => {
   const theme = useTheme()
   const sm = useMediaQuery(theme.breakpoints.up('sm'))
   const md = useMediaQuery(theme.breakpoints.up('md'))
+  const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
   useEffect(() => {
     // Busca el documento actualizado en rows
@@ -266,6 +267,7 @@ const TableBasic = ({rows, role, showActions}) => {
           columnVisibilityModel={{
             ot: md,
             user: md,
+            end: xl,
             actions: showActions
           }}
         />
