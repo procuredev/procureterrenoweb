@@ -29,7 +29,7 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 
-const TableBasic = rows => {
+const TableBasic = ({rows, role, showActions}) => {
   const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -67,7 +67,7 @@ const TableBasic = rows => {
 
   useEffect(() => {
     // Busca el documento actualizado en rows
-    const updatedDoc = rows.rows.find(row => row.id === doc.id)
+    const updatedDoc = rows.find(row => row.id === doc.id)
 
     // Actualiza el estado de doc con el documento actualizado
     if (updatedDoc) {
@@ -174,7 +174,7 @@ const TableBasic = rows => {
 
         return (
           <>
-            {sm ? (
+          { md ? ( row.state === (role-1) ?
               <>
                 <Button
                   onClick={() => handleClickOpenAlert(row, true)}
@@ -200,8 +200,8 @@ const TableBasic = rows => {
                 >
                   <Clear sx={{ fontSize: 18 }} />
                 </Button>
-              </>
-            ) : (
+              </> : 'Revisado'
+            ) : ( row.state === (role-1) ?
               <>
                 <Select
                   labelId='demo-simple-select-label'
@@ -209,11 +209,11 @@ const TableBasic = rows => {
                   size='small'
                   IconComponent={() => <MoreHorizIcon />}
                   sx={{
+                    maxWidth: 'min-content !important',
                     '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
                     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
                     '& .MuiSelect-select': {
                       minWidth: 'min-content !important',
-                      maxWidth: 'min-content !important',
                       backgroundColor: theme.palette.customColors.tableHeaderBg
                     },
                     '& .MuiOutlinedInput-input': { maxWidth: 'min-content !important' },
@@ -249,7 +249,7 @@ const TableBasic = rows => {
                   </Container>
                 </Select>
               </>
-            )}
+            : 'Revisado')}
           </>
         )
       }
@@ -261,11 +261,12 @@ const TableBasic = rows => {
       <Box sx={{ height: 500 }}>
         <DataGrid
           hideFooterSelectedRowCount
-          rows={rows.rows}
+          rows={rows}
           columns={columns}
           columnVisibilityModel={{
             ot: md,
-            user: md
+            user: md,
+            actions: showActions
           }}
         />
         <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback}></AlertDialog>

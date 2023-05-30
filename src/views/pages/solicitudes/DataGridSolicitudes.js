@@ -29,11 +29,12 @@ import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 
 const DataGrid = () => {
   const [value, setValue] = useState('1');
-  const [roleData, setRoleData] = useState({});
+  const [roleData, setRoleData] = useState({name:'admin'});
 
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot()
   console.log(data)
+
   useEffect(() => {
     const role = async () => {
       if (authUser) {
@@ -91,7 +92,7 @@ const DataGrid = () => {
         </Box>
         {tabContent.map((element, index) => (
           <Grid item xs={12} key={index}>
-            <TabPanel key={index} value={`${index + 1}`}><TableBasic rows={element.data} showActions={roleData.name}/>
+            <TabPanel key={index} value={`${index + 1}`}><TableBasic rows={element.data} showActions={roleData.canApprove} role={authUser.role}/>
             </TabPanel>
           </Grid>
         ))}
