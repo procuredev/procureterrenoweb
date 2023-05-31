@@ -279,7 +279,7 @@ const FirebaseContextProvider = props => {
           uid: user.uid
         })
 
-        const newEvent = {
+        /* const newEvent = {
           prevState: 0,
           newState: authUser.role || 'no definido',
           user: Firebase.auth().currentUser.email,
@@ -291,17 +291,19 @@ const FirebaseContextProvider = props => {
 
         // Creamos un nuevo documento en la subcolección "eventos" con los datos del evento
         const newDocEvent = await addDoc(collection(db, `solicitudes/${nuevaSolicitudId}/events`), newEvent)
+        */ // comentado para evitar que se generen 2 eventos iniciales
 
         // Establecemos los campos adicionales de la solicitud
         await updateDoc(docRef, {
           ...newDoc,
-          state: authUser.role || 'no definido',
-          eventoId: newDocEvent.id // Agregamos el ID del evento como campo en la solicitud (opcional)
+          state: authUser.role || 'no definido'
+
+          //eventoId: newDocEvent.id // Agregamos el ID del evento como campo en la solicitud (opcional)
         })
 
         console.log('Nueva solicitud creada con éxito.')
 
-        return nuevaSolicitudId
+        return docRef.id
       } catch (error) {
         console.error('Error al crear la nueva solicitud:', error)
         throw error
@@ -340,10 +342,10 @@ const FirebaseContextProvider = props => {
     const userRef = doc(db, 'users', querySnapshot.data().uid)
     const userQuerySnapshot = await getDoc(userRef)
 
-    const initialState = userQuerySnapshot.data().role
+    const devolutionState = userQuerySnapshot.data().role - 1
 
     if (obj.start !== querySnapshot.data().start) {
-      const newState = initialState // authUser.role || 'no definido'
+      const newState = devolutionState // authUser.role || 'no definido'
 
       // Save previous version of document
       const prevDoc = querySnapshot.data()
@@ -358,7 +360,7 @@ const FirebaseContextProvider = props => {
       obj.state = newState
       await updateDoc(ref, obj)
       await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
-    } else if ((obj.start === querySnapshot.data().start && authUser.role === 5) || authUser.rolee === 1) {
+    } else if ((obj.start === querySnapshot.data().start && authUser.role === 5) || authUser.role === 1) {
       const newState = authUser.role
 
       // Guarda estado anterior, autor y fecha modificación
@@ -451,10 +453,10 @@ const FirebaseContextProvider = props => {
           q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
         } else {
           q = getAllDocs.includes(authUser.role)
-          ? ![1, 9].includes(authUser.role)
-            ? query(collection(db, 'solicitudes'), where('state', '>=', (authUser.role - 1)))
-            : query(collection(db, 'solicitudes'))
-          : undefined;
+            ? ![1, 9].includes(authUser.role)
+              ? query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 1))
+              : query(collection(db, 'solicitudes'))
+            : undefined
         }
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
