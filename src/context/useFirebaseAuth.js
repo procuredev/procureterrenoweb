@@ -14,7 +14,8 @@ import {
   updateDoc,
   arrayUnion,
   onSnapshot,
-  where
+  where,
+  orderBy
 } from 'firebase/firestore'
 
 import { getAuth, signOut, deleteUser } from 'firebase/auth'
@@ -268,7 +269,7 @@ const FirebaseContextProvider = props => {
       try {
         const docRef = await addDoc(collection(db, 'solicitudes'), {
           title: values.title,
-          user: user.email,
+          user: user.displayName || user.email,
           start: values.start,
           plant: values.plant,
           area: values.area,
@@ -407,7 +408,7 @@ const FirebaseContextProvider = props => {
 
     useEffect(() => {
       if (authUser && id) {
-        const q = query(collection(db, 'solicitudes', id, 'events'))
+        const q = query(collection(db, 'solicitudes', id, 'events'), orderBy('date'))
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
           try {

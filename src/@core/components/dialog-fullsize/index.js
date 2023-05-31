@@ -30,6 +30,7 @@ import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase, getData } from 'src/context/useFirebaseAuth'
+import localDate from 'src/@core/utils/handle-date-offset'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -158,7 +159,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
               />
               <TextField
                 InputLabelProps={{ shrink: true }}
-                onChange={e => setValues({ ...values, start: new Date(e.target.value) })}
+                onChange={e => setValues({ ...values, start: localDate(e.target.value)})}
                 label='Fecha de inicio'
                 type='date'
                 id='start-input'
@@ -185,7 +186,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
               />
 
               <TextField
-                onChange={e => setValues({ ...values, end: new Date(e.target.value) })}
+                onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
                 InputLabelProps={{ shrink: true }}
                 label='Fecha de término'
                 type='date'

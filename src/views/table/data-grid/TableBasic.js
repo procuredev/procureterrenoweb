@@ -263,7 +263,7 @@ const TableBasic = ({rows, role, showActions}) => {
             actions: showActions
           }}
         />
-        <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback}></AlertDialog>
+        <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback} approves={approve}></AlertDialog>
         <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />
       </Box>
     </Card>

@@ -50,7 +50,7 @@ const DataGrid = () => {
     setValue(newValue);
   };
 
-  const tabContent = [
+  const tabContent = authUser ? [
     {
       data: data,
       label: 'Todas las solicitudes'
@@ -67,7 +67,7 @@ const DataGrid = () => {
       data: data.filter(doc => doc.state === 10),
       label: 'Rechazadas'
     },
-  ]
+  ] : []
 
 
 
