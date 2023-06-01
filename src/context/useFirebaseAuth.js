@@ -460,26 +460,31 @@ const FirebaseContextProvider = props => {
             : undefined
         }
 
-        const unsubscribe = onSnapshot(q, querySnapshot => {
+        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
           try {
-            const allDocs = []
+            const allDocs = [];
 
-            // Una llamada inicial con la devolución de llamada que proporcionas crea una instantánea del documento de inmediato con los contenidos actuales de ese documento.
-            // Después, cada vez que cambian los contenidos, otra llamada actualiza la instantánea del documento.
+            const promises = querySnapshot.docs.map(async (d) => {
+              const docData = d.data();
+              const userSnapshot = await getDoc(doc(db, 'users', docData.uid));
+              const name = userSnapshot.data().name;
+              const newDoc = { ...docData, id: d.id, name };
+              allDocs.push(newDoc);
+            });
 
-            querySnapshot.forEach(doc => {
-              allDocs.push({ ...doc.data(), id: doc.id })
-            })
-            setData(allDocs)
+            await Promise.all(promises);
+
+            setData(allDocs);
           } catch (error) {
-            console.error('Error al obtener los documentos de Firestore: ', error)
+            console.error('Error al obtener los documentos de Firestore: ', error);
 
             // Aquí puedes mostrar un mensaje de error
           }
-        })
+        });
 
         // Devuelve una función de limpieza que se ejecuta al desmontar el componente
-        return () => unsubscribe()
+        return () => unsubscribe();
+
       }
     }, [authUser])
 
