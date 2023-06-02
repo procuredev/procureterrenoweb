@@ -22,7 +22,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import FullScreenDialog from 'src/@core/components/dialog-fullsize'
+import {FullScreenDialog} from 'src/@core/components/dialog-fullsize'
 import { date } from 'yup'
 
 // ** CalendarColors
@@ -35,13 +35,30 @@ const calendarsColor = {
 }
 
 const AppCalendar = () => {
-
-  const [modalOpen, setModalOpen] = useState(false)
+  const initialEvent = {
+    title:'title',
+    state:'state',
+    description:'desc',
+    start:'start',
+    user:'user',
+    date:'date',
+    area:'area',
+    id: 'id'
+  }
+  const [open, setOpen] = useState(false)
+  const [doc, setDoc] = useState(initialEvent)
 
   const handleModalToggle = (clickedEvent) => {
-    console.log(clickedEvent)
+    let document = data.find(doc=>doc.id === clickedEvent.id)
+    setDoc(document)
+    setOpen(true)
 
     //setModalOpen(!modalOpen)
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+    setDoc(initialEvent)
   }
 
   // ** Hooks
@@ -53,6 +70,7 @@ const AppCalendar = () => {
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
   const data = useFirebase().useSnapshot()
+
 
   const calendarOptions = {
 
@@ -99,6 +117,7 @@ const AppCalendar = () => {
         }}
       >
         <FullCalendar {...calendarOptions} />
+        {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />}
       </Box>
     </CalendarWrapper>
   )

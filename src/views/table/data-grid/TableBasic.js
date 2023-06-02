@@ -27,7 +27,7 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 
-const TableBasic = ({rows, role, showActions}) => {
+const TableBasic = ({ rows, role, showActions }) => {
   const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -173,7 +173,7 @@ const TableBasic = ({rows, role, showActions}) => {
 
         return (
           <>
-          { md ? ( row.state === (role-1) ?
+            {md ? (row.state === (role - 1) ?
               <>
                 <Button
                   onClick={() => handleClickOpenAlert(row, true)}
@@ -200,7 +200,7 @@ const TableBasic = ({rows, role, showActions}) => {
                   <Clear sx={{ fontSize: 18 }} />
                 </Button>
               </> : 'Revisado'
-            ) : ( row.state === (role-1) ?
+            ) : (row.state === (role - 1) ?
               <>
                 <Select
                   labelId='demo-simple-select-label'
@@ -210,7 +210,7 @@ const TableBasic = ({rows, role, showActions}) => {
                   sx={{
                     '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
                     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': {backgroundColor: theme.palette.customColors.tableHeaderBg},
+                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
                     '& .MuiList-root': { display: 'flex', flexDirection: 'column' },
                   }}
                 >
@@ -242,7 +242,7 @@ const TableBasic = ({rows, role, showActions}) => {
                   </Container>
                 </Select>
               </>
-            : 'Revisado')}
+              : 'Revisado')}
           </>
         )
       }
@@ -264,7 +264,7 @@ const TableBasic = ({rows, role, showActions}) => {
           }}
         />
         <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback} approves={approve}></AlertDialog>
-        <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />
+        {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />}
       </Box>
     </Card>
   )
