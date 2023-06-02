@@ -16,6 +16,7 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import Slide from '@mui/material/Slide'
+import Skeleton from '@mui/material/Skeleton'
 import {
   Timeline,
   TimelineItem,
@@ -41,6 +42,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
   const [values, setValues] = useState({})
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
+  const [eventData, setEventData] = useState([])
 
   const { updateDocs, useEvents } = useFirebase()
 
@@ -51,7 +53,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
   // Verifica estado
   state = typeof state === 'number' ? state : 100
 
-  const eventData = useEvents(id)
+  const eventArray = useEvents(id)
 
   // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
@@ -63,6 +65,11 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
       area: doc.area
     })
   }, [doc])
+
+  useEffect(() => {
+    setEventData(eventArray)
+    console.log(eventArray)
+  }, [eventArray])
 
   // Handlea dialog
 
@@ -104,167 +111,178 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
 
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
 
-      <Paper sx={{ maxWidth: 700, margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
-        <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Chip
-              label={state ? dictionary[state].title : 'Cargando...'}
-              color={state ? dictionary[state].color : 'primary'}
-              size='small'
-              sx={{ width: 90 }}
-            />
-            <Box>
-              <IconButton
-                onClick={() => setEditable(prev => !prev)}
-                color='primary'
-                aria-label='edit'
-                component='button'
-              >
-                <Edit />
-              </IconButton>
-              <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
-                {/*este botón debería cerrar y setEditable false*/}
-                <Close />
-              </IconButton>
-            </Box>
+      <Paper sx={{width:' 500px', maxWidth: 700, margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
+        {eventData.length === 0
+          ? <Box>
+            <Skeleton/>
+            <Skeleton/>
+            <Skeleton/>
+            <Skeleton/>
+            <Skeleton/>
+            <Skeleton/>
           </Box>
-
-          <Typography variant='button' sx={{ fontSize: 14, mb: 2 }} color='textSecondary'>
-            {state ? dictionary[state].details : ''}
-          </Typography>
-          {editable ? (
-            <TextField
-              onChange={e => setValues({ ...values, title: e.target.value })}
-              label='Título'
-              id='title-input'
-              defaultValue={title}
-              size='small'
-              sx={{ mt: 5, mb: 5, mr: 2 }}
-            />
-          ) : (
-            <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
-              {title}
-            </Typography>
-          )}
-
-          {editable ? (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-              <TextField
-                onChange={e => setValues({ ...values, area: e.target.value })}
-                label='Área'
-                id='area-input'
-                defaultValue={area}
+          :
+          <Box>
+            <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Chip
+                label={state ? dictionary[state].title : 'Cargando...'}
+                color={state ? dictionary[state].color : 'primary'}
                 size='small'
-                sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                sx={{ width: 90 }}
               />
-              <TextField
-                InputLabelProps={{ shrink: true }}
-                onChange={e => setValues({ ...values, start: localDate(e.target.value)})}
-                label='Fecha de inicio'
-                type='date'
-                id='start-input'
-                defaultValue={start && unixToDate(start.seconds)}
-                size='small'
-                sx={{ mb: 5, mr: 2, flex: 'auto' }}
-              />
+              <Box>
+                <IconButton
+                  onClick={() => setEditable(prev => !prev)}
+                  color='primary'
+                  aria-label='edit'
+                  component='button'
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
+                  {/*este botón debería cerrar y setEditable false*/}
+                  <Close />
+                </IconButton>
+              </Box>
             </Box>
-          ) : (
-            <Typography sx={{ mb: 4 }} color='textSecondary'>
-              Área {area} | Fecha de inicio: {start && unixToDate(start.seconds)[0]}
+
+            <Typography variant='button' sx={{ fontSize: 14, mb: 2 }} color='textSecondary'>
+              {state ? dictionary[state].details : ''}
             </Typography>
-          )}
-
-          {editable && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+            {editable ? (
               <TextField
-                onChange={e => setValues({ ...values, ot: e.target.value })}
-                label='OT'
-                id='OT-input'
-                defaultValue='Asignar OT'
+                onChange={e => setValues({ ...values, title: e.target.value })}
+                label='Título'
+                id='title-input'
+                defaultValue={title}
                 size='small'
-                sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                sx={{ mt: 5, mb: 5, mr: 2 }}
               />
+            ) : (
+              <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
+                {title}
+              </Typography>
+            )}
 
+            {editable ? (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                <TextField
+                  onChange={e => setValues({ ...values, area: e.target.value })}
+                  label='Área'
+                  id='area-input'
+                  defaultValue={area}
+                  size='small'
+                  sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                />
+                <TextField
+                  InputLabelProps={{ shrink: true }}
+                  onChange={e => setValues({ ...values, start: localDate(e.target.value) })}
+                  label='Fecha de inicio'
+                  type='date'
+                  id='start-input'
+                  defaultValue={start && unixToDate(start.seconds)}
+                  size='small'
+                  sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                />
+              </Box>
+            ) : (
+              <Typography sx={{ mb: 4 }} color='textSecondary'>
+                Área {area} | Fecha de inicio: {start && unixToDate(start.seconds)[0]}
+              </Typography>
+            )}
+
+            {editable && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                <TextField
+                  onChange={e => setValues({ ...values, ot: e.target.value })}
+                  label='OT'
+                  id='OT-input'
+                  defaultValue='Asignar OT'
+                  size='small'
+                  sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                />
+
+                <TextField
+                  onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
+                  InputLabelProps={{ shrink: true }}
+                  label='Fecha de término'
+                  type='date'
+                  id='end-input'
+                  size='small'
+                  sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                />
+                <TextField
+                  onChange={e => setValues({ ...values, shift: e.target.value })}
+                  label='Asignar turno'
+                  id='shift-input'
+                  defaultValue='Turno'
+                  size='small'
+                  sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                />
+              </Box>
+            )}
+
+            {editable ? (
               <TextField
-                onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
-                InputLabelProps={{ shrink: true }}
-                label='Fecha de término'
-                type='date'
-                id='end-input'
+                onChange={e => setValues({ ...values, description: e.target.value })}
+                label='Descripción'
+                id='desc-input'
+                defaultValue={description}
                 size='small'
-                sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                sx={{ mb: 5, mr: 2 }}
               />
-              <TextField
-                onChange={e => setValues({ ...values, shift: e.target.value })}
-                label='Asignar turno'
-                id='shift-input'
-                defaultValue='Turno'
-                size='small'
-                sx={{ mb: 5, mr: 2, flex: 'auto' }}
-              />
-            </Box>
-          )}
+            ) : (
+              <Typography variant='body2' sx={{ mb: 3 }}>
+                {description}
+              </Typography>
+            )}
+            {editable ? (
+              <Button onClick={() => handleOpenAlert()} variant='contained'>
+                Guardar
+              </Button>
+            ) : null}
+            {/*este botón debería preguntar si estás seguro, y si dice que sí abrir un dialog que permita: hacer observación+guardar+set edit false+cerrar */}
 
-          {editable ? (
-            <TextField
-              onChange={e => setValues({ ...values, description: e.target.value })}
-              label='Descripción'
-              id='desc-input'
-              defaultValue={description}
-              size='small'
-              sx={{ mb: 5, mr: 2 }}
-            />
-          ) : (
-            <Typography variant='body2' sx={{ mb: 3 }}>
-              {description}
-            </Typography>
-          )}
-          {editable ? (
-            <Button onClick={() => handleOpenAlert()} variant='contained'>
-              Guardar
-            </Button>
-          ) : null}
-          {/*este botón debería preguntar si estás seguro, y si dice que sí abrir un dialog que permita: hacer observación+guardar+set edit false+cerrar */}
+            <TimelineItem sx={{ mt: 1 }}>
+              <TimelineOppositeContent color='textSecondary'>{date && unixToDate(date.seconds)}</TimelineOppositeContent>
+              <TimelineSeparator>
+                <TimelineDot />
+                <TimelineConnector />
+              </TimelineSeparator>
+              <TimelineContent>
+                <Typography>{state ? dictionary[state].details : ''}</Typography>
+                <Typography variant='body2'> Creado por {user}</Typography>
+              </TimelineContent>
+            </TimelineItem>
+            {eventData &&
+              eventData.length > 0 &&
+              eventData.map(element => {
+                let modified = element.prevDoc ? 'Modificado' : 'Aprobado'
+                let status = element.newState === 9 ? 'Rechazado' : modified
 
-          <TimelineItem sx={{ mt: 1 }}>
-            <TimelineOppositeContent color='textSecondary'>{date && unixToDate(date.seconds)}</TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineDot />
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography>{state ? dictionary[state].details : ''}</Typography>
-              <Typography variant='body2'> Creado por {user}</Typography>
-            </TimelineContent>
-          </TimelineItem>
-
-          {eventData &&
-            eventData.length > 0 &&
-            eventData.map(element => {
-              let modified = element.prevDoc ? 'Modificado' : 'Aprobado'
-              let status = element.newState === 9 ? 'Rechazado' : modified
-
-              return (
-                <div key={element.date}>
-                  <TimelineItem>
-                    <TimelineOppositeContent color='textSecondary'>
-                      {unixToDate(element.date.seconds)}
-                    </TimelineOppositeContent>
-                    <TimelineSeparator>
-                      <TimelineDot />
-                      <TimelineConnector />
-                    </TimelineSeparator>
-                    <TimelineContent>
-                      <Typography variant='body1'>
-                        {status} por {element.author}
-                      </Typography>
-                      <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
-                    </TimelineContent>
-                  </TimelineItem>
-                </div>
-              )
-            })}
-        </Timeline>
+                return (
+                  <div key={element.date}>
+                    <TimelineItem>
+                      <TimelineOppositeContent color='textSecondary'>
+                        {unixToDate(element.date.seconds)}
+                      </TimelineOppositeContent>
+                      <TimelineSeparator>
+                        <TimelineDot />
+                        <TimelineConnector />
+                      </TimelineSeparator>
+                      <TimelineContent>
+                        <Typography variant='body1'>
+                          {status} por {element.author}
+                        </Typography>
+                        <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                      </TimelineContent>
+                    </TimelineItem>
+                  </div>
+                )
+              })}
+          </Timeline>
+          </Box>}
       </Paper>
     </Dialog>
   )
