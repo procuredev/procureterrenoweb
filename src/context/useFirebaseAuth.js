@@ -32,6 +32,7 @@ const generatorPassword = require('generate-password')
 
 // ** Trae funcion que valida los campos del registro
 import { registerValidator } from './helperRegisterValidator'
+import { unixToDate } from 'src/@core/components/unixToDate'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
@@ -325,6 +326,7 @@ const FirebaseContextProvider = props => {
       prevState,
       newState,
       user: Firebase.auth().currentUser.email,
+      userName: Firebase.auth().currentUser.displayName,
       date: Timestamp.fromDate(new Date())
     }
 
@@ -345,7 +347,15 @@ const FirebaseContextProvider = props => {
 
     const devolutionState = userQuerySnapshot.data().role - 1
 
-    if (obj.start !== querySnapshot.data().start) {
+    if (obj.start === querySnapshot.data().start) {
+      console.log('FECHA correcta')
+    } else {
+      console.log(unixToDate(obj.start.seconds)[0])
+      console.log(unixToDate(querySnapshot.data().start.seconds)[0])
+      console.log('FECHA incorrecta')
+    }
+
+    if (unixToDate(obj.start.seconds)[0] !== unixToDate(querySnapshot.data().start.seconds)[0]) {
       const newState = devolutionState // authUser.role || 'no definido'
 
       // Save previous version of document
@@ -354,6 +364,7 @@ const FirebaseContextProvider = props => {
       const newEvent = {
         prevDoc,
         user: Firebase.auth().currentUser.email,
+        userName: Firebase.auth().currentUser.displayName,
         date: Timestamp.fromDate(new Date()),
         prevState,
         newState
@@ -361,7 +372,7 @@ const FirebaseContextProvider = props => {
       obj.state = newState
       await updateDoc(ref, obj)
       await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
-    } else if ((obj.start === querySnapshot.data().start && authUser.role === 5) || authUser.role === 1) {
+    } else if (unixToDate(obj.start.seconds)[0] === unixToDate(querySnapshot.data().start.seconds)[0]) {
       const newState = authUser.role
 
       // Guarda estado anterior, autor y fecha modificación
