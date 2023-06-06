@@ -321,6 +321,8 @@ const FirebaseContextProvider = props => {
     const prevState = querySnapshot.data().state // 'estado anterior'
     const newState = approves ? authUser.role : 10
 
+    console.log('reviewdocs')
+
     // Guarda estado anterior, autor y fecha modificación
     const newEvent = {
       prevState,
@@ -338,56 +340,51 @@ const FirebaseContextProvider = props => {
 
   // ** Modifica otros campos documentos
   const updateDocs = async (id, obj) => {
+    //recorrer obj y comparar el valor de cada campo con el valor del documento (querysnapshot)
+    //si son iguales, no guardar en prevdoc
+    //si son distintos, guardarlo en prevdoc
+
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
-    const prevState = querySnapshot.data().state // 'estado anterior'
-
-    const userRef = doc(db, 'users', querySnapshot.data().uid)
+    const docSnapshot = querySnapshot.data()
+    const prevState = docSnapshot.state // 'estado anterior'
+    const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
-
     const devolutionState = userQuerySnapshot.data().role - 1
+    let changedFields = {}
+    let prevDoc = {}
+    let newState
 
-    if (obj.start === querySnapshot.data().start) {
-      console.log('FECHA correcta')
+    for (const key in obj) {
+      if (
+        (key === 'start' && obj.start.seconds !== docSnapshot.start.seconds) ||
+        (key !== 'start' && obj[key] !== docSnapshot[key])
+      ) {
+        changedFields[key] = obj[key]
+        prevDoc[key] = docSnapshot[key]
+      }
+    }
+
+    if (changedFields.start) {
+      console.log('change date')
+      newState = devolutionState
     } else {
-      console.log(unixToDate(obj.start.seconds)[0])
-      console.log(unixToDate(querySnapshot.data().start.seconds)[0])
-      console.log('FECHA incorrecta')
+      console.log('date remains the same')
+      newState = authUser.role
     }
 
-    if (unixToDate(obj.start.seconds)[0] !== unixToDate(querySnapshot.data().start.seconds)[0]) {
-      const newState = devolutionState // authUser.role || 'no definido'
-
-      // Save previous version of document
-      const prevDoc = querySnapshot.data()
-
-      const newEvent = {
-        prevDoc,
-        user: Firebase.auth().currentUser.email,
-        userName: Firebase.auth().currentUser.displayName,
-        date: Timestamp.fromDate(new Date()),
-        prevState,
-        newState
-      }
-      obj.state = newState
-      await updateDoc(ref, obj)
-      await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
-    } else if (unixToDate(obj.start.seconds)[0] === unixToDate(querySnapshot.data().start.seconds)[0]) {
-      const newState = authUser.role
-
-      // Guarda estado anterior, autor y fecha modificación
-      const newEvent = {
-        prevState,
-        newState,
-        user: Firebase.auth().currentUser.email,
-        date: Timestamp.fromDate(new Date())
-      }
-
-      await updateDoc(ref, {
-        state: newState
-      })
-      await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
+    const newEvent = {
+      prevDoc,
+      prevState,
+      newState,
+      user: Firebase.auth().currentUser.email,
+      userName: Firebase.auth().currentUser.displayName,
+      date: Timestamp.fromDate(new Date())
     }
+
+    obj.state = newState
+    await updateDoc(ref, obj)
+    await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
   }
 
   // ** Modifica otros campos Usuarios
