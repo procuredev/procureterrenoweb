@@ -37,12 +37,12 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
-export const FullScreenDialog = ({ open, handleClose, doc }) => {
+export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
   let { title, state, description, start, user, date, area, events, id } = doc
   const [values, setValues] = useState({})
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
-  const [eventData, setEventData] = useState([])
+  const [eventData, setEventData] = useState(undefined)
 
   const { updateDocs, useEvents } = useFirebase()
 
@@ -124,9 +124,8 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
       </AppBar>
 
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-
       <Paper sx={{ width: ' 500px', maxWidth: 700, margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
-        {eventData.length === 0 ? (
+        {eventData === undefined ? (
           <Box>
             <Skeleton />
             <Skeleton />
@@ -271,7 +270,7 @@ export const FullScreenDialog = ({ open, handleClose, doc }) => {
                   <Typography variant='body2'> Creado por {user}</Typography>
                 </TimelineContent>
               </TimelineItem>
-              {eventData &&
+              {eventData !== undefined &&
                 eventData.length > 0 &&
                 eventData.map(element => {
                   let modified = element.prevDoc ? (element.prevDoc.start ? 'Devuelto' : 'Modificado') : 'Aprobado'
