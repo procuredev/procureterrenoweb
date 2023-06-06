@@ -27,7 +27,7 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 
-const TableBasic = ({ rows, role, showActions }) => {
+const TableBasic = ({ rows, role, roleData }) => {
   const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -260,11 +260,20 @@ const TableBasic = ({ rows, role, showActions }) => {
             ot: md,
             user: md,
             end: xl,
-            actions: showActions
+            actions: roleData.canApprove
           }}
         />
-        <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={writeCallback} approves={approve}></AlertDialog>
-        {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />}
+        <AlertDialog
+        open={openAlert}
+        handleClose={handleCloseAlert}
+        callback={writeCallback}
+        approves={approve}
+        ></AlertDialog>
+        {open && <FullScreenDialog
+        open={open}
+        handleClose={handleClose}
+        doc={doc}
+        roleData={roleData} />}
       </Box>
     </Card>
   )

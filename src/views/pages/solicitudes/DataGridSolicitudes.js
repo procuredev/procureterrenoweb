@@ -92,7 +92,7 @@ const DataGrid = () => {
         </Box>
         {tabContent.map((element, index) => (
           <Grid item xs={12} key={index}>
-            <TabPanel key={index} value={`${index + 1}`}><TableBasic rows={element.data} showActions={roleData.canApprove} role={authUser.role}/>
+            <TabPanel key={index} value={`${index + 1}`}><TableBasic rows={element.data} roleData={roleData} role={authUser.role}/>
             </TabPanel>
           </Grid>
         ))}
