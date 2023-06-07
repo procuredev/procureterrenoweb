@@ -340,10 +340,6 @@ const FirebaseContextProvider = props => {
 
   // ** Modifica otros campos documentos
   const updateDocs = async (id, obj) => {
-    //recorrer obj y comparar el valor de cada campo con el valor del documento (querysnapshot)
-    //si son iguales, no guardar en prevdoc
-    //si son distintos, guardarlo en prevdoc
-
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
     const docSnapshot = querySnapshot.data()
@@ -356,35 +352,43 @@ const FirebaseContextProvider = props => {
     let newState
 
     for (const key in obj) {
-      if (
-        (key === 'start' && obj.start.seconds !== docSnapshot.start.seconds) ||
-        (key !== 'start' && obj[key] !== docSnapshot[key])
-      ) {
+      if (key !== 'start' && key !== 'end' && obj[key] !== docSnapshot[key]) {
         changedFields[key] = obj[key]
         prevDoc[key] = docSnapshot[key]
       }
+
+      if ((key === 'start' || key === 'end') && docSnapshot[key] && obj[key].seconds !== docSnapshot[key].seconds) {
+        changedFields[key] = new Date(obj[key]*1000)
+        console.log(obj[key])
+        prevDoc[key] = docSnapshot[key]
+      }
+
+
+      if (!docSnapshot[key]) {
+        changedFields[key] = ( key === 'start' || key === 'end' ) ? new Date(obj[key]*1000) : obj[key]
+        prevDoc[key] = 'none'
+      }
     }
 
-    if (changedFields.start) {
-      console.log('change date')
-      newState = devolutionState
-    } else {
-      console.log('date remains the same')
-      newState = authUser.role
-    }
+    if (Object.keys(prevDoc).length > 0) {
+      newState = changedFields.start ? devolutionState : authUser.role
+      changedFields.state = newState
 
-    const newEvent = {
-      prevDoc,
-      prevState,
-      newState,
-      user: Firebase.auth().currentUser.email,
-      userName: Firebase.auth().currentUser.displayName,
-      date: Timestamp.fromDate(new Date())
-    }
+      const newEvent = {
+        prevDoc,
+        prevState,
+        newState,
+        user: Firebase.auth().currentUser.email,
+        userName: Firebase.auth().currentUser.displayName,
+        date: Timestamp.fromDate(new Date())
+      }
 
-    obj.state = newState
-    await updateDoc(ref, obj)
-    await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
+      await updateDoc(ref, changedFields)
+      await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    }
+    if (Object.keys(prevDoc).length === 0) {
+      console.log('No se escribió ningún documento')
+    }
   }
 
   // ** Modifica otros campos Usuarios
@@ -502,8 +506,10 @@ const FirebaseContextProvider = props => {
   const getRoleData = async role => {
     const docRef = doc(db, 'roles', role)
     const docSnap = await getDoc(docRef)
+    let data = docSnap.data()
+    data.id = docSnap.id
 
-    return docSnap.data()
+    return data
   }
 
   const value = {

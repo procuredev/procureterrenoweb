@@ -1,4 +1,5 @@
 const dictionary = {
+  0: { name: 'Admin', title: 'En revisión', details: 'En espera de revisión por Solicitante', color: 'warning' },
   1: { name: 'Admin', title: 'En revisión', details: 'En espera de revisión por Solicitante', color: 'warning' },
   2: {
     name: 'Solicitante',

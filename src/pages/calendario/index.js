@@ -92,9 +92,14 @@ const AppCalendar = () => {
     return color
   }
 
-  const calendarOptions = {
+  const eventTitle = (doc) => {
+    let title = doc.ot ? `OT ${doc.ot} - ${doc.title}` : doc.title
 
-    events: data.map(a => ({ title: a.title, start: a.start.seconds * 1000, allDay: true, id: a.id, description: a.description, backgroundColor: setColor(a), borderColor: 'transparent' })),
+    return title
+  }
+
+  const calendarOptions = {
+    events: data.map(a => ({ title: eventTitle(a), start: a.start.seconds * 1000, allDay: true, id: a.id, description: a.description, backgroundColor: setColor(a), borderColor: 'transparent' })),
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: 'dayGridMonth',
     headerToolbar: {
@@ -125,6 +130,15 @@ const AppCalendar = () => {
         }
       }
     },
+    firstDay: 1,
+    dayCellClassNames: function(date) {
+      console.log(date)
+    const week = moment(date.date).isoWeek()
+    const color = week % 2 == 0 ? 'fc-day-today' : 'hola'
+
+    return color
+  },
+
   }
 
 

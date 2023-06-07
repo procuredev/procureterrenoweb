@@ -38,7 +38,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 })
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
-  let { title, state, description, start, user, date, area, events, id } = doc
+  let { title, state, description, start, user, date, area, id, ot, end, shift } = doc
   const [values, setValues] = useState({})
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -55,20 +55,23 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
 
   const eventArray = useEvents(id)
 
+  const initialValues = {
+    title,
+    area,
+    start: start.seconds,
+    ...(ot && { ot }),
+    ...(end && { end }),
+    ...(shift && { shift }),
+    description
+  }
+
   // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
-    setValues({
-      id: doc.id,
-      title: doc.title,
-      description: doc.description,
-      start: doc.start,
-      area: doc.area
-    })
+    setValues(initialValues)
   }, [doc])
 
   useEffect(() => {
     setEventData(eventArray)
-    console.log(eventArray)
   }, [eventArray])
 
   // Handlea dialog
@@ -78,7 +81,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
   }
 
   const writeCallback = () => {
-    updateDocs(values.id, values)
+    const newData = {}
+
+    for (const key in values) {
+      console.log(values)
+      console.log(initialValues)
+      if (values[key] && values[key] !== initialValues[key]) {
+        newData[key] = values[key]
+      }
+    }
+    if (Object.keys(newData).length > 0) {
+      updateDocs(id, values)
+    }
+    if (Object.keys(newData).length === 0) {
+      console.log('No se escribió ningún documento')
+    }
     handleCloseAlert()
   }
 
@@ -87,7 +104,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
     setEditable(false)
   }
 
-  const formatDate = start => {
+   const formatDate = start => {
     const fecha = unixToDate(start.seconds)[0]
     const partesFecha = fecha.split('/')
 
@@ -96,7 +113,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
     const año = partesFecha[2]
 
     const fechaFormateada = año + '-' + mes + '-' + dia
-    console.log(fechaFormateada)
 
     return fechaFormateada
   }
@@ -122,7 +138,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
           </Button>
         </Toolbar>
       </AppBar>
-
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
       <Paper sx={{ width: ' 500px', maxWidth: 700, margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
         {eventData === undefined ? (
@@ -159,11 +174,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                   </IconButton>
                 </Box>
               </Box>
-
               <Typography variant='button' sx={{ fontSize: 14, mb: 2 }} color='textSecondary'>
                 {state ? dictionary[state].details : ''}
               </Typography>
-              {editable ? (
+              {/*Título */}
+              {editable && roleData.canEditValues ? (
                 <TextField
                   onChange={e => setValues({ ...values, title: e.target.value })}
                   label='Título'
@@ -177,8 +192,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                   {title}
                 </Typography>
               )}
-
-              {editable ? (
+              {/*Área*/}
+              {editable && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, area: e.target.value })}
@@ -188,6 +203,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                     size='small'
                     sx={{ mb: 5, mr: 2, flex: 'auto' }}
                   />
+                </Box>
+              ) : (
+                <Typography sx={{ mb: 4 }} color='textSecondary'>
+                  Área {area}
+                </Typography>
+              )}
+              {/*Fecha de inicio*/}
+              {editable && roleData.canEditDate ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     InputLabelProps={{ shrink: true }}
                     onChange={e => setValues({ ...values, start: localDate(e.target.value) })}
@@ -201,21 +225,30 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 </Box>
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Área {area} | Fecha de inicio: {start && unixToDate(start.seconds)[0]}
+                  Fecha de inicio: {start && unixToDate(start.seconds)[0]}
                 </Typography>
               )}
-
-              {editable && (
+              {/*Asigna OT */}
+              {editable && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, ot: e.target.value })}
                     label='OT'
                     id='OT-input'
-                    defaultValue='Asignar OT'
+                    defaultValue={ot}
                     size='small'
                     sx={{ mb: 5, mr: 2, flex: 'auto' }}
                   />
-
+                </Box>
+              ) : (
+                ot &&
+                <Typography sx={{ mb: 4 }} color='textSecondary'>
+                  OT: {ot}
+                </Typography>
+              )}
+              {/*Asigna término */}
+              {editable && roleData.canEditValues ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
                     InputLabelProps={{ shrink: true }}
@@ -224,7 +257,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                     id='end-input'
                     size='small'
                     sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                    defaultValue={end && formatDate(end)}
                   />
+                </Box>
+              ) : (
+                <Typography sx={{ mb: 4 }} color='textSecondary'>
+                  Fecha de término: {end && unixToDate(end.seconds)[0]}
+                </Typography>
+              )}
+              {/*Asigna turno */}
+              {editable && roleData.canEditValues ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, shift: e.target.value })}
                     label='Asignar turno'
@@ -234,9 +277,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                     sx={{ mb: 5, mr: 2, flex: 'auto' }}
                   />
                 </Box>
+              ) : ( shift &&
+                <Typography sx={{ mb: 4 }} color='textSecondary'>
+                  Turno: {shift}
+                </Typography>
               )}
-
-              {editable ? (
+              {/*Descripción */}
+              {editable && roleData.canEditValues ? (
                 <TextField
                   onChange={e => setValues({ ...values, description: e.target.value })}
                   label='Descripción'
@@ -250,12 +297,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                   {description}
                 </Typography>
               )}
+
               {editable ? (
                 <Button onClick={() => handleOpenAlert()} variant='contained'>
                   Guardar
                 </Button>
               ) : null}
-              {/*este botón debería preguntar si estás seguro, y si dice que sí abrir un dialog que permita: hacer observación+guardar+set edit false+cerrar */}
 
               <TimelineItem sx={{ mt: 1 }}>
                 <TimelineOppositeContent color='textSecondary'>
