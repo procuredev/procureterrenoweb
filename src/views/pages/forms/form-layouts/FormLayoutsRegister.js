@@ -46,7 +46,10 @@ const FormLayoutsBasic = () => {
     phone: '',
     email: '',
     company: '',
-    role: ''
+    role: '',
+    plant: '',
+    shift: '',
+    opshift: ''
   }
 
   // ** States
@@ -57,13 +60,15 @@ const FormLayoutsBasic = () => {
   const [attempts, setAttempts] = useState(0) // Estado para realizar un seguimiento de los intentos realizados
   const [errorMessage, setErrorMessage] = useState('')
   const [dialogError, setDialogError] = useState('')
+  const [contOptions, setContOptions] = useState([])
+  const [opShiftOptions, setOpShiftOptions] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, addNewContact } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, addNewContact, getUsers } = useFirebase()
 
   const handleChange = prop => event => {
     let newValue = event.target.value
-
+    console.log(newValue)
     if (newValue) {
       switch (prop) {
         case 'phone':
@@ -82,6 +87,12 @@ const FormLayoutsBasic = () => {
 
           // Aplicar expresión regular para formatear el RUT
           newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
+          break
+        case 'plant':
+          getOptions(newValue)
+          break
+        case 'shift':
+          getOptions(values.plant, newValue)
           break
         default:
           break
@@ -203,6 +214,17 @@ const FormLayoutsBasic = () => {
           setDialogError('')
         }, 1500)
       }
+    }
+  }
+
+  const getOptions = async (plant, shift = '') => {
+    let options = await getUsers(plant, shift)
+    if (shift) {
+      console.log('contraturno')
+      setOpShiftOptions(options)
+    } else {
+      console.log('contract operator')
+      setContOptions(options)
     }
   }
 
@@ -334,17 +356,26 @@ const FormLayoutsBasic = () => {
                     {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
                   </FormControl>
                 </Grid>
-                {values.role === (2) && (
+                {values.role === 2 && (
                   <Grid item xs={12}>
-                    <FreeSoloCreateOptionDialog
-                      label='Contract Operator'
-                      placeholder='Contract Operator'
-                      error={errors.contop ? true : false}
-                      setterFunction={handleSelectorChange('contop')}
-                      value={values.contop}
-                      saveContact={addNewContact}
-                    />
-                    {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
+                    <FormControl fullWidth>
+                      <InputLabel>Contract Operator</InputLabel>
+                      <Select
+                        label='Contract operator'
+                        value={values.contop}
+                        onChange={handleChange('contop')}
+                        error={errors.contop ? true : false}
+                      >
+                        {contOptions.map(element => {
+                          return (
+                            <MenuItem key={element.name} value={element.name}>
+                              {element.name}
+                            </MenuItem>
+                          )
+                        })}
+                      </Select>
+                      {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
+                    </FormControl>
                   </Grid>
                 )}
                 <Grid item xs={12}>
@@ -363,15 +394,24 @@ const FormLayoutsBasic = () => {
                   </FormControl>
                 </Grid>
                 <Grid item xs={12}>
-                  <FreeSoloCreateOptionDialog
-                    label='Contraturno'
-                    placeholder='Contraturno'
-                    error={errors.opshift ? true : false}
-                    setterFunction={handleSelectorChange('opshift')}
-                    value={values.opshift}
-                    saveContact={addNewContact}
-                  />
-                  {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
+                  <FormControl fullWidth>
+                    <InputLabel>Contraturno</InputLabel>
+                    <Select
+                      label='Contraturno'
+                      value={values.opshift}
+                      onChange={handleChange('opshift')}
+                      error={errors.opshift ? true : false}
+                    >
+                      {opShiftOptions.map(element => {
+                        return (
+                          <MenuItem key={element.name} value={element.name}>
+                            {element.name}
+                          </MenuItem>
+                        )
+                      })}
+                    </Select>
+                    {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
+                  </FormControl>
                 </Grid>
               </>
             )}

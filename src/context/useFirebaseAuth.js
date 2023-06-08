@@ -11,6 +11,7 @@ import {
   Timestamp,
   query,
   getDoc,
+  getDocs,
   updateDoc,
   arrayUnion,
   onSnapshot,
@@ -358,14 +359,13 @@ const FirebaseContextProvider = props => {
       }
 
       if ((key === 'start' || key === 'end') && docSnapshot[key] && obj[key].seconds !== docSnapshot[key].seconds) {
-        changedFields[key] = new Date(obj[key]*1000)
+        changedFields[key] = new Date(obj[key] * 1000)
         console.log(obj[key])
         prevDoc[key] = docSnapshot[key]
       }
 
-
       if (!docSnapshot[key]) {
-        changedFields[key] = ( key === 'start' || key === 'end' ) ? new Date(obj[key]*1000) : obj[key]
+        changedFields[key] = key === 'start' || key === 'end' ? new Date(obj[key] * 1000) : obj[key]
         prevDoc[key] = 'none'
       }
     }
@@ -512,6 +512,27 @@ const FirebaseContextProvider = props => {
     return data
   }
 
+  const getUsers = async (plant, shift = '') => {
+    const q = shift
+      ? query(collection(db, 'users'), where('plant', '==', plant), where('shift', '!=', shift), where('role', '==', 2))
+      : query(collection(db, 'users'), where('plant', '==', plant), where('role', '==', 3))
+
+    const querySnapshot = await getDocs(q)
+    const allDocs = []
+
+    querySnapshot.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      allDocs.push({ ...doc.data(), id: doc.id })
+      console.log(allDocs)
+    })
+
+    return allDocs
+  }
+
+  //si recibe planta (contract operator), trae todos los usuarios con ese valor de planta y rol de cont op
+
+  //si recibe planta y turno, trae todos los usuarios con ese valor de planta y rol de solicitante y turno opuesto
+
   const value = {
     authUser,
     auth,
@@ -520,7 +541,6 @@ const FirebaseContextProvider = props => {
     signOut,
     resetPassword,
     updatePassword,
-
     signInWithEmailAndPassword,
     createUser,
     updateUserProfile,
@@ -532,7 +552,8 @@ const FirebaseContextProvider = props => {
     updateUserPhone,
     useSnapshot,
     signAdminFailure,
-    getRoleData
+    getRoleData,
+    getUsers
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

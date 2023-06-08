@@ -101,11 +101,6 @@ const FormLayoutsSolicitud = () => {
   // ** Hooks
   const auth = useFirebase()
 
-  const userPlant = auth.authUser.plant
-  const userShift = auth.authUser.shift
-
-  //const userOpShift = userShift === 'B' ? 'A' : 'B'
-
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
       setFiles(acceptedFiles.map(file => Object.assign(file)))
