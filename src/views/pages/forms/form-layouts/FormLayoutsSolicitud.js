@@ -28,7 +28,7 @@ import ListItem from '@mui/material/ListItem'
 import { styled } from '@mui/material/styles'
 import CardSnippet from 'src/@core/components/card-snippet'
 import areas from 'src/@core/components/plants-areas/index'
-import InfoIcon from '@mui/icons-material/Info';
+import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 
 // ** Source code imports
@@ -49,7 +49,6 @@ import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 // ** Custom Table Components Imports
 import TableHeaderNewUser from 'src/views/pages/apps/user/list/TableHeaderNewUser'
 import AddNewUserDrawer from 'src/views/pages/apps/user/list/AddNewUserDrawer'
-
 
 // Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
@@ -72,7 +71,6 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
   }
 }))
 
-
 const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState({
     title: '',
@@ -88,9 +86,12 @@ const FormLayoutsSolicitud = () => {
   const [plants, setPlants] = useState([])
   const router = useRouter()
 
-  const findAreas = (plant) => {
-    let setOfAreas = (areas.find((obj) => obj.name === plant)).allAreas
-    let areaNames = setOfAreas.map((element) => Object.keys(element).toString() + ' - ' + Object.values(element).toString())
+  const findAreas = plant => {
+    let setOfAreas = areas.find(obj => obj.name === plant).allAreas
+
+    let areaNames = setOfAreas.map(
+      element => Object.keys(element).toString() + ' - ' + Object.values(element).toString()
+    )
     setPlants(Object.values(areaNames))
   }
 
@@ -98,8 +99,12 @@ const FormLayoutsSolicitud = () => {
   const [files, setFiles] = useState([])
 
   // ** Hooks
-  const auth = useFirebase();
+  const auth = useFirebase()
 
+  const userPlant = auth.authUser.plant
+  const userShift = auth.authUser.shift
+
+  //const userOpShift = userShift === 'B' ? 'A' : 'B'
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
@@ -161,7 +166,6 @@ const FormLayoutsSolicitud = () => {
     }
   }))
 
-
   const handleRemoveAllFiles = () => {
     setFiles([])
   }
@@ -185,9 +189,7 @@ const FormLayoutsSolicitud = () => {
 
   const [addUserOpen, setAddUserOpen] = useState(false)
 
-
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
-
 
   return (
     <Card>
@@ -195,21 +197,36 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={e => e.preventDefault()}>
           <Grid container spacing={5}>
-
             {/* Título */}
             <Grid item xs={12}>
               <TextField
                 InputLabelProps={{ required: true }}
-                fullWidth type='text'
+                fullWidth
+                type='text'
                 label='Título'
                 value={values.title}
-                onChange={() => setValues({ ...values, title: event.target.value })} />
+                onChange={() => setValues({ ...values, title: event.target.value })}
+              />
             </Grid>
 
             {/* Fecha inicio */}
             <Grid item xs={12}>
-              <TextField fullWidth type='date' InputLabelProps={{ shrink: true, required: false }} label='Fecha'
-                onChange={() => setValues({ ...values, start: (new Date(Number((event.srcElement.value).split('-')[0]), Number((event.srcElement.value).split('-')[1] - 1), Number((event.srcElement.value).split('-')[2]))) })} />
+              <TextField
+                fullWidth
+                type='date'
+                InputLabelProps={{ shrink: true, required: false }}
+                label='Fecha'
+                onChange={() =>
+                  setValues({
+                    ...values,
+                    start: new Date(
+                      Number(event.srcElement.value.split('-')[0]),
+                      Number(event.srcElement.value.split('-')[1] - 1),
+                      Number(event.srcElement.value.split('-')[2])
+                    )
+                  })
+                }
+              />
             </Grid>
 
             {/* Planta */}
@@ -226,8 +243,15 @@ const FormLayoutsSolicitud = () => {
                   onChange={() => {
                     setValues({ ...values, plant: event.target.dataset.value })
                     findAreas(event.target.dataset.value)
-                  }}>
-                  {areas.map(plant => { return (<MenuItem key={plant.name} value={plant.name}>{plant.name}</MenuItem>) })}
+                  }}
+                >
+                  {areas.map(plant => {
+                    return (
+                      <MenuItem key={plant.name} value={plant.name}>
+                        {plant.name}
+                      </MenuItem>
+                    )
+                  })}
                 </Select>
               </FormControl>
             </Grid>
@@ -243,10 +267,15 @@ const FormLayoutsSolicitud = () => {
                   id='id-area'
                   labelId='labelId-area'
                   value={values.area}
-                  onChange={() => setValues({ ...values, area: event.target.dataset.value })}>
-
-                  {(plants.map(plant => { return (<MenuItem key={plant} value={plant}>{plant}</MenuItem>) }))}
-
+                  onChange={() => setValues({ ...values, area: event.target.dataset.value })}
+                >
+                  {plants.map(plant => {
+                    return (
+                      <MenuItem key={plant} value={plant}>
+                        {plant}
+                      </MenuItem>
+                    )
+                  })}
                 </Select>
               </FormControl>
             </Grid>
@@ -262,10 +291,9 @@ const FormLayoutsSolicitud = () => {
                   onChange={() => setValues({ ...values, petitioner: event.target.dataset.value })}
                   label='Solicitante'
                   id='id-solicitante'
-                  labelId='labelId-solicitante'>
-                  <MenuItem value='Jorge Acuña - +569 1234 5678'>
-                    Jorge Acuña - +569 1234 5678
-                  </MenuItem>
+                  labelId='labelId-solicitante'
+                >
+                  <MenuItem value='Jorge Acuña - +569 1234 5678'>Jorge Acuña - +569 1234 5678</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -281,10 +309,9 @@ const FormLayoutsSolicitud = () => {
                   onChange={() => setValues({ ...values, opshift: event.target.dataset.value })}
                   label='Contraturno del solicitante'
                   id='id-contraturno'
-                  labelId='labelId-contraturno'>
-                  <MenuItem value='Oscar Rivera - +569 3456 7890'>
-                    Oscar Rivera - +569 3456 7890
-                  </MenuItem>
+                  labelId='labelId-contraturno'
+                >
+                  <MenuItem value='Oscar Rivera - +569 3456 7890'>Oscar Rivera - +569 3456 7890</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -293,17 +320,13 @@ const FormLayoutsSolicitud = () => {
             <Grid item xs={12}>
               <Typography sx={{ mr: 2 }}>
                 ¿No sabe en qué área está? {`  `}
-                <Link onClick={() => router.replace('/mapa/')}>
-                  Haga clic acá para saber
-                </Link>
+                <Link onClick={() => router.replace('/mapa/')}>Haga clic acá para saber</Link>
               </Typography>
             </Grid>
-
 
             {/* Box con tipo de operación y sap */}
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-
                 <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
                   <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
                   <Select
@@ -313,27 +336,26 @@ const FormLayoutsSolicitud = () => {
                     id='id-type'
                     labelId='labelId-type'
                     value={values.type}
-                    onChange={() => setValues({ ...values, type: event.target.dataset.value })}>
+                    onChange={() => setValues({ ...values, type: event.target.dataset.value })}
+                  >
                     <MenuItem value='Normal'>Normal</MenuItem>
                     <MenuItem value='Outage'>Outage</MenuItem>
                     <MenuItem value='Shutdown'>Shutdown</MenuItem>
                   </Select>
                 </FormControl>
                 <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
-
                   <TextField
                     onChange={e => setValues({ ...values, sap: e.target.value })}
-                    label="Número SAP"
-                    id="sap-input"
+                    label='Número SAP'
+                    id='sap-input'
                     InputProps={{
                       endAdornment: (
-                        <Tooltip title="Rellena este campo sólo si conoces el número SAP">
-                          <InfoIcon color="action" />
+                        <Tooltip title='Rellena este campo sólo si conoces el número SAP'>
+                          <InfoIcon color='action' />
                         </Tooltip>
-                      ),
+                      )
                     }}
                   />
-
                 </FormControl>
               </Box>
             </Grid>
@@ -349,7 +371,8 @@ const FormLayoutsSolicitud = () => {
                   id='id-objetivo'
                   labelId='labelId-objetivo'
                   value={values.objective}
-                  onChange={() => setValues({ ...values, objective: event.target.dataset.value })}>
+                  onChange={() => setValues({ ...values, objective: event.target.dataset.value })}
+                >
                   <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
                   <MenuItem value='Análisis GPR'>Análisis GPR</MenuItem>
                   <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
@@ -374,7 +397,8 @@ const FormLayoutsSolicitud = () => {
                   id='id-entregable'
                   labelId='labelId-entregable'
                   value={values.deliverable}
-                  onChange={() => setValues({ ...values, deliverable: event.target.dataset.value })}>
+                  onChange={() => setValues({ ...values, deliverable: event.target.dataset.value })}
+                >
                   <MenuItem value='Sketch'>Sketch</MenuItem>
                   <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
                   <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
@@ -383,7 +407,6 @@ const FormLayoutsSolicitud = () => {
                 </Select>
               </FormControl>
             </Grid>
-
 
             {/* Destinatario */}
             <Grid item xs={12}>
@@ -396,30 +419,26 @@ const FormLayoutsSolicitud = () => {
                   label='Destinatario'
                   defaultValue=''
                   id='id-destinatario'
-                  labelId='labelId-destinatario'>
+                  labelId='labelId-destinatario'
+                >
                   <MenuItem value='Camila Muñoz Jimenez'>
                     Camila Muñoz Jimenez - camila.munoz@bhp.com - Supervisora
                   </MenuItem>
-                  <MenuItem value='Felipe Perez Perez'>
-                    Felipe Perez Perez - felipe.perez@bhp.com - Supervisor
-                  </MenuItem>
+                  <MenuItem value='Felipe Perez Perez'>Felipe Perez Perez - felipe.perez@bhp.com - Supervisor</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-
 
             {/* Botón nuevo destinatario */}
             <Grid item xs={12}>
               <TableHeaderNewUser toggle={toggleAddUserDrawer} />
 
               <AddNewUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
-
             </Grid>
 
             {/* Descripción */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-
                 <TextField
                   InputLabelProps={{ required: true }}
                   fullWidth
@@ -428,8 +447,8 @@ const FormLayoutsSolicitud = () => {
                   value={values.description}
                   onChange={() => setValues({ ...values, description: event.target.value })}
 
-                //placeholder='carterleonard@gmail.com'
-                //helperText='You can use letters, numbers & periods'
+                  //placeholder='carterleonard@gmail.com'
+                  //helperText='You can use letters, numbers & periods'
                 />
               </FormControl>
             </Grid>
@@ -440,16 +459,22 @@ const FormLayoutsSolicitud = () => {
                 <Fragment>
                   <div {...getRootProps({ className: 'dropzone' })}>
                     <input {...getInputProps()} />
-                    <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center', margin: 'auto' }}>
-                      <Box sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: ['column', 'column', 'row'],
+                        alignItems: 'center',
+                        margin: 'auto'
+                      }}
+                    >
+                      <Box
+                        sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto' }}
+                      >
                         <HeadingTypography variant='h5'>Subir archivos</HeadingTypography>
                         <Icon icon='mdi:file-document-outline' />
                         <Typography sx={{ mt: 5 }} color='textSecondary'>
-                          Arrastra las imágenes acá o{' '}
-                          <Link onClick={() => handleLinkClick}>
-                            haz click acá
-                          </Link>{' '}
-                          para buscarlas en tu dispositivo
+                          Arrastra las imágenes acá o <Link onClick={() => handleLinkClick}>haz click acá</Link> para
+                          buscarlas en tu dispositivo
                         </Typography>
                       </Box>
                     </Box>

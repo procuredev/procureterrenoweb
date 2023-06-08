@@ -520,7 +520,7 @@ const FirebaseContextProvider = props => {
     signOut,
     resetPassword,
     updatePassword,
-    authUser,
+
     signInWithEmailAndPassword,
     createUser,
     updateUserProfile,
