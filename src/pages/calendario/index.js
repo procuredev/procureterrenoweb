@@ -4,6 +4,10 @@ import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import useMediaQuery from '@mui/material/useMediaQuery'
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
 
 const moment = require('moment');
 
@@ -56,7 +60,8 @@ const AppCalendar = () => {
   }
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState(initialEvent)
-  const [filters, setFilters] = useState(false)
+  const [filter, setFilter] = useState("all")
+  const [checkbox, setCheckbox] = useState(false)
 
   const handleModalToggle = (clickedEvent) => {
     let document = data.find(doc => doc.id === clickedEvent.id)
@@ -71,6 +76,10 @@ const AppCalendar = () => {
     setDoc(initialEvent)
   }
 
+  const handleChange = (event) => {
+    setFilter(event.target.value);
+  };
+
   // ** Hooks
   const { settings } = useSettings()
 
@@ -79,10 +88,11 @@ const AppCalendar = () => {
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  const data = useFirebase().useSnapshot()
+  const {authUser, useSnapshot} = useFirebase()
+  const data = useSnapshot()
   const theme = useTheme()
 
-  console.log(theme.palette)
+  //console.log(theme.palette)
 
   const setColor = (doc) => {
     const week = moment.unix(doc.start.seconds).isoWeek()
@@ -98,13 +108,31 @@ const AppCalendar = () => {
     return title
   }
 
+  const content = data ? {
+    all:{
+      data: data,
+    },
+    pending:{
+      data: data.filter(doc => doc.state === authUser.role - 1),
+    },
+    approved:{
+      data: data.filter(doc => doc.state >= 5 && doc.state < 10),
+    },
+    rejected:{
+      data: data.filter(doc => doc.state === 10),
+      label: 'Rechazadas'
+    },
+  } : {}
+
+  console.log(content.all.data)
+
   const calendarOptions = {
-    events: data.map(a => ({ title: eventTitle(a), start: a.start.seconds * 1000, allDay: true, id: a.id, description: a.description, backgroundColor: setColor(a), borderColor: 'transparent' })),
+    events: content[filter].data.map(a => ({ title: eventTitle(a), start: a.start.seconds * 1000, allDay: true, id: a.id, description: a.description, backgroundColor: setColor(a), borderColor: 'transparent' })),
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: 'dayGridMonth',
     headerToolbar: {
       start: 'sidebarToggle, prev, next, title, showFilters,',
-      end: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+      end: 'dayGridMonth,listMonth'
     },
     eventClick: ({ event: clickedEvent }) => {
       handleModalToggle(clickedEvent)
@@ -117,8 +145,6 @@ const AppCalendar = () => {
     locale: 'es',
     buttonText: {
       month: 'mes',
-      week: 'semana',
-      day: 'día',
       list: 'lista'
     },
     eventDisplay: 'block',
@@ -126,25 +152,23 @@ const AppCalendar = () => {
       showFilters: {
         text: 'Filtros',
         click: function () {
-          setFilters(state=>!state)
+          setCheckbox(state=>!state)
         }
       }
     },
     firstDay: 1,
     dayCellClassNames: function(date) {
-      console.log(date)
     const week = moment(date.date).isoWeek()
     const color = week % 2 == 0 ? 'fc-day-today' : 'hola'
 
     return color
   },
 
-  }
-
+}
 
   return (
     <>
-    {filters && <Box sx={{
+    {checkbox && <Box sx={{
         mb:5,
         px: 5,
         pt: 3.75,
@@ -154,11 +178,20 @@ const AppCalendar = () => {
         boxShadow: skin === 'bordered' ? 0 : 6,
         ...(skin === 'bordered' && { border: theme => `1px solid ${theme.palette.divider}` })
       }}>
-       <FormGroup>
-  <FormControlLabel control={<Checkbox defaultChecked />} label="Label" />
-  <FormControlLabel required control={<Checkbox />} label="Required" />
-  <FormControlLabel disabled control={<Checkbox />} label="Disabled" />
-</FormGroup>
+     <FormControl>
+      <FormLabel id="demo-radio-buttons-group-label">Filtros</FormLabel>
+      <RadioGroup
+        row
+        aria-labelledby="demo-radio-buttons-group-label"
+        defaultValue="all"
+        name="radio-buttons-group"
+        onChange={handleChange}
+      >
+        <FormControlLabel value="all" control={<Radio />} label="Todas las solicitudes" />
+        <FormControlLabel value="pending" control={<Radio />} label="Pendientes" />
+        <FormControlLabel value="approved" control={<Radio />} label="Aprobadas" />
+      </RadioGroup>
+    </FormControl>
       </Box>}
 
       <CalendarWrapper
