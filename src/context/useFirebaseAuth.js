@@ -523,6 +523,20 @@ const FirebaseContextProvider = props => {
     querySnapshot.forEach(doc => {
       // doc.data() is never undefined for query doc snapshots
       allDocs.push({ ...doc.data(), id: doc.id })
+    })
+
+    return allDocs
+  }
+
+  const getPetitioner = async plant => {
+    const q = query(collection(db, 'users'), where('plant', '==', plant), where('role', '==', 2))
+
+    const querySnapshot = await getDocs(q)
+    const allDocs = []
+
+    querySnapshot.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      allDocs.push({ ...doc.data(), id: doc.id })
       console.log(allDocs)
     })
 
@@ -553,7 +567,8 @@ const FirebaseContextProvider = props => {
     useSnapshot,
     signAdminFailure,
     getRoleData,
-    getUsers
+    getUsers,
+    getPetitioner
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

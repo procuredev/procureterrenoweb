@@ -346,12 +346,19 @@ const FormLayoutsBasic = () => {
                       onChange={handleChange('plant')}
                       error={errors.plant ? true : false}
                     >
-                      <MenuItem value={'Los Colorados'}>Planta Concentradora Los Colorados</MenuItem>
-                      <MenuItem value={'Laguna Seca 1'}>Planta Concentradora Laguna Seca | Línea 1</MenuItem>
-                      <MenuItem value={'Laguna Seca 2'}>Planta Concentradora Laguna Seca | Línea 2</MenuItem>
-                      <MenuItem value={'Chancado y correas'}>Chancado y correas</MenuItem>
+                      <MenuItem value={'Planta Concentradora Los Colorados'}>
+                        Planta Concentradora Los Colorados
+                      </MenuItem>
+                      <MenuItem value={'Planta Concentradora Laguna Seca | Línea 1'}>
+                        Planta Concentradora Laguna Seca | Línea 1
+                      </MenuItem>
+                      <MenuItem value={'Planta Concentradora Laguna Seca | Línea 2'}>
+                        Planta Concentradora Laguna Seca | Línea 2
+                      </MenuItem>
+                      <MenuItem value={'Chancado y Correas'}>Chancado y correas</MenuItem>
                       <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
                       <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
+                      <MenuItem value={'allPlants'}>Sucursal Santiago</MenuItem>
                     </Select>
                     {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
                   </FormControl>

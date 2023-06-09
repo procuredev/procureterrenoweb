@@ -100,6 +100,7 @@ const FormLayoutsSolicitud = () => {
 
   // ** Hooks
   const auth = useFirebase()
+  const { getPetitioner } = useFirebase()
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
@@ -181,6 +182,19 @@ const FormLayoutsSolicitud = () => {
       receiver: ''
     })
   }
+  const [petitioners, setPetitioners] = useState([])
+  const [petitionerOpShift, setPetitionerOpShift] = useState([])
+
+  const getPetitionerOptions = async plant => {
+    let options = await getPetitioner(plant)
+    setPetitioners(options)
+  }
+
+  const getPetitionerOpShift = petitioner => {
+    let findPetitioner = petitioners.find(user => user.name === petitioner)
+    console.log(petitioners)
+    setPetitionerOpShift(findPetitioner.opshift)
+  }
 
   const [addUserOpen, setAddUserOpen] = useState(false)
 
@@ -238,15 +252,20 @@ const FormLayoutsSolicitud = () => {
                   onChange={() => {
                     setValues({ ...values, plant: event.target.dataset.value })
                     findAreas(event.target.dataset.value)
+                    getPetitionerOptions(event.target.dataset.value)
                   }}
                 >
-                  {areas.map(plant => {
-                    return (
-                      <MenuItem key={plant.name} value={plant.name}>
-                        {plant.name}
-                      </MenuItem>
-                    )
-                  })}
+                  {auth.authUser.plant === 'allPlants' ? (
+                    areas.map(plant => {
+                      return (
+                        <MenuItem key={plant.name} value={plant.name}>
+                          {plant.name}
+                        </MenuItem>
+                      )
+                    })
+                  ) : (
+                    <MenuItem value={auth.authUser.plant}>{auth.authUser.plant}</MenuItem>
+                  )}
                 </Select>
               </FormControl>
             </Grid>
@@ -283,12 +302,25 @@ const FormLayoutsSolicitud = () => {
                 <Select
                   InputLabelProps={{ required: true }}
                   value={values.petitioner}
-                  onChange={() => setValues({ ...values, petitioner: event.target.dataset.value })}
+                  onChange={() => {
+                    setValues({ ...values, petitioner: event.target.dataset.value })
+                    getPetitionerOpShift(event.target.dataset.value)
+                  }}
                   label='Solicitante'
                   id='id-solicitante'
                   labelId='labelId-solicitante'
                 >
-                  <MenuItem value='Jorge Acuña - +569 1234 5678'>Jorge Acuña - +569 1234 5678</MenuItem>
+                  {auth.authUser.plant === 'allPlants' ? (
+                    petitioners.map(user => {
+                      return (
+                        <MenuItem key={user.name} value={user.name}>
+                          {user.name}
+                        </MenuItem>
+                      )
+                    })
+                  ) : (
+                    <MenuItem value={auth.authUser.displayName}>{auth.authUser.displayName}</MenuItem>
+                  )}
                 </Select>
               </FormControl>
             </Grid>
@@ -306,7 +338,11 @@ const FormLayoutsSolicitud = () => {
                   id='id-contraturno'
                   labelId='labelId-contraturno'
                 >
-                  <MenuItem value='Oscar Rivera - +569 3456 7890'>Oscar Rivera - +569 3456 7890</MenuItem>
+                  {auth.authUser.plant === 'allPlants' ? (
+                    <MenuItem value={petitionerOpShift}>{petitionerOpShift}</MenuItem>
+                  ) : (
+                    <MenuItem value={auth.authUser.opshift}>{auth.authUser.opshift}</MenuItem>
+                  )}
                 </Select>
               </FormControl>
             </Grid>
