@@ -71,7 +71,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
   }, [doc])
 
   useEffect(() => {
-    setEventData(eventArray)
+    const data = eventArray
+    setEventData(data)
   }, [eventArray])
 
   // Handlea dialog
@@ -140,7 +141,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
       </AppBar>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
       <Paper sx={{ width: ' 500px', maxWidth: 700, margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
-        {eventData === undefined ? (
+        {eventData == undefined ? (
           <Box>
             <Skeleton />
             <Skeleton />
@@ -178,7 +179,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 {state ? dictionary[state].details : ''}
               </Typography>
               {/*Título */}
-              {editable && roleData.canEditValues ? (
+              {editable && roleData && roleData.canEditValues ? (
                 <TextField
                   onChange={e => setValues({ ...values, title: e.target.value })}
                   label='Título'
@@ -193,7 +194,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 </Typography>
               )}
               {/*Área*/}
-              {editable && roleData.canEditValues ? (
+              {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, area: e.target.value })}
@@ -210,7 +211,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 </Typography>
               )}
               {/*Fecha de inicio*/}
-              {editable && roleData.canEditDate ? (
+              {editable && roleData && roleData.canEditDate ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     InputLabelProps={{ shrink: true }}
@@ -229,7 +230,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 </Typography>
               )}
               {/*Asigna OT */}
-              {editable && roleData.canEditValues ? (
+              {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, ot: e.target.value })}
@@ -247,7 +248,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 </Typography>
               )}
               {/*Asigna término */}
-              {editable && roleData.canEditValues ? (
+              {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
@@ -266,7 +267,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 </Typography>
               )}
               {/*Asigna turno */}
-              {editable && roleData.canEditValues ? (
+              {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
                     onChange={e => setValues({ ...values, shift: e.target.value })}
@@ -283,7 +284,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                 </Typography>
               )}
               {/*Descripción */}
-              {editable && roleData.canEditValues ? (
+              {editable && roleData && roleData.canEditValues ? (
                 <TextField
                   onChange={e => setValues({ ...values, description: e.target.value })}
                   label='Descripción'

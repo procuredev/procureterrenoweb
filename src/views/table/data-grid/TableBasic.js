@@ -33,7 +33,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const { auth, reviewDocs } = useFirebase()
+  const { reviewDocs } = useFirebase()
 
   const handleClickOpen = doc => {
     setDoc(doc)

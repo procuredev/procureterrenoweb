@@ -38,14 +38,6 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import { date } from 'yup'
 import { light } from '@mui/material/styles/createPalette';
 
-// ** CalendarColors
-const calendarsColor = {
-  Personal: 'error',
-  Business: 'primary',
-  Family: 'warning',
-  Holiday: 'success',
-  ETC: 'info'
-}
 
 const AppCalendar = () => {
   const initialEvent = {
@@ -58,6 +50,8 @@ const AppCalendar = () => {
     area: 'area',
     id: 'id'
   }
+
+  const [roleData, setRoleData] = useState({name:'admin'});
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState(initialEvent)
   const [filter, setFilter] = useState("all")
@@ -88,16 +82,41 @@ const AppCalendar = () => {
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  const {authUser, useSnapshot} = useFirebase()
+  const {authUser, useSnapshot, getRoleData} = useFirebase()
   const data = useSnapshot()
   const theme = useTheme()
 
-  //console.log(theme.palette)
+  console.log(theme.palette)
+
+  useEffect(() => {
+    const role = async () => {
+      if (authUser) {
+        const role = await getRoleData(authUser.role.toString())
+        setRoleData(role)
+      }
+    }
+
+    role();
+  }, []);
+
 
   const setColor = (doc) => {
-    const week = moment.unix(doc.start.seconds).isoWeek()
-    const hasOT = doc.ot ? 'dark' : 'light'
-    const color = week % 2 == 0 ? theme.palette.primary[hasOT] : theme.palette.secondary[hasOT]
+    let color
+    switch (doc.type) {
+      case undefined:
+        color = theme.palette.secondary.main;
+        break;
+      case "shutdown":
+        color = theme.palette.error.main;
+        break;
+      case "outage":
+        color = theme.palette.warning.main;
+        break;
+      case "normal":
+      default:
+        color = theme.palette.primary.main;
+        break;
+    }
 
     return color
   }
@@ -127,7 +146,14 @@ const AppCalendar = () => {
   console.log(content.all.data)
 
   const calendarOptions = {
-    events: content[filter].data.map(a => ({ title: eventTitle(a), start: a.start.seconds * 1000, allDay: true, id: a.id, description: a.description, backgroundColor: setColor(a), borderColor: 'transparent' })),
+    events: content[filter].data.map(a => ({
+      title: eventTitle(a),
+      start: a.start.seconds * 1000,
+      allDay: true,
+      id: a.id,
+      description: a.description,
+      backgroundColor: setColor(a),
+      borderColor: 'transparent' })),
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: 'dayGridMonth',
     headerToolbar: {
@@ -163,6 +189,7 @@ const AppCalendar = () => {
 
     return color
   },
+  fixedWeekCount:false
 
 }
 
@@ -216,7 +243,11 @@ const AppCalendar = () => {
           }}
         >
           <FullCalendar {...calendarOptions} />
-          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} />}
+          {open && <FullScreenDialog
+          open={open}
+          handleClose={handleClose}
+          doc={doc}
+          roleData={roleData} />}
         </Box>
       </CalendarWrapper>
     </>
