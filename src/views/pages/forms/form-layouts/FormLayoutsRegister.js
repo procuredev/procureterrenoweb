@@ -132,7 +132,7 @@ const FormLayoutsBasic = () => {
     const newErrors = {}
     for (const key in values) {
       // Error campos vacíos
-      if (values[key] === '' || !values[key]) {
+      if (key !== 'opshift' && (values[key] === '' || !values[key])) {
         newErrors[key] = 'Por favor, selecciona una opción'
       }
 
@@ -152,7 +152,10 @@ const FormLayoutsBasic = () => {
           }
         } else {
           // Validación regex para otras claves de tipo string
-          if (!trimmedValues[key] || (validationRegex[key] && !validationRegex[key].test(trimmedValues[key]))) {
+          if (
+            (key !== 'opshift' && !trimmedValues[key]) ||
+            (validationRegex[key] && !validationRegex[key].test(trimmedValues[key]))
+          ) {
             newErrors[key] = `Por favor, introduce un ${key} válido`
           }
         }
@@ -407,7 +410,8 @@ const FormLayoutsBasic = () => {
                       label='Contraturno'
                       value={values.opshift}
                       onChange={handleChange('opshift')}
-                      error={errors.opshift ? true : false}
+
+                      /* error={errors.opshift ? true : false} */
                     >
                       {opShiftOptions.map(element => {
                         return (

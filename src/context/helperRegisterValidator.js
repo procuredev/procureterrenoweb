@@ -63,7 +63,7 @@ export function registerValidator(values) {
 
   for (const key in values) {
     if (typeof values[key] === 'string') {
-      if (values[key].trim() === '') {
+      if (key !== 'opshift' && values[key].trim() === '') {
         throw new Error('Debes rellenar todos los campos.' + `Error en campo ${key} `)
       }
     }
