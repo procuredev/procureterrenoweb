@@ -185,7 +185,7 @@ const AppCalendar = () => {
     firstDay: 1,
     dayCellClassNames: function(date) {
     const week = moment(date.date).isoWeek()
-    const color = week % 2 == 0 ? 'fc-day-today' : 'hola'
+    let color = ( week % 2 == 0 && !date.isToday ) && 'week'
 
     return color
   },

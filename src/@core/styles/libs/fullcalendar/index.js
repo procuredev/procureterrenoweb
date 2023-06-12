@@ -16,6 +16,10 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
     display: 'flex',
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
+    '& .week': {
+      background: `${theme.palette.background.default} !important`,
+      backgroundColor: `${theme.palette.action.hover} !important`
+    },
     '& .fc': {
       zIndex: 1,
 
@@ -322,7 +326,7 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
       '& .fc-day-today:not(.fc-popover)': {
         '&:not(.fc-col-header-cell)': {
           background: `${theme.palette.background.default} !important`,
-          backgroundColor: `${theme.palette.action.hover} !important`
+          backgroundColor: `${theme.palette.action.focus} !important`
         }
       },
 
