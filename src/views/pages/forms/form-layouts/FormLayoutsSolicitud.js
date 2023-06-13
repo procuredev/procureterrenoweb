@@ -81,8 +81,8 @@ const FormLayoutsSolicitud = () => {
     description: '',
     area: '',
     plant: '',
-    objective: '',
-    receiver: ''
+    objective: [],
+    receiver: []
   })
   const [plants, setPlants] = useState([])
   const router = useRouter()
@@ -106,7 +106,6 @@ const FormLayoutsSolicitud = () => {
   const auth = useFirebase()
   const { getPetitioner, getAllMELUsers } = useFirebase()
 
-  //const { getAllMELUsers } = useFirebase()
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
@@ -280,7 +279,7 @@ const FormLayoutsSolicitud = () => {
                     getPetitionerOptions(event.target.dataset.value)
                   }}
                 >
-                  {auth.authUser.plant === 'allPlants' ? (
+                  {(auth.authUser && auth.authUser.plant === 'allPlants') ? (
                     areas.map(plant => {
                       return (
                         <MenuItem key={plant.name} value={plant.name}>
@@ -383,7 +382,7 @@ const FormLayoutsSolicitud = () => {
             {/* Box con tipo de operación y sap */}
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
+                <FormControl fullWidth>
                   <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
                   <Select
                     InputLabelProps={{ required: true }}
@@ -399,7 +398,11 @@ const FormLayoutsSolicitud = () => {
                     <MenuItem value='Shutdown'>Shutdown</MenuItem>
                   </Select>
                 </FormControl>
-                <FormControl sx={{ mb: 5, mr: 2, flex: 'auto' }}>
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                <FormControl fullWidth>
                   <TextField
                     onChange={e => setValues({ ...values, sap: e.target.value })}
                     label='Número SAP'
@@ -417,30 +420,34 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Objetivo - Tipo de levantamiento */}
-            <Grid item xs={12} sx={{ pt: '0 !important' }}>
-              <FormControl fullWidth>
-                <InputLabel id='input-label-objetivo'>Tipo de levantamiento</InputLabel>
-                <Select
-                  InputLabelProps={{ required: true }}
-                  label='Tipo de levantamiento'
-                  defaultValue=''
-                  id='id-objetivo'
-                  labelId='labelId-objetivo'
-                  value={values.objective}
-                  onChange={() => setValues({ ...values, objective: event.target.dataset.value })}
-                >
-                  <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
-                  <MenuItem value='Análisis GPR'>Análisis GPR</MenuItem>
-                  <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
-                  <MenuItem value='Levantamiento 3D'>Levantamiento 3D</MenuItem>
-                  <MenuItem value='Levantamiento 3D + Planos'>Levantamiento 3D + Planos</MenuItem>
-                  <MenuItem value='Topografía Shutdown'>Topografía Shutdown</MenuItem>
-                  <MenuItem value='Topografía shutdown + documentos'>Topografía shutdown + documentos</MenuItem>
-                  <MenuItem value='Topografía + documentos'>Topografía + documentos</MenuItem>
-                  <MenuItem value='Medición de espesores'>Medición de espesores</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+            <Grid item xs={12}>
+  <FormControl fullWidth>
+    <InputLabel id='input-label-objetivo'>Tipo de levantamiento</InputLabel>
+    <Select
+      multiple
+      InputLabelProps={{ required: true }}
+      label='Tipo de levantamiento'
+      defaultValue=''
+      id='id-objetivo'
+      labelId='labelId-objetivo'
+      value={values.objective}
+      onChange={(event) => {
+        const newValue = event.target.value;
+        setValues((prevValues) => ({
+          ...prevValues,
+          objective: newValue,
+        }));
+      }}
+    >
+      <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
+      <MenuItem value='Análisis GPR'>Análisis GPR</MenuItem>
+      <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
+      <MenuItem value='Levantamiento 3D'>Levantamiento 3D</MenuItem>
+      <MenuItem value='Levantamiento 3D GPS'>Levantamiento 3D GPS</MenuItem>
+    </Select>
+  </FormControl>
+</Grid>
+
 
             {/*Entregables */}
             <Grid item xs={12}>
@@ -466,21 +473,30 @@ const FormLayoutsSolicitud = () => {
 
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <Autocomplete
-                  options={allUsers}
-                  getOptionLabel={user => user.name}
+              <InputLabel id='input-label-receiver'>Destinatario</InputLabel>
+                <Select
+                  multiple
+                  InputLabelProps={{ required: true }}
+                  label='Destinatario'
+                  defaultValue=''
+                  id='id-receiver'
+                  labelId='labelId-receiver'
                   value={values.receiver}
-                  inputValue={values.receiver}
-                  onInputChange={(event) => {
-                    if (event) { setValues({ ...values, receiver: event.target.value }); }
-                  }}
                   onChange={(event) => {
-                    event.preventDefault
-                    setValues({ ...values, receiver: event.target.value })
-                    getMELUsers()
+                   const newValue = event.target.value;
+                   setValues((prevValues) => ({
+                    ...prevValues,
+                    receiver: newValue,
+                   }))
                   }}
-                  renderInput={params => <TextField {...params} placeholder='Destinatario' label='Destinatario' />}
                 />
+                {allUsers && allUsers.map(user => {
+                      return (
+                        <MenuItem key={user.name} value={user.name}>
+                          {user.name}
+                        </MenuItem>
+                      )
+                    })}
               </FormControl>
             </Grid>
 
