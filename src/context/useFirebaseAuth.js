@@ -464,6 +464,8 @@ const FirebaseContextProvider = props => {
           q = query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
         } else if (authUser.role === 3) {
           q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
+        } else if (authUser.role === 5) {
+          q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 2))
         } else {
           q = getAllDocs.includes(authUser.role)
             ? ![1, 9].includes(authUser.role)
