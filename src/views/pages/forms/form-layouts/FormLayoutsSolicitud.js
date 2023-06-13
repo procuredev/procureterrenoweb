@@ -88,12 +88,15 @@ const FormLayoutsSolicitud = () => {
   const router = useRouter()
 
   const findAreas = plant => {
-    let setOfAreas = areas.find(obj => obj.name === plant).allAreas
+    let setOfAreas = areas.find(obj => obj.name === plant)
+    if (setOfAreas) {
+      let areaNames = setOfAreas.allAreas.map(
+        element => Object.keys(element).toString() + ' - ' + Object.values(element).toString())
+      setPlants(Object.values(areaNames))
+    } else {
+      setPlants(['No aplica'])
+    }
 
-    let areaNames = setOfAreas.map(
-      element => Object.keys(element).toString() + ' - ' + Object.values(element).toString()
-    )
-    setPlants(Object.values(areaNames))
   }
 
   // ** State Solo para Image Uploader
@@ -201,8 +204,9 @@ const FormLayoutsSolicitud = () => {
   // establece el estado del contraturno del solicitante de acuerdo al estado de solicitante seleccionado, pasada por parametro.
   const getPetitionerOpShift = petitioner => {
     let findPetitioner = petitioners.find(user => user.name === petitioner)
-    console.log(petitioners)
-    setPetitionerOpShift(findPetitioner.opshift)
+    if (findPetitioner) {
+      setPetitionerOpShift(findPetitioner.opshift)
+    }
   }
 
   const [addUserOpen, setAddUserOpen] = useState(false)
@@ -460,47 +464,24 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
-            {/* Destinatario */}
-            {/* <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel id='input-label-destinatario'>Destinatario</InputLabel>
-                <Select
-                  InputLabelProps={{ required: true }}
-                  value={values.receiver}
-                  onChange={() => setValues({ ...values, receiver: event.target.dataset.value })}
-                  label='Destinatario'
-                  defaultValue=''
-                  id='id-destinatario'
-                  labelId='labelId-destinatario'
-                >
-                  <MenuItem value='Camila Muñoz Jimenez'>
-                    Camila Muñoz Jimenez - camila.munoz@bhp.com - Supervisora
-                  </MenuItem>
-                  <MenuItem value='Felipe Perez Perez'>Felipe Perez Perez - felipe.perez@bhp.com - Supervisor</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid> */}
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Autocomplete
                   options={allUsers}
                   getOptionLabel={user => user.name}
                   value={values.receiver}
-                  onChange={(event, newValue) => {
+                  inputValue={values.receiver}
+                  onInputChange={(event) => {
+                    if (event) { setValues({ ...values, receiver: event.target.value }); }
+                  }}
+                  onChange={(event) => {
                     event.preventDefault
-                    setValues({ ...values, receiver: newValue })
+                    setValues({ ...values, receiver: event.target.value })
                     getMELUsers()
                   }}
-                  renderInput={params => <TextField {...params} label='Destinatario' />}
+                  renderInput={params => <TextField {...params} placeholder='Destinatario' label='Destinatario' />}
                 />
               </FormControl>
-            </Grid>
-
-            {/* Botón nuevo destinatario */}
-            <Grid item xs={12}>
-              <TableHeaderNewUser toggle={toggleAddUserDrawer} />
-
-              <AddNewUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
             </Grid>
 
             {/* Descripción */}
@@ -514,8 +495,8 @@ const FormLayoutsSolicitud = () => {
                   value={values.description}
                   onChange={() => setValues({ ...values, description: event.target.value })}
 
-                  //placeholder='carterleonard@gmail.com'
-                  //helperText='You can use letters, numbers & periods'
+                //placeholder='carterleonard@gmail.com'
+                //helperText='You can use letters, numbers & periods'
                 />
               </FormControl>
             </Grid>
