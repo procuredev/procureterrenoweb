@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebaseAuth'
@@ -30,6 +30,7 @@ import CardSnippet from 'src/@core/components/card-snippet'
 import areas from 'src/@core/components/plants-areas/index'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
+import Autocomplete from '@mui/material/Autocomplete'
 
 // ** Source code imports
 // import * as source from 'src/views/forms/form-elements/file-uploader/FileUploaderSourceCode'
@@ -100,7 +101,9 @@ const FormLayoutsSolicitud = () => {
 
   // ** Hooks
   const auth = useFirebase()
-  const { getPetitioner } = useFirebase()
+  const { getPetitioner, getAllMELUsers } = useFirebase()
+
+  //const { getAllMELUsers } = useFirebase()
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
@@ -199,6 +202,18 @@ const FormLayoutsSolicitud = () => {
   const [addUserOpen, setAddUserOpen] = useState(false)
 
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
+
+  /// SE USAN TODOS LOS USUARIOS
+  const [allUsers, setAllUsers] = useState([])
+
+  useEffect(() => {
+    getAllMELUsers()
+  }, [])
+
+  const getMELUsers = async () => {
+    const asd = await getAllMELUsers()
+    setAllUsers(asd)
+  }
 
   return (
     <Card>
@@ -440,7 +455,7 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Destinatario */}
-            <Grid item xs={12}>
+            {/* <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel id='input-label-destinatario'>Destinatario</InputLabel>
                 <Select
@@ -457,6 +472,21 @@ const FormLayoutsSolicitud = () => {
                   </MenuItem>
                   <MenuItem value='Felipe Perez Perez'>Felipe Perez Perez - felipe.perez@bhp.com - Supervisor</MenuItem>
                 </Select>
+              </FormControl>
+            </Grid> */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  options={allUsers}
+                  getOptionLabel={user => user.name}
+                  value={values.receiver}
+                  onChange={(event, newValue) => {
+                    event.preventDefault
+                    setValues({ ...values, receiver: newValue })
+                    getMELUsers()
+                  }}
+                  renderInput={params => <TextField {...params} label='Destinatario' />}
+                />
               </FormControl>
             </Grid>
 

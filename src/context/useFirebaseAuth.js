@@ -543,6 +543,19 @@ const FirebaseContextProvider = props => {
     return allDocs
   }
 
+  /// PRUEBA FETCH A TODOS LOS USUARIOS
+  const getAllMELUsers = async () => {
+    const q = query(collection(db, 'users'), where('company', '==', 'MEL'))
+    const querySnapshot = await getDocs(q)
+    const allDocs = []
+
+    querySnapshot.forEach(doc => {
+      allDocs.push({ ...doc.data(), id: doc.id })
+    })
+
+    return allDocs
+  }
+
   //si recibe planta (contract operator), trae todos los usuarios con ese valor de planta y rol de cont op
 
   //si recibe planta y turno, trae todos los usuarios con ese valor de planta y rol de solicitante y turno opuesto
@@ -568,7 +581,8 @@ const FirebaseContextProvider = props => {
     signAdminFailure,
     getRoleData,
     getUsers,
-    getPetitioner
+    getPetitioner,
+    getAllMELUsers
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
