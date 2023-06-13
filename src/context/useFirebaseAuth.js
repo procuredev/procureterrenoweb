@@ -512,6 +512,8 @@ const FirebaseContextProvider = props => {
     return data
   }
 
+  // trae los usuarios con el rol 3 que pertenecen a una planta
+  // trae los usuarios con el rol 2 que pertenece a una planta con turno opuesto al pasado por parametro
   const getUsers = async (plant, shift = '') => {
     const q = shift
       ? query(collection(db, 'users'), where('plant', '==', plant), where('shift', '!=', shift), where('role', '==', 2))
@@ -528,6 +530,7 @@ const FirebaseContextProvider = props => {
     return allDocs
   }
 
+  // trae los usuarios con el rol 2 que pertenece a una planta
   const getPetitioner = async plant => {
     const q = query(collection(db, 'users'), where('plant', '==', plant), where('role', '==', 2))
 

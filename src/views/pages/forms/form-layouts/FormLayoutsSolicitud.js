@@ -185,14 +185,20 @@ const FormLayoutsSolicitud = () => {
       receiver: ''
     })
   }
+
+  //estado de los solicitantes
   const [petitioners, setPetitioners] = useState([])
+
+  // estado del contraturno del solicitante
   const [petitionerOpShift, setPetitionerOpShift] = useState([])
 
+  // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
   const getPetitionerOptions = async plant => {
     let options = await getPetitioner(plant)
     setPetitioners(options)
   }
 
+  // establece el estado del contraturno del solicitante de acuerdo al estado de solicitante seleccionado, pasada por parametro.
   const getPetitionerOpShift = petitioner => {
     let findPetitioner = petitioners.find(user => user.name === petitioner)
     console.log(petitioners)
