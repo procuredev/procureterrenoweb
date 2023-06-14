@@ -60,7 +60,7 @@ const DataGrid = () => {
       label: 'Por aprobar'
     },
     {
-      data: data.filter(doc => doc.state >= 7 && doc.state < 10),
+      data: data.filter(doc => doc.state >= 6 && doc.state < 10),
       label: 'Aprobadas'
     },
     {

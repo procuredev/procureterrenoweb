@@ -279,7 +279,13 @@ const FirebaseContextProvider = props => {
           receiver: values.receiver,
           description: values.description,
           date: Timestamp.fromDate(new Date()),
-          uid: user.uid
+          uid: user.uid,
+          type: values.type,
+          deliverable: values.deliverable,
+          petitioner: values.petitioner,
+          opshift: values.opshift,
+          sap:values.sap
+
         })
 
         /* const newEvent = {

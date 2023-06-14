@@ -26,14 +26,11 @@ import MenuItem from '@mui/material/MenuItem'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import { styled } from '@mui/material/styles'
-import CardSnippet from 'src/@core/components/card-snippet'
 import areas from 'src/@core/components/plants-areas/index'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
 
-// ** Source code imports
-// import * as source from 'src/views/forms/form-elements/file-uploader/FileUploaderSourceCode'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -41,51 +38,37 @@ import Icon from 'src/@core/components/icon'
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
 
-// ** Custom Components Imports
-import PageHeader from 'src/@core/components/page-header'
-
-// ** Styled Component
-import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
-
-// ** Custom Table Components Imports
-import TableHeaderNewUser from 'src/views/pages/apps/user/list/TableHeaderNewUser'
-import AddNewUserDrawer from 'src/views/pages/apps/user/list/AddNewUserDrawer'
-
-// Styled component for the upload image inside the dropzone area
-const Img = styled('img')(({ theme }) => ({
-  [theme.breakpoints.up('md')]: {
-    marginRight: theme.spacing(10)
-  },
-  [theme.breakpoints.down('md')]: {
-    marginBottom: theme.spacing(4)
-  },
-  [theme.breakpoints.down('sm')]: {
-    width: 250
-  }
-}))
-
-// Styled component for the heading inside the dropzone area
-const HeadingTypography = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(5),
-  [theme.breakpoints.down('sm')]: {
-    marginBottom: theme.spacing(4)
-  }
-}))
-
 const FormLayoutsSolicitud = () => {
-  const [values, setValues] = useState({
+
+  const initialValues = {
     title: '',
     author: '',
-    counterpart: '',
+    opshift: '',
     start: '',
     description: '',
     area: '',
     plant: '',
-    objective: [],
-    receiver: []
-  })
-  const [plants, setPlants] = useState([])
+    objective: '',
+    deliverable: [],
+    receiver: [],
+    type: '',
+    petitioner: '',
+    sap: '',
+  }
+
+  // ** Hooks
+  const { authUser, getPetitioner, getAllMELUsers, newDoc } = useFirebase()
   const router = useRouter()
+
+  // ** States
+  const [plants, setPlants] = useState([])
+  const [allUsers, setAllUsers] = useState([])
+  const [files, setFiles] = useState([])
+  const [petitioners, setPetitioners] = useState([])
+  const [petitionerOpShift, setPetitionerOpShift] = useState([])
+
+  const [values, setValues] = useState(initialValues)
+
 
   const findAreas = plant => {
     let setOfAreas = areas.find(obj => obj.name === plant)
@@ -96,15 +79,7 @@ const FormLayoutsSolicitud = () => {
     } else {
       setPlants(['No aplica'])
     }
-
   }
-
-  // ** State Solo para Image Uploader
-  const [files, setFiles] = useState([])
-
-  // ** Hooks
-  const auth = useFirebase()
-  const { getPetitioner, getAllMELUsers } = useFirebase()
 
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -176,23 +151,10 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleSubmit = () => {
-    //event.preventDefault();
-    auth.newDoc(values)
-    setValues({
-      title: '',
-      start: '',
-      description: '',
-      area: '',
-      objective: '',
-      receiver: ''
-    })
+    event.preventDefault();
+    newDoc(values)
+    setValues(initialValues)
   }
-
-  //estado de los solicitantes
-  const [petitioners, setPetitioners] = useState([])
-
-  // estado del contraturno del solicitante
-  const [petitionerOpShift, setPetitionerOpShift] = useState([])
 
   // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
   const getPetitionerOptions = async plant => {
@@ -208,21 +170,10 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const [addUserOpen, setAddUserOpen] = useState(false)
-
-  const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
-
-  /// SE USAN TODOS LOS USUARIOS
-  const [allUsers, setAllUsers] = useState([])
-
   useEffect(() => {
-    getAllMELUsers()
+    getAllMELUsers().then((value) =>
+      setAllUsers(value))
   }, [])
-
-  const getMELUsers = async () => {
-    const asd = await getAllMELUsers()
-    setAllUsers(asd)
-  }
 
   return (
     <Card>
@@ -279,7 +230,7 @@ const FormLayoutsSolicitud = () => {
                     getPetitionerOptions(event.target.dataset.value)
                   }}
                 >
-                  {(auth.authUser && auth.authUser.plant === 'allPlants') ? (
+                  {(authUser && authUser.plant === 'allPlants') ? (
                     areas.map(plant => {
                       return (
                         <MenuItem key={plant.name} value={plant.name}>
@@ -288,7 +239,8 @@ const FormLayoutsSolicitud = () => {
                       )
                     })
                   ) : (
-                    <MenuItem value={auth.authUser.plant}>{auth.authUser.plant}</MenuItem>
+                    authUser &&
+                    <MenuItem value={authUser.plant}>{authUser.plant}</MenuItem>
                   )}
                 </Select>
               </FormControl>
@@ -334,7 +286,7 @@ const FormLayoutsSolicitud = () => {
                   id='id-solicitante'
                   labelId='labelId-solicitante'
                 >
-                  {auth.authUser.plant === 'allPlants' ? (
+                  {authUser && authUser.plant === 'allPlants' ? (
                     petitioners.map(user => {
                       return (
                         <MenuItem key={user.name} value={user.name}>
@@ -343,7 +295,7 @@ const FormLayoutsSolicitud = () => {
                       )
                     })
                   ) : (
-                    <MenuItem value={auth.authUser.displayName}>{auth.authUser.displayName}</MenuItem>
+                    <MenuItem value={authUser.displayName}>{authUser.displayName}</MenuItem>
                   )}
                 </Select>
               </FormControl>
@@ -362,10 +314,10 @@ const FormLayoutsSolicitud = () => {
                   id='id-contraturno'
                   labelId='labelId-contraturno'
                 >
-                  {auth.authUser.plant === 'allPlants' ? (
+                  {authUser.plant === 'allPlants' ? (
                     <MenuItem value={petitionerOpShift}>{petitionerOpShift}</MenuItem>
                   ) : (
-                    <MenuItem value={auth.authUser.opshift}>{auth.authUser.opshift}</MenuItem>
+                    <MenuItem value={authUser.opshift}>{authUser.opshift}</MenuItem>
                   )}
                 </Select>
               </FormControl>
@@ -379,124 +331,131 @@ const FormLayoutsSolicitud = () => {
               </Typography>
             </Grid>
 
-            {/* Box con tipo de operación y sap */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                <FormControl fullWidth>
-                  <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
-                  <Select
-                    InputLabelProps={{ required: true }}
-                    label='Tipo de trabajo'
-                    defaultValue=''
-                    id='id-type'
-                    labelId='labelId-type'
-                    value={values.type}
-                    onChange={() => setValues({ ...values, type: event.target.dataset.value })}
-                  >
-                    <MenuItem value='Normal'>Normal</MenuItem>
-                    <MenuItem value='Outage'>Outage</MenuItem>
-                    <MenuItem value='Shutdown'>Shutdown</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                <FormControl fullWidth>
-                  <TextField
-                    onChange={e => setValues({ ...values, sap: e.target.value })}
-                    label='Número SAP'
-                    id='sap-input'
-                    InputProps={{
-                      endAdornment: (
-                        <Tooltip title='Rellena este campo sólo si conoces el número SAP'>
-                          <InfoIcon color='action' />
-                        </Tooltip>
-                      )
-                    }}
-                  />
-                </FormControl>
-              </Box>
-            </Grid>
-
-            {/* Objetivo - Tipo de levantamiento */}
-            <Grid item xs={12}>
-  <FormControl fullWidth>
-    <InputLabel id='input-label-objetivo'>Tipo de levantamiento</InputLabel>
-    <Select
-      multiple
-      InputLabelProps={{ required: true }}
-      label='Tipo de levantamiento'
-      defaultValue=''
-      id='id-objetivo'
-      labelId='labelId-objetivo'
-      value={values.objective}
-      onChange={(event) => {
-        const newValue = event.target.value;
-        setValues((prevValues) => ({
-          ...prevValues,
-          objective: newValue,
-        }));
-      }}
-    >
-      <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
-      <MenuItem value='Análisis GPR'>Análisis GPR</MenuItem>
-      <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
-      <MenuItem value='Levantamiento 3D'>Levantamiento 3D</MenuItem>
-      <MenuItem value='Levantamiento 3D GPS'>Levantamiento 3D GPS</MenuItem>
-    </Select>
-  </FormControl>
-</Grid>
-
-
-            {/*Entregables */}
+            {/* Box con tipo de operación*/}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='input-label-entregable'>Entregables del levantamiento</InputLabel>
+                <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
-                  label='Entregables del levantamiento'
+                  label='Tipo de trabajo'
                   defaultValue=''
-                  id='id-entregable'
-                  labelId='labelId-entregable'
-                  value={values.deliverable}
-                  onChange={() => setValues({ ...values, deliverable: event.target.dataset.value })}
+                  id='id-type'
+                  labelId='labelId-type'
+                  value={values.type}
+                  onChange={() => setValues({ ...values, type: event.target.dataset.value })}
                 >
-                  <MenuItem value='Sketch'>Sketch</MenuItem>
-                  <MenuItem value='Plano de Fabricación'>Plano de Fabricación</MenuItem>
-                  <MenuItem value='Plano de Diseño'>Plano de Diseño</MenuItem>
-                  <MenuItem value='Memoria de Cálculo'>Memoria de Cálculo</MenuItem>
-                  <MenuItem value='Informe'>Informe</MenuItem>
+                  <MenuItem value='Normal'>Normal</MenuItem>
+                  <MenuItem value='Outage'>Outage</MenuItem>
+                  <MenuItem value='Shutdown'>Shutdown</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
 
             <Grid item xs={12}>
+              <TextField
+                fullWidth
+                value={values.sap}
+                onChange={() => setValues({ ...values, sap: event.target.value })}
+                label='Número SAP'
+                id='sap-input'
+                InputProps={{
+                  endAdornment: (
+                    <Tooltip title='Rellena este campo sólo si conoces el número SAP'>
+                      <InfoIcon color='action' />
+                    </Tooltip>
+                  )
+                }}
+              />
+            </Grid>
+
+            {/* Objetivo - Tipo de levantamiento - Select*/}
+            <Grid item xs={12}>
               <FormControl fullWidth>
-              <InputLabel id='input-label-receiver'>Destinatario</InputLabel>
+                <InputLabel id='input-label-objective'>Tipo de Levantamiento</InputLabel>
                 <Select
-                  multiple
                   InputLabelProps={{ required: true }}
-                  label='Destinatario'
+                  label='Tipo de levantamiento'
                   defaultValue=''
-                  id='id-receiver'
-                  labelId='labelId-receiver'
-                  value={values.receiver}
+                  id='id-objetivo'
+                  labelId='labelId-objetivo'
+                  value={values.objective}
                   onChange={(event) => {
-                   const newValue = event.target.value;
-                   setValues((prevValues) => ({
-                    ...prevValues,
-                    receiver: newValue,
-                   }))
+                    const newValue = event.target.value;
+                    setValues((prevValues) => ({
+                      ...prevValues,
+                      objective: newValue,
+                    }));
                   }}
+                >
+                  <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
+                  <MenuItem value='Análisis GPR'>Análisis GPR</MenuItem>
+                  <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
+                  <MenuItem value='Levantamiento 3D'>Levantamiento 3D</MenuItem>
+                  <MenuItem value='Levantamiento 3D GPS'>Levantamiento 3D GPS</MenuItem>
+                  <MenuItem value='Topografía'>Topografía</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+
+            {/*Entregables - Multiple autocomplete */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  multiple
+                  fullWidth
+                  options={[
+                    'Sketch',
+                    'Plano de Fabricación',
+                    'Plano de Diseño',
+                    'Memoria de Cálculo',
+                    'Informe',
+                  ]}
+                  value={values.deliverable}
+                  onChange={(event, newValue) => {
+                    console.log(newValue)
+                    setValues((prevValues) => ({
+                      ...prevValues,
+                      deliverable: newValue,
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label='Entregables del levantamiento'
+                      InputLabelProps={{ required: true }}
+                      variant='outlined'
+                    />
+                  )}
                 />
-                {allUsers && allUsers.map(user => {
-                      return (
-                        <MenuItem key={user.name} value={user.name}>
-                          {user.name}
-                        </MenuItem>
-                      )
-                    })}
+
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  multiple
+                  fullWidth
+                  options={allUsers}
+                  getOptionLabel={(user) => user.name}
+                  value={values.receiver}
+                  onChange={(event, newValue) => {
+                    setValues((prevValues) => ({
+                      ...prevValues,
+                      receiver: newValue,
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      InputLabelProps={{ required: true }}
+                      variant='outlined'
+                      label='Destinatarios'
+                    />
+                  )}
+                />
+
               </FormControl>
             </Grid>
 
