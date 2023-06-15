@@ -492,7 +492,7 @@ const FirebaseContextProvider = props => {
             const promises = querySnapshot.docs.map(async d => {
               const docData = d.data()
               const userSnapshot = await getDoc(doc(db, 'users', docData.uid))
-              const name = userSnapshot.data().name
+              const name = userSnapshot.data() ? userSnapshot.data().name : 'No definido'
               const newDoc = { ...docData, id: d.id, name }
               allDocs.push(newDoc)
             })
