@@ -58,7 +58,9 @@ const TabAccount = () => {
   const { authUser, updateUserProfile, updateUserPhone } = useFirebase()
 
   const initialImg =
-    authUser && authUser.pfp ? authUser.pfp : 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+    authUser && authUser.pfp
+      ? authUser.pfp
+      : 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
 
   // ** State
   const [inputValue, setInputValue] = useState('')
@@ -90,6 +92,7 @@ const TabAccount = () => {
       .then(result => {
         setImgSrc(result)
         setInputValue(result)
+        updateUserProfile({ urlFoto: result }) // Actualizar el documento del usuario en Firebase
       })
       .catch(error => {
         console.error(error)

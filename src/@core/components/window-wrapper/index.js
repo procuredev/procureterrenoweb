@@ -34,14 +34,18 @@ const WindowWrapper = ({ children }) => {
   // ** Redirige al login si no hay user
   useEffect(() => {
     if (!authUser && !loading) {
-      router.push('/login');
+      router.push('/login')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authUser, loading, router.route]);
+  }, [authUser, loading, router.route])
 
   // ** Permite mostrar contenido si existe user o si va a entrar (login o forgotpass)
   useEffect(() => {
-    if (windowReadyFlag && !loading && (authUser || router.asPath === '/login/' || router.asPath === '/forgot-password/'  )) {
+    if (
+      windowReadyFlag &&
+      !loading &&
+      (authUser || router.asPath === '/login/' || router.asPath === '/forgot-password/')
+    ) {
       setShowContent(true) // Actualiza el estado para mostrar el contenido
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,7 +55,10 @@ const WindowWrapper = ({ children }) => {
     <>
       {showContent ? ( // Renderiza condicionalmente el contenido
         <>
-          <Alert severity="success" sx={{justifyContent:'center'}}>Navegando como: { (authUser && typeof authUser.role === 'number') ? dictionary[authUser.role].name : 'No definido'}</Alert>
+          <Alert severity='success' sx={{ justifyContent: 'center' }}>
+            Navegando como:{' '}
+            {authUser && typeof authUser.role === 'number' ? dictionary[authUser.role].name : 'No definido'}
+          </Alert>
           {children}
         </>
       ) : (

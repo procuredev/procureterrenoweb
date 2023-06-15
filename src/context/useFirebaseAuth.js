@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore'
 
 import { getAuth, signOut, deleteUser } from 'firebase/auth'
-import { getStorage, ref, uploadString } from 'firebase/storage'
+import { getStorage, ref, uploadString, getDownloadUR } from 'firebase/storage'
 
 // ** Next Imports
 import { useRouter } from 'next/router'
@@ -205,7 +205,9 @@ const FirebaseContextProvider = props => {
   }
 
   const createUserInDatabase = values => {
-    const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values;
+    const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
+
+    const photoURL = Firebase.auth().currentUser.photoURL
 
     return new Promise(async (resolve, reject) => {
       try {
@@ -219,34 +221,34 @@ const FirebaseContextProvider = props => {
           ...(plant && { plant }),
           ...(contop && { contop }),
           ...(shift && { shift }),
-          ...(opshift && { opshift })
-        });
+          ...(opshift && { opshift }),
+          photoURL: photoURL
+        })
 
-        resolve('Usuario creado exitosamente en la base de datos');
+        resolve('Usuario creado exitosamente en la base de datos')
       } catch (error) {
-        console.log(error);
-        reject(new Error('Error al crear el usuario en la base de datos: ' + error));
+        console.log(error)
+        reject(new Error('Error al crear el usuario en la base de datos: ' + error))
       }
-    });
-  };
+    })
+  }
 
   // ** Permite que el admin entre de vuelta y escribe en db
   const signAdminBack = async (values, password) => {
     try {
-      await Firebase.auth().signInWithEmailAndPassword(oldEmail, password);
-      const successMessage = await createUserInDatabase(values);
+      await Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
+      const successMessage = await createUserInDatabase(values)
 
-      setNewUID('');
+      setNewUID('')
 
       // Realizar acciones adicionales si es necesario
 
-      return successMessage; // Retornar el mensaje de éxito
+      return successMessage // Retornar el mensaje de éxito
     } catch (error) {
-      console.log(error);
-      throw new Error(error);
+      console.log(error)
+      throw new Error(error)
     }
-  };
-
+  }
 
   async function signAdminFailure() {
     const user = auth.currentUser
@@ -289,8 +291,7 @@ const FirebaseContextProvider = props => {
           deliverable: values.deliverable,
           petitioner: values.petitioner,
           opshift: values.opshift,
-          sap:values.sap
-
+          sap: values.sap
         })
 
         /* const newEvent = {
@@ -460,7 +461,7 @@ const FirebaseContextProvider = props => {
   }
 
   // ** Escucha cambios en los documentos en tiempo real
-  const useSnapshot = ( datagrid = false ) => {
+  const useSnapshot = (datagrid = false) => {
     const [data, setData] = useState([])
 
     useEffect(() => {
@@ -475,21 +476,20 @@ const FirebaseContextProvider = props => {
           switch (authUser.role) {
             case 2:
               q = query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
-              break;
+              break
             case 3:
               q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
-              break;
+              break
             case 5:
               q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 2))
-              break;
+              break
             default:
               if (getAllDocs.includes(authUser.role) && ![1, 9].includes(authUser.role)) {
                 q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 1))
               }
-              break;
+              break
           }
         }
-
 
         const unsubscribe = onSnapshot(q, async querySnapshot => {
           try {

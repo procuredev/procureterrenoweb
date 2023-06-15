@@ -74,13 +74,20 @@ const FormLayoutsSolicitud = () => {
     let setOfAreas = areas.find(obj => obj.name === plant)
     if (setOfAreas) {
       let areaNames = setOfAreas.allAreas.map(
-        element => Object.keys(element).toString() + ' - ' + Object.values(element).toString())
+        element => Object.keys(element).toString() + ' - ' + Object.values(element).toString()
+      )
       setPlants(Object.values(areaNames))
     } else {
       setPlants(['No aplica'])
     }
   }
 
+  // ** State Solo para Image Uploader
+  const [files, setFiles] = useState([])
+
+  // ** Hooks
+  const auth = useFirebase()
+  const { getPetitioner, getAllMELUsers } = useFirebase()
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
@@ -151,9 +158,21 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleSubmit = () => {
-    event.preventDefault();
-    newDoc(values)
-    setValues(initialValues)
+    //event.preventDefault();
+
+    // Crear un array de objetos con la propiedad "url" para cada foto
+    const photosArray = files.map(file => ({ url: URL.createObjectURL(file) }))
+
+    auth.newDoc(values)
+    setValues({
+      title: '',
+      start: '',
+      description: '',
+      area: '',
+      objective: '',
+      receiver: '',
+      photos: photosArray
+    })
   }
 
   // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
@@ -238,7 +257,7 @@ const FormLayoutsSolicitud = () => {
                     getPetitionerOptions(event.target.dataset.value)
                   }}
                 >
-                  {(authUser && authUser.plant === 'allPlants') ? (
+                  {auth.authUser && auth.authUser.plant === 'allPlants' ? (
                     areas.map(plant => {
                       return (
                         <MenuItem key={plant.name} value={plant.name}>
@@ -379,20 +398,21 @@ const FormLayoutsSolicitud = () => {
             {/* Objetivo - Tipo de levantamiento - Select*/}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='input-label-objective'>Tipo de Levantamiento</InputLabel>
+                <InputLabel id='input-label-objetivo'>Tipo de levantamiento</InputLabel>
                 <Select
+                  multiple
                   InputLabelProps={{ required: true }}
                   label='Tipo de levantamiento'
                   defaultValue=''
                   id='id-objetivo'
                   labelId='labelId-objetivo'
                   value={values.objective}
-                  onChange={(event) => {
-                    const newValue = event.target.value;
-                    setValues((prevValues) => ({
+                  onChange={event => {
+                    const newValue = event.target.value
+                    setValues(prevValues => ({
                       ...prevValues,
-                      objective: newValue,
-                    }));
+                      objective: newValue
+                    }))
                   }}
                 >
                   <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
@@ -400,11 +420,9 @@ const FormLayoutsSolicitud = () => {
                   <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
                   <MenuItem value='Levantamiento 3D'>Levantamiento 3D</MenuItem>
                   <MenuItem value='Levantamiento 3D GPS'>Levantamiento 3D GPS</MenuItem>
-                  <MenuItem value='Topografía'>Topografía</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-
 
             {/*Entregables - Multiple autocomplete */}
             <Grid item xs={12}>
@@ -412,22 +430,16 @@ const FormLayoutsSolicitud = () => {
                 <Autocomplete
                   multiple
                   fullWidth
-                  options={[
-                    'Sketch',
-                    'Plano de Fabricación',
-                    'Plano de Diseño',
-                    'Memoria de Cálculo',
-                    'Informe',
-                  ]}
+                  options={['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe']}
                   value={values.deliverable}
                   onChange={(event, newValue) => {
                     console.log(newValue)
-                    setValues((prevValues) => ({
+                    setValues(prevValues => ({
                       ...prevValues,
-                      deliverable: newValue,
-                    }));
+                      deliverable: newValue
+                    }))
                   }}
-                  renderInput={(params) => (
+                  renderInput={params => (
                     <TextField
                       {...params}
                       label='Entregables del levantamiento'
@@ -436,25 +448,25 @@ const FormLayoutsSolicitud = () => {
                     />
                   )}
                 />
-
               </FormControl>
             </Grid>
 
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Autocomplete
+                <Autocomplete
                   multiple
                   fullWidth
                   options={allUsers}
-                  getOptionLabel={(user) => user.name}
+                  getOptionLabel={user => user.name}
                   value={values.receiver}
                   onChange={(event, newValue) => {
-                    setValues((prevValues) => ({
+                    setValues(prevValues => ({
                       ...prevValues,
-                      receiver: newValue,
-                    }));
+                      receiver: newValue
+                    }))
                   }}
-                  renderInput={(params) => (
+                  renderInput={params => (
                     <TextField
                       {...params}
                       InputLabelProps={{ required: true }}
@@ -463,7 +475,6 @@ const FormLayoutsSolicitud = () => {
                     />
                   )}
                 />
-
               </FormControl>
             </Grid>
 
@@ -478,8 +489,8 @@ const FormLayoutsSolicitud = () => {
                   value={values.description}
                   onChange={() => setValues({ ...values, description: event.target.value })}
 
-                //placeholder='carterleonard@gmail.com'
-                //helperText='You can use letters, numbers & periods'
+                  //placeholder='carterleonard@gmail.com'
+                  //helperText='You can use letters, numbers & periods'
                 />
               </FormControl>
             </Grid>
