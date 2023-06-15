@@ -64,7 +64,7 @@ export function registerValidator(values) {
   for (const key in values) {
     if (typeof values[key] === 'string') {
       if (key !== 'opshift' && values[key].trim() === '') {
-        throw new Error('Debes rellenar todos los campos.' + `Error en campo ${key} `)
+        throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
     }
     if (typeof values[key] !== 'string' && key !== 'role') {

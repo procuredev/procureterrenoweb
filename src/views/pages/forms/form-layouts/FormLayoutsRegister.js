@@ -40,16 +40,13 @@ import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search'
 import { SettingsVoice } from '@mui/icons-material'
 
 const FormLayoutsBasic = () => {
-  const initialValues = {
+  let initialValues = {
     name: '',
     rut: '',
     phone: '',
     email: '',
     company: '',
-    role: '',
-    plant: '',
-    shift: '',
-    opshift: ''
+    role: ''
   }
 
   // ** States
@@ -57,7 +54,8 @@ const FormLayoutsBasic = () => {
   const [values, setValues] = useState(initialValues)
   const [password, setPassword] = useState('')
   const [dialog, setDialog] = useState(false)
-  const [attempts, setAttempts] = useState(0) // Estado para realizar un seguimiento de los intentos realizados
+  const [attempts, setAttempts] = useState(0)
+  const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [dialogError, setDialogError] = useState('')
   const [contOptions, setContOptions] = useState([])
@@ -68,7 +66,6 @@ const FormLayoutsBasic = () => {
 
   const handleChange = prop => event => {
     let newValue = event.target.value
-    console.log(newValue)
     if (newValue) {
       switch (prop) {
         case 'phone':
@@ -184,41 +181,42 @@ const FormLayoutsBasic = () => {
   }
 
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 2 // Número máximo de intentos permitidos
+    const maxAttempts = 2; // Número máximo de intentos permitidos
 
     try {
-      await signAdminBack(values, password)
-      setValues(initialValues)
-      setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
-      setDialog(false)
+      const message = await signAdminBack(values, password);
+      setValues(initialValues);
+      setAttempts(0); // Reiniciar el contador de intentos si el inicio de sesión es exitoso
+      setDialog(false);
+      setSuccessMessage(message)
     } catch (error) {
-      console.log(error)
-      setAttempts(attempts + 1) // Incrementar el contador de intentos
+      console.log(error);
+      setAttempts(attempts + 1); // Incrementar el contador de intentos
+
       if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-        setDialogError('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts))
-      }
-      if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
-        setDialogError('Error, no se creó ningún usuario. Serás redirigid@ al login.')
+        setDialogError('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts));
+      } else if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
+        setDialogError('Error, no se creó ningún usuario. Serás redirigid@ al login.');
         setTimeout(() => {
           signAdminFailure().catch(error => {
-            console.log(error.message)
-          })
-          setDialog(false)
-          setDialogError('')
-        }, 1500)
-      }
-      if (attempts >= maxAttempts) {
-        setDialogError('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
+            console.log(error.message);
+          });
+          setDialog(false);
+          setDialogError('');
+        }, 1500);
+      } else if (attempts >= maxAttempts) {
+        setDialogError('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.');
         setTimeout(() => {
           signAdminFailure().catch(error => {
-            console.log(error.message)
-          })
-          setDialog(false)
-          setDialogError('')
-        }, 1500)
+            console.log(error.message);
+          });
+          setDialog(false);
+          setDialogError('');
+        }, 1500);
       }
     }
-  }
+  };
+
 
   const getOptions = async (plant, shift = '') => {
     let options = await getUsers(plant, shift)
@@ -234,14 +232,19 @@ const FormLayoutsBasic = () => {
   return (
     <Card>
       <CardHeader title='Registrar usuario' />
-      {errorMessage && (
-        <CardContent>
+      <CardContent>
+        {successMessage && (
+          <Alert severity="success">
+            <AlertTitle>Éxito</AlertTitle>
+            {successMessage}
+          </Alert>
+        )} {errorMessage && (
           <Alert severity='error' onClose={() => setErrorMessage('')}>
             <AlertTitle>Error</AlertTitle>
             {errorMessage}
           </Alert>
-        </CardContent>
-      )}
+        )}
+      </CardContent>
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
@@ -411,7 +414,7 @@ const FormLayoutsBasic = () => {
                       value={values.opshift}
                       onChange={handleChange('opshift')}
 
-                      /* error={errors.opshift ? true : false} */
+                    /* error={errors.opshift ? true : false} */
                     >
                       {opShiftOptions.map(element => {
                         return (

@@ -41,20 +41,11 @@ const WindowWrapper = ({ children }) => {
 
   // ** Permite mostrar contenido si existe user o si va a entrar (login o forgotpass)
   useEffect(() => {
-    if (windowReadyFlag && !loading && ((authUser && router.asPath !== '/nuevo-usuario/' )|| router.asPath === '/login/' || router.asPath === '/forgot-password/')) {
+    if (windowReadyFlag && !loading && (authUser || router.asPath === '/login/' || router.asPath === '/forgot-password/'  )) {
       setShowContent(true) // Actualiza el estado para mostrar el contenido
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowReadyFlag, authUser, loading, router.route])
-
-    // ** Evita acceso a vistas de admin
-    useEffect(() => {
-      if (windowReadyFlag && !loading && (authUser.role!==1 && router.asPath === '/nuevo-usuario/')) {
-        router.push('/401');
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [windowReadyFlag, authUser, loading, router.route])
-
 
   return (
     <>

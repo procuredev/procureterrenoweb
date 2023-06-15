@@ -186,7 +186,6 @@ const FirebaseContextProvider = props => {
       // Actualiza usuario
       try {
         await updateProfile(Firebase.auth().currentUser, {
-          // Hardcoded pero pueden -deben- pasársele argumentos cuando la usemos
           displayName: name,
           photoURL: ''
         })
@@ -205,43 +204,49 @@ const FirebaseContextProvider = props => {
     }
   }
 
-  const createUserInDatabase = async values => {
-    const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
-    try {
-      await setDoc(doc(db, 'users', newUID), {
-        name: name,
-        email: email,
-        rut: rut,
-        phone: phone,
-        company: company,
-        role: role,
-        ...(plant && { plant }),
-        ...(contop && { contop }),
-        ...(shift && { shift }),
-        ...(opshift && { opshift })
-      })
-    } catch (error) {
-      console.log(error)
-      throw new Error('Error al crear el usuario en la base de datos: ' + error)
-    }
-  }
+  const createUserInDatabase = values => {
+    const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values;
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        await setDoc(doc(db, 'users', newUID), {
+          name: name,
+          email: email,
+          rut: rut,
+          phone: phone,
+          company: company,
+          role: role,
+          ...(plant && { plant }),
+          ...(contop && { contop }),
+          ...(shift && { shift }),
+          ...(opshift && { opshift })
+        });
+
+        resolve('Usuario creado exitosamente en la base de datos');
+      } catch (error) {
+        console.log(error);
+        reject(new Error('Error al crear el usuario en la base de datos: ' + error));
+      }
+    });
+  };
 
   // ** Permite que el admin entre de vuelta y escribe en db
   const signAdminBack = async (values, password) => {
     try {
-      await Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
-      await createUserInDatabase(values)
-      setNewUID('')
+      await Firebase.auth().signInWithEmailAndPassword(oldEmail, password);
+      const successMessage = await createUserInDatabase(values);
+
+      setNewUID('');
 
       // Realizar acciones adicionales si es necesario
 
-      // Redirigir o realizar otras acciones, como volver a la página de inicio de sesión
-      // router.push('/login/');
+      return successMessage; // Retornar el mensaje de éxito
     } catch (error) {
-      console.log(error)
-      throw new Error(error)
+      console.log(error);
+      throw new Error(error);
     }
-  }
+  };
+
 
   async function signAdminFailure() {
     const user = auth.currentUser

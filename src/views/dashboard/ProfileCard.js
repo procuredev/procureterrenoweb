@@ -33,7 +33,7 @@ const ProfileCard = () => {
             <Typography variant='h5' sx={{ mb: 6 }}>
              Hola,{' '}
               <Box component='span' sx={{ fontWeight: 'bold', mb:4.5 }}>
-              {authUser && (authUser.displayName || typeof authUser.role === 'number' ? dictionary[authUser.role].name : 'No definido')}
+              {authUser && (authUser.displayName || typeof authUser.role === 'number' ? (dictionary[authUser.role] && dictionary[authUser.role].name) : 'No definido')}
               </Box>
               ! 👋
             </Typography>
