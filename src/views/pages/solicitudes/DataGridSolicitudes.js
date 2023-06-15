@@ -32,7 +32,7 @@ const DataGrid = () => {
   const [roleData, setRoleData] = useState({name:'admin'});
 
   const { useSnapshot, authUser, getRoleData } = useFirebase()
-  const data = useSnapshot()
+  const data = useSnapshot(true)
   console.log(data)
 
   useEffect(() => {

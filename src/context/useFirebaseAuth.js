@@ -460,30 +460,36 @@ const FirebaseContextProvider = props => {
   }
 
   // ** Escucha cambios en los documentos en tiempo real
-  const useSnapshot = () => {
+  const useSnapshot = ( datagrid = false ) => {
     const [data, setData] = useState([])
 
     useEffect(() => {
       if (authUser) {
         console.log(authUser.role, 'USER PLANT')
 
-        let q
+        let q = query(collection(db, 'solicitudes'))
 
         const getAllDocs = [1, 4, 5, 6, 7, 9]
 
-        if (authUser.role === 2) {
-          q = query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
-        } else if (authUser.role === 3) {
-          q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
-        } else if (authUser.role === 5) {
-          q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 2))
-        } else {
-          q = getAllDocs.includes(authUser.role)
-            ? ![1, 9].includes(authUser.role)
-              ? query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 1))
-              : query(collection(db, 'solicitudes'))
-            : undefined
+        if (datagrid) {
+          switch (authUser.role) {
+            case 2:
+              q = query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
+              break;
+            case 3:
+              q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
+              break;
+            case 5:
+              q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 2))
+              break;
+            default:
+              if (getAllDocs.includes(authUser.role) && ![1, 9].includes(authUser.role)) {
+                q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 1))
+              }
+              break;
+          }
         }
+
 
         const unsubscribe = onSnapshot(q, async querySnapshot => {
           try {

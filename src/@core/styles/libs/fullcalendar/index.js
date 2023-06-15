@@ -241,7 +241,11 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
         },
         '&.fc-daygrid-event': {
           marginLeft: '4px',
-          marginRight: '4px'
+          marginRight: '4px',
+          '&:hover': {
+            width: 'fit-content !important',
+            minWidth: '-webkit-fill-available'
+          }
         }
       },
       '& .fc-view-harness': {

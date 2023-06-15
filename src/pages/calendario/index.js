@@ -127,7 +127,7 @@ const AppCalendar = () => {
     return title
   }
 
-  const content = data ? {
+  const content = data && authUser ? {
     all:{
       data: data,
     },
