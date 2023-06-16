@@ -175,6 +175,15 @@ const FormLayoutsSolicitud = () => {
       setAllUsers(value))
   }, [])
 
+  useEffect(() => {
+    if (authUser.role===2) {
+      let plant = authUser.plant
+      setValues({ ...values, plant })
+      findAreas(plant)
+      getPetitionerOptions(plant)
+    }
+  }, [])
+
   return (
     <Card>
       <CardHeader title='Nueva Solicitud' />
@@ -215,12 +224,11 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth disabled={authUser.role === 2} >
                 <InputLabel id='input-label-area'>Planta</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
                   label='Plant'
-                  defaultValue='...'
                   id='id-plant'
                   labelId='labelId-plant'
                   value={values.plant}

@@ -96,37 +96,6 @@ const TabAccount = () => {
       })
   }
 
-  /* const handleInputImageChange = archivo => {
-    const file = archivo.target.files[0]
-
-    uploadFileToStorage(file)
-      .then(snapshot => {
-        console.log('Archivo subido exitosamente')
-
-        // Aquí puedes realizar acciones adicionales después de subir el archivo
-      })
-      .catch(error => {
-        console.error('Error al subir el archivo:', error)
-      })
-  } */
-
-  /*  const handleInputImageChange = archivo => {
-    const file = archivo.target.files[0]
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      if (reader.result !== null) {
-        setImgSrc(reader.result)
-
-        setInputValue(reader.result)
-
-        console.log(inputValue, 'inputValue')
-        console.log(imgSrc, 'imgSrc')
-      }
-    }
-
-    reader.readAsDataURL(file)
-  } */
-
   const handleInputImageReset = () => {
     setInputValue('')
     setImgSrc(initialImg)
