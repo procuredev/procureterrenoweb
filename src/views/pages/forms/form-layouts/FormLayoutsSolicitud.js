@@ -31,7 +31,6 @@ import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
 
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -39,7 +38,6 @@ import Icon from 'src/@core/components/icon'
 import { useDropzone } from 'react-dropzone'
 
 const FormLayoutsSolicitud = () => {
-
   const initialValues = {
     title: '',
     author: '',
@@ -53,11 +51,11 @@ const FormLayoutsSolicitud = () => {
     receiver: [],
     type: '',
     petitioner: '',
-    sap: '',
+    sap: ''
   }
 
   // ** Hooks
-  const { authUser, getPetitioner, getAllMELUsers, newDoc } = useFirebase()
+  const { authUser, getPetitioner, getAllMELUsers, newDoc, uploadFilesToFirebaseStorage } = useFirebase()
   const router = useRouter()
 
   // ** States
@@ -68,7 +66,6 @@ const FormLayoutsSolicitud = () => {
   const [petitionerOpShift, setPetitionerOpShift] = useState([])
 
   const [values, setValues] = useState(initialValues)
-
 
   const findAreas = plant => {
     let setOfAreas = areas.find(obj => obj.name === plant)
@@ -81,13 +78,6 @@ const FormLayoutsSolicitud = () => {
       setPlants(['No aplica'])
     }
   }
-
-  // ** State Solo para Image Uploader
-  const [files, setFiles] = useState([])
-
-  // ** Hooks
-  const auth = useFirebase()
-  const { getPetitioner, getAllMELUsers } = useFirebase()
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
@@ -157,22 +147,12 @@ const FormLayoutsSolicitud = () => {
     event.preventDefault()
   }
 
-  const handleSubmit = () => {
-    //event.preventDefault();
-
-    // Crear un array de objetos con la propiedad "url" para cada foto
-    const photosArray = files.map(file => ({ url: URL.createObjectURL(file) }))
-
-    auth.newDoc(values)
-    setValues({
-      title: '',
-      start: '',
-      description: '',
-      area: '',
-      objective: '',
-      receiver: '',
-      photos: photosArray
-    })
+  const handleSubmit = async () => {
+    event.preventDefault()
+    const solicitud = await newDoc(values)
+    await uploadFilesToFirebaseStorage(files, solicitud.id)
+    handleRemoveAllFiles()
+    setValues(initialValues)
   }
 
   // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
@@ -190,12 +170,11 @@ const FormLayoutsSolicitud = () => {
   }
 
   useEffect(() => {
-    getAllMELUsers().then((value) =>
-      setAllUsers(value))
+    getAllMELUsers().then(value => setAllUsers(value))
   }, [])
 
   useEffect(() => {
-    if (authUser.role===2) {
+    if (authUser.role === 2) {
       let plant = authUser.plant
       setValues({ ...values, plant })
       findAreas(plant)
@@ -243,7 +222,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <Grid item xs={12}>
-              <FormControl fullWidth disabled={authUser.role === 2} >
+              <FormControl fullWidth disabled={authUser.role === 2}>
                 <InputLabel id='input-label-area'>Planta</InputLabel>
                 <Select
                   InputLabelProps={{ required: true }}
@@ -257,18 +236,15 @@ const FormLayoutsSolicitud = () => {
                     getPetitionerOptions(event.target.dataset.value)
                   }}
                 >
-                  {auth.authUser && auth.authUser.plant === 'allPlants' ? (
-                    areas.map(plant => {
-                      return (
-                        <MenuItem key={plant.name} value={plant.name}>
-                          {plant.name}
-                        </MenuItem>
-                      )
-                    })
-                  ) : (
-                    authUser &&
-                    <MenuItem value={authUser.plant}>{authUser.plant}</MenuItem>
-                  )}
+                  {authUser && authUser.plant === 'allPlants'
+                    ? areas.map(plant => {
+                        return (
+                          <MenuItem key={plant.name} value={plant.name}>
+                            {plant.name}
+                          </MenuItem>
+                        )
+                      })
+                    : authUser && <MenuItem value={authUser.plant}>{authUser.plant}</MenuItem>}
                 </Select>
               </FormControl>
             </Grid>
@@ -398,9 +374,8 @@ const FormLayoutsSolicitud = () => {
             {/* Objetivo - Tipo de levantamiento - Select*/}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='input-label-objetivo'>Tipo de levantamiento</InputLabel>
+                <InputLabel id='input-label-objective'>Tipo de Levantamiento</InputLabel>
                 <Select
-                  multiple
                   InputLabelProps={{ required: true }}
                   label='Tipo de levantamiento'
                   defaultValue=''
@@ -420,6 +395,7 @@ const FormLayoutsSolicitud = () => {
                   <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
                   <MenuItem value='Levantamiento 3D'>Levantamiento 3D</MenuItem>
                   <MenuItem value='Levantamiento 3D GPS'>Levantamiento 3D GPS</MenuItem>
+                  <MenuItem value='Topografía'>Topografía</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -453,7 +429,6 @@ const FormLayoutsSolicitud = () => {
 
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <Autocomplete
                 <Autocomplete
                   multiple
                   fullWidth

@@ -92,7 +92,6 @@ const TabAccount = () => {
       .then(result => {
         setImgSrc(result)
         setInputValue(result)
-        updateUserProfile({ urlFoto: result }) // Actualizar el documento del usuario en Firebase
       })
       .catch(error => {
         console.error(error)

@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore'
 
 import { getAuth, signOut, deleteUser } from 'firebase/auth'
-import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage'
+import { getStorage, ref, uploadString, getDownloadURL, uploadBytes } from 'firebase/storage'
 
 // ** Next Imports
 import { useRouter } from 'next/router'
@@ -68,7 +68,7 @@ const FirebaseContextProvider = props => {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
-      pfp: user.photoURL,
+      pfp: data.urlFoto,
       phone: data ? data.phone || 'No definido' : 'No disponible',
       role: data ? data.role || 'No definido' : 'No disponible',
       plant: data ? data.plant || 'No definido' : 'No disponible',
@@ -134,22 +134,28 @@ const FirebaseContextProvider = props => {
 
   // ** Actualiza Perfil de usuario
   const updateUserProfile = async inputValue => {
-    const user = authUser.uid
+    try {
+      const user = authUser.uid
+      const newPhoto = inputValue
 
-    const newPhoto = inputValue
+      if (newPhoto !== null && newPhoto !== '') {
+        const storageRef = ref(storage, `fotoPerfil/${user}/nuevaFoto`)
 
-    if (newPhoto !== null && newPhoto != '') {
-      console.log(newPhoto, 'PARAMETROS')
-      console.log(`fotoPerfil/${user}/${newPhoto.data}`)
-
-      //const ref = Firebase.storage().ref(`fotoPerfil/${user}/${newPhoto.name}`)
-      const storageRef = ref(storage, `fotoPerfil/${user}/nuevaFoto`)
-
-      uploadString(storageRef, newPhoto, 'data_url')
-        .then(snapshot => {
+        try {
+          await uploadString(storageRef, newPhoto, 'data_url')
           console.log('Uploaded a data_url string!')
-        })
-        .catch(error => alert(error, 'errordesubida'))
+
+          const downloadURL = await getDownloadURL(storageRef)
+
+          // Actualizar el documento del usuario con la nueva URL de la foto
+          await updateDoc(doc(db, 'users', user), { urlFoto: downloadURL })
+          console.log('URL de la foto actualizada exitosamente')
+        } catch (error) {
+          console.error('Error al subir la imagen:', error)
+        }
+      }
+    } catch (error) {
+      console.error('Error al actualizar el perfil de usuario:', error)
     }
   }
 
@@ -205,7 +211,7 @@ const FirebaseContextProvider = props => {
   }
 
   const createUserInDatabase = values => {
-    const { name, rut, phone, email, plant, shift, company, role, contop, opshift } = values
+    const { name, rut, phone, email, plant, shift, company, role, contop, opshift, urlFoto } = values
 
     const photoURL = Firebase.auth().currentUser.photoURL
 
@@ -318,7 +324,7 @@ const FirebaseContextProvider = props => {
 
         console.log('Nueva solicitud creada con éxito.')
 
-        return docRef.id
+        return docRef
       } catch (error) {
         console.error('Error al crear la nueva solicitud:', error)
         throw error
@@ -582,6 +588,45 @@ const FirebaseContextProvider = props => {
 
   //si recibe planta y turno, trae todos los usuarios con ese valor de planta y rol de solicitante y turno opuesto
 
+  const uploadFilesToFirebaseStorage = async (files, idSolicitud) => {
+    if (files && files.length > 0) {
+      try {
+        const arrayURL = []
+
+        for (const file of files) {
+          const storageRef = ref(storage, `fotosSolicitud/${idSolicitud}/fotos/${file.name}`)
+
+          if (file) {
+            // El formato de la cadena de datos es válido, puedes llamar a uploadString
+            const snapshot = await uploadBytes(storageRef, file)
+            console.log(snapshot, 'Uploaded a data_url string!')
+
+            const downloadURL = await getDownloadURL(storageRef)
+
+            arrayURL.push(downloadURL)
+          } else {
+            // El formato de la cadena de datos no es válido, muestra un mensaje de error o maneja la situación según sea necesario
+            console.log('El objeto no tiene un formato de URL de datos válido.')
+          }
+        }
+
+        const solicitudRef = doc(db, 'solicitudes', idSolicitud)
+        const solicitudDoc = await getDoc(solicitudRef)
+
+        if (solicitudDoc.exists()) {
+          const fotos = arrayURL || []
+
+          await updateDoc(solicitudRef, { fotos })
+          console.log('URL de la foto actualizada exitosamente')
+        } else {
+          console.error('El documento de la solicitud no existe')
+        }
+      } catch (error) {
+        console.error('Error al subir la imagen:', error)
+      }
+    }
+  }
+
   const value = {
     authUser,
     auth,
@@ -604,7 +649,8 @@ const FirebaseContextProvider = props => {
     getRoleData,
     getUsers,
     getPetitioner,
-    getAllMELUsers
+    getAllMELUsers,
+    uploadFilesToFirebaseStorage
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
