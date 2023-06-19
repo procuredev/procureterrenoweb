@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore'
 
 import { getAuth, signOut, deleteUser } from 'firebase/auth'
-import { getStorage, ref, uploadString, getDownloadUR } from 'firebase/storage'
+import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage'
 
 // ** Next Imports
 import { useRouter } from 'next/router'
