@@ -8,12 +8,13 @@ export function registerValidator(values) {
   const valRoleProcure = [5, 6, 7, 8, 9]
 
   const valPlant = [
-    'Los Colorados',
-    'Laguna Seca 1',
-    'Laguna Seca 2',
+    'Planta Concentradora Los Colorados',
+    'Planta Concentradora Laguna Seca | Línea 1',
+    'Planta Concentradora Laguna Seca | Línea 2',
     'Chancado y correas',
     'Puerto Coloso',
-    'Instalaciones Cátodo'
+    'Instalaciones Cátodo',
+    'allPlants'
   ]
 
   const validations = {
