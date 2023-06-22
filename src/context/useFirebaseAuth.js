@@ -630,6 +630,16 @@ const FirebaseContextProvider = props => {
         allDocs.push({ ...doc.data(), id: doc.id })
         console.log(allDocs)
       })
+    } else if (authUser.role === 3) {
+      const q = query(collection(db, 'users'), where('plant', '==', plant))
+
+      const querySnapshot = await getDocs(q)
+
+      querySnapshot.forEach(doc => {
+        // doc.data() is never undefined for query doc snapshots
+        allDocs.push({ ...doc.data(), id: doc.id })
+        console.log(allDocs)
+      })
     } else {
       const q = onSnapshot(doc(db, 'users', authUser.uid), doc => {
         //console.log('Current data: ', doc.data())
