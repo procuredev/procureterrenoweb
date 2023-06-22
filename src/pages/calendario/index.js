@@ -2,12 +2,15 @@
 import Box from '@mui/material/Box'
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import useMediaQuery from '@mui/material/useMediaQuery'
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField'
+import IconButton from '@mui/material/IconButton';
+import Close from '@mui/icons-material/Close'
 
 const moment = require('moment');
 
@@ -35,8 +38,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
-import { date } from 'yup'
-import { light } from '@mui/material/styles/createPalette';
+
 
 
 const AppCalendar = () => {
@@ -51,10 +53,11 @@ const AppCalendar = () => {
     id: 'id'
   }
 
-  const [roleData, setRoleData] = useState({name:'admin'});
+  const [roleData, setRoleData] = useState({ name: 'admin' });
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState(initialEvent)
   const [filter, setFilter] = useState("all")
+  const [inputValue, setInputValue] = useState("");
   const [checkbox, setCheckbox] = useState(false)
 
   const handleModalToggle = (clickedEvent) => {
@@ -70,8 +73,11 @@ const AppCalendar = () => {
     setDoc(initialEvent)
   }
 
-  const handleChange = (event) => {
-    setFilter(event.target.value);
+  const handleChange = (event, value) => {
+    if (value) {
+      setFilter(value[0]);
+      setInputValue(event.target.innerText)
+    }
   };
 
   // ** Hooks
@@ -82,11 +88,9 @@ const AppCalendar = () => {
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  const {authUser, useSnapshot, getRoleData} = useFirebase()
+  const { authUser, useSnapshot, getRoleData } = useFirebase()
   const data = useSnapshot()
   const theme = useTheme()
-
-  console.log(theme.palette)
 
   useEffect(() => {
     const role = async () => {
@@ -127,23 +131,120 @@ const AppCalendar = () => {
     return title
   }
 
-  const content = data && authUser ? {
-    all:{
-      data: data,
-    },
-    pending:{
-      data: data.filter(doc => doc.state === authUser.role - 1),
-    },
-    approved:{
-      data: data.filter(doc => doc.state >= 5 && doc.state < 10),
-    },
-    rejected:{
-      data: data.filter(doc => doc.state === 10),
-      label: 'Rechazadas'
-    },
-  } : {}
+  const otherWeek = (date) => {
+    let dateFormatted = new Date(date * 1000)
+    let week = moment(dateFormatted).isoWeek()
 
-  console.log(content.all.data)
+    return week % 2 == 0
+  }
+
+  const filterByLabel = (label) => {
+    const allOptions = [...new Set(data.flatMap(obj => obj[label]))];
+
+    const filteredOptions = allOptions.reduce((result, element) => {
+      result[element] = {
+        data: data.filter((doc) => doc[label] === element),
+        label: `${element}`,
+        canSee: [1, 5, 6, 7, 9]
+      };
+      result['rejected' + element] = {
+        data: data.filter((doc) => doc[label] === element && doc.state === 10),
+        label: `Rechazadas ${element}`,
+        canSee: [1, 5, 6, 7, 9]
+      };
+
+      return result;
+    }, {});
+
+    return filteredOptions;
+  };
+
+  const filterByPlant = () => {
+    return filterByLabel("plant");
+  };
+
+  const filterByJobType = () => {
+    return filterByLabel("objective");
+  };
+
+  const content = data && authUser
+    ? {
+      all: {
+        data: data,
+        label: "Todas las solicitudes",
+        canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+      },
+      pendingApprovalByMe: {
+        data: data.filter(doc => doc.state === authUser.role - 1),
+        label: "Pendientes de mi aprobación",
+        canSee: [1, 2, 3, 5, 6]
+      },
+      inReviewByMEL: {
+        data: data.filter(doc => doc.state === 2),
+        label: "En revisión por MEL",
+        canSee: [1, 2, 3, 4, 5, 6, 7, 9]
+      },
+      inReviewByProcure: {
+        data: data.filter(doc => doc.state === 5),
+        label: "En revisión por Procure",
+        canSee: [1, 2, 3, 4, 5, 6, 7, 9]
+      },
+      approvedByMEL: {
+        data: data.filter(doc => doc.state === 3),
+        label: "Aprobadas por MEL",
+        canSee: [1, 2, 3, 4, 5, 6, 7, 9]
+      },
+      approvedByProcure: {
+        data: data.filter(doc => doc.state >= 6 && doc.state < 10),
+        label: "Aprobadas por Procure",
+        canSee: [1, 2, 3, 4, 5, 6, 7, 9]
+      },
+      myRejected: {
+        data: data.filter(doc => doc.state === 10 && doc.uid === authUser.uid),
+        label: "Mis solicitudes rechazadas",
+        canSee: [1, 2, 3]
+      },
+      allRejected: {
+        data: data.filter(doc => doc.state === 10),
+        label: "Todas las rechazadas",
+        canSee: [1, 4, 5, 6, 7, 9]
+      },
+      requestedByMe: {
+        data: data.filter(doc => doc.uid === authUser.uid),
+        label: "Mis solicitudes",
+        canSee: [1, 2, 3]
+      },
+      withOT: {
+        data: data.filter(doc => doc.hasOwnProperty('ot')),
+        label: "Tiene OT",
+        canSee: [1, 2, 3, 4, 5, 6, 7, 9]
+      },
+      withoutOT: {
+        data: data.filter(doc => !doc.hasOwnProperty('ot')),
+        label: "Sin OT",
+        canSee: [1, 2, 3, 4, 5, 6, 7, 9]
+      },
+      shiftA: {
+        data: data.filter(doc => otherWeek(doc.start.seconds)),
+        label: "Turno P",
+        canSee: [1, 3, 4, 5, 6, 9]
+      },
+      shiftB: {
+        data: data.filter(doc => !otherWeek(doc.start.seconds)),
+        label: "Turno Q",
+        canSee: [1, 3, 4, 5, 6, 9]
+      },
+
+      //Pendiente revisar semana según usuario
+      approvedByProcureInMyWeek: {
+        data: data.filter(doc => doc.state >= 6 && doc.state < 10 && otherWeek(doc.start.seconds)),
+        label: "Aprobadas por Procure en mi semana",
+        canSee: [1, 7]
+      },
+      ...filterByJobType(),
+      ...filterByPlant(),
+    } : {}
+
 
   const calendarOptions = {
     events: content[filter].data.map(a => ({
@@ -153,7 +254,8 @@ const AppCalendar = () => {
       id: a.id,
       description: a.description,
       backgroundColor: setColor(a),
-      borderColor: 'transparent' })),
+      borderColor: 'transparent'
+    })),
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: 'dayGridMonth',
     headerToolbar: {
@@ -178,47 +280,64 @@ const AppCalendar = () => {
       showFilters: {
         text: 'Filtros',
         click: function () {
-          setCheckbox(state=>!state)
+          setCheckbox(state => !state)
         }
       }
     },
     firstDay: 1,
-    dayCellClassNames: function(date) {
-    const week = moment(date.date).isoWeek()
-    let color = ( week % 2 == 0 && !date.isToday ) && 'week'
+    dayCellClassNames: function (date) {
+      const week = moment(date.date).isoWeek()
+      let color = (week % 2 == 0 && !date.isToday) && 'week'
 
-    return color
-  },
-  fixedWeekCount:false
+      return color
+    },
+    fixedWeekCount: false
 
-}
+  }
 
   return (
     <>
-    {checkbox && <Box sx={{
-        mb:5,
+      {checkbox && <Box sx={{
+        mb: 5,
         px: 5,
-        pt: 3.75,
+
         flexGrow: 1,
         borderRadius: 1,
         backgroundColor: 'background.paper',
         boxShadow: skin === 'bordered' ? 0 : 6,
         ...(skin === 'bordered' && { border: theme => `1px solid ${theme.palette.divider}` })
       }}>
-     <FormControl>
-      <FormLabel id="demo-radio-buttons-group-label">Filtros</FormLabel>
-      <RadioGroup
-        row
-        aria-labelledby="demo-radio-buttons-group-label"
-        defaultValue="all"
-        name="radio-buttons-group"
-        onChange={handleChange}
-      >
-        <FormControlLabel value="all" control={<Radio />} label="Todas las solicitudes" />
-        <FormControlLabel value="pending" control={<Radio />} label="Pendientes" />
-        <FormControlLabel value="approved" control={<Radio />} label="Aprobadas" />
-      </RadioGroup>
-    </FormControl>
+        <FormControl fullWidth sx={{ mb: 5, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <FormLabel id="autocomplete-label" sx={{ mb: 3, pt: 3 }}>Filtros</FormLabel>
+          <IconButton
+            onClick={() => setCheckbox(prev => !prev)}
+            color='primary'
+            component='button'
+            sx={{ justifyContent: 'flex-end', width: 'min-content' }}
+          ><Close />
+          </IconButton>
+          <Autocomplete
+            fullWidth
+            clearOnBlur
+            options={Object.entries(content).filter(([key, { canSee }]) => {
+              return canSee.includes(authUser.role);
+            })}
+            getOptionLabel={([key, { data, label }]) => label ? label : ""}
+            renderInput={(params) => <TextField {...params} placeholder="Filtrar por..." />}
+            value={filter}
+            inputValue={inputValue}
+            isOptionEqualToValue={(option, value) => option[0] === value}
+            onInputChange={(event, newInputValue, reason) => {
+              if (reason === "input") {
+                setInputValue(newInputValue);
+              } else if (reason === "clear") {
+                setInputValue("")
+                setFilter("all")
+              }
+            }}
+            onChange={handleChange}
+          />
+        </FormControl>
       </Box>}
 
       <CalendarWrapper
@@ -244,10 +363,10 @@ const AppCalendar = () => {
         >
           <FullCalendar {...calendarOptions} />
           {open && <FullScreenDialog
-          open={open}
-          handleClose={handleClose}
-          doc={doc}
-          roleData={roleData} />}
+            open={open}
+            handleClose={handleClose}
+            doc={doc}
+            roleData={roleData} />}
         </Box>
       </CalendarWrapper>
     </>

@@ -316,6 +316,9 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
           color: theme.palette.text.disabled
         }
       },
+      '& .fc-daygrid-body-unbalanced .fc-daygrid-day-events': {
+        minHeight: '5.5em' /* in addition to being a min-height during natural height, equalizes the heights a little bit */
+      },
 
       // ** All Views Event
       '& .fc-daygrid-day-number': {
