@@ -16,7 +16,8 @@ import {
   arrayUnion,
   onSnapshot,
   where,
-  orderBy
+  orderBy,
+  limit
 } from 'firebase/firestore'
 
 import { getAuth, signOut, deleteUser } from 'firebase/auth'
@@ -68,7 +69,7 @@ const FirebaseContextProvider = props => {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
-      pfp: data.urlFoto,
+      pfp: data ? data.urlFoto || 'No definido' : 'No disponible',
       phone: data ? data.phone || 'No definido' : 'No disponible',
       role: data ? data.role || 'No definido' : 'No disponible',
       plant: data ? data.plant || 'No definido' : 'No disponible',
@@ -336,9 +337,48 @@ const FirebaseContextProvider = props => {
   const reviewDocs = async (id, approves) => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
+    const docSnapshot = querySnapshot.data()
+    const userRef = doc(db, 'users', docSnapshot.uid)
+    const userQuerySnapshot = await getDoc(userRef)
+    const devolutionState = userQuerySnapshot.data().role - 1
+
+    const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
+    const eventQuerySnapshot = await getDocs(eventQuery)
+    const eventDocs = eventQuerySnapshot.docs
 
     const prevState = querySnapshot.data().state // 'estado anterior'
-    const newState = approves ? authUser.role : 10
+    let newState
+    if (authUser.role === 3) {
+      newState = approves ? authUser.role + 1 : 10
+    } else if (authUser.role === 6) {
+      console.log(eventDocs)
+      if (eventDocs.length > 0) {
+        const lastEvent = eventDocs[0].data()
+        console.log(lastEvent)
+        newState = approves
+          ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
+            ? devolutionState
+            : authUser.role
+          : 10
+      } else {
+        console.log('No se encontraron eventos')
+        newState = approves ? authUser.role : 10
+      }
+
+      //&& Object.keys(prevDoc).length > 0
+      //newState = approves ? (Object.keys(prevDoc).start ? devolutionState : authUser.role) : 10
+      console.log(newState, 'newState')
+
+      console.log(docSnapshot, 'docSnapshot')
+
+      /* if (Object.keys(prevDoc).start) {
+        newState = devolutionState
+      } else {
+        newState = approves ? authUser.role : 10
+      } */
+    } else {
+      newState = approves ? authUser.role : 10
+    }
 
     console.log('reviewdocs')
 
@@ -369,6 +409,7 @@ const FirebaseContextProvider = props => {
     let changedFields = {}
     let prevDoc = {}
     let newState
+    let newEvent = {}
 
     for (const key in obj) {
       if (key !== 'start' && key !== 'end' && obj[key] !== docSnapshot[key]) {
@@ -388,25 +429,43 @@ const FirebaseContextProvider = props => {
       }
     }
 
-    if (Object.keys(prevDoc).length > 0) {
-      newState = changedFields.start ? devolutionState : authUser.role
+    // si planificador cambia de fecha, solictud cambia state a 5
+    if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
+      newState = authUser.role
+      changedFields.state = newState
+    }
+
+    if (authUser.role === 6 && Object.keys(prevDoc).length > 0) {
+      console.log(Object.keys(prevDoc).start, 'Object.keys(prevDoc).start')
+      console.log(obj.start, 'obj.start')
+      newState = Object.keys(prevDoc) && Object.keys(prevDoc).start !== obj.start ? devolutionState : authUser.role // REVISANDO PORQUE LA COMPARACION DE 2 OBJETOS LO TOMA DIFERENTE
       changedFields.state = newState
 
-      const newEvent = {
-        prevDoc,
-        prevState,
-        newState,
-        user: Firebase.auth().currentUser.email,
-        userName: Firebase.auth().currentUser.displayName,
-        date: Timestamp.fromDate(new Date())
-      }
-
-      await updateDoc(ref, changedFields)
-      await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+      /* if (Object.keys(prevDoc).start === obj.start) {
+        newState = authUser.role
+        changedFields.state = newState
+      } else if (changedFields.start) {
+        newState = devolutionState
+        changedFields.state = newState
+      } else {
+        newState = authUser.role
+        changedFields.state = newState
+      } */
     }
+    newEvent = {
+      prevDoc,
+      prevState,
+      newState,
+      user: Firebase.auth().currentUser.email,
+      userName: Firebase.auth().currentUser.displayName,
+      date: Timestamp.fromDate(new Date())
+    }
+
     if (Object.keys(prevDoc).length === 0) {
       console.log('No se escribió ningún documento')
     }
+    await updateDoc(ref, changedFields)
+    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
   }
 
   // ** Modifica otros campos Usuarios
@@ -557,16 +616,23 @@ const FirebaseContextProvider = props => {
 
   // trae los usuarios con el rol 2 que pertenece a una planta
   const getPetitioner = async plant => {
-    const q = query(collection(db, 'users'), where('plant', '==', plant), where('role', '==', 2))
+    let allDocs = []
+    if (authUser.plant === 'allPlants') {
+      const q = query(collection(db, 'users'), where('plant', '==', plant), where('role', '==', 2))
 
-    const querySnapshot = await getDocs(q)
-    const allDocs = []
+      const querySnapshot = await getDocs(q)
 
-    querySnapshot.forEach(doc => {
-      // doc.data() is never undefined for query doc snapshots
-      allDocs.push({ ...doc.data(), id: doc.id })
-      console.log(allDocs)
-    })
+      querySnapshot.forEach(doc => {
+        // doc.data() is never undefined for query doc snapshots
+        allDocs.push({ ...doc.data(), id: doc.id })
+        console.log(allDocs)
+      })
+    } else {
+      const q = onSnapshot(doc(db, 'users', authUser.uid), doc => {
+        //console.log('Current data: ', doc.data())
+        allDocs.push(doc.data())
+      })
+    }
 
     return allDocs
   }
@@ -574,6 +640,18 @@ const FirebaseContextProvider = props => {
   /// PRUEBA FETCH A TODOS LOS USUARIOS
   const getAllMELUsers = async () => {
     const q = query(collection(db, 'users'), where('company', '==', 'MEL'))
+    const querySnapshot = await getDocs(q)
+    const allDocs = []
+
+    querySnapshot.forEach(doc => {
+      allDocs.push({ ...doc.data(), id: doc.id })
+    })
+
+    return allDocs
+  }
+
+  const getAllPlantUsers = async plant => {
+    const q = query(collection(db, 'users'), where('plant', '==', plant))
     const querySnapshot = await getDocs(q)
     const allDocs = []
 
@@ -650,6 +728,7 @@ const FirebaseContextProvider = props => {
     getUsers,
     getPetitioner,
     getAllMELUsers,
+    getAllPlantUsers,
     uploadFilesToFirebaseStorage
   }
 

@@ -55,7 +55,8 @@ const FormLayoutsSolicitud = () => {
   }
 
   // ** Hooks
-  const { authUser, getPetitioner, getAllMELUsers, newDoc, uploadFilesToFirebaseStorage } = useFirebase()
+  const { authUser, getPetitioner, getAllMELUsers, newDoc, uploadFilesToFirebaseStorage, getAllPlantUsers } =
+    useFirebase()
   const router = useRouter()
 
   // ** States
@@ -158,6 +159,13 @@ const FormLayoutsSolicitud = () => {
   // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
   const getPetitionerOptions = async plant => {
     let options = await getPetitioner(plant)
+
+    setPetitioners(options)
+  }
+
+  // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
+  const getPetitionerOptions2 = async plant => {
+    let options = await getAllPlantUsers(plant)
     setPetitioners(options)
   }
 
@@ -174,11 +182,13 @@ const FormLayoutsSolicitud = () => {
   }, [])
 
   useEffect(() => {
+    let plant = authUser.plant
     if (authUser.role === 2) {
-      let plant = authUser.plant
       setValues({ ...values, plant })
       findAreas(plant)
       getPetitionerOptions(plant)
+    } else if (authUser.role === 3) {
+      getPetitionerOptions2(plant)
     }
   }, [])
 
@@ -289,17 +299,21 @@ const FormLayoutsSolicitud = () => {
                   id='id-solicitante'
                   labelId='labelId-solicitante'
                 >
-                  {authUser && authUser.plant === 'allPlants' ? (
-                    petitioners.map(user => {
-                      return (
-                        <MenuItem key={user.name} value={user.name}>
-                          {user.name}
-                        </MenuItem>
-                      )
-                    })
-                  ) : (
-                    <MenuItem value={authUser.displayName}>{authUser.displayName}</MenuItem>
-                  )}
+                  {authUser && authUser.plant === 'allPlants'
+                    ? petitioners.map(user => {
+                        return (
+                          <MenuItem key={user.name} value={user.name}>
+                            {user.name}
+                          </MenuItem>
+                        )
+                      })
+                    : petitioners.map(user => {
+                        return (
+                          <MenuItem key={user.name} value={user.name}>
+                            {user.name}
+                          </MenuItem>
+                        )
+                      })}
                 </Select>
               </FormControl>
             </Grid>
