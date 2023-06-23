@@ -354,11 +354,15 @@ const FirebaseContextProvider = props => {
     if (authUser.role === 2) {
       newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 2 ? 4 : 6) : 10
     } else if (authUser.role === 3) {
-      newState = approves
-        ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 5
-          ? 6
-          : authUser.role + 1
-        : 10
+      if (eventDocs.lenght > 0) {
+        newState = approves
+          ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 5
+            ? 6
+            : authUser.role + 1
+          : 10
+      } else {
+        newState = approves ? authUser.role + 1 : 10
+      }
     } else if (authUser.role === 6) {
       console.log(eventDocs)
       if (eventDocs.length > 0) {
