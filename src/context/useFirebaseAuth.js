@@ -351,8 +351,14 @@ const FirebaseContextProvider = props => {
 
     const prevState = querySnapshot.data().state // 'estado anterior'
     let newState
-    if (authUser.role === 3) {
-      newState = approves ? authUser.role + 1 : 10
+    if (authUser.role === 2) {
+      newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 2 ? 4 : 6) : 10
+    } else if (authUser.role === 3) {
+      newState = approves
+        ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 5
+          ? 6
+          : authUser.role + 1
+        : 10
     } else if (authUser.role === 6) {
       console.log(eventDocs)
       if (eventDocs.length > 0) {
@@ -367,18 +373,6 @@ const FirebaseContextProvider = props => {
         console.log('No se encontraron eventos')
         newState = approves ? authUser.role : 10
       }
-
-      //&& Object.keys(prevDoc).length > 0
-      //newState = approves ? (Object.keys(prevDoc).start ? devolutionState : authUser.role) : 10
-      console.log(newState, 'newState')
-
-      console.log(docSnapshot, 'docSnapshot')
-
-      /* if (Object.keys(prevDoc).start) {
-        newState = devolutionState
-      } else {
-        newState = approves ? authUser.role : 10
-      } */
     } else {
       newState = approves ? authUser.role : 10
     }
@@ -414,6 +408,10 @@ const FirebaseContextProvider = props => {
     let newState
     let newEvent = {}
 
+    const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
+    const eventQuerySnapshot = await getDocs(eventQuery)
+    const eventDocs = eventQuerySnapshot.docs
+
     for (const key in obj) {
       if (key !== 'start' && key !== 'end' && obj[key] !== docSnapshot[key]) {
         changedFields[key] = obj[key]
@@ -432,28 +430,27 @@ const FirebaseContextProvider = props => {
       }
     }
 
-    // si planificador cambia de fecha, solictud cambia state a 5
-    if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
+    if (authUser.role === 3 && obj.start !== docSnapshot.start.seconds) {
+      newState = devolutionState
+      changedFields.state = newState
+    } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
+      // si planificador cambia de fecha, solictud cambia state a 5
       newState = authUser.role
       changedFields.state = newState
-    }
+    } else if (authUser.role === 6 && eventDocs.length > 0) {
+      newState =
+        eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
+          ? eventDocs[0].data().prevDoc.start.seconds === obj.start
+            ? authUser.role
+            : devolutionState
+          : obj.start !== docSnapshot.start.seconds
+          ? devolutionState
+          : authUser.role
 
-    if (authUser.role === 6 && Object.keys(prevDoc).length > 0) {
-      console.log(Object.keys(prevDoc).start, 'Object.keys(prevDoc).start')
-      console.log(obj.start, 'obj.start')
-      newState = Object.keys(prevDoc) && Object.keys(prevDoc).start !== obj.start ? devolutionState : authUser.role // REVISANDO PORQUE LA COMPARACION DE 2 OBJETOS LO TOMA DIFERENTE
       changedFields.state = newState
-
-      /* if (Object.keys(prevDoc).start === obj.start) {
-        newState = authUser.role
-        changedFields.state = newState
-      } else if (changedFields.start) {
-        newState = devolutionState
-        changedFields.state = newState
-      } else {
-        newState = authUser.role
-        changedFields.state = newState
-      } */
+    } else {
+      newState = authUser.role
+      changedFields.state = newState
     }
     newEvent = {
       prevDoc,
@@ -467,7 +464,9 @@ const FirebaseContextProvider = props => {
     if (Object.keys(prevDoc).length === 0) {
       console.log('No se escribió ningún documento')
     }
-    await updateDoc(ref, changedFields)
+    if (Object.keys(changedFields).length > 0) {
+      await updateDoc(ref, changedFields)
+    }
     await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
   }
 
@@ -875,6 +874,32 @@ const FirebaseContextProvider = props => {
 
   // **FIN - FUNCIONES CREADAS POR JORGE**
 
+  function areObjectsEqual(obj1, obj2) {
+    // Obtener las claves de los objetos
+    const keys1 = Object.keys(obj1)
+    const keys2 = Object.keys(obj2)
+
+    // Verificar si la cantidad de claves es la misma
+    if (keys1.length !== keys2.length) {
+      return false
+    }
+
+    // Verificar si las claves y valores coinciden
+    for (let key of keys1) {
+      // Verificar si la clave existe en ambos objetos
+      if (!obj2.hasOwnProperty(key)) {
+        return false
+      }
+
+      // Verificar si los valores son diferentes
+      if (obj1[key] !== obj2[key]) {
+        return false
+      }
+    }
+
+    return true
+  }
+
   const value = {
     authUser,
     auth,
@@ -899,7 +924,8 @@ const FirebaseContextProvider = props => {
     getPetitioner,
     getAllMELUsers,
     getAllPlantUsers,
-    uploadFilesToFirebaseStorage
+    uploadFilesToFirebaseStorage,
+    areObjectsEqual
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

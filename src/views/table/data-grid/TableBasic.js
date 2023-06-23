@@ -33,7 +33,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const { reviewDocs } = useFirebase()
+  const { reviewDocs, authUser } = useFirebase()
 
   const handleClickOpen = doc => {
     setDoc(doc)
@@ -173,34 +173,38 @@ const TableBasic = ({ rows, role, roleData }) => {
 
         return (
           <>
-            {md ? (row.state === (role - 1) ?
-              <>
-                <Button
-                  onClick={() => handleClickOpenAlert(row, true)}
-                  variant='contained'
-                  color='success'
-                  sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                >
-                  <Check sx={{ fontSize: 18 }} />
-                </Button>
-                <Button
-                  onClick={() => handleClickOpen(row)}
-                  variant='contained'
-                  color='secondary'
-                  sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                >
-                  <Edit sx={{ fontSize: 18 }} />
-                </Button>
-                <Button
-                  onClick={() => handleClickOpenAlert(row, false)}
-                  variant='contained'
-                  color='error'
-                  sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                >
-                  <Clear sx={{ fontSize: 18 }} />
-                </Button>
-              </> : 'Revisado'
-            ) : (row.state === (role - 1) ?
+            {md ? (
+              row.state === role - 1 ? (
+                <>
+                  <Button
+                    onClick={() => handleClickOpenAlert(row, true)}
+                    variant='contained'
+                    color='success'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Check sx={{ fontSize: 18 }} />
+                  </Button>
+                  <Button
+                    onClick={() => handleClickOpen(row)}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Edit sx={{ fontSize: 18 }} />
+                  </Button>
+                  <Button
+                    onClick={() => handleClickOpenAlert(row, false)}
+                    variant='contained'
+                    color='error'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Clear sx={{ fontSize: 18 }} />
+                  </Button>
+                </>
+              ) : (
+                'Revisado'
+              )
+            ) : row.state === role - 1 ? (
               <>
                 <Select
                   labelId='demo-simple-select-label'
@@ -211,7 +215,7 @@ const TableBasic = ({ rows, role, roleData }) => {
                     '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
                     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
                     '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' },
+                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
                   }}
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -242,7 +246,9 @@ const TableBasic = ({ rows, role, roleData }) => {
                   </Container>
                 </Select>
               </>
-              : 'Revisado')}
+            ) : (
+              'Revisado'
+            )}
           </>
         )
       }
@@ -264,16 +270,12 @@ const TableBasic = ({ rows, role, roleData }) => {
           }}
         />
         <AlertDialog
-        open={openAlert}
-        handleClose={handleCloseAlert}
-        callback={writeCallback}
-        approves={approve}
+          open={openAlert}
+          handleClose={handleCloseAlert}
+          callback={writeCallback}
+          approves={approve}
         ></AlertDialog>
-        {open && <FullScreenDialog
-        open={open}
-        handleClose={handleClose}
-        doc={doc}
-        roleData={roleData} />}
+        {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
       </Box>
     </Card>
   )
