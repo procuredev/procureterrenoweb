@@ -1,4 +1,3 @@
-// asdasdasasd
 import React, { createContext, useState, useEffect, useContext } from 'react'
 
 import { getUnixTime } from 'date-fns'
