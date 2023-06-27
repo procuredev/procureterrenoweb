@@ -92,9 +92,9 @@ const FormLayoutsSolicitud = () => {
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue;
         if (prop === 'start') {
           let startDate = new Date(
-            Number(event.srcElement.value.split('-')[0]),
-            Number(event.srcElement.value.split('-')[1] - 1),
-            Number(event.srcElement.value.split('-')[2])
+            Number(newValue.split('-')[0]),
+            Number(newValue.split('-')[1] - 1),
+            Number(newValue.split('-')[2])
           )
 
          const resultDate = await consultDay(startDate)
