@@ -40,7 +40,6 @@ import { useDropzone } from 'react-dropzone'
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
-    author: '',
     opshift: '',
     start: '',
     description: '',
@@ -51,7 +50,9 @@ const FormLayoutsSolicitud = () => {
     receiver: [],
     type: '',
     petitioner: '',
-    sap: ''
+    sap: '',
+    fnlocation: '',
+    detention: ''
   }
 
   // ** Hooks
@@ -72,8 +73,114 @@ const FormLayoutsSolicitud = () => {
   const [files, setFiles] = useState([])
   const [petitioners, setPetitioners] = useState([])
   const [petitionerOpShift, setPetitionerOpShift] = useState([])
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [errors, setErrors] = useState({})
 
   const [values, setValues] = useState(initialValues)
+
+  const handleChange = prop => async (event, data) => {
+
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'start'];
+    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective']
+    const autoFields = ['deliverable', 'receiver']
+    let newValue
+
+    switch (true) {
+      case strFields.includes(prop): {
+        newValue = event.target.value;
+        newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue;
+        if (prop === 'start') {
+          let startDate = new Date(
+            Number(event.srcElement.value.split('-')[0]),
+            Number(event.srcElement.value.split('-')[1] - 1),
+            Number(event.srcElement.value.split('-')[2])
+          )
+
+         const resultDate = await consultDay(startDate)
+
+          if (resultDate.blocked) {
+            alert(resultDate.msj)
+          } else {
+            alert(resultDate.msj)
+            setValues({
+              ...values,
+              start: startDate
+            })}
+        } else {
+          setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
+        }
+        break;
+      }
+      case selectFields.includes(prop): {
+        newValue = event.target.value;
+        if (prop === 'petitioner') {
+          getPetitionerOpShift(newValue);
+        }
+        if (prop === 'plant') {
+          findAreas(newValue);
+          getPetitionerOptions(newValue);
+        }
+        setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
+        break;
+      }
+      case autoFields.includes(prop): {
+        newValue = data;
+        setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
+        break;
+      }
+    }
+
+
+    // Deshacer errores al dar formato correcto
+    const isFieldValid = validationRegex[prop] ? !validationRegex[prop].test(newValue) : newValue !== false
+    if (errors[prop] && isFieldValid) {
+      setErrors(current => {
+        const updatedErrors = Object.keys(current).reduce((obj, key) => {
+          if (key !== prop) {
+            obj[key] = current[key]
+          }
+
+          return obj
+        }, {})
+
+        return updatedErrors
+      })
+    }
+  }
+
+  const validationRegex = {
+    title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
+    description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    sap: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    fnlocation: /[^0-9]/g
+  }
+
+  const validateForm = values => {
+    const trimmedValues = {}
+    const newErrors = {}
+    const textFieldValues = ['title', 'fnlocation', 'sap', 'description']
+    for (const key in values) {
+      // Error campos vacíos
+      if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
+        newErrors[key] = 'Por favor, especifica una opción válida'
+      }
+
+      // Validaciones solo para claves de tipo string
+      if (textFieldValues.includes(values[key])) {
+        // Saca espacios en los values
+        trimmedValues[key] = values[key].replace(/\s+$/, '')
+
+        // Validación regex para otras claves de tipo string
+        if (validationRegex[key] && !validationRegex[key].test(trimmedValues[key])) {
+          newErrors[key] = `Por favor, introduce una opción válida`
+        }
+      }
+    }
+
+    return newErrors
+  }
+
 
   const findAreas = plant => {
     let setOfAreas = areas.find(obj => obj.name === plant)
@@ -155,12 +262,24 @@ const FormLayoutsSolicitud = () => {
     event.preventDefault()
   }
 
-  const handleSubmit = async () => {
+  const onSubmit = async event => {
     event.preventDefault()
-    const solicitud = await newDoc(values)
-    await uploadFilesToFirebaseStorage(files, solicitud.id)
-    handleRemoveAllFiles()
-    setValues(initialValues)
+    const formErrors = validateForm(values)
+    const requiredKeys = ['title']
+    const areFieldsValid = requiredKeys.every(key => !formErrors[key])
+    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
+      try {
+        const solicitud = await newDoc(values)
+        await uploadFilesToFirebaseStorage(files, solicitud.id)
+        handleRemoveAllFiles()
+        setValues(initialValues)
+        setErrors({})
+      } catch (error) {
+        setErrorMessage(error.message)
+      }
+    } else {
+      setErrors(formErrors)
+    }
   }
 
   // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
@@ -203,7 +322,7 @@ const FormLayoutsSolicitud = () => {
     <Card>
       <CardHeader title='Nueva Solicitud' />
       <CardContent>
-        <form onSubmit={e => e.preventDefault()}>
+        <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             {/* Título */}
             <Grid item xs={12}>
@@ -213,81 +332,63 @@ const FormLayoutsSolicitud = () => {
                 type='text'
                 label='Título'
                 value={values.title}
-                onChange={() => setValues({ ...values, title: event.target.value })}
+                onChange={handleChange('title')}
+                error={errors.title ? true : false}
+                helperText={errors.title}
+                inputProps={{ maxLength: 25 }}
               />
             </Grid>
 
             {/* Fecha inicio */}
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                type='date'
-                InputLabelProps={{ shrink: true, required: false }}
-                label='Fecha'
-                onChange={async () => {
-                  let startDate = new Date(
-                    Number(event.srcElement.value.split('-')[0]),
-                    Number(event.srcElement.value.split('-')[1] - 1),
-                    Number(event.srcElement.value.split('-')[2])
-                  )
-                  console.log(startDate)
-
-                  const resultDate = await consultDay(startDate)
-
-                  if (resultDate.blocked) {
-                    alert(resultDate.msj)
-                  } else {
-                    alert(resultDate.msj)
-                    setValues({
-                      ...values,
-                      start: startDate
-                    })
-                  }
-                }}
-              />
+              <FormControl fullWidth>
+                <TextField
+                  type="date"
+                  InputLabelProps={{ shrink: true, required: true }}
+                  label='Fecha'
+                  onChange={handleChange('start')}
+                  error={errors.start ? true : false}
+                  helperText={errors.start}
+                />
+              </FormControl>
             </Grid>
 
             {/* Planta */}
             <Grid item xs={12}>
-              <FormControl fullWidth disabled={authUser.role === 2}>
+              <FormControl fullWidth disabled={authUser.role === 2} error={errors.plant ? true : false}>
                 <InputLabel id='input-label-area'>Planta</InputLabel>
                 <Select
-                  InputLabelProps={{ required: true }}
                   label='Plant'
                   id='id-plant'
                   labelId='labelId-plant'
                   value={values.plant}
-                  onChange={() => {
-                    setValues({ ...values, plant: event.target.dataset.value })
-                    findAreas(event.target.dataset.value)
-                    getPetitionerOptions(event.target.dataset.value)
-                  }}
+                  onChange={handleChange('plant')}
                 >
                   {authUser && authUser.plant === 'allPlants'
                     ? areas.map(plant => {
-                        return (
-                          <MenuItem key={plant.name} value={plant.name}>
-                            {plant.name}
-                          </MenuItem>
-                        )
-                      })
+                      return (
+                        <MenuItem key={plant.name} value={plant.name}>
+                          {plant.name}
+                        </MenuItem>
+                      )
+                    })
                     : authUser && <MenuItem value={authUser.plant}>{authUser.plant}</MenuItem>}
                 </Select>
+                {errors.plant && <FormHelperText>{errors.plant}</FormHelperText>}
               </FormControl>
             </Grid>
 
             {/* Área */}
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={errors.area ? true : false}>
                 <InputLabel id='input-label-area'>Área</InputLabel>
                 <Select
-                  InputLabelProps={{ required: true }}
                   label='Área'
                   defaultValue=''
                   id='id-area'
                   labelId='labelId-area'
                   value={values.area}
-                  onChange={() => setValues({ ...values, area: event.target.dataset.value })}
+                  onChange={handleChange('area')}
                 >
                   {plants.map(plant => {
                     return (
@@ -297,53 +398,66 @@ const FormLayoutsSolicitud = () => {
                     )
                   })}
                 </Select>
+                {errors.area && <FormHelperText>{errors.area}</FormHelperText>}
+              </FormControl>
+            </Grid>
+
+            {/* Functional Location */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <TextField
+                  fullWidth
+                  type='text'
+                  label='Functional Location'
+                  value={values.fnlocation}
+                  onChange={handleChange('fnlocation')}
+                  error={errors.fnlocation ? true : false}
+                  helperText={errors.fnlocation}
+                  inputProps={{ maxLength: 4 }}
+                />
               </FormControl>
             </Grid>
 
             {/* Solicitante - nombre + num */}
 
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={errors.petitioner ? true : false}>
                 <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
                 <Select
-                  InputLabelProps={{ required: true }}
                   value={values.petitioner}
-                  onChange={() => {
-                    setValues({ ...values, petitioner: event.target.dataset.value })
-                    getPetitionerOpShift(event.target.dataset.value)
-                  }}
+                  onChange={handleChange('petitioner')}
                   label='Solicitante'
                   id='id-solicitante'
                   labelId='labelId-solicitante'
                 >
                   {authUser && authUser.plant === 'allPlants'
                     ? petitioners.map(user => {
-                        return (
-                          <MenuItem key={user.name} value={user.name}>
-                            {user.name}
-                          </MenuItem>
-                        )
-                      })
+                      return (
+                        <MenuItem key={user.name} value={user.name}>
+                          {user.name}
+                        </MenuItem>
+                      )
+                    })
                     : petitioners.map(user => {
-                        return (
-                          <MenuItem key={user.name} value={user.name}>
-                            {user.name}
-                          </MenuItem>
-                        )
-                      })}
+                      return (
+                        <MenuItem key={user.name} value={user.name}>
+                          {user.name}
+                        </MenuItem>
+                      )
+                    })}
                 </Select>
+                {errors.petitioner && <FormHelperText>{errors.petitioner}</FormHelperText>}
               </FormControl>
             </Grid>
 
             {/* Contraturno del solicitante - nombre + num */}
 
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={errors.opshift ? true : false}>
                 <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
                 <Select
-                  InputLabelProps={{ required: true }}
                   value={values.opshift}
-                  onChange={() => setValues({ ...values, opshift: event.target.dataset.value })}
+                  onChange={handleChange('opshift')}
                   label='Contraturno del solicitante'
                   id='id-contraturno'
                   labelId='labelId-contraturno'
@@ -354,6 +468,7 @@ const FormLayoutsSolicitud = () => {
                     <MenuItem value={authUser.opshift}>{authUser.opshift}</MenuItem>
                   )}
                 </Select>
+                {errors.opshift && <FormHelperText>{errors.opshift}</FormHelperText>}
               </FormControl>
             </Grid>
 
@@ -367,21 +482,41 @@ const FormLayoutsSolicitud = () => {
 
             {/* Box con tipo de operación*/}
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={errors.type ? true : false}>
                 <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
                 <Select
-                  InputLabelProps={{ required: true }}
                   label='Tipo de trabajo'
                   defaultValue=''
                   id='id-type'
                   labelId='labelId-type'
                   value={values.type}
-                  onChange={() => setValues({ ...values, type: event.target.dataset.value })}
+                  onChange={handleChange('type')}
                 >
                   <MenuItem value='Normal'>Normal</MenuItem>
                   <MenuItem value='Outage'>Outage</MenuItem>
                   <MenuItem value='Shutdown'>Shutdown</MenuItem>
                 </Select>
+                {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
+              </FormControl>
+            </Grid>
+
+            {/* Detención maq */}
+            <Grid item xs={12}>
+              <FormControl fullWidth error={errors.detention ? true : false}>
+                <InputLabel id='input-label-detention'>Detención de máquina</InputLabel>
+                <Select
+                  label='Detención de máquina'
+                  defaultValue=''
+                  id='id-detention'
+                  labelId='labelId-detention'
+                  value={values.detention}
+                  onChange={handleChange('detention')}
+                >
+                  <MenuItem value='yes'>Sí</MenuItem>
+                  <MenuItem value='no'>No</MenuItem>
+                  <MenuItem value='n/a'>No aplica</MenuItem>
+                </Select>
+                {errors.detention && <FormHelperText>{errors.detention}</FormHelperText>}
               </FormControl>
             </Grid>
 
@@ -389,9 +524,10 @@ const FormLayoutsSolicitud = () => {
               <TextField
                 fullWidth
                 value={values.sap}
-                onChange={() => setValues({ ...values, sap: event.target.value })}
+                onChange={handleChange('sap')}
                 label='Número SAP'
                 id='sap-input'
+                inputProps={{ maxLength: 10 }}
                 InputProps={{
                   endAdornment: (
                     <Tooltip title='Rellena este campo sólo si conoces el número SAP'>
@@ -399,27 +535,22 @@ const FormLayoutsSolicitud = () => {
                     </Tooltip>
                   )
                 }}
+                error={errors.sap ? true : false}
+                helperText={errors.sap}
               />
             </Grid>
 
             {/* Objetivo - Tipo de levantamiento - Select*/}
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={errors.objective ? true : false}>
                 <InputLabel id='input-label-objective'>Tipo de Levantamiento</InputLabel>
                 <Select
-                  InputLabelProps={{ required: true }}
                   label='Tipo de levantamiento'
                   defaultValue=''
                   id='id-objetivo'
                   labelId='labelId-objetivo'
                   value={values.objective}
-                  onChange={event => {
-                    const newValue = event.target.value
-                    setValues(prevValues => ({
-                      ...prevValues,
-                      objective: newValue
-                    }))
-                  }}
+                  onChange={handleChange('objective')}
                 >
                   <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
                   <MenuItem value='Análisis GPR'>Análisis GPR</MenuItem>
@@ -428,6 +559,7 @@ const FormLayoutsSolicitud = () => {
                   <MenuItem value='Levantamiento 3D GPS'>Levantamiento 3D GPS</MenuItem>
                   <MenuItem value='Topografía'>Topografía</MenuItem>
                 </Select>
+                {errors.objective && <FormHelperText>{errors.objective}</FormHelperText>}
               </FormControl>
             </Grid>
 
@@ -439,21 +571,17 @@ const FormLayoutsSolicitud = () => {
                   fullWidth
                   options={['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe']}
                   value={values.deliverable}
-                  onChange={(event, newValue) => {
-                    console.log(newValue)
-                    setValues(prevValues => ({
-                      ...prevValues,
-                      deliverable: newValue
-                    }))
-                  }}
+                  onChange={handleChange('deliverable')}
                   renderInput={params => (
                     <TextField
                       {...params}
                       label='Entregables del levantamiento'
                       InputLabelProps={{ required: true }}
-                      variant='outlined'
+                      error={errors.deliverable ? true : false}
+                      helperText={errors.deliverable}
                     />
                   )}
+
                 />
               </FormControl>
             </Grid>
@@ -465,19 +593,17 @@ const FormLayoutsSolicitud = () => {
                   fullWidth
                   options={allUsers}
                   getOptionLabel={user => user.name}
+                  isOptionEqualToValue={option => option.name}
                   value={values.receiver}
-                  onChange={(event, newValue) => {
-                    setValues(prevValues => ({
-                      ...prevValues,
-                      receiver: newValue
-                    }))
-                  }}
+                  onChange={handleChange('receiver')}
                   renderInput={params => (
                     <TextField
                       {...params}
                       InputLabelProps={{ required: true }}
                       variant='outlined'
                       label='Destinatarios'
+                      error={errors.receiver ? true : false}
+                      helperText={errors.receiver}
                     />
                   )}
                 />
@@ -492,11 +618,11 @@ const FormLayoutsSolicitud = () => {
                   fullWidth
                   type='Text'
                   label='Descripción'
+                  inputProps={{ maxLength: 100 }}
                   value={values.description}
-                  onChange={() => setValues({ ...values, description: event.target.value })}
-
-                  //placeholder='carterleonard@gmail.com'
-                  //helperText='You can use letters, numbers & periods'
+                  onChange={handleChange('description')}
+                  error={errors.description ? true : false}
+                  helperText={errors.description}
                 />
               </FormControl>
             </Grid>
@@ -552,7 +678,7 @@ const FormLayoutsSolicitud = () => {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button onClick={() => handleSubmit()} type='submit' variant='contained' size='large'>
+                <Button type='submit' variant='contained' size='large'>
                   Enviar Solicitud
                 </Button>
               </Box>
