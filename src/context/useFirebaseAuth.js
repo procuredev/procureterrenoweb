@@ -1,3 +1,4 @@
+// asdasdasasd
 import React, { createContext, useState, useEffect, useContext } from 'react'
 
 import { getUnixTime } from 'date-fns'
@@ -756,28 +757,6 @@ const FirebaseContextProvider = props => {
   }
 
   // **INICIO - FUNCIONES CREADAS POR JORGE**
-
-  // // Función que lee todos los documentos dentro de "solicitudes" y luego me retorna el mayor 'n_request'encontrado
-  // // n_request será un número contador de las solicitudes, que se generará automáticamente al hacer la solicitud
-  // const getRequestNumber = async () => {
-  //   // Se inicializa una variable que almacenará el último número de solicitud existente en "solicitudes"
-  //   let maxRequestNumber = null
-
-  //   // Se llama a la colección "solicitudes"
-  //   const q = query(collection(db, 'solicitudes'))
-  //   const querySnapshot = await getDocs(q)
-
-  //   // Se recorren los documentos existente en "solicitudes"
-  //   querySnapshot.forEach(doc => {
-  //     // Si el documento actualmente leído es mayor al último almacenado en la variable mayorNRquest
-  //     const n_request = doc.data().n_request
-  //     if (n_request !== undefined && n_request > maxRequestNumber) {
-  //       maxRequestNumber = n_request // Se almacena este como el nuevo maxRequestNumber
-  //     }
-  //   })
-
-  //   return maxRequestNumber
-  // }
 
   // Función que busca dentro de la colección indicada y según el campo/field que se indique y que el valor/value sea igual al indicado. Esto retornará el UID de la solicitud.
   const searchbyColletionAndField = async (col, field, value) => {
