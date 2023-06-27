@@ -17,7 +17,8 @@ import {
   onSnapshot,
   where,
   orderBy,
-  limit
+  limit,
+  runTransaction
 } from 'firebase/firestore'
 
 import { getAuth, signOut, deleteUser } from 'firebase/auth'
@@ -283,7 +284,29 @@ const FirebaseContextProvider = props => {
     const user = Firebase.auth().currentUser
     if (user !== null) {
       try {
-        const requestNumber = (await getMaxRequestNumber()) + 1 // Se almacena el número de la solitud
+        // Aquí 'counters' es una colección y 'requestCounter' es un documento específico en esa colección
+        const counterRef = doc(db, 'counters', 'requestCounter')
+
+        // requestNumber hará una 'Transaccion' para asegurarse de que no existe otro 'n_request' igual. Para ello existirá un contador en 'counters/requestCounter'
+        const requestNumber = await runTransaction(db, async transaction => {
+          // Se hace la transacción con el documento 'requestCounter'
+          const counterSnapshot = await transaction.get(counterRef)
+
+          // Se inicializa la variable newCounter, que será tipo number, que será el contador de solicitudes almacenado en 'counters/requestCounter'
+          let newCounter
+
+          // Si el documento 'requestCounter' no existe, se inicializa en 1, de lo contrario se incrementa en 1
+          if (!counterSnapshot.exists) {
+            newCounter = 1
+          } else {
+            newCounter = counterSnapshot.data().counter + 1
+          }
+
+          // Se almacena en 'counters/requestCounter' el número actual del contador
+          transaction.set(counterRef, { counter: newCounter })
+
+          return newCounter
+        })
 
         const docRef = await addDoc(collection(db, 'solicitudes'), {
           title: values.title,
@@ -732,27 +755,27 @@ const FirebaseContextProvider = props => {
 
   // **INICIO - FUNCIONES CREADAS POR JORGE**
 
-  // Función que lee todos los documentos dentro de "solicitudes" y luego me retorna el mayor 'n_request'encontrado
-  // n_request será un número contador de las solicitudes, que se generará automáticamente al hacer la solicitud
-  const getMaxRequestNumber = async () => {
-    // Se inicializa una variable que almacenará el último número de solicitud existente en "solicitudes"
-    let maxRequestNumber = null
+  // // Función que lee todos los documentos dentro de "solicitudes" y luego me retorna el mayor 'n_request'encontrado
+  // // n_request será un número contador de las solicitudes, que se generará automáticamente al hacer la solicitud
+  // const getRequestNumber = async () => {
+  //   // Se inicializa una variable que almacenará el último número de solicitud existente en "solicitudes"
+  //   let maxRequestNumber = null
 
-    // Se llama a la colección "solicitudes"
-    const q = query(collection(db, 'solicitudes'))
-    const querySnapshot = await getDocs(q)
+  //   // Se llama a la colección "solicitudes"
+  //   const q = query(collection(db, 'solicitudes'))
+  //   const querySnapshot = await getDocs(q)
 
-    // Se recorren los documentos existente en "solicitudes"
-    querySnapshot.forEach(doc => {
-      // Si el documento actualmente leído es mayor al último almacenado en la variable mayorNRquest
-      const n_request = doc.data().n_request
-      if (n_request !== undefined && n_request > maxRequestNumber) {
-        maxRequestNumber = n_request // Se almacena este como el nuevo maxRequestNumber
-      }
-    })
+  //   // Se recorren los documentos existente en "solicitudes"
+  //   querySnapshot.forEach(doc => {
+  //     // Si el documento actualmente leído es mayor al último almacenado en la variable mayorNRquest
+  //     const n_request = doc.data().n_request
+  //     if (n_request !== undefined && n_request > maxRequestNumber) {
+  //       maxRequestNumber = n_request // Se almacena este como el nuevo maxRequestNumber
+  //     }
+  //   })
 
-    return maxRequestNumber
-  }
+  //   return maxRequestNumber
+  // }
 
   // Función que busca dentro de la colección indicada y según el campo/field que se indique y que el valor/value sea igual al indicado. Esto retornará el UID de la solicitud.
   const searchbyColletionAndField = async (col, field, value) => {
