@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
 
+import { getUnixTime } from 'date-fns'
+
 // ** Firebase Imports
 import { updateProfile } from 'firebase/auth'
 import { Firebase, db, app } from 'src/configs/firebase'
@@ -878,30 +880,77 @@ const FirebaseContextProvider = props => {
 
   // **FIN - FUNCIONES CREADAS POR JORGE**
 
-  function areObjectsEqual(obj1, obj2) {
-    // Obtener las claves de los objetos
-    const keys1 = Object.keys(obj1)
-    const keys2 = Object.keys(obj2)
+  const blockDay = async (date, cause = '') => {
+    const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
+    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
 
-    // Verificar si la cantidad de claves es la misma
-    if (keys1.length !== keys2.length) {
-      return false
-    }
-
-    // Verificar si las claves y valores coinciden
-    for (let key of keys1) {
-      // Verificar si la clave existe en ambos objetos
-      if (!obj2.hasOwnProperty(key)) {
-        return false
+    const docSnap = await getDoc(docRef)
+    if (docSnap.exists()) {
+      const data = docSnap.data()
+      if (data.blocked === true) {
+        // Si el día ya está bloqueado, lo desbloquea en el documento
+        await setDoc(docRef, { blocked: false })
+        console.log('Día desbloqueado')
+      } else if (cause.length > 0) {
+        // Si existe pero no está bloqueado, actualiza el campo blocked a true
+        await setDoc(docRef, { blocked: true, cause })
+        console.log('Día bloqueado')
+      } else {
+        alert('para bloquear la fecha debe proporcionar un motivo')
       }
-
-      // Verificar si los valores son diferentes
-      if (obj1[key] !== obj2[key]) {
-        return false
-      }
+    } else if (cause.length > 0) {
+      // Si no existe el día, crea el documento con blocked = true
+      await setDoc(docRef, { blocked: true, cause })
+      console.log('Día bloqueado')
+    } else {
+      alert('para bloquear la fecha debe proporcionar un motivo')
     }
+  }
 
-    return true
+  const dateWithDocs = async date => {
+    const allDocs = []
+    console.log(date, 'DATE')
+
+    //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
+    const q = query(collection(db, 'solicitudes'), where('start', '==', date))
+    const querySnapshot = await getDocs(q)
+
+    querySnapshot.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      allDocs.push({ ...doc.data(), id: doc.id })
+      console.log(allDocs)
+    })
+
+    if (allDocs.length > 0) {
+      return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día`
+    } else {
+      return 'Fecha Disponible'
+    }
+  }
+
+  const consultDay = async date => {
+    const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
+    const fechaTimestamp = Timestamp.fromMillis(dateUnix * 1000) // Convierte a objeto Timestamp de Firebase
+    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
+
+    console.log(fechaTimestamp)
+
+    const docSnap = await getDoc(docRef)
+    if (docSnap.exists()) {
+      const data = docSnap.data()
+      if (data.blocked === true) {
+        // Si el día ya está bloqueado, lo desbloquea en el documento
+        return { msj: `El día que ha seleccionado se encuentra inhabilitado, motivo: ${data.cause} `, blocked: true }
+      } else {
+        let msj = await dateWithDocs(fechaTimestamp)
+
+        return { msj, blocked: false }
+      }
+    } else {
+      let msj = await dateWithDocs(fechaTimestamp)
+
+      return { msj, blocked: false }
+    }
   }
 
   const value = {
@@ -929,7 +978,8 @@ const FirebaseContextProvider = props => {
     getAllMELUsers,
     getAllPlantUsers,
     uploadFilesToFirebaseStorage,
-    areObjectsEqual
+    blockDay,
+    consultDay
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

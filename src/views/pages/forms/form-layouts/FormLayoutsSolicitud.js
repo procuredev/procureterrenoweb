@@ -55,8 +55,15 @@ const FormLayoutsSolicitud = () => {
   }
 
   // ** Hooks
-  const { authUser, getPetitioner, getAllMELUsers, newDoc, uploadFilesToFirebaseStorage, getAllPlantUsers } =
-    useFirebase()
+  const {
+    authUser,
+    getPetitioner,
+    getAllMELUsers,
+    newDoc,
+    uploadFilesToFirebaseStorage,
+    getAllPlantUsers,
+    consultDay
+  } = useFirebase()
   const router = useRouter()
 
   // ** States
@@ -217,16 +224,26 @@ const FormLayoutsSolicitud = () => {
                 type='date'
                 InputLabelProps={{ shrink: true, required: false }}
                 label='Fecha'
-                onChange={() =>
-                  setValues({
-                    ...values,
-                    start: new Date(
-                      Number(event.srcElement.value.split('-')[0]),
-                      Number(event.srcElement.value.split('-')[1] - 1),
-                      Number(event.srcElement.value.split('-')[2])
-                    )
-                  })
-                }
+                onChange={async () => {
+                  let startDate = new Date(
+                    Number(event.srcElement.value.split('-')[0]),
+                    Number(event.srcElement.value.split('-')[1] - 1),
+                    Number(event.srcElement.value.split('-')[2])
+                  )
+                  console.log(startDate)
+
+                  const resultDate = await consultDay(startDate)
+
+                  if (resultDate.blocked) {
+                    alert(resultDate.msj)
+                  } else {
+                    alert(resultDate.msj)
+                    setValues({
+                      ...values,
+                      start: startDate
+                    })
+                  }
+                }}
               />
             </Grid>
 
