@@ -37,6 +37,7 @@ const generatorPassword = require('generate-password')
 
 // ** Trae funcion que valida los campos del registro
 import { registerValidator } from './helperRegisterValidator'
+import { solicitudValidator } from './helperSolicitudValidator'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 const FirebaseContextProvider = props => {
@@ -283,6 +284,7 @@ const FirebaseContextProvider = props => {
 
   // ** Escribe documentos en Firestore Database
   const newDoc = async values => {
+    solicitudValidator(values)
     const user = Firebase.auth().currentUser
     if (user !== null) {
       try {
@@ -1207,7 +1209,6 @@ const FirebaseContextProvider = props => {
 
   const dateWithDocs = async date => {
     const allDocs = []
-    console.log(date, 'DATE')
 
     //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
     const q = query(collection(db, 'solicitudes'), where('start', '==', date))
@@ -1216,7 +1217,6 @@ const FirebaseContextProvider = props => {
     querySnapshot.forEach(doc => {
       // doc.data() is never undefined for query doc snapshots
       allDocs.push({ ...doc.data(), id: doc.id })
-      console.log(allDocs)
     })
 
     if (allDocs.length > 0) {
@@ -1231,7 +1231,7 @@ const FirebaseContextProvider = props => {
     const fechaTimestamp = Timestamp.fromMillis(dateUnix * 1000) // Convierte a objeto Timestamp de Firebase
     const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
 
-    console.log(fechaTimestamp)
+    console.log(date)
 
     const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
