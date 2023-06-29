@@ -331,26 +331,11 @@ const FirebaseContextProvider = props => {
           n_request: requestNumber
         })
 
-        /* const newEvent = {
-          prevState: 0,
-          newState: authUser.role || 'no definido',
-          user: Firebase.auth().currentUser.email,
-          date: Timestamp.fromDate(new Date())
-        }
-
-        // Obtenemos el ID del nuevo documento de solicitud
-        const nuevaSolicitudId = docRef.id
-
-        // Creamos un nuevo documento en la subcolección "eventos" con los datos del evento
-        const newDocEvent = await addDoc(collection(db, `solicitudes/${nuevaSolicitudId}/events`), newEvent)
-        */ // comentado para evitar que se generen 2 eventos iniciales
-
         // Establecemos los campos adicionales de la solicitud
         await updateDoc(docRef, {
           ...newDoc,
           state: authUser.role || 'no definido'
 
-          //eventoId: newDocEvent.id // Agregamos el ID del evento como campo en la solicitud (opcional)
         })
 
         // Se envia email a quienes corresponda

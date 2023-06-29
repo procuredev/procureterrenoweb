@@ -6,6 +6,8 @@ import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
@@ -80,16 +82,15 @@ const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState(initialValues)
 
   const handleChange = prop => async (event, data) => {
-
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'start'];
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'start']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective']
     const autoFields = ['deliverable', 'receiver']
     let newValue
 
     switch (true) {
       case strFields.includes(prop): {
-        newValue = event.target.value;
-        newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue;
+        newValue = event.target.value
+        newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
         if (prop === 'start') {
           let startDate = new Date(
             Number(newValue.split('-')[0]),
@@ -97,7 +98,7 @@ const FormLayoutsSolicitud = () => {
             Number(newValue.split('-')[2])
           )
 
-         const resultDate = await consultDay(startDate)
+          const resultDate = await consultDay(startDate)
 
           if (resultDate.blocked) {
             alert(resultDate.msj)
@@ -106,31 +107,31 @@ const FormLayoutsSolicitud = () => {
             setValues({
               ...values,
               start: startDate
-            })}
+            })
+          }
         } else {
-          setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
+          setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         }
-        break;
+        break
       }
       case selectFields.includes(prop): {
-        newValue = event.target.value;
+        newValue = event.target.value
         if (prop === 'petitioner') {
-          getPetitionerOpShift(newValue);
+          getPetitionerOpShift(newValue)
         }
         if (prop === 'plant') {
-          findAreas(newValue);
-          getPetitionerOptions(newValue);
+          findAreas(newValue)
+          getPetitionerOptions(newValue)
         }
-        setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
-        break;
+        setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
+        break
       }
       case autoFields.includes(prop): {
-        newValue = data;
-        setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
-        break;
+        newValue = data
+        setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
+        break
       }
     }
-
 
     // Deshacer errores al dar formato correcto
     const isFieldValid = validationRegex[prop] ? !validationRegex[prop].test(newValue) : newValue !== false
@@ -180,7 +181,6 @@ const FormLayoutsSolicitud = () => {
 
     return newErrors
   }
-
 
   const findAreas = plant => {
     let setOfAreas = areas.find(obj => obj.name === plant)
@@ -270,6 +270,7 @@ const FormLayoutsSolicitud = () => {
     if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
       try {
         const solicitud = await newDoc(values)
+        setSuccessMessage('Documento creado exitosamente con ID: ' + solicitud.id)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
         handleRemoveAllFiles()
         setValues(initialValues)
@@ -322,6 +323,20 @@ const FormLayoutsSolicitud = () => {
     <Card>
       <CardHeader title='Nueva Solicitud' />
       <CardContent>
+        {successMessage && (
+          <Alert severity='success'>
+            <AlertTitle>Éxito</AlertTitle>
+            {successMessage}
+          </Alert>
+        )}{' '}
+        {errorMessage && (
+          <Alert severity='error' onClose={() => setErrorMessage('')}>
+            <AlertTitle>Error</AlertTitle>
+            {errorMessage}
+          </Alert>
+        )}
+      </CardContent>
+      <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             {/* Título */}
@@ -343,7 +358,7 @@ const FormLayoutsSolicitud = () => {
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <TextField
-                  type="date"
+                  type='date'
                   InputLabelProps={{ shrink: true, required: true }}
                   label='Fecha'
                   onChange={handleChange('start')}
@@ -366,12 +381,12 @@ const FormLayoutsSolicitud = () => {
                 >
                   {authUser && authUser.plant === 'allPlants'
                     ? areas.map(plant => {
-                      return (
-                        <MenuItem key={plant.name} value={plant.name}>
-                          {plant.name}
-                        </MenuItem>
-                      )
-                    })
+                        return (
+                          <MenuItem key={plant.name} value={plant.name}>
+                            {plant.name}
+                          </MenuItem>
+                        )
+                      })
                     : authUser && <MenuItem value={authUser.plant}>{authUser.plant}</MenuItem>}
                 </Select>
                 {errors.plant && <FormHelperText>{errors.plant}</FormHelperText>}
@@ -432,19 +447,19 @@ const FormLayoutsSolicitud = () => {
                 >
                   {authUser && authUser.plant === 'allPlants'
                     ? petitioners.map(user => {
-                      return (
-                        <MenuItem key={user.name} value={user.name}>
-                          {user.name}
-                        </MenuItem>
-                      )
-                    })
+                        return (
+                          <MenuItem key={user.name} value={user.name}>
+                            {user.name}
+                          </MenuItem>
+                        )
+                      })
                     : petitioners.map(user => {
-                      return (
-                        <MenuItem key={user.name} value={user.name}>
-                          {user.name}
-                        </MenuItem>
-                      )
-                    })}
+                        return (
+                          <MenuItem key={user.name} value={user.name}>
+                            {user.name}
+                          </MenuItem>
+                        )
+                      })}
                 </Select>
                 {errors.petitioner && <FormHelperText>{errors.petitioner}</FormHelperText>}
               </FormControl>
@@ -581,7 +596,6 @@ const FormLayoutsSolicitud = () => {
                       helperText={errors.deliverable}
                     />
                   )}
-
                 />
               </FormControl>
             </Grid>
