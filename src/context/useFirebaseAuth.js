@@ -1313,6 +1313,41 @@ const FirebaseContextProvider = props => {
     }
   }
 
+  const blockDayInDatabase = async (values) => {
+    const { date, cause } = values;
+    const dateUnix = getUnixTime(date);
+    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString());
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.blocked === true) {
+            // Si el día ya está bloqueado, lo desbloquea en el documento
+            await setDoc(docRef, { blocked: false });
+            resolve('Día desbloqueado');
+          } else if (cause && cause.length > 0) {
+            // Si existe pero no está bloqueado, actualiza el campo blocked a true
+            await setDoc(docRef, { blocked: true, cause });
+            resolve('Día bloqueado');
+          } else {
+            reject(new Error('Para bloquear la fecha debe proporcionar un motivo'));
+          }
+        } else if (cause && cause.length > 0) {
+          // Si no existe el día, crea el documento con blocked = true
+          await setDoc(docRef, { blocked: true, cause });
+          resolve('Día bloqueado');
+        } else {
+          reject(new Error('Para bloquear la fecha debe proporcionar un motivo'));
+        }
+      } catch (error) {
+        console.log(error);
+        reject(new Error('Error al bloquear el día: ' + error));
+      }
+    });
+  };
+
   const dateWithDocs = async date => {
     const allDocs = []
 
@@ -1383,6 +1418,7 @@ const FirebaseContextProvider = props => {
     getAllPlantUsers,
     uploadFilesToFirebaseStorage,
     blockDay,
+    blockDayInDatabase,
     consultDay
   }
 
