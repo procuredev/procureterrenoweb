@@ -314,7 +314,8 @@ const FirebaseContextProvider = props => {
 
         const docRef = await addDoc(collection(db, 'solicitudes'), {
           title: values.title,
-          user: user.displayName || user.email,
+          user: user.displayName,
+          userEmail: user.email,
           start: values.start,
           plant: values.plant,
           area: values.area,
@@ -742,7 +743,7 @@ const FirebaseContextProvider = props => {
     }
   }
 
-  // **INICIO - FUNCIONES CREADAS POR JORGE**
+    // **INICIO - FUNCIONES CREADAS POR JORGE**
 
   // Función que busca dentro de la colección indicada y según el campo/field que se indique y que el valor/value sea igual al indicado. Esto retornará el UID de la solicitud.
   const searchbyColletionAndField = async (col, field, value) => {
@@ -800,25 +801,58 @@ const FirebaseContextProvider = props => {
             cc: cOperatorEmail,
             date: fechaCompleta,
             req: reqId,
-            type: 'NewRequest',
+            emailType: 'NewRequest',
             message: {
               subject: `Solicitud de levantamiento: N°${reqNumber} - ${values.title}`,
               html: `
                 <h2>Estimad@ ${user.displayName}:</h2>
                 <p>Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}. A continuación puede encontrar el detalle de la solicitud:</p>
-                <ul>
-                  <li>N° Soliciutd: ${reqNumber}</li>
-                  <li>Título: ${values.title}</li>
-                  <li>Fecha de inicio de levantamiento: ${values.start.toLocaleDateString()}</li>
-                  <li>Planta: ${values.plant}</li>
-                  <li>Área: ${values.area}</li>
-                  <li>N°SAP: ${values.sap}</li>
-                  <li>Tipo de trabajo: ${values.type}</li>
-                  <li>Tipo de levantamiento: ${values.objective}</li>
-                  <li>Enrtegables esperados: ${values.deliverable.join(', ')}</li>
-                  <li>Destinatarios: ${values.receiver.map(receiver => receiver.email).join(', ')}</li>
-                  <li>Descripción del requerimiento: ${values.description}</li>
-                </ul>
+                <table style="width:100%;">
+                  <tr>
+                    <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
+                    <td style="text-align:left; width:80%;">${reqNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
+                    <td>${values.title}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
+                    <td>${values.start.toLocaleDateString()}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
+                    <td>${values.plant}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
+                    <td>${values.area}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
+                    <td>${values.sap}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
+                    <td>${values.type}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
+                    <td>${values.objective}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
+                    <td>${values.deliverable.join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
+                    <td>${values.receiver.map(receiver => receiver.email).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
+                    <td>${values.description}</td>
+                  </tr>
+                </table
                 <p>Ahora deberá esperar la aprobación de ${userContOp}.</p>
                 <p>Para mayor información revise la solicitud en nuestra página web</p>
                 <p>Saludos,<br>Procure Terreno Web</p>
@@ -862,26 +896,62 @@ const FirebaseContextProvider = props => {
             cc: [petitionerEmail, cOwnerEmail, plannerEmail],
             date: fechaCompleta,
             req: reqId,
-            type: 'NewRequest',
+            emailType: 'NewRequest',
             message: {
               subject: `Solicitud de levantamiento: N°${reqNumber} - ${values.title}`,
               html: `
                 <h2>Estimad@ ${user.displayName}:</h2>
                 <p>Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}. A continuación puede encontrar el detalle de la solicitud:</p>
-                <ul>
-                  <li>N° Soliciutd: ${reqNumber}</li>
-                  <li>Título: ${values.title}</li>
-                  <li>Fecha de inicio de levantamiento: ${values.start.toLocaleDateString()}</li>
-                  <li>Planta: ${values.plant}</li>
-                  <li>Área: ${values.area}</li>
-                  <li>Solicitante: ${values.petitioner}</li>
-                  <li>N°SAP: ${values.sap}</li>
-                  <li>Tipo de trabajo: ${values.type}</li>
-                  <li>Tipo de levantamiento: ${values.objective}</li>
-                  <li>Enrtegables esperados: ${values.deliverable.join(', ')}</li>
-                  <li>Destinatarios: ${values.receiver.map(receiver => receiver.email).join(', ')}</li>
-                  <li>Descripción del requerimiento: ${values.description}</li>
-                </ul>
+                <table style="width:100%;">
+                  <tr>
+                    <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
+                    <td style="text-align:left; width:80%;">${reqNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
+                    <td>${values.title}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
+                    <td>${values.start.toLocaleDateString()}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
+                    <td>${values.plant}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
+                    <td>${values.area}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
+                    <td>${values.petitioner}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
+                    <td>${values.sap}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
+                    <td>${values.type}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
+                    <td>${values.objective}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
+                    <td>${values.deliverable.join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
+                    <td>${values.receiver.map(receiver => receiver.email).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
+                    <td>${values.description}</td>
+                  </tr>
+                </table
                 <p>Ahora deberá esperar la aprobación de Procure.</p>
                 <p>Para mayor información revise la solicitud en nuestra página web</p>
                 <p>Saludos,<br>Procure Terreno Web</p>
@@ -916,55 +986,61 @@ const FirebaseContextProvider = props => {
 
     // Si el rol de quien hizo la solicitud es "Solicitante"
     if (requesterRole == 2) {
-      // && prevState es 2 && newState es 4
+      // && prevState es 2 && newState es 4 -> Solicitud aceptada por C.Operator
       if (prevState == 2 && newState == 4) {
         arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
         message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 4 && newState es 5
+      // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
       else if (prevState == 4 && newState == 5) {
         arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
         message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 5 && newState es 6
+      // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
       else if (prevState == 5 && newState == 6) {
         arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
         message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 2 && newState es 1
+      // && prevState es 2 && newState es 1 -> Solicitud modificada por C.Operator
       else if (prevState == 2 && newState == 1) {
         arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
         message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 5 && newState es 1
-      else if (prevState == 5 && newState == 1) {
-        arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
-        message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
+      // && prevState es 1 && newState es 4 -> Modificación hecha por C.Operator fue aceptada por Solicitante
+      else if (prevState == 1 && newState == 4) {
+        arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, Planificador y Adm.Contrato
+        message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 1 && newState es 2
+      // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
       else if (prevState == 1 && newState == 2) {
         arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
         message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 2 && newState es 6
-      else if (prevState == 2 && newState == 6) {
+      // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
+      else if (prevState == 5 && newState == 1) {
+        arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
+        message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
+      }
+
+      // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
+      else if (prevState == 1 && newState == 6) {
         arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
         message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 2 && newState es 10
+      // && prevState es 2 && newState es 10 -> Solicitud rechazada por C.Operator
       else if (prevState == 2 && newState == 10) {
         arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
         message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 5 && newState es 10
+      // && prevState es 5 && newState es 10 -> Solicitud rechazada por Adm.Contrato
       else if (prevState == 5 && newState == 10) {
         arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
         message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
@@ -979,31 +1055,31 @@ const FirebaseContextProvider = props => {
         message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 4 && newState es 5
+      // && prevState es 4 && newState es 5 -> Soliciutud aceptada por Planificador
       else if (prevState == 4 && newState == 5) {
         arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
         message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 5 && newState es 6
+      // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
       else if (prevState == 5 && newState == 6) {
         arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
         message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 5 && newState es 2
+      // && prevState es 5 && newState es 2 -> Modificación hecha por Procure
       else if (prevState == 5 && newState == 2) {
         arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
         message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 2 && newState es 6
+      // && prevState es 2 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
       else if (prevState == 2 && newState == 6) {
         arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
         message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
       }
 
-      // && prevState es 5 && newState es 10
+      // && prevState es 5 && newState es 10 -> Solicitud rechazada por Procure
       else if (prevState == 5 && newState == 10) {
         arrayCC = [cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
         message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
@@ -1123,29 +1199,74 @@ const FirebaseContextProvider = props => {
           cc: onCC,
           date: fechaCompleta,
           req: requirementId,
-          type: 'reviewDocs',
+          emailType: 'reviewDocs',
           message: {
-            subject: `Solicitud de levantamiento: ${requirementData.n_request} - ${requirementData.title}`,
+            subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
             html: `
               <h2>Estimad@ ${requesterData.name}:</h2>
               <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}. A continuación puede encontrar el detalle de la solicitud:</p>
-              <ul>
-                <li>N° Soliciutd: ${requirementData.n_request}</li>
-                <li>Título: ${requirementData.title}</li>
-                <li>Número de OT Procure: ${otNumber}</li>
-                <li>Supervisor Procure a cargo del levantamiento: ${supervisorName}</li>
-                <li>Fecha de inicio de levantamiento: ${startDate}</li>
-                <li>Fecha de término de levantamiento: ${endDate}</li>
-                <li>Planta: ${requirementData.plant}</li>
-                <li>Área: ${requirementData.area}</li>
-                <li>Solicitante: ${requirementData.petitioner}</li>
-                <li>N°SAP: ${requirementData.sap}</li>
-                <li>Tipo de trabajo: ${requirementData.type}</li>
-                <li>Tipo de levantamiento: ${requirementData.objective}</li>
-                <li>Enrtegables esperados: ${requirementData.deliverable.join(', ')}</li>
-                <li>Destinatarios: ${requirementData.receiver.map(receiver => receiver.email).join(', ')}</li>
-                <li>Descripción del requerimiento: ${requirementData.description}</li>
-              </ul>
+              <table style="width:100%;">
+                  <tr>
+                    <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
+                    <td style="text-align:left; width:80%;">${requirementData.n_request}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
+                    <td>${requirementData.title}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
+                    <td>${otNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
+                    <td>${supervisorName}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
+                    <td>${startDate}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
+                    <td>${endDate}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
+                    <td>${requirementData.plant}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
+                    <td>${requirementData.area}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
+                    <td>${requirementData.petitioner}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
+                    <td>${requirementData.sap}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
+                    <td>${requirementData.type}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
+                    <td>${requirementData.objective}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
+                    <td>${requirementData.deliverable.join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
+                    <td>${requirementData.receiver.map(receiver => receiver.email).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
+                    <td>${requirementData.description}</td>
+                  </tr>
+                </table
               <p>Para mayor información revise la solicitud en nuestra página web</p>
               <p>Saludos,<br>Procure Terreno Web</p>
               `
