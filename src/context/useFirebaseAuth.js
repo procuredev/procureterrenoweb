@@ -216,7 +216,7 @@ const FirebaseContextProvider = props => {
   }
 
   const createUserInDatabase = values => {
-    const { name, rut, phone, email, plant, shift, company, role, contop, opshift, urlFoto } = values
+    const { name, rut, phone, email, plant, shift, company, role, opshift, urlFoto } = values
 
     const photoURL = Firebase.auth().currentUser.photoURL
 
@@ -230,7 +230,6 @@ const FirebaseContextProvider = props => {
           company: company,
           role: role,
           ...(plant && { plant }),
-          ...(contop && { contop }),
           ...(shift && { shift }),
           ...(opshift && { opshift }),
           photoURL: photoURL
@@ -318,6 +317,7 @@ const FirebaseContextProvider = props => {
           userEmail: user.email,
           start: values.start,
           plant: values.plant,
+          contOp: values.contOp,
           area: values.area,
           objective: values.objective,
           receiver: values.receiver,
