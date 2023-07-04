@@ -6,6 +6,9 @@ import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
@@ -38,8 +41,11 @@ import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
+import { useTheme } from '@emotion/react'
+import { DonutSmallOutlined } from '@mui/icons-material'
 
 const FormLayoutsSolicitud = () => {
+
   const initialValues = {
     title: '',
     opshift: '',
@@ -68,6 +74,7 @@ const FormLayoutsSolicitud = () => {
     consultDay
   } = useFirebase()
   const router = useRouter()
+  const theme = useTheme()
 
   // ** States
   const [plants, setPlants] = useState([])
@@ -82,36 +89,15 @@ const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState(initialValues)
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'start']
+    const strFields = ['title', 'description', 'sap', 'fnlocation']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective']
     const autoFields = ['deliverable', 'receiver']
     let newValue
-
     switch (true) {
       case strFields.includes(prop): {
         newValue = event.target.value
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
-        if (prop === 'start') {
-          let startDate = new Date(
-            Number(newValue.split('-')[0]),
-            Number(newValue.split('-')[1] - 1),
-            Number(newValue.split('-')[2])
-          )
-
-          const resultDate = await consultDay(startDate)
-
-          if (resultDate.blocked) {
-            alert(resultDate.msj)
-          } else {
-            alert(resultDate.msj)
-            setValues({
-              ...values,
-              start: startDate
-            })
-          }
-        } else {
           setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-        }
         break
       }
       case selectFields.includes(prop): {
@@ -130,6 +116,19 @@ const FormLayoutsSolicitud = () => {
         newValue = data
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
+      }
+      case prop==='start': {
+        let startDate = event.$d
+        const resultDate = await consultDay(startDate)
+        if (resultDate.blocked) {
+          alert(resultDate.msj)
+        } else {
+          alert(resultDate.msj)
+          setValues({
+            ...values,
+            start: startDate
+          })
+        }
       }
     }
 
@@ -254,6 +253,11 @@ const FormLayoutsSolicitud = () => {
     }
   }))
 
+  //Styled tooltip-popover
+  const StyledTooltip = styled(Tooltip)(({ theme }) => ({
+    marginRight: theme.spacing(5)
+  }))
+
   const handleRemoveAllFiles = () => {
     setFiles([])
   }
@@ -354,20 +358,48 @@ const FormLayoutsSolicitud = () => {
                 error={errors.title ? true : false}
                 helperText={errors.title}
                 inputProps={{ maxLength: 25 }}
+                InputProps={{
+                  endAdornment: (
+                    <Tooltip
+                      title='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que
+                    no exceda las 15 palabras'
+                    >
+                      <InfoIcon color='action' />
+                    </Tooltip>
+                  )
+                }}
               />
             </Grid>
 
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <TextField
-                  type='date'
-                  InputLabelProps={{ shrink: true, required: true }}
-                  label='Fecha'
-                  onChange={handleChange('start')}
-                  error={errors.start ? true : false}
-                  helperText={errors.start}
-                />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label='Fecha'
+                    value={values.start} // Aquí debes proporcionar el valor actual de la fecha, por ejemplo, desde el estado de tu componente
+                    onChange={date => handleChange('start')(date)} // Asegúrate de pasar el valor de la fecha seleccionada al controlador de cambios
+                    InputLabelProps={{ shrink: true, required: true }}
+                    slots={{
+                      inputAdornment: props => <>
+                        {props.children}
+                      <Tooltip sx={{ml:4}} title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
+                      <InfoIcon color='action' />
+                    </Tooltip>
+                      </>
+                    }}
+                    slotProps={{
+                      textField:{
+                        error:errors.start ? true : false,
+                    helperText:errors.start,
+                      },
+                      inputAdornment: {
+                        position: 'end'
+                      },
+
+                    }}
+                  />
+                </LocalizationProvider>
               </FormControl>
             </Grid>
 
@@ -381,6 +413,11 @@ const FormLayoutsSolicitud = () => {
                   labelId='labelId-plant'
                   value={values.plant}
                   onChange={handleChange('plant')}
+                  endAdornment={
+                    <StyledTooltip title='Selecciona la planta en donde se ejecutará la tarea que requieres.'>
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
                 >
                   {authUser && authUser.plant === 'allPlants'
                     ? areas.map(plant => {
@@ -407,6 +444,14 @@ const FormLayoutsSolicitud = () => {
                   labelId='labelId-area'
                   value={values.area}
                   onChange={handleChange('area')}
+                  endAdornment={
+                    <StyledTooltip
+                      title='Selecciona el área dentro de tu planta en dónde se ejecutará la tarea que
+                  requieres.'
+                    >
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
                 >
                   {plants.map(plant => {
                     return (
@@ -432,6 +477,16 @@ const FormLayoutsSolicitud = () => {
                   error={errors.fnlocation ? true : false}
                   helperText={errors.fnlocation}
                   inputProps={{ maxLength: 4 }}
+                  InputProps={{
+                    endAdornment: (
+                      <Tooltip
+                        title='Ingresa el código del Functional Location en dónde será ejecutado el
+                      levantamiento.'
+                      >
+                        <InfoIcon color='action' />
+                      </Tooltip>
+                    )
+                  }}
                 />
               </FormControl>
             </Grid>
@@ -447,6 +502,14 @@ const FormLayoutsSolicitud = () => {
                   label='Solicitante'
                   id='id-solicitante'
                   labelId='labelId-solicitante'
+                  endAdornment={
+                    <StyledTooltip
+                      title='Selecciona quién es la persona de tu Planta que ha
+                      hecho la solicitud de trabajo.'
+                    >
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
                 >
                   {authUser && authUser.plant === 'allPlants'
                     ? petitioners.map(user => {
@@ -479,6 +542,14 @@ const FormLayoutsSolicitud = () => {
                   label='Contraturno del solicitante'
                   id='id-contraturno'
                   labelId='labelId-contraturno'
+                  endAdornment={
+                    <StyledTooltip
+                      title='Corresponde a la persona
+                      que trabaja en el turno de la semana siguiente del solicitante.'
+                    >
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
                 >
                   {authUser.plant === 'allPlants' ? (
                     <MenuItem value={petitionerOpShift}>{petitionerOpShift}</MenuItem>
@@ -509,6 +580,14 @@ const FormLayoutsSolicitud = () => {
                   labelId='labelId-type'
                   value={values.type}
                   onChange={handleChange('type')}
+                  endAdornment={
+                    <StyledTooltip
+                      title='Selecciona en qué estado operacional se encontrará el lugar donde se
+                      ejecutará la tarea.'
+                    >
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
                 >
                   <MenuItem value='Normal'>Normal</MenuItem>
                   <MenuItem value='Outage'>Outage</MenuItem>
@@ -529,6 +608,14 @@ const FormLayoutsSolicitud = () => {
                   labelId='labelId-detention'
                   value={values.detention}
                   onChange={handleChange('detention')}
+                  endAdornment={
+                    <StyledTooltip
+                      title='Selecciona si la máquina estará detenida, no lo estará o no aplica el
+                      caso.'
+                    >
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
                 >
                   <MenuItem value='yes'>Sí</MenuItem>
                   <MenuItem value='no'>No</MenuItem>
@@ -568,6 +655,15 @@ const FormLayoutsSolicitud = () => {
                   id='id-objetivo'
                   labelId='labelId-objetivo'
                   value={values.objective}
+                  endAdornment={
+                    <StyledTooltip
+                      title='Selecciona cuál es el tipo de levantamiento que necesitas para tu
+                    trabajo. Sólo podrás seleccionar una opción. Si requieres más de un tipo de levantamiento,
+                    deberás hacer una nueva solicitud para cada tipo de levantamiento.'
+                    >
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
                   onChange={handleChange('objective')}
                 >
                   <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
@@ -597,6 +693,20 @@ const FormLayoutsSolicitud = () => {
                       InputLabelProps={{ required: true }}
                       error={errors.deliverable ? true : false}
                       helperText={errors.deliverable}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            <Tooltip
+                              title='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte
+                          de Procure.'
+                            >
+                              <InfoIcon color='action' />
+                            </Tooltip>
+                            {params.InputProps.endAdornment}
+                          </>
+                        )
+                      }}
                     />
                   )}
                 />
@@ -621,6 +731,17 @@ const FormLayoutsSolicitud = () => {
                       label='Destinatarios'
                       error={errors.receiver ? true : false}
                       helperText={errors.receiver}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            <Tooltip title='Selecciona a quién o a quiénes deberemos enviar los entregables.'>
+                              <InfoIcon color='action' />
+                            </Tooltip>
+                            {params.InputProps.endAdornment}
+                          </>
+                        )
+                      }}
                     />
                   )}
                 />
@@ -640,6 +761,16 @@ const FormLayoutsSolicitud = () => {
                   onChange={handleChange('description')}
                   error={errors.description ? true : false}
                   helperText={errors.description}
+                  InputProps={{
+                    endAdornment: (
+                      <Tooltip
+                        title='Rellena este campo con toda la información que consideres importante para
+                      que podamos ejecutar de mejor manera el levantamiento.'
+                      >
+                        <InfoIcon color='action' />
+                      </Tooltip>
+                    )
+                  }}
                 />
               </FormControl>
             </Grid>
