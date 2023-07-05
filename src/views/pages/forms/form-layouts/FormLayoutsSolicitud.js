@@ -65,7 +65,8 @@ const FormLayoutsSolicitud = () => {
     newDoc,
     uploadFilesToFirebaseStorage,
     getAllPlantUsers,
-    consultDay
+    consultDay,
+    consultSAP
   } = useFirebase()
   const router = useRouter()
 
@@ -107,6 +108,21 @@ const FormLayoutsSolicitud = () => {
             setValues({
               ...values,
               start: startDate
+            })
+          }
+        }else if (prop === 'sapNumber'){
+          const resultSap = await consultSAP(newValue)
+          if(resultSap.exist){
+            if(resultSap.sapWithOt){
+              console.log(resultSap.sapWithOt)
+            }
+            console.log(resultSap.sap)
+            alert(resultSap.msj)
+          }else{
+            alert(resultSap.msj)
+            setValues({
+              ...values,
+              sap: newValue
             })
           }
         } else {
@@ -542,7 +558,10 @@ const FormLayoutsSolicitud = () => {
               <TextField
                 fullWidth
                 value={values.sap}
+
                 onChange={handleChange('sap')}
+
+                //onBlur={handleChange('sapNumber')}
                 label='Número SAP'
                 id='sap-input'
                 inputProps={{ maxLength: 10 }}

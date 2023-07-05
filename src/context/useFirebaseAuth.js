@@ -317,7 +317,8 @@ const FirebaseContextProvider = props => {
           userEmail: user.email,
           start: values.start,
           plant: values.plant,
-          contOp: values.contOp,
+
+          //contOp: values.contOp,
           area: values.area,
           objective: values.objective,
           receiver: values.receiver,
@@ -1392,6 +1393,39 @@ const FirebaseContextProvider = props => {
     }
   }
 
+  const consultSAP = async sap => {
+    const sapQuery = query(collection(db, `solicitudes`), where('sap', '==', sap), orderBy('date', 'desc'))
+    const sapQuerySnapshot = await getDocs(sapQuery)
+    const sapDocs = sapQuerySnapshot.docs
+
+
+    if (sapDocs.length > 0) {
+      let sapWithOt = []
+      let sap = []
+      sapDocs.forEach(async docItem => {
+        const userRef = doc(db, 'users', docItem.data().uid)
+        const userQuerySnapshot = await getDoc(userRef)
+        const author = userQuerySnapshot.data().name
+        if(docItem.data().ot){
+          sapWithOt.push({ot: docItem.data().ot, author, objective: docItem.data().objective, title: docItem.data().title} )
+        }else{
+          sap.push({ author, objective: docItem.data().objective, title: docItem.data().title} )
+        }
+      })
+      if(sapWithOt.length > 0){
+        return {exist: true, sap, sapWithOt, msj: `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cual ${sapWithOt.length} tienen OT asignadas y ${sap.length} estan en revisión`}
+      } else{
+        return {exist: true, sap, msj: `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas` }
+      }
+
+
+    } else {
+      return {exist: false, msj: 'nuevo número SAP registrado'}
+    }
+
+  }
+
+
   const value = {
     authUser,
     auth,
@@ -1419,7 +1453,8 @@ const FirebaseContextProvider = props => {
     uploadFilesToFirebaseStorage,
     blockDay,
     blockDayInDatabase,
-    consultDay
+    consultDay,
+    consultSAP
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
