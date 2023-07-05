@@ -98,40 +98,7 @@ const FormLayoutsSolicitud = () => {
       case strFields.includes(prop): {
         newValue = event.target.value
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
-        if (prop === 'start') {
-          let startDate = new Date(
-            Number(newValue.split('-')[0]),
-            Number(newValue.split('-')[1] - 1),
-            Number(newValue.split('-')[2])
-          )
 
-          const resultDate = await consultDay(startDate)
-
-          if (resultDate.blocked) {
-            alert(resultDate.msj)
-          } else {
-            alert(resultDate.msj)
-            setValues({
-              ...values,
-              start: startDate
-            })
-          }
-        }else if (prop === 'sapNumber'){
-          const resultSap = await consultSAP(newValue)
-          if(resultSap.exist){
-            if(resultSap.sapWithOt){
-              console.log(resultSap.sapWithOt)
-            }
-            console.log(resultSap.sap)
-            alert(resultSap.msj)
-          }else{
-            alert(resultSap.msj)
-            setValues({
-              ...values,
-              sap: newValue
-            })
-          }
-        } else {
           setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
       }
