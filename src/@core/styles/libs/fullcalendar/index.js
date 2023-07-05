@@ -20,6 +20,10 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
       background: `${theme.palette.background.default} !important`,
       backgroundColor: `${theme.palette.action.hover} !important`
     },
+    '& .blocked': {
+      background: `${theme.palette.background.default} !important`,
+      backgroundColor: `${theme.palette.error.hover} !important`
+    },
     '& .fc': {
       zIndex: 1,
 
