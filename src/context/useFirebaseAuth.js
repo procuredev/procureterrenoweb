@@ -1350,6 +1350,10 @@ const FirebaseContextProvider = props => {
   };
 
   const dateWithDocs = async date => {
+    if (!date || !date.seconds) {
+      return
+    }
+
     const allDocs = []
 
     //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix

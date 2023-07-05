@@ -23,8 +23,11 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
-import OutlinedInput from '@mui/material/OutlinedInput'
-import InputAdornment from '@mui/material/InputAdornment'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import FormHelperText from '@mui/material/FormHelperText'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
@@ -45,7 +48,6 @@ import { useTheme } from '@emotion/react'
 import { DonutSmallOutlined } from '@mui/icons-material'
 
 const FormLayoutsSolicitud = () => {
-
   const initialValues = {
     title: '',
     opshift: '',
@@ -57,6 +59,7 @@ const FormLayoutsSolicitud = () => {
     deliverable: [],
     receiver: [],
     type: '',
+    contop: '',
     petitioner: '',
     sap: '',
     fnlocation: '',
@@ -91,7 +94,7 @@ const FormLayoutsSolicitud = () => {
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation']
-    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective']
+    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop']
     const autoFields = ['deliverable', 'receiver']
     let newValue
     switch (true) {
@@ -99,7 +102,7 @@ const FormLayoutsSolicitud = () => {
         newValue = event.target.value
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
 
-          setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
+        setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
       }
       case selectFields.includes(prop): {
@@ -119,7 +122,7 @@ const FormLayoutsSolicitud = () => {
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
       }
-      case prop==='start': {
+      case prop === 'start': {
         let startDate = event.$d
         const resultDate = await consultDay(startDate)
         if (resultDate.blocked) {
@@ -330,21 +333,20 @@ const FormLayoutsSolicitud = () => {
 
   return (
     <Card>
-      <CardHeader title='Nueva Solicitud' />
-      <CardContent>
-        {successMessage && (
-          <Alert severity='success'>
-            <AlertTitle>Éxito</AlertTitle>
+      <Dialog sx={{	'.MuiDialog-paper':{minWidth:'20%'}}} open={successMessage || errorMessage} maxWidth={false}>
+        <DialogTitle sx={{ml:2, mt:4}} id='alert-dialog-title'>{successMessage ? 'Éxito' : 'Error'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{m:2}} id='alert-dialog-description'>
             {successMessage}
-          </Alert>
-        )}{' '}
-        {errorMessage && (
-          <Alert severity='error' onClose={() => setErrorMessage('')}>
-            <AlertTitle>Error</AlertTitle>
             {errorMessage}
-          </Alert>
-        )}
-      </CardContent>
+          </DialogContentText>
+          <DialogActions>
+              <Button size="small" onClick={()=>{setSuccessMessage('')
+               setErrorMessage('')}}>Cerrar</Button>
+            </DialogActions>
+        </DialogContent>
+      </Dialog>
+      <CardHeader title='Nueva Solicitud' />
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
@@ -383,22 +385,26 @@ const FormLayoutsSolicitud = () => {
                     onChange={date => handleChange('start')(date)} // Asegúrate de pasar el valor de la fecha seleccionada al controlador de cambios
                     InputLabelProps={{ shrink: true, required: true }}
                     slots={{
-                      inputAdornment: props => <>
-                        {props.children}
-                      <Tooltip sx={{ml:4}} title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
-                      <InfoIcon color='action' />
-                    </Tooltip>
-                      </>
+                      inputAdornment: props => (
+                        <>
+                          {props.children}
+                          <Tooltip
+                            sx={{ ml: 4 }}
+                            title='Selecciona la fecha de inicio deseada para la tarea que requieres.'
+                          >
+                            <InfoIcon color='action' />
+                          </Tooltip>
+                        </>
+                      )
                     }}
                     slotProps={{
-                      textField:{
-                        error:errors.start ? true : false,
-                    helperText:errors.start,
+                      textField: {
+                        error: errors.start ? true : false,
+                        helperText: errors.start
                       },
                       inputAdornment: {
                         position: 'end'
-                      },
-
+                      }
                     }}
                   />
                 </LocalizationProvider>
@@ -464,6 +470,34 @@ const FormLayoutsSolicitud = () => {
                   })}
                 </Select>
                 {errors.area && <FormHelperText>{errors.area}</FormHelperText>}
+              </FormControl>
+            </Grid>
+
+            {/* Contract operator */}
+            <Grid item xs={12}>
+              <FormControl fullWidth error={errors.contop ? true : false}>
+                <InputLabel id='input-label-contop'>Contract operator</InputLabel>
+                <Select
+                  label='Contract operator'
+                  id='id-contop'
+                  labelId='labelId-contop'
+                  value={values.contop}
+                  onChange={handleChange('contop')}
+                  endAdornment={
+                    <StyledTooltip title='Selecciona el Contract Operator a cargo de la Planta donde se ejecutará el trabajo.'>
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  }
+                >
+                  {[{ name: 'Opción 1' }, { name: 'Opción 2' }].map(contop => {
+                    return (
+                      <MenuItem key={contop.name} value={contop.name}>
+                        {contop.name}
+                      </MenuItem>
+                    )
+                  })}
+                </Select>
+                {errors.plant && <FormHelperText>{errors.plant}</FormHelperText>}
               </FormControl>
             </Grid>
 
@@ -631,7 +665,6 @@ const FormLayoutsSolicitud = () => {
               <TextField
                 fullWidth
                 value={values.sap}
-
                 onChange={handleChange('sap')}
 
                 //onBlur={handleChange('sapNumber')}
