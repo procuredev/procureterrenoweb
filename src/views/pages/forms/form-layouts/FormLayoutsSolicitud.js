@@ -154,6 +154,27 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  const onBlur = async e => {
+    const resultSap = await consultSAP(e.target.value)
+          if(resultSap.exist){
+            if(resultSap.sapWithOt){
+              console.log(resultSap.sapWithOt)
+            }
+            console.log(resultSap.sap)
+            alert(resultSap.msj)
+
+            return resultSap
+          }else{
+            setValues({
+              ...values,
+              sap: e.target.value
+            })
+            alert(resultSap.msj)
+
+            return resultSap
+          }
+  };
+
   const validationRegex = {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
@@ -667,7 +688,7 @@ const FormLayoutsSolicitud = () => {
                 value={values.sap}
                 onChange={handleChange('sap')}
 
-                //onBlur={handleChange('sapNumber')}
+                onBlur={onBlur}
                 label='Número SAP'
                 id='sap-input'
                 inputProps={{ maxLength: 10 }}

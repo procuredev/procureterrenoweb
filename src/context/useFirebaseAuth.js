@@ -1402,20 +1402,21 @@ const FirebaseContextProvider = props => {
     const sapQuerySnapshot = await getDocs(sapQuery)
     const sapDocs = sapQuerySnapshot.docs
 
-
     if (sapDocs.length > 0) {
       let sapWithOt = []
       let sap = []
-      sapDocs.forEach(async docItem => {
-        const userRef = doc(db, 'users', docItem.data().uid)
-        const userQuerySnapshot = await getDoc(userRef)
-        const author = userQuerySnapshot.data().name
-        if(docItem.data().ot){
-          sapWithOt.push({ot: docItem.data().ot, author, objective: docItem.data().objective, title: docItem.data().title} )
-        }else{
-          sap.push({ author, objective: docItem.data().objective, title: docItem.data().title} )
+      await Promise.all(sapDocs.map(async docItem => {
+        const userRef = doc(db, 'users', docItem.data().uid);
+        const userQuerySnapshot = await getDoc(userRef);
+        const author = userQuerySnapshot.data().name;
+
+        if (docItem.data().ot) {
+          sapWithOt.push({ ot: docItem.data().ot, author, objective: docItem.data().objective, title: docItem.data().title });
+        } else {
+          sap.push({ author, objective: docItem.data().objective, title: docItem.data().title });
         }
-      })
+      }));
+
       if(sapWithOt.length > 0){
         return {exist: true, sap, sapWithOt, msj: `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cual ${sapWithOt.length} tienen OT asignadas y ${sap.length} estan en revisión`}
       } else{
