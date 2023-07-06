@@ -56,7 +56,11 @@ export function registerValidator(values) {
           return true // No se valida la planta si la empresa es "Procure"
         }
 
-        return valPlant.includes(value)
+        if (Array.isArray(value)) {
+          return value.every(item => valPlant.includes(item))
+        }
+
+        return false
       },
       message: 'La Planta seleccionada no coincide con ninguna de las sugeridas.'
     }
@@ -68,7 +72,7 @@ export function registerValidator(values) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
     }
-    if (typeof values[key] !== 'string' && key !== 'role') {
+    if (!['role', 'plant'].includes(key) && typeof values[key] !== 'string') {
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
     if (validations.hasOwnProperty(key)) {

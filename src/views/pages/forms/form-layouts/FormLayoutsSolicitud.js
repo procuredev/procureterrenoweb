@@ -75,13 +75,15 @@ const FormLayoutsSolicitud = () => {
     uploadFilesToFirebaseStorage,
     getAllPlantUsers,
     consultDay,
-    consultSAP
+    consultSAP,
+    getUsers
   } = useFirebase()
   const router = useRouter()
   const theme = useTheme()
 
   // ** States
   const [plants, setPlants] = useState([])
+  const [contOp, setContOp] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [files, setFiles] = useState([])
   const [petitioners, setPetitioners] = useState([])
@@ -113,6 +115,7 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'plant') {
           findAreas(newValue)
           getPetitionerOptions(newValue)
+          getContOp(newValue)
         }
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
@@ -217,6 +220,11 @@ const FormLayoutsSolicitud = () => {
     } else {
       setPlants(['No aplica'])
     }
+  }
+
+  const getContOp = async (plant) => {
+    let options = await getUsers(plant)
+    setContOp(options)
   }
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -510,7 +518,7 @@ const FormLayoutsSolicitud = () => {
                     </StyledTooltip>
                   }
                 >
-                  {[{ name: 'Opción 1' }, { name: 'Opción 2' }].map(contop => {
+                  {contOp.map(contop => {
                     return (
                       <MenuItem key={contop.name} value={contop.name}>
                         {contop.name}
