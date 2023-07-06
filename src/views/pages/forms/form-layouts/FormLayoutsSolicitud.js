@@ -227,8 +227,47 @@ const FormLayoutsSolicitud = () => {
     setContOpOptions(options)
   }
 
+  const validateFiles = acceptedFiles => {
+    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'svg'];
+    const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt'];
+
+    const isValidImage = file => {
+      const extension = file.name.split('.').pop().toLowerCase();
+
+      return imageExtensions.includes(extension);
+    };
+
+    const isValidDocument = file => {
+      const extension = file.name.split('.').pop().toLowerCase();
+
+      return documentExtensions.includes(extension);
+    };
+
+    const isValidFile = file => {
+      return isValidImage(file) || isValidDocument(file);
+    };
+
+    const validationResults = acceptedFiles.map(file => {
+      return {
+        name: file.name,
+        isValid: isValidFile(file)
+      };
+    });
+
+    return validationResults;
+  };
+
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
+      const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid);
+      if (invalidFiles > 0) {
+        console.log(validateFiles(invalidFiles))
+
+        return invalidFiles
+      }
+      console.log(validateFiles(acceptedFiles))
+
       setFiles(acceptedFiles.map(file => Object.assign(file)))
     }
   })
@@ -248,6 +287,8 @@ const FormLayoutsSolicitud = () => {
   }
 
   const fileList = files.map(file => (
+
+
     <ListItem key={file.name}>
       <div className='file-details'>
         <div className='file-preview'>{renderFilePreview(file)}</div>
@@ -306,6 +347,7 @@ const FormLayoutsSolicitud = () => {
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isBlocked = await consultDay(values.start)
+    const areValidFiles = validateFiles()
 
     console.log(isBlocked)
     if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked) {
