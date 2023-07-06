@@ -63,8 +63,18 @@ const AppCalendar = () => {
   const [inputValue, setInputValue] = useState('')
   const [checkbox, setCheckbox] = useState(false)
   const [dayDialogOpen, setDayDialogOpen] = useState(false)
-  const [blockResult, setBlockResult] = useState(null);
+  const [blockResult, setBlockResult] = useState([])
+  const [consultationResult, setConsultationResult] = useState('')
 
+  const handleDatesRender = () => {
+    const calendarApi = calendarRef.current.getApi()
+    const view = calendarApi.view
+
+    // Obtener las fechas visibles en el DayGrid
+    const visibleDates = view.currentStart.toISOString().split('T')[0]
+
+    // console.log(visibleDates)
+  }
 
   const handleModalToggle = clickedEvent => {
     let document = data.find(doc => doc.id === clickedEvent.id)
@@ -94,7 +104,7 @@ const AppCalendar = () => {
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  const { authUser, useSnapshot, getRoleData, blockDay } = useFirebase()
+  const { authUser, useSnapshot, getRoleData, consultDay } = useFirebase()
   const data = useSnapshot()
   const theme = useTheme()
 
@@ -292,16 +302,62 @@ const AppCalendar = () => {
     },
     firstDay: 1,
     dayCellClassNames: function (date) {
-      const week = moment(date.date).isoWeek()
-      let color = week % 2 == 0 && !date.isToday && 'week'
+      const foundObject = blockResult.find(obj => {
+        const objTimestamp = new Date(obj.timestamp * 1000).getTime()
+        const objDate = date.date.getTime()
 
-      return color
+        // Compara solo la parte de la fecha (día, mes y año)
+        return objTimestamp === objDate
+      })
+
+      if (foundObject && foundObject.value.blocked) {
+        return 'blocked' // Retorna 'week' si el día está bloqueado
+      } else {
+        const week = moment(date.date).isoWeek()
+        let color = week % 2 == 0 && !date.isToday && 'week'
+
+        return color
+      }
+
     },
     fixedWeekCount: false,
-    dateClick: function (info) {
-      /* const result = blockDay(info.date);
-      setConsultationResult(result); */
+    dateClick: async function (info) {
+      const result = await consultDay(info.date);
+      setConsultationResult(result.msj);
       setDayDialogOpen(true)
+    },
+    datesSet: async function (params) {
+      const startDate = params.start
+      const endDate = params.end
+
+      const timestamps = []
+
+      let currentDate = new Date(startDate)
+      while (currentDate <= endDate) {
+        const timestamp = Math.floor(currentDate.getTime() / 1000)
+        timestamps.push(timestamp)
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+
+      // Realizar todas las consultas de forma asíncrona
+      const results = await Promise.all(
+        timestamps.map(async timestamp => {
+          const value = await consultDay(timestamp)
+
+          return { timestamp, value }
+        })
+      )
+
+      // Filtrar y agregar los resultados bloqueados al estado (evitando duplicados)
+      const blockedResults = results.filter(result => result.value.blocked)
+
+      // Verificar y agregar los resultados bloqueados al estado (evitando duplicados)
+      setBlockResult(prevResults => {
+        const existingTimestamps = prevResults.map(result => result.timestamp)
+        const newResults = blockedResults.filter(result => !existingTimestamps.includes(result.timestamp))
+
+        return [...prevResults, ...newResults]
+      })
     }
   }
 
@@ -384,18 +440,17 @@ const AppCalendar = () => {
           {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
           {dayDialogOpen && (
             <Dialog open={dayDialogOpen}>
-            <DialogTitle id='alert-dialog-title'>Bloquear día</DialogTitle>
-            <DialogContent>
-              <DialogContentText id='alert-dialog-description'>
-                ¿Estás segur@ de que quieres bloquear/desbloquear esta fecha?
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={()=>setDayDialogOpen(false)}>No</Button>
-              <Button autoFocus>Sí</Button>
-            </DialogActions>
-          </Dialog>
-
+              <DialogTitle id='alert-dialog-title'>Información</DialogTitle>
+              <DialogContent>
+                <DialogContentText id='alert-dialog-description'>
+                  {consultationResult}
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setDayDialogOpen(false)}>Cerrar</Button>
+                <Button autoFocus>Bloquear</Button>
+              </DialogActions>
+            </Dialog>
           )}
         </Box>
       </CalendarWrapper>
