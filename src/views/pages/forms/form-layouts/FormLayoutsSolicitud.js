@@ -83,7 +83,7 @@ const FormLayoutsSolicitud = () => {
 
   // ** States
   const [plants, setPlants] = useState([])
-  const [contOp, setContOp] = useState([])
+  const [contOpOptions, setContOpOptions] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [files, setFiles] = useState([])
   const [petitioners, setPetitioners] = useState([])
@@ -224,7 +224,7 @@ const FormLayoutsSolicitud = () => {
 
   const getContOp = async (plant) => {
     let options = await getUsers(plant)
-    setContOp(options)
+    setContOpOptions(options)
   }
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -518,7 +518,7 @@ const FormLayoutsSolicitud = () => {
                     </StyledTooltip>
                   }
                 >
-                  {contOp.map(contop => {
+                  {contOpOptions.map(contop => {
                     return (
                       <MenuItem key={contop.name} value={contop.name}>
                         {contop.name}
