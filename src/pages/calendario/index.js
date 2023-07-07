@@ -45,6 +45,8 @@ import Icon from 'src/@core/components/icon'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 
 const AppCalendar = () => {
+  const calendarRef = useRef();
+
   const initialEvent = {
     title: 'title',
     state: 'state',
@@ -56,6 +58,18 @@ const AppCalendar = () => {
     id: 'id'
   }
 
+  // ** Hooks
+  const { settings } = useSettings()
+
+  // ** Vars
+  const leftSidebarWidth = 260
+  const addEventSidebarWidth = 400
+  const { skin, direction } = settings
+  const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
+  const { authUser, useSnapshot, getRoleData, consultDay, blockDay } = useFirebase()
+  const data = useSnapshot()
+  const theme = useTheme()
+
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState(initialEvent)
@@ -65,6 +79,7 @@ const AppCalendar = () => {
   const [dayDialogOpen, setDayDialogOpen] = useState(false)
   const [blockResult, setBlockResult] = useState([])
   const [consultationResult, setConsultationResult] = useState('')
+  const [blockReason, setBlockReason] = useState('')
 
   const handleDatesRender = () => {
     const calendarApi = calendarRef.current.getApi()
@@ -96,18 +111,6 @@ const AppCalendar = () => {
     }
   }
 
-  // ** Hooks
-  const { settings } = useSettings()
-
-  // ** Vars
-  const leftSidebarWidth = 260
-  const addEventSidebarWidth = 400
-  const { skin, direction } = settings
-  const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  const { authUser, useSnapshot, getRoleData, consultDay } = useFirebase()
-  const data = useSnapshot()
-  const theme = useTheme()
-
   useEffect(() => {
     const role = async () => {
       if (authUser) {
@@ -118,6 +121,18 @@ const AppCalendar = () => {
 
     role()
   }, [])
+
+  const handleBlockReasonChange = event => {
+    setBlockReason(event.target.value)
+  }
+
+  const handleBlockConfirmation = async () => {
+    await blockDay(dayDialogOpen, blockReason).then(console.log(calendarRef.current))
+    setOpen(false)
+    setDayDialogOpen(false)
+    setBlockReason('')
+    setDoc(initialEvent)
+  }
 
   const setColor = doc => {
     let color
@@ -263,6 +278,7 @@ const AppCalendar = () => {
       : {}
 
   const calendarOptions = {
+    ref:calendarRef,
     events: content[filter].data.map(a => ({
       title: eventTitle(a),
       start: a.start.seconds * 1000,
@@ -318,13 +334,12 @@ const AppCalendar = () => {
 
         return color
       }
-
     },
     fixedWeekCount: false,
     dateClick: async function (info) {
-      const result = await consultDay(info.date);
-      setConsultationResult(result.msj);
-      setDayDialogOpen(true)
+      const result = await consultDay(new Date(info.date).getTime()/1000)
+      setConsultationResult(result)
+      setDayDialogOpen(info.date)
     },
     datesSet: async function (params) {
       const startDate = params.start
@@ -439,16 +454,35 @@ const AppCalendar = () => {
           <FullCalendar {...calendarOptions} />
           {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
           {dayDialogOpen && (
-            <Dialog open={dayDialogOpen}>
+            <Dialog sx={{'.MuiPaper-root': {minWidth:'30%'}}} open={dayDialogOpen}>
               <DialogTitle id='alert-dialog-title'>Información</DialogTitle>
               <DialogContent>
-                <DialogContentText id='alert-dialog-description'>
-                  {consultationResult}
-                </DialogContentText>
+                <DialogContentText id='alert-dialog-description'>{consultationResult.msj}</DialogContentText>
+                {authUser.role === 5 && !consultationResult.blocked && (
+                  <>
+                    <DialogContentText id='alert-dialog-description'>
+                      <p>Si quieres bloquear esta fecha, ingresa un motivo:</p>
+                    </DialogContentText>
+                    <TextField
+                      autoFocus
+                      margin='dense'
+                      id='block-reason'
+                      label='Motivo'
+                      type='text'
+                      fullWidth
+                      value={blockReason}
+                      onChange={handleBlockReasonChange}
+                    />
+                  </>
+                )}
               </DialogContent>
               <DialogActions>
                 <Button onClick={() => setDayDialogOpen(false)}>Cerrar</Button>
-                <Button autoFocus>Bloquear</Button>
+                {authUser.role === 5 && (
+                  <Button autoFocus onClick={handleBlockConfirmation} disabled={!blockReason && !consultationResult.blocked}>
+                    {consultationResult.blocked ? 'Desbloquear' : 'Bloquear'}
+                  </Button>
+                )}
               </DialogActions>
             </Dialog>
           )}

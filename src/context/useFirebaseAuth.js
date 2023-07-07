@@ -611,7 +611,6 @@ const FirebaseContextProvider = props => {
         return () => unsubscribe()
       }
     }, [authUser])
-    console.log(data)
 
     return data
   }
@@ -1376,7 +1375,6 @@ const FirebaseContextProvider = props => {
     const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
     const fechaTimestamp = Timestamp.fromMillis(dateUnix * 1000) // Convierte a objeto Timestamp de Firebase
     const docRef = doc(collection(db, 'diasBloqueados'), date.toString())
-
 
 
     const docSnap = await getDoc(docRef)
