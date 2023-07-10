@@ -53,6 +53,9 @@ const FirebaseContextProvider = props => {
   const auth = getAuth(app)
   const storage = getStorage()
 
+  // ** Libreria de fechas
+  const moment = require('moment')
+
   // ** Consultar rol del usuario
 
   const getData = async id => {
@@ -368,8 +371,14 @@ const FirebaseContextProvider = props => {
 
     const prevState = querySnapshot.data().state // 'estado anterior'
     let newState
+    let supervisorShift
     if (authUser.role === 2) {
       newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 2 ? 4 : 6) : 10
+      if(newState === 6){
+        let week = moment(docSnapshot.start).isoWeek()
+        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
+        await updateDoc(ref, {supervisorShift})
+      }
     } else if (authUser.role === 3) {
       if (eventDocs.lenght > 0) {
         newState = approves
@@ -379,6 +388,11 @@ const FirebaseContextProvider = props => {
           : 10
       } else {
         newState = approves ? authUser.role + 1 : 10
+      }
+      if(newState === 6){
+        let week = moment(docSnapshot.start).isoWeek()
+        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
+        await updateDoc(ref, {supervisorShift})
       }
     } else if (authUser.role === 6) {
       console.log(eventDocs)
@@ -393,6 +407,11 @@ const FirebaseContextProvider = props => {
       } else {
         console.log('No se encontraron eventos')
         newState = approves ? authUser.role : 10
+      }
+      if(newState === authUser.role){
+        let week = moment(docSnapshot.start).isoWeek()
+        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
+        await updateDoc(ref, {supervisorShift})
       }
     } else {
       newState = approves ? authUser.role : 10
@@ -461,6 +480,14 @@ const FirebaseContextProvider = props => {
       // si planificador cambia de fecha, solictud cambia state a 5
       newState = authUser.role
       changedFields.state = newState
+    }else if (authUser.role === 5 && Object.keys(prevDoc).length > 0 && docSnapshot.state >= 6) {
+      // si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
+      if(changedFields.start){
+        let week = moment(changedFields.start).isoWeek()
+        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
+        await updateDoc(ref, {supervisorShift})
+      }
+      newState = docSnapshot.state
     } else if (authUser.role === 6 && eventDocs.length > 0) {
       newState =
         eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start

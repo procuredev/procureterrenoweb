@@ -247,6 +247,7 @@ const FormLayoutsSolicitud = () => {
       return isValidImage(file) || isValidDocument(file);
     };
 
+
     const validationResults = acceptedFiles.map(file => {
       return {
         name: file.name,
@@ -347,10 +348,11 @@ const FormLayoutsSolicitud = () => {
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isBlocked = await consultDay(values.start)
-    const areValidFiles = validateFiles()
+    const invalidFiles = validateFiles(files).filter(file => !file.isValid);
+
 
     console.log(isBlocked)
-    if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked) {
+    if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked || !invalidFiles) {
       try {
         const solicitud = await newDoc(values)
         setSuccessMessage('Documento creado exitosamente con ID: ' + solicitud.id)
