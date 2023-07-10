@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
 // ** MUI Imports
+import Autocomplete from '@mui/material/Autocomplete'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
@@ -20,7 +21,6 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
-import OutlinedInput from '@mui/material/OutlinedInput'
 import InputAdornment from '@mui/material/InputAdornment'
 import FormHelperText from '@mui/material/FormHelperText'
 import Select from '@mui/material/Select'
@@ -30,14 +30,9 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
 // **Validar RUT
 import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
-
-import FreeSoloCreateOptionDialog from 'src/@core/components/textbox-search'
-import { SettingsVoice } from '@mui/icons-material'
+import areas from 'src/@core/components/plants-areas'
 
 const FormLayoutsBasic = () => {
   let initialValues = {
@@ -46,7 +41,10 @@ const FormLayoutsBasic = () => {
     phone: '',
     email: '',
     company: '',
-    role: ''
+    role: '',
+    plant: [],
+    shift: '',
+    opshift: '',
   }
 
   // ** States
@@ -62,38 +60,39 @@ const FormLayoutsBasic = () => {
   const [opShiftOptions, setOpShiftOptions] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, addNewContact, getUsers } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUsers } = useFirebase()
 
-  const handleChange = prop => event => {
-    let newValue = event.target.value
-    if (newValue) {
+  const handleChange = prop => (event, data) => {
+    let newValue
       switch (prop) {
         case 'phone':
-          newValue = newValue.replace(/\D/g, '')
+          newValue = event.target.value.replace(/\D/g, '')
           break
         case 'email':
-          newValue = newValue.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
+          newValue = event.target.value.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
           break
         case 'name':
           // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
-          newValue = newValue.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+          newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
           break
         case 'rut':
           // Eliminar cualquier caracter que no sea un número o letra k
-          newValue = newValue.replace(/[^0-9kK]/g, '')
+          newValue = event.target.value.replace(/[^0-9kK]/g, '')
 
           // Aplicar expresión regular para formatear el RUT
-          newValue = newValue.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
+          newValue = event.target.value.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
           break
         case 'plant':
+          newValue = data
           getOptions(newValue)
           break
         case 'shift':
+          newValue = event.target.value
           getOptions(values.plant, newValue)
           break
         default:
+          newValue = event.target.value
           break
-      }
     }
 
     setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
@@ -114,9 +113,7 @@ const FormLayoutsBasic = () => {
     }
   }
 
-  const handleSelectorChange = prop => newValue => {
-    setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-  }
+  const names = areas.map(plant=>plant.name)
 
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
@@ -345,52 +342,24 @@ const FormLayoutsBasic = () => {
               <>
                 <Grid item xs={12}>
                   <FormControl fullWidth>
-                    <InputLabel>Planta</InputLabel>
-                    <Select
-                      label='Planta'
+                    <Autocomplete
+                      multiple
+                      fullWidth
+                      options={names}
                       value={values.plant}
                       onChange={handleChange('plant')}
-                      error={errors.plant ? true : false}
-                    >
-                      <MenuItem value={'Planta Concentradora Los Colorados'}>
-                        Planta Concentradora Los Colorados
-                      </MenuItem>
-                      <MenuItem value={'Planta Concentradora Laguna Seca | Línea 1'}>
-                        Planta Concentradora Laguna Seca | Línea 1
-                      </MenuItem>
-                      <MenuItem value={'Planta Concentradora Laguna Seca | Línea 2'}>
-                        Planta Concentradora Laguna Seca | Línea 2
-                      </MenuItem>
-                      <MenuItem value={'Chancado y Correas'}>Chancado y correas</MenuItem>
-                      <MenuItem value={'Puerto Coloso'}>Puerto Coloso</MenuItem>
-                      <MenuItem value={'Instalaciones Catodo'}>Instalaciones Cátodo</MenuItem>
-                      <MenuItem value={'allPlants'}>Sucursal Santiago</MenuItem>
-                    </Select>
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Planta'
+                          InputLabelProps={{ required: true }}
+                          error={errors.plant ? true : false}
+                        />
+                      )}
+                    />
                     {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
                   </FormControl>
                 </Grid>
-                {values.role === 2 && (
-                  <Grid item xs={12}>
-                    <FormControl fullWidth>
-                      <InputLabel>Contract Operator</InputLabel>
-                      <Select
-                        label='Contract operator'
-                        value={values.contop}
-                        onChange={handleChange('contop')}
-                        error={errors.contop ? true : false}
-                      >
-                        {contOptions.map(element => {
-                          return (
-                            <MenuItem key={element.name} value={element.name}>
-                              {element.name}
-                            </MenuItem>
-                          )
-                        })}
-                      </Select>
-                      {errors.contop && <FormHelperText error>{errors.contop}</FormHelperText>}
-                    </FormControl>
-                  </Grid>
-                )}
                 <Grid item xs={12}>
                   <FormControl fullWidth>
                     <InputLabel>Turno</InputLabel>
@@ -414,7 +383,7 @@ const FormLayoutsBasic = () => {
                       value={values.opshift}
                       onChange={handleChange('opshift')}
 
-                    /* error={errors.opshift ? true : false} */
+                      /* error={errors.opshift ? true : false} */
                     >
                       {opShiftOptions.map(element => {
                         return (

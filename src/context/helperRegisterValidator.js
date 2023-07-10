@@ -56,8 +56,9 @@ export function registerValidator(values) {
           return true // No se valida la planta si la empresa es "Procure"
         }
 
-        if (Array.isArray(value)) {
-          return value.every(item => valPlant.includes(item))
+        if (typeof value === 'string') {
+          return valPlant.some(item => item === value);
+
         }
 
         return false
