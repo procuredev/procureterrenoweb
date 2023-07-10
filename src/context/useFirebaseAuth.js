@@ -476,18 +476,19 @@ const FirebaseContextProvider = props => {
     if (authUser.role === 3 && obj.start !== docSnapshot.start.seconds) {
       newState = devolutionState
       changedFields.state = newState
-    } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
-      // si planificador cambia de fecha, solictud cambia state a 5
-      newState = authUser.role
-      changedFields.state = newState
-    }else if (authUser.role === 5 && Object.keys(prevDoc).length > 0 && docSnapshot.state >= 6) {
+    } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0 && docSnapshot.state >= 6) {
       // si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
       if(changedFields.start){
+        let supervisorShift
         let week = moment(changedFields.start).isoWeek()
         week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
         await updateDoc(ref, {supervisorShift})
       }
       newState = docSnapshot.state
+    } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
+      // si planificador cambia de fecha, solictud cambia state a 5
+      newState = authUser.role
+      changedFields.state = newState
     } else if (authUser.role === 6 && eventDocs.length > 0) {
       newState =
         eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
