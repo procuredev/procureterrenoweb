@@ -11,7 +11,7 @@ export function registerValidator(values) {
     'Planta Concentradora Los Colorados',
     'Planta Concentradora Laguna Seca | Línea 1',
     'Planta Concentradora Laguna Seca | Línea 2',
-    'Chancado y correas',
+    'Chancado y Correas',
     'Puerto Coloso',
     'Instalaciones Cátodo',
     'allPlants'
@@ -52,14 +52,12 @@ export function registerValidator(values) {
     },
     plant: {
       validate: value => {
-        //devuelve true
-        if (values.company === 'Procure' || values.company === 'MEL') {
+        if (values.company === 'Procure') {
           return true // No se valida la planta si la empresa es "Procure"
         }
 
-        if (typeof value === 'string') {
-          return valPlant.some(item => item === value);
-
+        if (Array.isArray(value)) {
+          return value.every(item => valPlant.includes(item))
         }
 
         return false
