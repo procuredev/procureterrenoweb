@@ -80,7 +80,7 @@ const FormLayoutsBasic = () => {
           newValue = event.target.value.replace(/[^0-9kK]/g, '')
 
           // Aplicar expresión regular para formatear el RUT
-          newValue = event.target.value.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
+          //newValue = event.target.value.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
           break
         case 'plant':
           newValue = data
