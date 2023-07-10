@@ -52,7 +52,8 @@ export function registerValidator(values) {
     },
     plant: {
       validate: value => {
-        if (values.company === 'Procure') {
+        //devuelve true
+        if (values.company === 'Procure' || values.company === 'MEL') {
           return true // No se valida la planta si la empresa es "Procure"
         }
 
