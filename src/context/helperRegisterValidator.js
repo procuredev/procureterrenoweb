@@ -52,12 +52,14 @@ export function registerValidator(values) {
     },
     plant: {
       validate: value => {
-        if (values.company === 'Procure') {
+        //devuelve true
+        if (values.company === 'Procure' || values.company === 'MEL') {
           return true // No se valida la planta si la empresa es "Procure"
         }
 
-        if (Array.isArray(value)) {
-          return value.every(item => valPlant.includes(item))
+        if (typeof value === 'string') {
+          return valPlant.some(item => item === value);
+
         }
 
         return false
