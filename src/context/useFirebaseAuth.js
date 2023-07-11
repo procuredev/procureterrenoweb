@@ -229,7 +229,7 @@ const FirebaseContextProvider = props => {
           name: name,
           email: email,
           rut: rut,
-          phone: phone,
+          phone: phone.replace(/\s/g, ""),
           company: company,
           role: role,
           ...(plant && { plant }),

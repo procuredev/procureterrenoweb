@@ -66,7 +66,9 @@ const FormLayoutsBasic = () => {
     let newValue
       switch (prop) {
         case 'phone':
-          newValue = event.target.value.replace(/\D/g, '')
+          newValue = event.target.value.replace(/[^0-9]/g, '')
+          newValue = `${newValue[0]||''} ${newValue.slice(1, 5)||''} ${newValue.slice(5, 10)||''}`
+          newValue = newValue.trim()
           break
         case 'email':
           newValue = event.target.value.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
@@ -77,18 +79,11 @@ const FormLayoutsBasic = () => {
           break
         case 'rut':
           // Eliminar cualquier caracter que no sea un número o letra k
-          let clearValue = event.target.value.replace(/[^0-9kK]/g, '')
-          if (clearValue.length === 8) {
-            newValue = `${clearValue.slice(0, 1)|| ''}.${clearValue.slice(1, 4)|| ''}.${clearValue.slice(4, 7)|| ''}-${clearValue[7]|| ''}`;
-          } else if (clearValue.length === 9) {
-            newValue = `${clearValue.slice(0, 2)|| ''}.${clearValue.slice(2, 5)|| ''}.${clearValue.slice(5, 8)|| ''}-${clearValue[8] || ''}`;
-          } else {
-            // Manejar caso de RUT inválido o con un formato no esperado
-            newValue = clearValue;}
-          newValue = newValue.trim()
+          let cv = event.target.value.replace(/[^0-9kK]/g, '')
 
-          // Aplicar expresión regular para formatear el RUT
-          //newValue = event.target.value.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
+          // Formatea RUT
+          newValue = `${cv.length > 7 ? cv.slice(-9, -7)+'.' : ''}${cv.length > 4 ? cv.slice(-7, -4)+'.' : ''}${cv.length >=2 ? cv.slice(-4, -1)+'-':''}${cv[cv.length - 1] || ''}`;
+          newValue = newValue.trim()
           break
         case 'plant':
           newValue = data
@@ -126,7 +121,7 @@ const FormLayoutsBasic = () => {
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
     email: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i,
-    phone: /^[0-9]{9}$/
+    phone: /^\d\s\d{4}\s\d{4}$/
   }
 
   const validateForm = values => {
@@ -278,7 +273,7 @@ const FormLayoutsBasic = () => {
                 error={errors.rut ? true : false}
                 helperText={errors.rut}
 
-                /* inputProps={{ maxLength: 12, pattern: '[0-9kK.-]*' }} */
+                inputProps={{ maxLength: 12 }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -291,7 +286,7 @@ const FormLayoutsBasic = () => {
                 value={values.phone}
                 error={errors.phone ? true : false}
                 helperText={errors.phone}
-                inputProps={{ maxLength: 9, pattern: '[0-9]*' }}
+        inputProps={{ maxLength:11}}
                 InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
               />
             </Grid>
