@@ -115,7 +115,7 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'plant') {
           findAreas(newValue)
           getPetitionerOptions(newValue)
-          getContOp(newValue)
+
         }
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
@@ -286,6 +286,7 @@ const FormLayoutsSolicitud = () => {
       return <Icon icon='mdi:file-document-outline' />
     }
   }
+  console.log(values.area)
 
   const fileList = files.map(file => (
 
@@ -394,15 +395,17 @@ const FormLayoutsSolicitud = () => {
   }, [])
 
   useEffect(() => {
-    let plant = authUser.plant
+    let plant = authUser.plant[0]
     if (authUser.role === 2) {
       setValues({ ...values, plant })
       findAreas(plant)
       getPetitionerOptions(plant)
+      getContOp(plant)
     } else if (authUser.role === 3) {
       getPetitionerOptions2(plant)
     }
   }, [])
+  console.log(values.plant)
 
   return (
     <Card>
@@ -508,7 +511,7 @@ const FormLayoutsSolicitud = () => {
                           </MenuItem>
                         )
                       })
-                    : authUser && <MenuItem value={authUser.plant}>{authUser.plant}</MenuItem>}
+                    : authUser && <MenuItem value={authUser.plant[0]}>{authUser.plant[0]}</MenuItem>}
                 </Select>
                 {errors.plant && <FormHelperText>{errors.plant}</FormHelperText>}
               </FormControl>
