@@ -530,7 +530,7 @@ const FirebaseContextProvider = props => {
     const ref = doc(db, 'users', id)
     const querySnapshot = await getDoc(ref)
 
-    await updateDoc(ref, { phone: obj })
+    await updateDoc(ref, { phone: obj.replace(/\s/g, "") })
   }
 
   // ** Guarda datos contraturno u otros contactos no registrados

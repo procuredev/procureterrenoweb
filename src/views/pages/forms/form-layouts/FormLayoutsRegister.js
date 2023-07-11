@@ -97,7 +97,7 @@ const FormLayoutsBasic = () => {
           newValue = event.target.value
           break
     }
-    console.log(newValue)
+
     setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
 
     // Deshacer errores al dar formato correcto

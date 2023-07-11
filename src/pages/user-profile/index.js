@@ -64,7 +64,7 @@ const TabAccount = () => {
 
   // ** State
   const [inputValue, setInputValue] = useState('')
-  const [formData, setFormData] = useState(authUser.phone)
+  const [formData, setFormData] = useState(authUser.phone==='No definido' ? '' : authUser.phone)
   const [imgSrc, setImgSrc] = useState(initialImg)
 
   useEffect(() => {
@@ -103,7 +103,13 @@ const TabAccount = () => {
     setImgSrc(initialImg)
   }
 
-  const handleFormChange = value => {
+  const handleFormChange = target => {
+    let value = target.value
+    if (target.name = 'phone') {
+      value = value.replace(/[^0-9]/g, '')
+      value = `${value[0]||''} ${value.slice(1, 5)||''} ${value.slice(5, 10)||''}`
+      value = value.trim()
+    }
     setFormData(value)
   }
 
@@ -112,7 +118,7 @@ const TabAccount = () => {
     /* console.log(formData, 'formData')
     console.log(inputValue, 'inputValue') */
     if (formData !== authUser.phone) {
-      updateUserPhone(authUser.uid, formData)
+      updateUserPhone(authUser.uid, formData.replace(/\s/g, ""))
     }
     if (inputValue !== '') {
       updateUserProfile(inputValue)
@@ -165,11 +171,12 @@ const TabAccount = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
+                    name='phone'
                     type='tel'
                     label='Teléfono'
                     value={formData}
                     placeholder='9 1234 5678'
-                    onChange={e => handleFormChange(e.target.value)}
+                    onChange={e => handleFormChange(e.target)}
                     inputProps={{ maxLength: 12 }}
                     InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
                   />
