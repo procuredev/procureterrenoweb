@@ -64,7 +64,7 @@ const TabAccount = () => {
 
   // ** State
   const [inputValue, setInputValue] = useState('')
-  const [formData, setFormData] = useState(authUser.phone==='No definido' ? '' : authUser.phone)
+  const [formData, setFormData] = useState(authUser.phone==='No definido' ? '' : `${authUser.phone[0]||''} ${authUser.phone.slice(1, 5)||''} ${authUser.phone.slice(5, 10)||''}`)
   const [imgSrc, setImgSrc] = useState(initialImg)
 
   useEffect(() => {
