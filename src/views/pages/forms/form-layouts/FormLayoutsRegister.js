@@ -77,7 +77,15 @@ const FormLayoutsBasic = () => {
           break
         case 'rut':
           // Eliminar cualquier caracter que no sea un número o letra k
-          newValue = event.target.value.replace(/[^0-9kK]/g, '')
+          let clearValue = event.target.value.replace(/[^0-9kK]/g, '')
+          if (clearValue.length === 8) {
+            newValue = `${clearValue.slice(0, 1)|| ''}.${clearValue.slice(1, 4)|| ''}.${clearValue.slice(4, 7)|| ''}-${clearValue[7]|| ''}`;
+          } else if (clearValue.length === 9) {
+            newValue = `${clearValue.slice(0, 2)|| ''}.${clearValue.slice(2, 5)|| ''}.${clearValue.slice(5, 8)|| ''}-${clearValue[8] || ''}`;
+          } else {
+            // Manejar caso de RUT inválido o con un formato no esperado
+            newValue = clearValue;}
+          newValue = newValue.trim()
 
           // Aplicar expresión regular para formatear el RUT
           //newValue = event.target.value.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
@@ -94,7 +102,7 @@ const FormLayoutsBasic = () => {
           newValue = event.target.value
           break
     }
-
+    console.log(newValue)
     setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
 
     // Deshacer errores al dar formato correcto
@@ -258,10 +266,8 @@ const FormLayoutsBasic = () => {
                 inputProps={{ maxLength: 45 }}
               />
             </Grid>
-            {/* <Grid item xs={6}>
-              <TextField fullWidth label='Apellidos' placeholder='Apellidos' />
-            </Grid> */}
-            <Grid item xs={6}>
+
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 type='tel'
@@ -271,10 +277,11 @@ const FormLayoutsBasic = () => {
                 value={values.rut}
                 error={errors.rut ? true : false}
                 helperText={errors.rut}
-                inputProps={{ maxLength: 12, pattern: '[0-9kK.-]*' }}
+
+                /* inputProps={{ maxLength: 12, pattern: '[0-9kK.-]*' }} */
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label='Teléfono'
