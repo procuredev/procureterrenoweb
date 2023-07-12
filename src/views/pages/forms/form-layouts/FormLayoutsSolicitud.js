@@ -115,7 +115,6 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'plant') {
           findAreas(newValue)
           getPetitionerOptions(newValue)
-
         }
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
@@ -159,24 +158,24 @@ const FormLayoutsSolicitud = () => {
 
   const onBlur = async e => {
     const resultSap = await consultSAP(e.target.value)
-          if(resultSap.exist){
-            if(resultSap.sapWithOt){
-              console.log(resultSap.sapWithOt)
-            }
-            console.log(resultSap.sap)
-            alert(resultSap.msj)
+    if (resultSap.exist) {
+      if (resultSap.sapWithOt) {
+        console.log(resultSap.sapWithOt)
+      }
+      console.log(resultSap.sap)
+      alert(resultSap.msj)
 
-            return resultSap
-          }else{
-            setValues({
-              ...values,
-              sap: e.target.value
-            })
-            alert(resultSap.msj)
+      return resultSap
+    } else {
+      setValues({
+        ...values,
+        sap: e.target.value
+      })
+      alert(resultSap.msj)
 
-            return resultSap
-          }
-  };
+      return resultSap
+    }
+  }
 
   const validationRegex = {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
@@ -222,46 +221,44 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const getContOp = async (plant) => {
+  const getContOp = async plant => {
     let options = await getUsers(plant)
     setContOpOptions(options)
   }
 
   const validateFiles = acceptedFiles => {
-    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'svg'];
-    const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt'];
+    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'svg']
+    const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
 
     const isValidImage = file => {
-      const extension = file.name.split('.').pop().toLowerCase();
+      const extension = file.name.split('.').pop().toLowerCase()
 
-      return imageExtensions.includes(extension);
-    };
+      return imageExtensions.includes(extension)
+    }
 
     const isValidDocument = file => {
-      const extension = file.name.split('.').pop().toLowerCase();
+      const extension = file.name.split('.').pop().toLowerCase()
 
-      return documentExtensions.includes(extension);
-    };
+      return documentExtensions.includes(extension)
+    }
 
     const isValidFile = file => {
-      return isValidImage(file) || isValidDocument(file);
-    };
-
+      return isValidImage(file) || isValidDocument(file)
+    }
 
     const validationResults = acceptedFiles.map(file => {
       return {
         name: file.name,
         isValid: isValidFile(file)
-      };
-    });
+      }
+    })
 
-    return validationResults;
-  };
-
+    return validationResults
+  }
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
-      const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid);
+      const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
       if (invalidFiles > 0) {
         console.log(validateFiles(invalidFiles))
 
@@ -289,8 +286,6 @@ const FormLayoutsSolicitud = () => {
   console.log(values.area)
 
   const fileList = files.map(file => (
-
-
     <ListItem key={file.name}>
       <div className='file-details'>
         <div className='file-preview'>{renderFilePreview(file)}</div>
@@ -349,8 +344,7 @@ const FormLayoutsSolicitud = () => {
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isBlocked = await consultDay(values.start)
-    const invalidFiles = validateFiles(files).filter(file => !file.isValid);
-
+    const invalidFiles = validateFiles(files).filter(file => !file.isValid)
 
     console.log(isBlocked)
     if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked || !invalidFiles) {
@@ -409,20 +403,28 @@ const FormLayoutsSolicitud = () => {
 
   return (
     <Card>
-      <Dialog sx={{	'.MuiDialog-paper':{minWidth:'20%'}}} open={successMessage || errorMessage} maxWidth={false}>
-        <DialogTitle sx={{ml:2, mt:4}} id='alert-dialog-title'>{successMessage ? 'Éxito' : 'Error'}</DialogTitle>
+      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={successMessage || errorMessage} maxWidth={false}>
+        <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
+          {successMessage ? 'Éxito' : 'Error'}
+        </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{m:2}} id='alert-dialog-description'>
+          <DialogContentText sx={{ m: 2 }} id='alert-dialog-description'>
             {successMessage}
             {errorMessage}
           </DialogContentText>
           <DialogActions>
-              <Button size="small" onClick={()=>{setSuccessMessage('')
-               setErrorMessage('')}}>Cerrar</Button>
-            </DialogActions>
+            <Button
+              size='small'
+              onClick={() => {
+                setSuccessMessage('')
+                setErrorMessage('')
+              }}
+            >
+              Cerrar
+            </Button>
+          </DialogActions>
         </DialogContent>
       </Dialog>
-      <CardHeader title='Nueva Solicitud' />
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
@@ -549,6 +551,14 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Texto mapa */}
+            <Grid item xs={12}>
+              <Typography sx={{ mr: 2 }}>
+                ¿No sabe en qué área está? {`  `}
+                <Link onClick={() => router.replace('/mapa/')}>Haga clic acá para saber</Link>
+              </Typography>
+            </Grid>
+
             {/* Contract operator */}
             <Grid item xs={12}>
               <FormControl fullWidth error={errors.contop ? true : false}>
@@ -673,20 +683,12 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
-            {/* Texto mapa */}
-            <Grid item xs={12}>
-              <Typography sx={{ mr: 2 }}>
-                ¿No sabe en qué área está? {`  `}
-                <Link onClick={() => router.replace('/mapa/')}>Haga clic acá para saber</Link>
-              </Typography>
-            </Grid>
-
             {/* Box con tipo de operación*/}
             <Grid item xs={12}>
               <FormControl fullWidth error={errors.type ? true : false}>
-                <InputLabel id='input-label-type'>Tipo de trabajo</InputLabel>
+                <InputLabel id='input-label-type'>Estado Operacional Planta</InputLabel>
                 <Select
-                  label='Tipo de trabajo'
+                  label='Estado Operacional Planta'
                   defaultValue=''
                   id='id-type'
                   labelId='labelId-type'
@@ -712,9 +714,9 @@ const FormLayoutsSolicitud = () => {
             {/* Detención maq */}
             <Grid item xs={12}>
               <FormControl fullWidth error={errors.detention ? true : false}>
-                <InputLabel id='input-label-detention'>Detención de máquina</InputLabel>
+                <InputLabel id='input-label-detention'>¿Estará la máquina detenida?</InputLabel>
                 <Select
-                  label='Detención de máquina'
+                  label='¿Estará la máquina detenida?'
                   defaultValue=''
                   id='id-detention'
                   labelId='labelId-detention'
@@ -742,7 +744,6 @@ const FormLayoutsSolicitud = () => {
                 fullWidth
                 value={values.sap}
                 onChange={handleChange('sap')}
-
                 onBlur={onBlur}
                 label='Número SAP'
                 id='sap-input'
