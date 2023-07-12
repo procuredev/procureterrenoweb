@@ -5,7 +5,9 @@ export function registerValidator(values) {
   const valEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const valPhone = /^[0-9+]{8,12}$/
   const valRoleMel = [2, 3, 4]
-  const valRoleProcure = [5, 6, 7, 8, 9]
+  const valRoleProcure = [5, 6, 7, 8, 9, 10]
+  const valShiftMel = ['P', 'Q']
+  const valShiftProcure = ['A', 'B']
 
   const valPlant = [
     'Planta Concentradora Los Colorados',
@@ -63,6 +65,22 @@ export function registerValidator(values) {
         return false
       },
       message: 'La Planta seleccionada no coincide con ninguna de las sugeridas.'
+    },
+    shift: {
+      validate: value => {
+        if (values.company === 'MEL' && values.role === 3 || values.role === 4) {
+          return true
+        } else if (values.company === 'Procure' && values.role === 5 || values.role === 9 || values.role === 10) {
+          return true
+        } else if (values.company === 'MEL' && values.role === 2) {
+          return valShiftMel.includes(value)
+        } else if (values.company === 'Procure' && values.role === 6 || values.role === 7 || values.role === 8) {
+          return valShiftProcure.includes(value)
+        }
+
+        return false
+      },
+      message: 'El Turno seleccionado no se encuentra entre los sugeridos para la empresa seleccionada.'
     }
   }
 

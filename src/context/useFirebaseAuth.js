@@ -538,15 +538,15 @@ const FirebaseContextProvider = props => {
     await setDoc(doc(db, 'contacts', 'test'), values)
   }
 
-  /*
-  // Sube documentos
+
+/*   // Sube documentos
   const uploadFileToStorage = file => {
     const storageRef = storage().ref()
     const fileRef = storageRef.child(file.name)
 
     return fileRef.put(file)
-  }
-  */
+  } */
+
 
   // ** Trae colección de eventos
   const useEvents = id => {
@@ -1456,6 +1456,28 @@ const FirebaseContextProvider = props => {
 
   }
 
+  const consultEmailInDB = async (email) => {
+    const q = query(collection(db, 'users'),where('email', '==', email));
+    const emailQuerySnapshot = await getDocs(q)
+    const emailDocs = emailQuerySnapshot.docs
+
+    let allDocs = []
+    emailDocs.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      allDocs.push({ ...doc.data(), id: doc.id })
+    })
+
+    if (allDocs.length >= 0) {
+
+      throw new Error(`El correo ${email} se encuentra registrado.`)
+    } else {
+
+      return true
+    }
+
+
+  };
+
 
   const value = {
     authUser,
@@ -1485,7 +1507,8 @@ const FirebaseContextProvider = props => {
     blockDay,
     blockDayInDatabase,
     consultDay,
-    consultSAP
+    consultSAP,
+    consultEmailInDB
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

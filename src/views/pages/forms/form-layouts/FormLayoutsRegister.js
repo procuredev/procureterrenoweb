@@ -60,7 +60,7 @@ const FormLayoutsBasic = () => {
   const [opShiftOptions, setOpShiftOptions] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUsers } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUsers, consultEmailInDB } = useFirebase()
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -159,16 +159,30 @@ const FormLayoutsBasic = () => {
     return newErrors
   }
 
+  const onBlur = async e => {
+    const email = e.target.value;
+
+
+    console.log( typeof email)
+
+    //console.log( await consultEmailInDB(email))
+  };
+
   const onSubmit = async event => {
     event.preventDefault()
     const formErrors = validateForm(values)
     const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
+    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid && consultEmailInDB(values.email))) {
       try {
-        await createUser(values)
+
+        console.log(await consultEmailInDB(values.email))
+
+        /* await createUser(values)
         setDialog(true)
-        setErrors({})
+        setErrors({}) */
+
+
       } catch (error) {
         setErrorMessage(error.message)
       }
@@ -299,6 +313,7 @@ const FormLayoutsBasic = () => {
                 error={errors.email ? true : false}
                 helperText={errors.email}
                 inputProps={{ maxLength: 45 }}
+                onBlur={onBlur}
               />
             </Grid>
             <Grid item xs={12}>
