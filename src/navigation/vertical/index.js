@@ -8,7 +8,7 @@ const navigation = () => {
     {
       title: 'Nuestro Equipo',
       path: '/nuestro-equipo',
-      icon: 'mdi:home-outline',
+      icon: 'mdi:account-group',
     },
     {
       title: 'Mapa',
