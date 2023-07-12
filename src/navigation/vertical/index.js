@@ -6,6 +6,11 @@ const navigation = () => {
       icon: 'mdi:home-outline',
     },
     {
+      title: 'Nuestro Equipo',
+      path: '/nuestro-equipo',
+      icon: 'mdi:home-outline',
+    },
+    {
       title: 'Mapa',
       path: '/mapa',
       icon: 'mdi:map-outline',
