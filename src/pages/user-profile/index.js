@@ -57,10 +57,12 @@ const TabAccount = () => {
   // ** Hooks
   const { authUser, updateUserProfile, updateUserPhone } = useFirebase()
 
-  const initialImg =
-    authUser && authUser.pfp
-      ? authUser.pfp
-      : 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+  console.log(authUser)
+
+  let initialImg =
+    authUser && authUser.urlFoto === 'No definido'
+      ?  'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+      : authUser.urlFoto
 
   // ** State
   const [inputValue, setInputValue] = useState('')
@@ -68,9 +70,11 @@ const TabAccount = () => {
   const [imgSrc, setImgSrc] = useState(initialImg)
 
   useEffect(() => {
+
+
     console.log(inputValue, 'inputValue')
-    console.log(imgSrc, 'imgSrc')
-  }, [inputValue, imgSrc])
+    console.log(initialImg, 'initialImg')
+  }, [])
 
   const handleInputImageChange = archivo => {
     const file = archivo.target.files[0]

@@ -76,7 +76,7 @@ const FirebaseContextProvider = props => {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
-      pfp: data ? data.urlFoto || 'No definido' : 'No disponible',
+      urlFoto: data ? data.urlFoto || 'No definido' : 'No disponible',
       phone: data ? data.phone || 'No definido' : 'No disponible',
       role: data ? data.role || 'No definido' : 'No disponible',
       plant: data ? data.plant || 'No definido' : 'No disponible',

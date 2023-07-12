@@ -82,10 +82,15 @@ const UserDropdown = props => {
 
   let username = authUser === null ? 'not logged' : authUser.email
 
-  let pfp =
-    authUser === null
+  let urlFoto =
+  authUser && authUser.urlFoto === 'No definido'
+  ?  'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+  : authUser.urlFoto
+
+
+    /* authUser === null
       ? 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
-      : authUser.pfp
+      : authUser.urlFoto */
 
   return (
     <Fragment>
@@ -98,7 +103,7 @@ const UserDropdown = props => {
           horizontal: 'right'
         }}
       >
-        <Avatar alt='Profile picture' onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} src={pfp} />
+        <Avatar alt='Profile picture' onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} src={urlFoto} />
       </Badge>
       <Menu
         anchorEl={anchorEl}
@@ -110,7 +115,7 @@ const UserDropdown = props => {
       >
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar alt='Profile picture' src={pfp} sx={{ width: '2.5rem', height: '2.5rem' }} />
+            <Avatar alt='Profile picture' src={urlFoto} sx={{ width: '2.5rem', height: '2.5rem' }} />
 
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{username}</Typography>
