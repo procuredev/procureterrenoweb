@@ -229,7 +229,7 @@ const FirebaseContextProvider = props => {
           name: name,
           email: email,
           rut: rut,
-          phone: phone,
+          phone: phone.replace(/\s/g, ""),
           company: company,
           role: role,
           ...(plant && { plant }),
@@ -530,7 +530,7 @@ const FirebaseContextProvider = props => {
     const ref = doc(db, 'users', id)
     const querySnapshot = await getDoc(ref)
 
-    await updateDoc(ref, { phone: obj })
+    await updateDoc(ref, { phone: obj.replace(/\s/g, "") })
   }
 
   // ** Guarda datos contraturno u otros contactos no registrados
@@ -772,6 +772,18 @@ const FirebaseContextProvider = props => {
   }
 
     // **INICIO - FUNCIONES CREADAS POR JORGE**
+
+  const getAllProcureUsers = async () => {
+    const q = query(collection(db, 'users'), where('company', '==', 'Procure'))
+    const querySnapshot = await getDocs(q)
+    const allDocs = []
+
+    querySnapshot.forEach(doc => {
+      allDocs.push({ ...doc.data(), id: doc.id })
+    })
+
+    return allDocs
+  }
 
   // Función que busca dentro de la colección indicada y según el campo/field que se indique y que el valor/value sea igual al indicado. Esto retornará el UID de la solicitud.
   const searchbyColletionAndField = async (col, field, value) => {
@@ -1501,6 +1513,7 @@ const FirebaseContextProvider = props => {
     getRoleData,
     getUsers,
     getPetitioner,
+    getAllProcureUsers,
     getAllMELUsers,
     getAllPlantUsers,
     uploadFilesToFirebaseStorage,

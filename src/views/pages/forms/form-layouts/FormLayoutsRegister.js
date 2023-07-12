@@ -66,7 +66,9 @@ const FormLayoutsBasic = () => {
     let newValue
       switch (prop) {
         case 'phone':
-          newValue = event.target.value.replace(/\D/g, '')
+          newValue = event.target.value.replace(/[^0-9]/g, '')
+          newValue = `${newValue[0]||''} ${newValue.slice(1, 5)||''} ${newValue.slice(5, 10)||''}`
+          newValue = newValue.trim()
           break
         case 'email':
           newValue = event.target.value.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
@@ -77,10 +79,11 @@ const FormLayoutsBasic = () => {
           break
         case 'rut':
           // Eliminar cualquier caracter que no sea un número o letra k
-          newValue = event.target.value.replace(/[^0-9kK]/g, '')
+          let cv = event.target.value.replace(/[^0-9kK]/g, '')
 
-          // Aplicar expresión regular para formatear el RUT
-          //newValue = event.target.value.replace(/^(\d{1,2})(\d{3})(\d{3})([0-9kK]{1})$/, '$1.$2.$3-$4')
+          // Formatea RUT
+          newValue = `${cv.length > 7 ? cv.slice(-9, -7)+'.' : ''}${cv.length > 4 ? cv.slice(-7, -4)+'.' : ''}${cv.length >=2 ? cv.slice(-4, -1)+'-':''}${cv[cv.length - 1] || ''}`;
+          newValue = newValue.trim()
           break
         case 'plant':
           newValue = data
@@ -118,7 +121,7 @@ const FormLayoutsBasic = () => {
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
     email: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i,
-    phone: /^[0-9]{9}$/
+    phone: /^\d\s\d{4}\s\d{4}$/
   }
 
   const validateForm = values => {
@@ -272,10 +275,8 @@ const FormLayoutsBasic = () => {
                 inputProps={{ maxLength: 45 }}
               />
             </Grid>
-            {/* <Grid item xs={6}>
-              <TextField fullWidth label='Apellidos' placeholder='Apellidos' />
-            </Grid> */}
-            <Grid item xs={6}>
+
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 type='tel'
@@ -285,10 +286,11 @@ const FormLayoutsBasic = () => {
                 value={values.rut}
                 error={errors.rut ? true : false}
                 helperText={errors.rut}
-                inputProps={{ maxLength: 12, pattern: '[0-9kK.-]*' }}
+
+                inputProps={{ maxLength: 12 }}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label='Teléfono'
@@ -298,7 +300,7 @@ const FormLayoutsBasic = () => {
                 value={values.phone}
                 error={errors.phone ? true : false}
                 helperText={errors.phone}
-                inputProps={{ maxLength: 9, pattern: '[0-9]*' }}
+        inputProps={{ maxLength:11}}
                 InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
               />
             </Grid>

@@ -29,7 +29,7 @@ export function registerValidator(values) {
       message: 'El correo no cumple con el formato requerido.'
     },
     phone: {
-      validate: value => valPhone.test(value),
+      validate: value => valPhone.test(value.replace(/\s/g, "")),
       message: 'El teléfono solo recibe campos numéricos y debe tener 8-12 caracteres.'
     },
     rut: {
