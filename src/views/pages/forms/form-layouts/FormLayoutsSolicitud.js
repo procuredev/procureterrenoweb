@@ -262,17 +262,19 @@ const FormLayoutsSolicitud = () => {
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
-      const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
-      if (invalidFiles > 0) {
-        console.log(validateFiles(invalidFiles))
-
-        return invalidFiles
+      const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid);
+      if (invalidFiles.length > 0) {
+        console.log(validateFiles(invalidFiles));
+        
+        return invalidFiles;
       }
-      console.log(validateFiles(acceptedFiles))
 
-      setFiles(acceptedFiles.map(file => Object.assign(file)))
+      console.log(validateFiles(acceptedFiles));
+
+      // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
+      setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))]);
     }
-  })
+  });
 
   const handleRemoveFile = file => {
     const uploadedFiles = files
