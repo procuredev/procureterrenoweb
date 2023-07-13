@@ -1414,9 +1414,7 @@ const FirebaseContextProvider = props => {
   const consultDay = async date => {
     const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
     const fechaTimestamp = Timestamp.fromMillis(dateUnix * 1000) // Convierte a objeto Timestamp de Firebase
-    const docRef = doc(collection(db, 'diasBloqueados'), date.toString())
-
-
+    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
     const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
       const data = docSnap.data()

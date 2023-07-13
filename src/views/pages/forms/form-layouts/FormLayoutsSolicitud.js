@@ -5,8 +5,12 @@ import { Fragment, useState, useEffect } from 'react'
 import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useRouter } from 'next/router'
 
+// ** Date Library
+import moment from 'moment';
+import 'moment/locale/es';
+
 // ** MUI Imports
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import Alert from '@mui/material/Alert'
@@ -51,7 +55,7 @@ const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
     opshift: '',
-    start: '',
+    start: moment().startOf('date'),
     description: '',
     area: '',
     plant: '',
@@ -125,7 +129,7 @@ const FormLayoutsSolicitud = () => {
         break
       }
       case prop === 'start': {
-        let startDate = event.$d
+        let startDate = event._d
         const resultDate = await consultDay(startDate)
         if (resultDate.blocked) {
           alert(resultDate.msj)
@@ -133,7 +137,7 @@ const FormLayoutsSolicitud = () => {
           alert(resultDate.msj)
           setValues({
             ...values,
-            start: startDate
+            start: moment(startDate).startOf('date')
           })
         }
       }
@@ -456,8 +460,10 @@ const FormLayoutsSolicitud = () => {
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                   <DatePicker
+                    minDate= { moment().subtract(1, 'year')}
+                    maxDate= { moment().add(1, 'year')}
                     label='Fecha'
                     value={values.start} // Aquí debes proporcionar el valor actual de la fecha, por ejemplo, desde el estado de tu componente
                     onChange={date => handleChange('start')(date)} // Asegúrate de pasar el valor de la fecha seleccionada al controlador de cambios
