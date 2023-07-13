@@ -50,27 +50,27 @@ import { DonutSmallOutlined } from '@mui/icons-material'
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
-    opshift: '',
     start: '',
-    description: '',
-    area: '',
     plant: '',
+    area: '',
+    contop: '',
+    fnlocation: '',
+    petitioner: '',
+    opshift: '',
+    type: '',
+    detention: '',
+    sap: '',
     objective: '',
     deliverable: [],
     receiver: [],
-    type: '',
-    contop: '',
-    petitioner: '',
-    sap: '',
-    fnlocation: '',
-    detention: ''
+    description: ''
   }
 
   // ** Hooks
   const {
     authUser,
     getPetitioner,
-    getAllMELUsers,
+    getReceiverUsers,
     newDoc,
     uploadFilesToFirebaseStorage,
     getAllPlantUsers,
@@ -82,7 +82,7 @@ const FormLayoutsSolicitud = () => {
   const theme = useTheme()
 
   // ** States
-  const [plants, setPlants] = useState([])
+  const [plants, setPlants] = useState([]) // authUser && authUser.plant.map(plant => plant)
   const [contOpOptions, setContOpOptions] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [files, setFiles] = useState([])
@@ -109,14 +109,13 @@ const FormLayoutsSolicitud = () => {
       }
       case selectFields.includes(prop): {
         newValue = event.target.value
+        setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         if (prop === 'petitioner') {
           getPetitionerOpShift(newValue)
         }
         if (prop === 'plant') {
           findAreas(newValue)
-          getPetitionerOptions(newValue)
         }
-        setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
       }
       case autoFields.includes(prop): {
@@ -221,10 +220,13 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const getContOp = async plant => {
+  /* const getContOp = async plant => {
+    console.log(plant, "PLANT2")
     let options = await getUsers(plant)
+    console.log(options, "OPTIONS")
+
     setContOpOptions(options)
-  }
+  } */
 
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'svg']
@@ -283,7 +285,7 @@ const FormLayoutsSolicitud = () => {
       return <Icon icon='mdi:file-document-outline' />
     }
   }
-  console.log(values.area)
+
 
   const fileList = files.map(file => (
     <ListItem key={file.name}>
@@ -330,7 +332,7 @@ const FormLayoutsSolicitud = () => {
     marginRight: theme.spacing(5)
   }))
 
-  const handleRemoveAllFiles = () => {
+  const handleRemoveAllFiles = () => {setFiles
     setFiles([])
   }
 
@@ -385,21 +387,33 @@ const FormLayoutsSolicitud = () => {
   }
 
   useEffect(() => {
-    getAllMELUsers().then(value => setAllUsers(value))
+    getReceiverUsers(values.plant).then(value => setAllUsers(value))
   }, [])
 
+  //Establece planta solicitante
   useEffect(() => {
-    let plant = authUser.plant[0]
+    let plant = authUser && authUser.plant.map(plant => plant)
+
     if (authUser.role === 2) {
-      setValues({ ...values, plant })
-      findAreas(plant)
-      getPetitionerOptions(plant)
-      getContOp(plant)
-    } else if (authUser.role === 3) {
-      getPetitionerOptions2(plant)
+      let onlyPlant = plant[0]
+      setValues({ ...values, plant: onlyPlant })
+      findAreas(onlyPlant)
     }
   }, [])
-  console.log(values.plant)
+
+
+
+
+  //Establece opciones de contract operator
+  useEffect(()=>{
+   if (values.plant) {
+
+    getUsers(values.plant).then((value)=>{setContOpOptions(value)})
+    getReceiverUsers(values.plant).then(value => setAllUsers(value))
+    getPetitioner(values.plant).then(value => setPetitioners(value))
+   }
+  }, [values.plant])
+
 
   return (
     <Card>
@@ -513,7 +527,15 @@ const FormLayoutsSolicitud = () => {
                           </MenuItem>
                         )
                       })
-                    : authUser && <MenuItem value={authUser.plant[0]}>{authUser.plant[0]}</MenuItem>}
+                    : authUser &&
+                    authUser.plant.map(plant => {
+                      return (
+                        <MenuItem key={plant} value={plant}>
+                          {plant}
+                        </MenuItem>
+                      )
+                    })
+                    }
                 </Select>
                 {errors.plant && <FormHelperText>{errors.plant}</FormHelperText>}
               </FormControl>

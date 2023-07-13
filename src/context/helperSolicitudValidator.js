@@ -3,7 +3,7 @@ export function solicitudValidator(values) {
     'Planta Concentradora Los Colorados',
     'Planta Concentradora Laguna Seca | Línea 1',
     'Planta Concentradora Laguna Seca | Línea 2',
-    'Chancado y correas',
+    'Chancado y Correas',
     'Puerto Coloso',
     'Instalaciones Cátodo'
   ]
@@ -116,7 +116,7 @@ export function solicitudValidator(values) {
           return valPlantLagunaSeca1.includes(value)
         } else if (values.plant === 'Planta Concentradora Laguna Seca | Línea 2') {
           return valPlantLagunaSeca2.includes(value)
-        } else if (values.plant === 'Chancado y correas') {
+        } else if (values.plant === 'Chancado y Correas') {
           return valPlantChancadoCorreas.includes(value)
         } else if (values.plant === 'Puerto Coloso') {
           return valPlantPuertoColoso.includes(value)
@@ -128,10 +128,12 @@ export function solicitudValidator(values) {
       },
       message: 'El Area seleccionada no se encuentra entre los sugeridos para la planta seleccionada.'
     },
+
     plant: {
       validate: value => valPlant.includes(value),
       message: 'La Planta seleccionada no coincide con ninguna de las sugeridas.'
     },
+
     type: {
       validate: value => valType.includes(value),
       message: 'El tipo de trabajo seleccionado no coincide con ningunos de los sugeridos.'

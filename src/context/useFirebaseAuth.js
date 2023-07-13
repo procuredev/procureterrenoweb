@@ -316,23 +316,24 @@ const FirebaseContextProvider = props => {
 
         const docRef = await addDoc(collection(db, 'solicitudes'), {
           title: values.title,
-          user: user.displayName,
-          userEmail: user.email,
           start: values.start,
           plant: values.plant,
-
-          //contOp: values.contOp,
           area: values.area,
-          objective: values.objective,
-          receiver: values.receiver,
-          description: values.description,
-          date: Timestamp.fromDate(new Date()),
-          uid: user.uid,
-          type: values.type,
-          deliverable: values.deliverable,
+          contop: values.contop,
+          fnlocation: values.fnlocation,
           petitioner: values.petitioner,
           opshift: values.opshift,
+          type: values.type,
+          detention: values.detention,
           sap: values.sap,
+          objective: values.objective,
+          deliverable: values.deliverable,
+          receiver: values.receiver,
+          description: values.description,
+          uid: user.uid,
+          user: user.displayName,
+          userEmail: user.email,
+          date: Timestamp.fromDate(new Date()),
           n_request: requestNumber
         })
 
@@ -655,26 +656,30 @@ const FirebaseContextProvider = props => {
   // trae los usuarios con el rol 3 que pertenecen a una planta
   // trae los usuarios con el rol 2 que pertenece a una planta con turno opuesto al pasado por parametro
   const getUsers = async (plant, shift = '') => {
+    console.log(plant, "PLANT")
+
     const q = shift
-      ? query(collection(db, 'users'), where('plant', '==', plant), where('shift', '!=', shift), where('role', '==', 2))
-      : query(collection(db, 'users'), where('plant', '==', plant), where('role', '==', 3))
+      ? query(collection(db, 'users'), where("plant", "array-contains-any", plant), where('shift', '!=', shift), where('role', '==', 2))
+      : query(collection(db, 'users'), where("plant", "array-contains", plant), where('role', '==', 3))
 
     const querySnapshot = await getDocs(q)
-    const allDocs = []
-
+    let allDocs = []
+    console.log(allDocs, "allDocs")
     querySnapshot.forEach(doc => {
       // doc.data() is never undefined for query doc snapshots
       allDocs.push({ ...doc.data(), id: doc.id })
     })
 
     return allDocs
+
+
   }
 
   // trae los usuarios con el rol 2 que pertenece a una planta
   const getPetitioner = async plant => {
     let allDocs = []
     if (authUser.plant === 'allPlants') {
-      const q = query(collection(db, 'users'), where('plant', '==', plant), where('role', '==', 2))
+      const q = query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 2))
 
       const querySnapshot = await getDocs(q)
 
@@ -684,7 +689,7 @@ const FirebaseContextProvider = props => {
         console.log(allDocs)
       })
     } else if (authUser.role === 3) {
-      const q = query(collection(db, 'users'), where('plant', '==', plant))
+      const q = query(collection(db, 'users'), where('plant', 'array-contains', plant))
 
       const querySnapshot = await getDocs(q)
 
@@ -704,26 +709,39 @@ const FirebaseContextProvider = props => {
   }
 
   /// PRUEBA FETCH A TODOS LOS USUARIOS
-  const getAllMELUsers = async () => {
-    const q = query(collection(db, 'users'), where('company', '==', 'MEL'))
-    const querySnapshot = await getDocs(q)
+  const getReceiverUsers = async (plant) => {
+    const q1 = query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 2))
+    const q2 = query(collection(db, 'users'), where('role', '==', 3))
+    const q3 = query(collection(db, 'users'), where('role', '==', 4))
+    const querySnapshot1 = await getDocs(q1)
+    const querySnapshot2 = await getDocs(q2)
+    const querySnapshot3 = await getDocs(q3)
     const allDocs = []
 
-    querySnapshot.forEach(doc => {
-      allDocs.push({ ...doc.data(), id: doc.id })
+    querySnapshot1.forEach(doc => {
+      allDocs.push({ name: doc.data().name, email: doc.data().email, phone: doc.data().phone, id: doc.id })
+    })
+    querySnapshot2.forEach(doc => {
+      allDocs.push({ name: doc.data().name, email: doc.data().email, phone: doc.data().phone, id: doc.id })
+    })
+    querySnapshot3.forEach(doc => {
+      allDocs.push({ name: doc.data().name, email: doc.data().email, phone: doc.data().phone, id: doc.id })
     })
 
     return allDocs
   }
 
   const getAllPlantUsers = async plant => {
-    const q = query(collection(db, 'users'), where('plant', '==', plant))
-    const querySnapshot = await getDocs(q)
     const allDocs = []
+    if(plant){
+      const q = query(collection(db, 'users'), where('plant', '==', plant))
+      const querySnapshot = await getDocs(q)
 
-    querySnapshot.forEach(doc => {
-      allDocs.push({ ...doc.data(), id: doc.id })
-    })
+
+      querySnapshot.forEach(doc => {
+        allDocs.push({ ...doc.data(), id: doc.id })
+      })
+    }
 
     return allDocs
   }
@@ -1514,7 +1532,7 @@ const FirebaseContextProvider = props => {
     getUsers,
     getPetitioner,
     getAllProcureUsers,
-    getAllMELUsers,
+    getReceiverUsers,
     getAllPlantUsers,
     uploadFilesToFirebaseStorage,
     blockDay,
