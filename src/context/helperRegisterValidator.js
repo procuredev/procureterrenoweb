@@ -70,11 +70,11 @@ export function registerValidator(values) {
       validate: value => {
         if (values.company === 'MEL' && values.role === 3 || values.role === 4) {
           return true
-        } else if (values.company === 'Procure' && values.role === 5 || values.role === 9 || values.role === 10) {
+        } else if (values.company === 'Procure' && values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10) {
           return true
         } else if (values.company === 'MEL' && values.role === 2) {
           return valShiftMel.includes(value)
-        } else if (values.company === 'Procure' && values.role === 6 || values.role === 7 || values.role === 8) {
+        } else if (values.company === 'Procure' && values.role === 7 || values.role === 8) {
           return valShiftProcure.includes(value)
         }
 
