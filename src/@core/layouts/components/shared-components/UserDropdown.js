@@ -80,7 +80,38 @@ const UserDropdown = props => {
 
   }
 
-  let username = authUser === null ? 'not logged' : authUser.email
+  let userName
+  let userEmail
+  let userRole
+  if (!authUser){
+    userName = 'not logged'
+    userEmail = 'not logged'
+    userRole = 'not Logged'
+  } else {
+    userName = authUser.displayName
+    userEmail = authUser.email
+    if (authUser.role == 1) {
+      userRole = 'Admin'
+    } else if (authUser.role == 2){
+      userRole = 'Solicitante'
+    } else if (authUser.role == 3){
+      userRole = 'Contract Operator'
+    } else if (authUser.role == 4){
+      userRole = 'Contract Owner'
+    } else if (authUser.role == 5){
+      userRole = 'Planificador'
+    } else if (authUser.role == 6){
+      userRole = 'Administrador de Contrato'
+    } else if (authUser.role == 7){
+      userRole = 'Supervisor'
+    } else if (authUser.role == 8){
+      userRole = 'Proyectista'
+    } else if (authUser.role == 9){
+      userRole = 'Control Documental'
+    } else if (authUser.role == 10){
+      userRole = 'Gerencia'
+    }
+  }
 
   let urlFoto =
   authUser && authUser.urlFoto === 'No definido'
@@ -115,53 +146,18 @@ const UserDropdown = props => {
       >
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar alt='Profile picture' src={urlFoto} sx={{ width: '2.5rem', height: '2.5rem' }} />
-
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{username}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{userName}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {username}
+                {userEmail}
+              </Typography>
+              <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
+                {userRole}
               </Typography>
             </Box>
           </Box>
         </Box>
         <Divider sx={{ mt: '0 !important' }} />
-
-        {/*
-
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <Icon icon='mdi:email-outline' />
-            Inbox
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <Icon icon='mdi:message-outline' />
-            Chat
-          </Box>
-        </MenuItem>
-        <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <Icon icon='mdi:cog-outline' />
-            Settings
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <Icon icon='mdi:currency-usd' />
-            Pricing
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <Icon icon='mdi:help-circle-outline' />
-            FAQ
-          </Box>
-        </MenuItem>
-        <Divider />
-            */}
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/user-profile')}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
