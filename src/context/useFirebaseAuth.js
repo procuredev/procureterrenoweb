@@ -314,6 +314,7 @@ const FirebaseContextProvider = props => {
           return newCounter
         })
 
+
         const docRef = await addDoc(collection(db, 'solicitudes'), {
           title: values.title,
           start: values.start,
