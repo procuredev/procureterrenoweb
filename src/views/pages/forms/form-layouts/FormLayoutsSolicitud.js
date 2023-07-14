@@ -54,7 +54,7 @@ import { DonutSmallOutlined } from '@mui/icons-material'
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
-    start: moment().startOf('date'),
+    start: moment.utc().startOf('date'),
     plant: '',
     area: '',
     contop: '',
