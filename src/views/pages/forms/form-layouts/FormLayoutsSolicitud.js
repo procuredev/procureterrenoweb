@@ -267,9 +267,9 @@ const FormLayoutsSolicitud = () => {
 
         return invalidFiles;
       }
-      console.log(validateFiles(acceptedFiles))
 
-      setFiles(acceptedFiles.map(file => Object.assign(file)))
+    // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
+    setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))]);
     }
   })
 
