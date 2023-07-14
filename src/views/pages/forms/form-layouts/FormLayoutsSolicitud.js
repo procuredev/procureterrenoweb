@@ -52,7 +52,6 @@ import { useTheme } from '@emotion/react'
 import { DonutSmallOutlined } from '@mui/icons-material'
 
 const FormLayoutsSolicitud = () => {
-
   const initialValues = {
     title: '',
     start: moment().startOf('date'),
@@ -466,33 +465,30 @@ const FormLayoutsSolicitud = () => {
 
             {/* Fecha inicio */}
             <Grid item xs={12}>
-                <Box display="flex" alignItems="center">
-    <FormControl fullWidth sx={{'& .MuiFormControl-root':{width:'100%'}}}>
-    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-          <DatePicker
-             minDate= { moment().subtract(1, 'year')}
-                    maxDate= { moment().add(1, 'year')}
-            label='Fecha'
-            value={values.start}
-            onChange={date => handleChange('start')(date)}
-            InputLabelProps={{ shrink: true, required: true }}
-            slotProps={{
-              textField: {
-                error: errors.start ? true : false,
-                helperText: errors.start
-              }
-            }}
-          />
-          <StyledTooltip
-            title='Selecciona la fecha de inicio deseada para la tarea que requieres.'
-          >
-            <InfoIcon color='action' />
-          </StyledTooltip>
-      </LocalizationProvider>
-    </FormControl>
-  </Box>
-</Grid>
-
+              <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                  <Box display='flex' alignItems='center'>
+                    <DatePicker
+                      minDate={moment().subtract(1, 'year')}
+                      maxDate={moment().add(1, 'year')}
+                      label='Fecha'
+                      value={values.start}
+                      onChange={date => handleChange('start')(date)}
+                      InputLabelProps={{ shrink: true, required: true }}
+                      slotProps={{
+                        textField: {
+                          error: errors.start ? true : false,
+                          helperText: errors.start
+                        }
+                      }}
+                    />
+                    <StyledTooltip title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
+                      <InfoIcon color='action' />
+                    </StyledTooltip>
+                  </Box>
+                </LocalizationProvider>
+              </FormControl>
+            </Grid>
 
             {/* Planta */}
             <Grid item xs={12}>
@@ -805,6 +801,61 @@ const FormLayoutsSolicitud = () => {
                 {errors.objective && <FormHelperText>{errors.objective}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <Box display='flex' alignItems='center'>
+                  <Autocomplete
+                    multiple
+                    fullWidth
+                    options={['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe']}
+                    value={values.deliverable}
+                    onChange={handleChange('deliverable')}
+                    renderInput={params => (
+                      <TextField
+                        {...params}
+                        label='Entregables del levantamiento'
+                        InputLabelProps={{ required: true }}
+                        error={errors.deliverable ? true : false}
+                        helperText={errors.deliverable}
+                      />
+                    )}
+                  />
+                  <StyledTooltip title='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'>
+                    <InfoIcon color='action' />
+                  </StyledTooltip>
+                </Box>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <Box display='flex' alignItems='center'>
+                  <Autocomplete
+                    multiple
+                    fullWidth
+                    options={allUsers}
+                    getOptionLabel={user => user.name}
+                    value={values.receiver}
+                    onChange={handleChange('receiver')}
+                    renderInput={params => (
+                      <TextField
+                        {...params}
+                        InputLabelProps={{ required: true }}
+                        variant='outlined'
+                        label='Destinatarios'
+                        error={errors.receiver ? true : false}
+                        helperText={errors.receiver}
+                      />
+                    )}
+                  />
+                  <StyledTooltip title='Selecciona a quién o a quiénes deberemos enviar los entregables.'>
+                    <InfoIcon color='action' />
+                  </StyledTooltip>
+                </Box>
+              </FormControl>
+            </Grid>
+
             {/*Descripción*/}
             <Grid item xs={12}>
               <Box display='flex' alignItems='center'>
