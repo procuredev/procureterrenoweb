@@ -5,8 +5,12 @@ import { Fragment, useState, useEffect } from 'react'
 import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useRouter } from 'next/router'
 
+// ** Date Library
+import moment from 'moment';
+import 'moment/locale/es';
+
 // ** MUI Imports
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import Alert from '@mui/material/Alert'
@@ -50,7 +54,7 @@ import { DonutSmallOutlined } from '@mui/icons-material'
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
-    start: '',
+    start: moment().startOf('date'),
     plant: '',
     area: '',
     contop: '',
@@ -123,7 +127,7 @@ const FormLayoutsSolicitud = () => {
         break
       }
       case prop === 'start': {
-        let startDate = event.$d
+        let startDate = event._d
         const resultDate = await consultDay(startDate)
         if (resultDate.blocked) {
           setAlertMessage(resultDate.msj)
@@ -131,7 +135,7 @@ const FormLayoutsSolicitud = () => {
           setAlertMessage(resultDate.msj)
           setValues({
             ...values,
-            start: startDate
+            start: moment(startDate).startOf('date')
           })
         }
       }
@@ -161,7 +165,7 @@ const FormLayoutsSolicitud = () => {
         console.log(resultSap.sapWithOt)
       }
       console.log(resultSap.sap)
-      
+
       return resultSap
     } else {
       setValues({
