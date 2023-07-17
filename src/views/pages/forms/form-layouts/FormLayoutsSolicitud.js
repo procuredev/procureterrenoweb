@@ -344,20 +344,17 @@ const FormLayoutsSolicitud = () => {
   }
 
   const onSubmit = async event => {
-    let finalValues = values
-    finalValues.start = finalValues.start._d
 
     event.preventDefault()
-    const formErrors = validateForm(finalValues)
+    const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isBlocked = await consultDay(values.start)
+    const isBlocked = await consultDay(values.start._d)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
 
-    console.log(isBlocked)
     if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked || !invalidFiles) {
       try {
-        const solicitud = await newDoc(finalValues)
+        const solicitud = await newDoc({ ...values, start: values.start._d })
         setAlertMessage('Documento creado exitosamente con ID: ' + solicitud.id)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
         handleRemoveAllFiles()

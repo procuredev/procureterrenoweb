@@ -386,8 +386,8 @@ const FormLayoutsBasic = () => {
                       onChange={handleChange('shift')}
                       error={errors.shift ? true : false}
                     >
-                      <MenuItem value={'A'}>Turno A</MenuItem>
-                      <MenuItem value={'B'}>Turno B</MenuItem>
+                     {values.company === 'Procure' ?  <MenuItem value={'A'}>Turno A</MenuItem> :  <MenuItem value={'P'}>Turno P</MenuItem>}
+                     {values.company === 'Procure' ?  <MenuItem value={'A'}>Turno A</MenuItem> :  <MenuItem value={'Q'}>Turno Q</MenuItem>}
                     </Select>
                     {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
                   </FormControl>
