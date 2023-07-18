@@ -6,12 +6,16 @@ import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import Icon from 'src/@core/components/icon'
 import Link from '@mui/material/Link'
+import Link from '@mui/material/Link'
 
 
 // ** Custom Component Import
 import CardStatisticsVertical from 'src/@core/components/card-statistics/card-stats-vertical'
 import ProfileCard from 'src/views/dashboard/ProfileCard'
 import DocsByDay from 'src/views/dashboard/DocsByDay'
+import ObjetivesByMonth from 'src/views/dashboard/ObjetivesByMonth'
+import ChartBarsDocsByPlants from 'src/views/dashboard/ChartBarsDocsByPlants'
+import ChartBarsObjetivesByPlants from 'src/views/dashboard/ChartBarsObjetivesByPlants'
 import ObjetivesByMonth from 'src/views/dashboard/ObjetivesByMonth'
 import ChartBarsDocsByPlants from 'src/views/dashboard/ChartBarsDocsByPlants'
 import ChartBarsObjetivesByPlants from 'src/views/dashboard/ChartBarsObjetivesByPlants'
@@ -42,6 +46,20 @@ import EcommerceSalesOverviewWithTabs from 'src/views/dashboard/ecommerce/Ecomme
 const Home = () => {
   return (
     <Grid container spacing={6} alignItems="stretch" className='match-height' sx={{display:'flex'}}>
+      {/* <PageHeader
+            title={
+              <Typography variant='h5'>
+                <Link href='https://github.com/apexcharts/react-apexcharts' target='_blank'>
+                  React ApexCharts
+                </Link>
+              </Typography>
+            }
+            subtitle={<Typography variant='body2'>React Component for ApexCharts</Typography>}
+          /> */}
+      <Grid item xs={12} md={12}>
+        <TopPositionCharts />
+      </Grid>
+     {/*  <Grid item height='auto' xs={12} sm={4}>
       {/* <PageHeader
             title={
               <Typography variant='h5'>
@@ -103,7 +121,39 @@ const Home = () => {
 
       <Grid item xs={12} md={12}>
         <Top10UsersWihitMostDocs />
+      </Grid> */}
+
+      <Grid item xs={12} sm={6}>
+        <DocsByDay />
       </Grid>
+
+
+
+      <Grid item xs={12} sm={6}>
+        <ObjetivesByMonth />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <ChartDonutDocsLast30days />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <ChartDonutObjetivesLast30days />
+      </Grid>
+      <Grid item xs={12} sm={6}>
+        <ChartBarsDocsByPlants />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <ChartBarsObjetivesByPlants />
+      </Grid>
+
+      <Grid item xs={12} md={12}>
+        <Top10UsersWihitMostDocs />
+      </Grid>
+
+
+
 
 
 
