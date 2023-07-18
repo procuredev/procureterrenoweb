@@ -56,20 +56,8 @@ const Home = () => {
       <Grid item xs={12} md={12}>
         <TopPositionCharts />
       </Grid>
-     {/*  <Grid item height='auto' xs={12} sm={4}>
-      {/* <PageHeader
-            title={
-              <Typography variant='h5'>
-                <Link href='https://github.com/apexcharts/react-apexcharts' target='_blank'>
-                  React ApexCharts
-                </Link>
-              </Typography>
-            }
-            subtitle={<Typography variant='body2'>React Component for ApexCharts</Typography>}
-          /> */}
-      <Grid item xs={12} md={12}>
-        <TopPositionCharts />
-      </Grid>
+
+
      {/*  <Grid item height='auto' xs={12} sm={4}>
         <ProfileCard />
       </Grid>
@@ -118,40 +106,7 @@ const Home = () => {
 
       <Grid item xs={12} md={12}>
         <Top10UsersWihitMostDocs />
-      </Grid> */
-
-      <Grid item xs={12} sm={6}>
-        <DocsByDay />
       </Grid>
-
-
-
-      <Grid item xs={12} sm={6}>
-        <ObjetivesByMonth />
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <ChartDonutDocsLast30days />
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <ChartDonutObjetivesLast30days />
-      </Grid>
-      <Grid item xs={12} sm={6}>
-        <ChartBarsDocsByPlants />
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <ChartBarsObjetivesByPlants />
-      </Grid>
-
-      <Grid item xs={12} md={12}>
-        <Top10UsersWihitMostDocs />
-      </Grid>
-
-
-
-
 
 
     </Grid>
