@@ -66,7 +66,7 @@ const AppCalendar = () => {
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  const { authUser, useSnapshot, getRoleData, consultDay, blockDay } = useFirebase()
+  const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDay } = useFirebase()
   const data = useSnapshot()
   const theme = useTheme()
 
@@ -337,7 +337,7 @@ const AppCalendar = () => {
     },
     fixedWeekCount: false,
     dateClick: async function (info) {
-      const result = await consultDay(new Date(info.date).getTime()/1000)
+      const result = await consultBlockDayInDB(new Date(info.date).getTime()/1000)
       setConsultationResult(result)
       setDayDialogOpen(info.date)
     },
@@ -357,7 +357,7 @@ const AppCalendar = () => {
       // Realizar todas las consultas de forma asíncrona
       const results = await Promise.all(
         timestamps.map(async timestamp => {
-          const value = await consultDay(timestamp)
+          const value = await consultBlockDayInDB(timestamp)
 
           return { timestamp, value }
         })

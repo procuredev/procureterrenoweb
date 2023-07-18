@@ -60,7 +60,7 @@ const FormLayoutsBasic = () => {
   const [opShiftOptions, setOpShiftOptions] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUsers, consultEmailInDB } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUsers, consultUserEmailInDB } = useFirebase()
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -168,7 +168,7 @@ const FormLayoutsBasic = () => {
 
     console.log( typeof email)
 
-    //console.log( await consultEmailInDB(email))
+    //console.log( await consultUserEmailInDB(email))
   };
 
   const onSubmit = async event => {
@@ -176,10 +176,10 @@ const FormLayoutsBasic = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid && consultEmailInDB(values.email))) {
+    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid && consultUserEmailInDB(values.email))) {
       try {
 
-        console.log(await consultEmailInDB(values.email))
+        console.log(await consultUserEmailInDB(values.email))
 
         /* await createUser(values)
         setDialog(true)

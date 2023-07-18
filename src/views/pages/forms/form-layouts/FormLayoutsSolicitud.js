@@ -78,7 +78,7 @@ const FormLayoutsSolicitud = () => {
     newDoc,
     uploadFilesToFirebaseStorage,
     getAllPlantUsers,
-    consultDay,
+    consultBlockDayInDB,
     consultSAP,
     getUsers
   } = useFirebase()
@@ -127,7 +127,7 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event._d
-        const resultDate = await consultDay(startDate)
+        const resultDate = await consultBlockDayInDB(startDate)
         if (resultDate.blocked) {
           setAlertMessage(resultDate.msj)
         } else {
@@ -349,7 +349,7 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isBlocked = await consultDay(values.start._d)
+    const isBlocked = await consultBlockDayInDB(values.start._d)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
 
     if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked || !invalidFiles) {
