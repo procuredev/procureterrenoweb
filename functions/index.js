@@ -79,11 +79,11 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
 
             const userSnapshot = await usersRef.doc(requestData.uid).get() // Se llama a los datos del 'usuario' que creó la solicitud
             const userData = userSnapshot.data() // Se almacena dentro de una variable los datos del usuario que creó la solicitud
-            const userContractOperator = userData.contop // Se almacena el nombre del Contract Operator que hizo la solicitud
 
-            const userContractOperatorSnapshot = await usersRef.where('name', '==', userContractOperator).get() // Se llama sólo al que cumple con la condición de que su name es igual al del contop del usuario que generó la solicitud
-            const userContractOperatorData = userContractOperatorSnapshot.docs[0].data() // Se almacena en una constante los datos del Contract Operator
-            const userContractOperatorEmail = userContractOperatorData.email // Se almacena el e-mail del Contract Operator
+            const reqContractOperatorName = requestData.contop // Se almacena el nombre del Contract Operator de la solicitud
+            const reqContractOperatorSnapshot = await usersRef.where('name', '==', reqContractOperatorName).get() // Se llama sólo al que cumple con la condición de que su name es igual al del contop del usuario que generó la solicitud
+            const reqContractOperatorData = reqContractOperatorSnapshot.docs[0].data() // Se almacena en una constante los datos del Contract Operator
+            const reqContractOperatorEmail = reqContractOperatorData.email // Se almacena el e-mail del Contract Operator
 
             const contractOwnerSnapshot = await usersRef.where('role', '==', 4).get() // Se llama sólo al que cumple con la condición de que su rol es 4 (Contract Owner)
             const contractOwnerData = contractOwnerSnapshot.docs[0].data() // Se almacena en una constante los datos del Contract Owner
@@ -134,7 +134,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
             // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
             await emailsRef.doc(mailId).update({
               to: requestData.userEmail,
-              cc: [userContractOperatorEmail, contractOwnerEmail, plannerEmail, admContratoEmail],
+              cc: [reqContractOperatorEmail, contractOwnerEmail, plannerEmail, admContratoEmail],
               date: fechaCompleta,
               req: requestUid,
               emailType: 'Over24h',
@@ -143,26 +143,79 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
                 html: `
                   <h2>Estimad@ ${requestData.user}:</h2>
                   <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${userContractOperator} modificó la fecha del levantamiento. A continuación puede encontrar el detalle de la solicitud:</p>
-                  <ul
-                    <li>N° Solicitud: ${requestData.n_request}</li>
-                    <li>Título: ${requestData.title}</li>
-                    <li>Número de OT Procure: ${otNumber}</li>
-                    <li>Supervisor Procure a cargo del levantamiento: ${supervisorName}</li>
-                    <li>Fecha de inicio de levantamiento: ${startDate}</li>
-                    <li>Fecha de término de levantamiento: ${endDate}</li>
-                    <li>Planta: ${requestData.plant}</li>
-                    <li>Área: ${requestData.area}</li>
-                    <li>Solicitante: ${requestData.petitioner}</li>
-                    <li>N°SAP: ${requestData.sap}</li>
-                    <li>Tipo de trabajo: ${requestData.type}</li>
-                    <li>Tipo de levantamiento: ${requestData.objective}</li>
-                    <li>Enrtegables esperados: ${requestData.deliverable.join(', ')}</li>
-                    <li>Destinatarios: ${requestData.receiver.map(receiver => receiver.email).join(', ')}</li>
-                    <li>Descripción del requerimiento: ${requestData.description}</li>
-                  </ul>
-                  <p>Para mayor información revise la solicitud en nuestra página web</p>
-                  <p>Saludos,<br>Procure Terreno Web</p>
-                  `
+                  <table style="width:100%;">
+                    <tr>
+                      <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
+                      <td style="text-align:left; width:80%;">${requestData.n_request}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
+                      <td>${requestData.title}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
+                      <td>${otNumber}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
+                      <td>${supervisorName}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
+                      <td>${startDate}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
+                      <td>${endDate}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
+                      <td>${requestData.plant}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
+                      <td>${requestData.area}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
+                      <td>${requestData.fnlocation}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
+                      <td>${requestData.coperator}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
+                      <td>${requestData.petitioner}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
+                      <td>${requestData.sap}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
+                      <td>${requestData.type}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
+                      <td>${requestData.objective}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
+                      <td>${requestData.deliverable.join(', ')}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
+                      <td>${requestData.receiver.map(receiver => receiver.email).join(', ')}</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
+                      <td>${requestData.description}</td>
+                    </tr>
+                  </table
+                <p>Para mayor información revise la solicitud en nuestra página web</p>
+                <p>Saludos,<br>Procure Terreno Web</p>
+                `
               }
             })
             console.log('E-mail de actualizacion enviado con éxito.')
