@@ -165,16 +165,15 @@ const FormLayoutsSolicitud = () => {
       }
       console.log(resultSap.sap)
 
-      return resultSap
     } else {
       setValues({
         ...values,
         sap: e.target.value
       })
-      setAlertMessage(resultSap.msj)
-
-      return resultSap
     }
+    setAlertMessage(resultSap.msj)
+
+    return resultSap
   }
 
   const validationRegex = {
@@ -422,7 +421,7 @@ const FormLayoutsSolicitud = () => {
           Atención
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ m: 2 }} id='alert-dialog-description'>
+          <DialogContentText sx={{ m: 2, whiteSpace: 'pre-line' }} id='alert-dialog-description'>
             {alertMessage}
           </DialogContentText>
           <DialogActions>
