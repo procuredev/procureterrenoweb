@@ -42,4 +42,8 @@ const Home = () => {
   )
 }
 
+Home.acl = {
+  subject: 'home'
+}
+
 export default Home

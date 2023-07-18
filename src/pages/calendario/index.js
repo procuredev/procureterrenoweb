@@ -492,4 +492,8 @@ const AppCalendar = () => {
   )
 }
 
+AppCalendar.acl = {
+  subject: 'calendario'
+}
+
 export default AppCalendar

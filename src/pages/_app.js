@@ -12,18 +12,20 @@ import NProgress from 'nprogress'
 import { CacheProvider } from '@emotion/react'
 
 // ** Config Imports
-
 import themeConfig from 'src/configs/themeConfig'
+import { defaultACLObj } from 'src/configs/acl'
 
 
 // ** Third Party Import
 import { Toaster } from 'react-hot-toast'
 
 // ** Component Imports
-
 import UserLayout from 'src/layouts/UserLayout'
 import ThemeComponent from 'src/@core/theme/ThemeComponent'
 import WindowWrapper from 'src/@core/components/window-wrapper'
+import AclGuard from 'src/@core/components/auth/AclGuard'
+import AuthGuard from 'src/@core/components/auth/AuthGuard'
+import GuestGuard from 'src/@core/components/auth/GuestGuard'
 
 // ** Spinner Import
 import Spinner from 'src/@core/components/spinner'
@@ -65,6 +67,17 @@ if (themeConfig.routingLoader) {
   })
 }
 
+// Función que decide qué hacer:
+// Si estás logueado, se usa authGuard; sino, se usa GuestGuard
+const Guard = ({ children, authGuard, guestGuard }) => {
+  if (guestGuard) {
+    return <GuestGuard fallback={<Spinner />}>{children}</GuestGuard>
+  } else if (!guestGuard && !authGuard) {
+    return <>{children}</>
+  } else {
+    return <AuthGuard fallback={<Spinner />}>{children}</AuthGuard>
+  }
+}
 
 
 // ** Configure JSS & ClassName
@@ -74,9 +87,11 @@ const App = props => {
   // Variables
   const contentHeightFixed = Component.contentHeightFixed ?? false
 
-  const getLayout =
-    Component.getLayout ?? (page => <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>)
+  const getLayout = Component.getLayout ?? (page => <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>)
   const setConfig = Component.setConfig ?? undefined
+  const authGuard = Component.authGuard ?? true
+  const guestGuard = Component.guestGuard ?? false
+  const aclAbilities = Component.acl ?? defaultACLObj
 
 
   return (
@@ -98,7 +113,11 @@ const App = props => {
               return (
                 <ThemeComponent settings={settings}>
                   <WindowWrapper>
-                    {getLayout(<Component {...pageProps} />)}
+                    <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                      <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard}>
+                        {getLayout(<Component {...pageProps} />)}
+                      </AclGuard>
+                    </Guard>
                   </WindowWrapper>
                   <ReactHotToast>
                     <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />

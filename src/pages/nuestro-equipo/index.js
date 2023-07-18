@@ -206,6 +206,8 @@ const NuestroEquipo = () => {
   )
 }
 
-
+NuestroEquipo.acl = {
+  subject: 'nuestro-equipo'
+}
 
 export default NuestroEquipo

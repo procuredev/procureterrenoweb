@@ -125,6 +125,7 @@ const ForgotPassword = () => {
   const imageSource =
     skin === 'bordered' ? 'auth-v2-forgot-password-illustration-bordered' : 'auth-v2-forgot-password-illustration'
 
+
   return (
     <Box className='content-right'>
       <RightWrapper sx={{ margin: 'auto' }}>
@@ -193,6 +194,7 @@ const ForgotPassword = () => {
     </Box>
   )
 }
+
 ForgotPassword.guestGuard = true
 ForgotPassword.getLayout = page => <BlankLayout>{page}</BlankLayout>
 

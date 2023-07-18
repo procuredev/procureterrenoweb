@@ -221,4 +221,8 @@ const TabAccount = () => {
   )
 }
 
+TabAccount.acl = {
+  subject: 'user-profile'
+}
+
 export default TabAccount

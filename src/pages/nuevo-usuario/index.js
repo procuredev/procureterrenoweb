@@ -20,7 +20,8 @@ const NuevoUsuario = () => {
   )
 }
 
-/* NuevoUsuario.getLayout = page => <BlankLayout>{page}</BlankLayout>
-NuevoUsuario.guestGuard = true */
+NuevoUsuario.acl = {
+  subject: 'nuevo-usuario'
+}
 
 export default NuevoUsuario

@@ -69,27 +69,35 @@ const UserDropdown = props => {
     }
   }
 
-  function handleLogout() {
-    signOut(auth).then(() => {
-      // Sign-out successful.
-      handleDropdownClose('/login')
-    }).catch((error) => {
-      // An error happened.
-      console.log(error)
-    })
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        setTimeout(() => {
+          handleDropdownClose('/login');
+        }, 500); // Retraso de 500 milisegundos antes de redireccionar
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
 
-  }
+  // Se inicializan las variables que serán usadas en el menú desplegable
+  let userName // variable que almacena el nombre del usuario conectado
+  let userEmail // variable que almacena el e-mail del usuario conectado
+  let userRole // variable que almacena el rol del usuario conectado
 
-  let userName
-  let userEmail
-  let userRole
+  // Si no hay un usuario conectado
   if (!authUser){
+    // Las variables serán definidas como 'not logged' para evitar problemas de renderizado
     userName = 'not logged'
     userEmail = 'not logged'
     userRole = 'not Logged'
   } else {
+    // Pero si hay un usuario conectado, se definirán las variables
     userName = authUser.displayName
     userEmail = authUser.email
+
+    // Condicional que renderizará en rol como un string según el rol del usuario conectado
     if (authUser.role == 1) {
       userRole = 'Admin'
     } else if (authUser.role == 2){
@@ -113,10 +121,21 @@ const UserDropdown = props => {
     }
   }
 
-  let urlFoto =
-  authUser && authUser.urlFoto === 'No definido'
-  ?  'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
-  : authUser.urlFoto
+  // Se inicializa variable que almacenará el ícono con la foto del usuario conectado
+  let urlFoto
+
+  // Si hay un usuario conectado
+  if(authUser) {
+    // Y si este usuario tiene una foto disponible en la base de datos
+    if (authUser.urlFoto) {
+      // Se visualizará esa foto
+      urlFoto = authUser.urlFoto
+    } else {
+      // Si no tiene una foto disponible en la base de datos, se visualizará un ícono estándar
+      urlFoto = 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+    }
+  }
+
 
 
     /* authUser === null

@@ -1035,7 +1035,6 @@ class Map extends Component {
 
 export default Map
 
-/*Map.acl = {
-  action: 'manage',
+Map.acl = {
   subject: 'mapa'
-}*/
+}
