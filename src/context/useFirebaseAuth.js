@@ -1019,7 +1019,6 @@ const FirebaseContextProvider = props => {
     getReceiverUsers,
     getAllPlantUsers,
     uploadFilesToFirebaseStorage,
-    blockDay,
     blockDayInDatabase,
     consultBlockDayInDB,
     consultSAP,
