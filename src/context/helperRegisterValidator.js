@@ -29,7 +29,7 @@ export function registerValidator(values) {
       message: 'El correo no cumple con el formato requerido.'
     },
     phone: {
-      validate: value => valPhone.test(value.replace(/\s/g, "")),
+      validate: value => valPhone.test(value.replace(/\s/g, '')),
       message: 'El teléfono solo recibe campos numéricos y debe tener 8-12 caracteres.'
     },
     rut: {
@@ -59,7 +59,11 @@ export function registerValidator(values) {
         }
 
         if (Array.isArray(value)) {
-          return value.every(item => valPlant.includes(item))
+          if (values.role === 2) {
+            return value.length === 1 && value.every(item => valPlant.includes(item))
+          } else {
+            return value.length > 0 && value.every(item => valPlant.includes(item))
+          }
         }
 
         return false
@@ -68,13 +72,16 @@ export function registerValidator(values) {
     },
     shift: {
       validate: value => {
-        if (values.company === 'MEL' && values.role === 3 || values.role === 4) {
+        if (values.company === 'MEL' && (values.role === 3 || values.role === 4)) {
           return true
-        } else if (values.company === 'Procure' && values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10) {
+        } else if (
+          values.company === 'Procure' &&
+          (values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10)
+        ) {
           return true
         } else if (values.company === 'MEL' && values.role === 2) {
           return valShiftMel.includes(value)
-        } else if (values.company === 'Procure' && values.role === 7 || values.role === 8) {
+        } else if (values.company === 'Procure' && (values.role === 7 || values.role === 8)) {
           return valShiftProcure.includes(value)
         }
 
@@ -84,9 +91,15 @@ export function registerValidator(values) {
     }
   }
 
+  let hasShift = false // Inicializa la variable hasShift como falsa
+
+  if ([2, 6, 7].includes(values.shift)) {
+    hasShift = true // Cambia hasShift a verdadera si es solicitante/supervisor/proyectista
+  }
+
   for (const key in values) {
     if (typeof values[key] === 'string') {
-      if (key !== 'opshift' && values[key].trim() === '') {
+      if ((key === 'opshift' && values.role === 2) || (key === 'shift' && hasShift) || (!['shift', 'opshift', 'plant'].includes(key) && values[key].trim() === '')) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
     }

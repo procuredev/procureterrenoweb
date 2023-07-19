@@ -235,7 +235,7 @@ const FirebaseContextProvider = props => {
           name: name,
           email: email,
           rut: rut,
-          phone: phone.replace(/\s/g, ""),
+          phone: phone.replace(/\s/g, ''),
           company: company,
           role: role,
           ...(plant && { plant }),
@@ -320,7 +320,6 @@ const FirebaseContextProvider = props => {
           return newCounter
         })
 
-
         const docRef = await addDoc(collection(db, 'solicitudes'), {
           title: values.title,
           start: values.start,
@@ -348,7 +347,6 @@ const FirebaseContextProvider = props => {
         await updateDoc(docRef, {
           ...newDoc,
           state: authUser.role || 'no definido'
-
         })
 
         // Se envia email a quienes corresponda
@@ -382,10 +380,10 @@ const FirebaseContextProvider = props => {
     let supervisorShift
     if (authUser.role === 2) {
       newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 2 ? 4 : 6) : 10
-      if(newState === 6){
+      if (newState === 6) {
         let week = moment(docSnapshot.start).isoWeek()
-        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
-        await updateDoc(ref, {supervisorShift})
+        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
+        await updateDoc(ref, { supervisorShift })
       }
     } else if (authUser.role === 3) {
       if (eventDocs.lenght > 0) {
@@ -397,10 +395,10 @@ const FirebaseContextProvider = props => {
       } else {
         newState = approves ? authUser.role + 1 : 10
       }
-      if(newState === 6){
+      if (newState === 6) {
         let week = moment(docSnapshot.start).isoWeek()
-        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
-        await updateDoc(ref, {supervisorShift})
+        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
+        await updateDoc(ref, { supervisorShift })
       }
     } else if (authUser.role === 6) {
       console.log(eventDocs)
@@ -416,10 +414,10 @@ const FirebaseContextProvider = props => {
         console.log('No se encontraron eventos')
         newState = approves ? authUser.role : 10
       }
-      if(newState === authUser.role){
+      if (newState === authUser.role) {
         let week = moment(docSnapshot.start).isoWeek()
-        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
-        await updateDoc(ref, {supervisorShift})
+        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
+        await updateDoc(ref, { supervisorShift })
       }
     } else {
       newState = approves ? authUser.role : 10
@@ -486,11 +484,11 @@ const FirebaseContextProvider = props => {
       changedFields.state = newState
     } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0 && docSnapshot.state >= 6) {
       // si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
-      if(changedFields.start){
+      if (changedFields.start) {
         let supervisorShift
         let week = moment(changedFields.start).isoWeek()
-        week % 2 == 0 ? supervisorShift = 'A' : supervisorShift = 'B'
-        await updateDoc(ref, {supervisorShift})
+        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
+        await updateDoc(ref, { supervisorShift })
       }
       newState = docSnapshot.state
     } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
@@ -538,7 +536,7 @@ const FirebaseContextProvider = props => {
     const ref = doc(db, 'users', id)
     const querySnapshot = await getDoc(ref)
 
-    await updateDoc(ref, { phone: obj.replace(/\s/g, "") })
+    await updateDoc(ref, { phone: obj.replace(/\s/g, '') })
   }
 
   // ** Guarda datos contraturno u otros contactos no registrados
@@ -546,15 +544,13 @@ const FirebaseContextProvider = props => {
     await setDoc(doc(db, 'contacts', 'test'), values)
   }
 
-
-/*   // Sube documentos
+  /*   // Sube documentos
   const uploadFileToStorage = file => {
     const storageRef = storage().ref()
     const fileRef = storageRef.child(file.name)
 
     return fileRef.put(file)
   } */
-
 
   // ** Trae colección de eventos
   const useEvents = id => {
@@ -666,24 +662,27 @@ const FirebaseContextProvider = props => {
 
   // Obtener los usuarios con un rol y planta específicos (utilizado para contOp y solicitante)
   const getUsers = async (plant, shift = '') => {
-    console.log(plant, "PLANT")
+    console.log(plant, 'PLANT')
 
     // Consultar la colección 'users' con los filtros de planta, turno y rol
     const q = shift
-      ? query(collection(db, 'users'), where("plant", "array-contains-any", plant), where('shift', '!=', shift), where('role', '==', 2))
-      : query(collection(db, 'users'), where("plant", "array-contains", plant), where('role', '==', 3))
+      ? query(
+          collection(db, 'users'),
+          where('plant', 'array-contains-any', plant),
+          where('shift', '!=', shift),
+          where('role', '==', 2)
+        )
+      : query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 3))
 
     const querySnapshot = await getDocs(q)
     let allDocs = []
-    console.log(allDocs, "allDocs")
+    console.log(allDocs, 'allDocs')
     querySnapshot.forEach(doc => {
       // Obtener los datos de cada usuario y agregarlos al array 'allDocs'
       allDocs.push({ ...doc.data(), id: doc.id })
     })
 
     return allDocs
-
-
   }
 
   // trae los usuarios con el rol 2 que pertenece a una planta
@@ -691,7 +690,7 @@ const FirebaseContextProvider = props => {
   const getPetitioner = async plant => {
     let allDocs = []
     if (authUser.plant === 'allPlants') {
-       // Consultar la colección 'users' con los filtros de planta y rol
+      // Consultar la colección 'users' con los filtros de planta y rol
       const q = query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 2))
 
       const querySnapshot = await getDocs(q)
@@ -722,9 +721,8 @@ const FirebaseContextProvider = props => {
     return allDocs
   }
 
-
-// Obtener los usuarios receptores de una planta específica
-  const getReceiverUsers = async (plant) => {
+  // Obtener los usuarios receptores de una planta específica
+  const getReceiverUsers = async plant => {
     // Consultar la colección 'users' con los filtros de planta y rol
     const q1 = query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 2))
     const q2 = query(collection(db, 'users'), where('role', '==', 3))
@@ -753,11 +751,10 @@ const FirebaseContextProvider = props => {
   // Obtener todos los usuarios de una planta específica
   const getAllPlantUsers = async plant => {
     const allDocs = []
-    if(plant){
+    if (plant) {
       // Consultar la colección 'users' con el filtro de planta
       const q = query(collection(db, 'users'), where('plant', '==', plant))
       const querySnapshot = await getDocs(q)
-
 
       querySnapshot.forEach(doc => {
         // Obtener los datos de cada usuario y agregarlos al array 'allDocs'
@@ -811,7 +808,7 @@ const FirebaseContextProvider = props => {
     }
   }
 
-    // **INICIO - FUNCIONES CREADAS POR JORGE**
+  // **INICIO - FUNCIONES CREADAS POR JORGE**
 
   const getAllProcureUsers = async () => {
     const q = query(collection(db, 'users'), where('company', '==', 'Procure'))
@@ -827,43 +824,41 @@ const FirebaseContextProvider = props => {
 
   // **FIN - FUNCIONES CREADAS POR JORGE**
 
-
-
-// Bloquear o desbloquear un día en la base de datos
-  const blockDayInDatabase = async (values) => {
-    const { date, cause } = values;
-    const dateUnix = getUnixTime(date);
-    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString());
+  // Bloquear o desbloquear un día en la base de datos
+  const blockDayInDatabase = async values => {
+    const { date, cause } = values
+    const dateUnix = getUnixTime(date)
+    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
 
     return new Promise(async (resolve, reject) => {
       try {
-        const docSnap = await getDoc(docRef);
+        const docSnap = await getDoc(docRef)
         if (docSnap.exists()) {
-          const data = docSnap.data();
+          const data = docSnap.data()
           if (data.blocked === true) {
             // Si el día ya está bloqueado, lo desbloquea en el documento
-            await setDoc(docRef, { blocked: false });
-            resolve('Día desbloqueado');
+            await setDoc(docRef, { blocked: false })
+            resolve('Día desbloqueado')
           } else if (cause && cause.length > 0) {
             // Si existe pero no está bloqueado, actualiza el campo blocked a true
-            await setDoc(docRef, { blocked: true, cause });
-            resolve('Día bloqueado');
+            await setDoc(docRef, { blocked: true, cause })
+            resolve('Día bloqueado')
           } else {
-            reject(new Error('Para bloquear la fecha debe proporcionar un motivo'));
+            reject(new Error('Para bloquear la fecha debe proporcionar un motivo'))
           }
         } else if (cause && cause.length > 0) {
           // Si no existe el día, crea el documento con blocked = true
-          await setDoc(docRef, { blocked: true, cause });
-          resolve('Día bloqueado');
+          await setDoc(docRef, { blocked: true, cause })
+          resolve('Día bloqueado')
         } else {
-          reject(new Error('Para bloquear la fecha debe proporcionar un motivo'));
+          reject(new Error('Para bloquear la fecha debe proporcionar un motivo'))
         }
       } catch (error) {
-        console.log(error);
-        reject(new Error('Error al bloquear el día: ' + error));
+        console.log(error)
+        reject(new Error('Error al bloquear el día: ' + error))
       }
-    });
-  };
+    })
+  }
 
   // Consultar si existen solicitudes para una fecha específica
   const dateWithDocs = async date => {
@@ -898,7 +893,7 @@ const FirebaseContextProvider = props => {
     if (docSnap.exists()) {
       const data = docSnap.data()
       if (data.blocked === true) {
-         // Si el día ya está bloqueado, retornar un objeto con información detallada
+        // Si el día ya está bloqueado, retornar un objeto con información detallada
         return { msj: `El día que ha seleccionado se encuentra inhabilitado, motivo: ${data.cause} `, blocked: true }
       } else {
         let msj = await dateWithDocs(fechaTimestamp)
@@ -925,46 +920,83 @@ const FirebaseContextProvider = props => {
 
     // Verificar si existen documentos en 'sapDocs'
     if (sapDocs.length > 0) {
-       // Arreglos para almacenar las solicitudes con y sin OT asignadas
+      // Arreglos para almacenar las solicitudes con y sin OT asignadas
       let sapWithOt = []
       let sap = []
 
       // Recorrer cada documento y obtener información adicional del usuario asociado
-      await Promise.all(sapDocs.map(async docItem => {
-        // Obtener la referencia del usuario asociado al documento
-        const userRef = doc(db, 'users', docItem.data().uid);
-        const userQuerySnapshot = await getDoc(userRef);
-        const author = userQuerySnapshot.data().name;
+      await Promise.all(
+        sapDocs.map(async docItem => {
+          // Obtener la referencia del usuario asociado al documento
+          const userRef = doc(db, 'users', docItem.data().uid)
+          const userQuerySnapshot = await getDoc(userRef)
+          const author = userQuerySnapshot.data().name
 
-        if (docItem.data().ot) {
-          // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
-          sapWithOt.push({ ot: docItem.data().ot, author, objective: docItem.data().objective, title: docItem.data().title });
-        } else {
-          // Si el documento no tiene una OT asignada, agregarlo al arreglo 'sap'
-          sap.push({ author, objective: docItem.data().objective, title: docItem.data().title });
-        }
-      }));
+          if (docItem.data().ot) {
+            // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
+            sapWithOt.push({
+              ot: docItem.data().ot,
+              author,
+              objective: docItem.data().objective,
+              title: docItem.data().title
+            })
+          } else {
+            // Si el documento no tiene una OT asignada, agregarlo al arreglo 'sap'
+            sap.push({ author, objective: docItem.data().objective, title: docItem.data().title })
+          }
+        })
+      )
 
-      if(sapWithOt.length > 0){
+      if (sap.length > 0) {
         // Si hay solicitudes con OT asignadas, retornar un objeto con información detallada
-        return {exist: true, sap, sapWithOt, msj: `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cual ${sapWithOt.length} tienen OT asignadas y ${sap.length} estan en revisión`}
-      } else{
-         // Si todas las solicitudes están en revisión sin OT asignada, retornar un objeto con información detallada
-        return {exist: true, sap, msj: `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas` }
+        messages = sap
+          .map(
+            item => `Título: ${item.title}\n Solicitante: ${item.author}\n Tipo de Levantamiento: ${item.objective}\n`
+
+            // Si todas las solicitudes están en revisión sin OT asignada, retornar un objeto con información detallada
+          )
+          .join('\n')
       }
 
+      if (sapWithOt.length > 0) {
+        const otMessages = sapWithOt
+          .map(
+            item =>
+              `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Tipo de Levantamiento: ${item.objective}\n`
+          )
+          .join('\n')
 
+        return {
+          exist: true,
+          sap,
+          sapWithOt,
+          msj:
+            `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cuales ${
+              sapWithOt.length
+            } tienen OT asignadas y ${sap.length} están en revisión:\n\n` +
+            otMessages +
+            `\n` +
+            messages
+        }
+      } else {
+        // Si no hay documentos con el número SAP, retornar un objeto indicando que es un nuevo número SAP
+        return {
+          exist: true,
+          sap,
+          msj:
+            `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas:\n\n` +
+            messages
+        }
+      }
     } else {
-      // Si no hay documentos con el número SAP, retornar un objeto indicando que es un nuevo número SAP
-      return {exist: false, msj: 'nuevo número SAP registrado'}
+      return { exist: false, msj: 'Nuevo número SAP registrado' }
     }
-
   }
 
   // Consulta si un correo electrónico existe en la base de datos
-  const consultUserEmailInDB = async (email) => {
+  const consultUserEmailInDB = async email => {
     // Definir la consulta con una condición de igualdad en el campo 'email'
-    const q = query(collection(db, 'users'),where('email', '==', email));
+    const q = query(collection(db, 'users'), where('email', '==', email))
 
     // Obtener los documentos que coinciden con la consulta
     const emailQuerySnapshot = await getDocs(q)
@@ -988,10 +1020,7 @@ const FirebaseContextProvider = props => {
       // Si no hay documentos, retornar verdadero indicando que el correo no está registrado
       return true
     }
-
-
-  };
-
+  }
 
   const value = {
     authUser,

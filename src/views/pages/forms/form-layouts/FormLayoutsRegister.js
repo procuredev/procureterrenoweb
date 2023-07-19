@@ -1,6 +1,6 @@
 // ** React Imports
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** Hooks Imports
 import { useFirebase } from 'src/context/useFirebaseAuth'
@@ -44,7 +44,7 @@ const FormLayoutsBasic = () => {
     role: '',
     plant: [],
     shift: '',
-    opshift: '',
+    opshift: ''
   }
 
   // ** States
@@ -53,9 +53,7 @@ const FormLayoutsBasic = () => {
   const [password, setPassword] = useState('')
   const [dialog, setDialog] = useState(false)
   const [attempts, setAttempts] = useState(0)
-  const [successMessage, setSuccessMessage] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
-  const [dialogError, setDialogError] = useState('')
+  const [alertMessage, setAlertMessage] = useState('')
   const [contOptions, setContOptions] = useState([])
   const [opShiftOptions, setOpShiftOptions] = useState([])
 
@@ -64,38 +62,40 @@ const FormLayoutsBasic = () => {
 
   const handleChange = prop => (event, data) => {
     let newValue
-      switch (prop) {
-        case 'phone':
-          newValue = event.target.value.replace(/[^0-9]/g, '')
-          newValue = `${newValue[0]||''} ${newValue.slice(1, 5)||''} ${newValue.slice(5, 10)||''}`
-          newValue = newValue.trim()
-          break
-        case 'email':
-          newValue = event.target.value.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
-          break
-        case 'name':
-          // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
-          newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
-          break
-        case 'rut':
-          // Eliminar cualquier caracter que no sea un número o letra k
-          let cv = event.target.value.replace(/[^0-9kK]/g, '')
+    switch (prop) {
+      case 'phone':
+        newValue = event.target.value.replace(/[^0-9]/g, '')
+        newValue = `${newValue[0] || ''} ${newValue.slice(1, 5) || ''} ${newValue.slice(5, 10) || ''}`
+        newValue = newValue.trim()
+        break
+      case 'email':
+        newValue = event.target.value.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
+        break
+      case 'name':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+      case 'rut':
+        // Eliminar cualquier caracter que no sea un número o letra k
+        let cv = event.target.value.replace(/[^0-9kK]/g, '')
 
-          // Formatea RUT
-          newValue = `${cv.length > 7 ? cv.slice(-9, -7)+'.' : ''}${cv.length > 4 ? cv.slice(-7, -4)+'.' : ''}${cv.length >=2 ? cv.slice(-4, -1)+'-':''}${cv[cv.length - 1] || ''}`;
-          newValue = newValue.trim()
-          break
-        case 'plant':
-          newValue = data
-          getOptions(newValue)
-          break
-        case 'shift':
-          newValue = event.target.value
-          getOptions(values.plant, newValue)
-          break
-        default:
-          newValue = event.target.value
-          break
+        // Formatea RUT
+        newValue = `${cv.length > 7 ? cv.slice(-9, -7) + '.' : ''}${cv.length > 4 ? cv.slice(-7, -4) + '.' : ''}${
+          cv.length >= 2 ? cv.slice(-4, -1) + '-' : ''
+        }${cv[cv.length - 1] || ''}`
+        newValue = newValue.trim()
+        break
+      case 'plant':
+        newValue = data
+        getOptions(newValue)
+        break
+      case 'shift':
+        newValue = event.target.value
+        getOptions(values.plant, newValue)
+        break
+      default:
+        newValue = event.target.value
+        break
     }
 
     setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
@@ -116,7 +116,7 @@ const FormLayoutsBasic = () => {
     }
   }
 
-  const names = areas.map(plant=>plant.name)
+  const names = areas.map(plant => plant.name)
 
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
@@ -129,7 +129,7 @@ const FormLayoutsBasic = () => {
     const newErrors = {}
     for (const key in values) {
       // Error campos vacíos
-      if (key !== 'opshift' && (values[key] === '' || !values[key])) {
+      if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
         newErrors[key] = 'Por favor, selecciona una opción'
       }
 
@@ -163,31 +163,31 @@ const FormLayoutsBasic = () => {
   }
 
   const onBlur = async e => {
-    const email = e.target.value;
+    const email = e.target.value
 
-
-    console.log( typeof email)
-
-    //console.log( await consultUserEmailInDB(email))
-  };
+    try {
+      await consultUserEmailInDB(email)
+      setErrors({})
+    } catch (error) {
+      setDialog(true)
+      setAlertMessage(error.toString())
+    }
+  }
 
   const onSubmit = async event => {
     event.preventDefault()
     const formErrors = validateForm(values)
     const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid && consultUserEmailInDB(values.email))) {
+
+    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
       try {
-
-        console.log(await consultUserEmailInDB(values.email))
-
-        /* await createUser(values)
+        await createUser(values)
         setDialog(true)
-        setErrors({}) */
-
-
+        setErrors({})
       } catch (error) {
-        setErrorMessage(error.message)
+        setDialog(true)
+        setAlertMessage(error.toString())
       }
     } else {
       setErrors(formErrors)
@@ -195,70 +195,58 @@ const FormLayoutsBasic = () => {
   }
 
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 2; // Número máximo de intentos permitidos
+    const maxAttempts = 2 // Número máximo de intentos permitidos
 
     try {
-      const message = await signAdminBack(values, password);
-      setValues(initialValues);
-      setAttempts(0); // Reiniciar el contador de intentos si el inicio de sesión es exitoso
-      setDialog(false);
-      setSuccessMessage(message)
+      const message = await signAdminBack(values, password)
+      setValues(initialValues)
+      setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
+      setDialog(true)
+      setAlertMessage(message)
     } catch (error) {
-      console.log(error);
-      setAttempts(attempts + 1); // Incrementar el contador de intentos
+      console.log(error)
+      setAttempts(attempts + 1) // Incrementar el contador de intentos
 
       if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-        setDialogError('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts));
+        setAlertMessage('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts))
       } else if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
-        setDialogError('Error, no se creó ningún usuario. Serás redirigid@ al login.');
+        setAlertMessage('Error, no se creó ningún usuario. Serás redirigid@ al login.')
         setTimeout(() => {
           signAdminFailure().catch(error => {
-            console.log(error.message);
-          });
-          setDialog(false);
-          setDialogError('');
-        }, 1500);
+            console.log(error.message)
+          })
+          setDialog(false)
+          setAlertMessage('')
+        }, 1500)
       } else if (attempts >= maxAttempts) {
-        setDialogError('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.');
+        setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
         setTimeout(() => {
           signAdminFailure().catch(error => {
-            console.log(error.message);
-          });
-          setDialog(false);
-          setDialogError('');
-        }, 1500);
+            console.log(error.message)
+          })
+          setDialog(false)
+          setAlertMessage('')
+        }, 1500)
       }
     }
-  };
-
+  }
 
   const getOptions = async (plant, shift = '') => {
-    let options = await getUsers(plant, shift)
-    if (shift) {
-      console.log('contraturno')
-      setOpShiftOptions(options)
-    } else {
-      console.log('contract operator')
-      setContOptions(options)
+    if (plant.length > 0) {
+      console.log(plant.length)
+      let options = await getUsers(plant, shift)
+      if (shift) {
+        console.log('contraturno')
+        setOpShiftOptions(options)
+      } else {
+        console.log('contract operator')
+        setContOptions(options)
+      }
     }
   }
 
   return (
     <Card>
-      <CardHeader title='Registrar usuario' />
-      <CardContent>
-        {successMessage && (
-          <Alert severity="success">
-            <AlertTitle>Éxito</AlertTitle>
-            {successMessage}
-          </Alert>
-        )} {errorMessage && (
-          <Alert severity='error' onClose={() => setErrorMessage('')}>
-            <AlertTitle>Error</AlertTitle>
-            {errorMessage}
-          </Alert>
-        )}
-      </CardContent>
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
@@ -286,7 +274,6 @@ const FormLayoutsBasic = () => {
                 value={values.rut}
                 error={errors.rut ? true : false}
                 helperText={errors.rut}
-
                 inputProps={{ maxLength: 12 }}
               />
             </Grid>
@@ -300,7 +287,7 @@ const FormLayoutsBasic = () => {
                 value={values.phone}
                 error={errors.phone ? true : false}
                 helperText={errors.phone}
-        inputProps={{ maxLength:11}}
+                inputProps={{ maxLength: 11 }}
                 InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
               />
             </Grid>
@@ -354,13 +341,31 @@ const FormLayoutsBasic = () => {
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
-
+            {[2, 7, 8].includes(values.role) && (
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Turno</InputLabel>
+                  <Select
+                    label='Turno'
+                    value={values.shift}
+                    onChange={handleChange('shift')}
+                    error={errors.shift ? true : false}
+                  >
+                    {values.company === 'MEL' && <MenuItem value={'P'}>Turno P</MenuItem>}
+                    {values.company === 'MEL' && <MenuItem value={'Q'}>Turno Q</MenuItem>}
+                    {values.company === 'Procure' && <MenuItem value={'A'}>Turno A</MenuItem>}
+                    {values.company === 'Procure' && <MenuItem value={'B'}>Turno B</MenuItem>}
+                  </Select>
+                  {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
+                </FormControl>
+              </Grid>
+            )}
             {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
               <>
                 <Grid item xs={12}>
                   <FormControl fullWidth>
                     <Autocomplete
-                      multiple
+                      multiple={values.role === 3}
                       fullWidth
                       options={names}
                       value={values.plant}
@@ -371,48 +376,34 @@ const FormLayoutsBasic = () => {
                           label='Planta'
                           InputLabelProps={{ required: true }}
                           error={errors.plant ? true : false}
+                          helperText={errors.plant}
                         />
                       )}
                     />
-                    {errors.plant && <FormHelperText error>{errors.plant}</FormHelperText>}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel>Turno</InputLabel>
-                    <Select
-                      label='Turno'
-                      value={values.shift}
-                      onChange={handleChange('shift')}
-                      error={errors.shift ? true : false}
-                    >
-                     {values.company === 'Procure' ?  <MenuItem value={'A'}>Turno A</MenuItem> :  <MenuItem value={'P'}>Turno P</MenuItem>}
-                     {values.company === 'Procure' ?  <MenuItem value={'A'}>Turno A</MenuItem> :  <MenuItem value={'Q'}>Turno Q</MenuItem>}
-                    </Select>
-                    {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel>Contraturno</InputLabel>
-                    <Select
-                      label='Contraturno'
-                      value={values.opshift}
-                      onChange={handleChange('opshift')}
-
-                      /* error={errors.opshift ? true : false} */
-                    >
-                      {opShiftOptions.map(element => {
-                        return (
-                          <MenuItem key={element.name} value={element.name}>
-                            {element.name}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
-                    {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
-                  </FormControl>
-                </Grid>
+                {values.company === 'MEL' && values.role === 2 && (
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Contraturno</InputLabel>
+                      <Select
+                        label='Contraturno'
+                        value={values.opshift}
+                        onChange={handleChange('opshift')}
+                        error={errors.opshift ? true : false}
+                      >
+                        {opShiftOptions.map(element => {
+                          return (
+                            <MenuItem key={element.name} value={element.name}>
+                              {element.name}
+                            </MenuItem>
+                          )
+                        })}
+                      </Select>
+                      {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
+                    </FormControl>
+                  </Grid>
+                )}
               </>
             )}
             <Grid item xs={12}>
@@ -429,26 +420,20 @@ const FormLayoutsBasic = () => {
                   Crear usuario
                 </Button>
                 <Dialog open={dialog}>
-                  {dialogError && (
-                    <Alert severity='error' onClose={() => setDialogError('')}>
-                      <AlertTitle>Error</AlertTitle>
-                      {dialogError}
-                    </Alert>
+                  {alertMessage ? (
+                    <DialogContent>{alertMessage}</DialogContent>
+                  ) : (
+                    <DialogContent>
+                      <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar</DialogContentText>
+                      <TextField label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
+                    </DialogContent>
                   )}
-                  <DialogContent>
-                    <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar</DialogContentText>
-                    <TextField label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
-                  </DialogContent>
+
                   <DialogActions>
-                    <Button onClick={() => handleConfirm(values, password)}>Confirmar</Button>
+                    {!alertMessage && <Button onClick={() => handleConfirm(values, password)}>Confirmar</Button>}
+                    <Button onClick={() => setDialog(false)}>Cerrar</Button>
                   </DialogActions>
                 </Dialog>
-                {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography sx={{ mr: 2 }}>Already have an account?</Typography>
-                  <Link href='/' onClick={e => e.preventDefault()}>
-                    Log in
-                  </Link>
-                </Box> */}
               </Box>
             </Grid>
           </Grid>
