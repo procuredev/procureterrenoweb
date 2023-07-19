@@ -229,7 +229,7 @@ const FormLayoutsSolicitud = () => {
   } */
 
   const validateFiles = acceptedFiles => {
-    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'svg']
+    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
 
     const isValidImage = file => {

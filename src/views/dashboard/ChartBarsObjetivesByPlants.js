@@ -59,13 +59,13 @@ const ChartBarsObjetivesByPlants = () => {
     legend: { show: false },
     dataLabels: { enabled: false },
     colors: [
-      hexToRGBA(theme.palette.primary.main, 0.1),
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 0.1),
       hexToRGBA(theme.palette.primary.main, 1),
       hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 0.1),
-      hexToRGBA(theme.palette.primary.main, 0.1)
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1)
     ],
     states: {
       hover: {
