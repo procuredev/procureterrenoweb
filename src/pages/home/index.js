@@ -6,7 +6,7 @@ import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import Icon from 'src/@core/components/icon'
 import Link from '@mui/material/Link'
-
+import Box from '@mui/material/Box'
 
 
 // ** Custom Component Import
@@ -19,24 +19,16 @@ import ChartBarsObjetivesByPlants from 'src/views/dashboard/ChartBarsObjetivesBy
 import ShowMap from 'src/views/dashboard/ShowMap'
 import DocStates from 'src/views/dashboard/DocStates'
 import PageHeader from 'src/@core/components/page-header'
+import CustomAvatar from 'src/@core/components/mui/avatar'
+import OptionsMenu from 'src/@core/components/option-menu'
 
 
 // ** Demo Components Imports
 import ChartDonutObjetivesLast30days from 'src/views/charts/apex-charts/ChartDonutObjetivesLast30days'
 import ChartDonutDocsLast30days from 'src/views/charts/apex-charts/ChartDonutDocsLast30days'
 import Top10UsersWihitMostDocs from 'src/views/dashboard/ecommerce/Top10UsersWihitMostDocs'
-import EcommerceTable from 'src/views/dashboard/ecommerce/EcommerceTable'
-import EcommerceTotalVisits from 'src/views/dashboard/ecommerce/EcommerceTotalVisits'
-import EcommerceVisitsByDay from 'src/views/dashboard/ecommerce/EcommerceVisitsByDay'
-import EcommerceLiveVisitors from 'src/views/dashboard/ecommerce/EcommerceLiveVisitors'
-import EcommerceSalesOverview from 'src/views/dashboard/ecommerce/EcommerceSalesOverview'
 import TopPositionCharts from 'src/views/dashboard/ecommerce/TopPositionCharts'
-import EcommerceWeeklySalesBg from 'src/views/dashboard/ecommerce/EcommerceWeeklySalesBg'
-import EcommerceSalesThisMonth from 'src/views/dashboard/ecommerce/EcommerceSalesThisMonth'
-import EcommerceMarketingSales from 'src/views/dashboard/ecommerce/EcommerceMarketingSales'
-import EcommerceActivityTimeline from 'src/views/dashboard/ecommerce/EcommerceActivityTimeline'
-import EcommerceImpressionsOrders from 'src/views/dashboard/ecommerce/EcommerceImpressionsOrders'
-import EcommerceSalesOverviewWithTabs from 'src/views/dashboard/ecommerce/EcommerceSalesOverviewWithTabs'
+
 
 
 
@@ -54,9 +46,59 @@ const Home = () => {
             subtitle={<Typography variant='body2'>React Component for ApexCharts</Typography>}
           /> */}
       <Grid item xs={12} md={12}>
-        <TopPositionCharts />
-      </Grid>
+        <Card>
+          <CardHeader
+            sx={{ pb: 3.25 }}
+            title='Resumen Estadístico'
+            titleTypographyProps={{ variant: 'h6' }}
 
+
+          />
+          <CardContent>
+            <Grid container spacing={6}>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <CustomAvatar skin='light' variant='rounded' color='primary' sx={{ mr: 4 }}>
+                    <Icon icon='mdi:text-box-outline' />
+                  </CustomAvatar>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                    2.450
+                    </Typography>
+                    <Typography variant='caption'>Solicitudes</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <CustomAvatar skin='light' variant='rounded' color='warning' sx={{ mr: 4 }}>
+                    <Icon icon='mdi:progress-upload' />
+                  </CustomAvatar>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                    2.250
+                    </Typography>
+                    <Typography variant='caption'>Levantamientos</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <CustomAvatar skin='light' variant='rounded' color='info' sx={{ mr: 4 }}>
+                    <Icon icon='mdi:tooltip-edit-outline' />
+                  </CustomAvatar>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                    8.458
+                    </Typography>
+                    <Typography variant='caption'>Gabinete</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Grid>
 
      {/*  <Grid item height='auto' xs={12} sm={4}>
         <ProfileCard />
