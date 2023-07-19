@@ -1,3 +1,6 @@
+// ** React Imports
+import { useState, useEffect } from 'react'
+
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
@@ -12,7 +15,7 @@ import Box from '@mui/material/Box'
 // ** Custom Component Import
 import CardStatisticsVertical from 'src/@core/components/card-statistics/card-stats-vertical'
 import ProfileCard from 'src/views/dashboard/ProfileCard'
-import DocsByDay from 'src/views/dashboard/DocsByDay'
+import ObjetivesByDay from 'src/views/dashboard/ObjetivesByDay'
 import ObjetivesByMonth from 'src/views/dashboard/objetivesByMonth'
 import ChartBarsDocsByPlants from 'src/views/dashboard/ChartBarsDocsByPlants'
 import ChartBarsObjetivesByPlants from 'src/views/dashboard/ChartBarsObjetivesByPlants'
@@ -31,8 +34,34 @@ import TopPositionCharts from 'src/views/dashboard/ecommerce/TopPositionCharts'
 
 
 
+// ** Hooks
+import { useFirebase } from 'src/context/useFirebaseAuth'
+
+
+
 
 const Home = () => {
+  // ** Hooks
+  const {
+    consultAllDocsInDB,
+    consultAllObjetivesInDB,
+  } = useFirebase()
+
+  const [allDocs, setAllDocs] = useState(0)
+  const [allObj, setAllObj] = useState(0)
+
+  useEffect(() => {
+      const fetchData = async () => {
+        const docsCount = await consultAllDocsInDB();
+        const objetivesCount = await consultAllObjetivesInDB();
+        setAllDocs(docsCount);
+        setAllObj(objetivesCount);
+      };
+
+    fetchData();
+  }, [])
+
+
   return (
     <Grid container spacing={6} alignItems="stretch" className='match-height' sx={{display:'flex'}}>
       {/* <PageHeader
@@ -63,7 +92,7 @@ const Home = () => {
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                    2.450
+                    {allDocs}
                     </Typography>
                     <Typography variant='caption'>Solicitudes</Typography>
                   </Box>
@@ -76,7 +105,7 @@ const Home = () => {
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                    2.250
+                    {allObj}
                     </Typography>
                     <Typography variant='caption'>Levantamientos</Typography>
                   </Box>
@@ -91,7 +120,7 @@ const Home = () => {
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
                     8.458
                     </Typography>
-                    <Typography variant='caption'>Gabinete</Typography>
+                    <Typography variant='caption'> Trabajos de Gabinete</Typography>
                   </Box>
                 </Box>
               </Grid>
@@ -104,7 +133,7 @@ const Home = () => {
         <ProfileCard />
       </Grid>
       <Grid item xs={12} sm={4}>
-        <DocsByDay />
+        <ObjetivesByDay />
       </Grid>
       <Grid item xs={12} sm={4}>
         <DocStates />
@@ -122,7 +151,7 @@ const Home = () => {
       </Grid> */}
 
       <Grid item xs={12} sm={6}>
-        <DocsByDay />
+        <ObjetivesByDay />
       </Grid>
 
 

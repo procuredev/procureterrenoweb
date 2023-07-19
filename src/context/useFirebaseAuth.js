@@ -20,7 +20,8 @@ import {
   where,
   orderBy,
   limit,
-  runTransaction
+  runTransaction,
+  getCountFromServer
 } from 'firebase/firestore'
 
 import { getAuth, signOut, deleteUser } from 'firebase/auth'
@@ -46,6 +47,9 @@ import { sendEmailNewPetition } from './sendEmailNewPetition'
 // ** Importación de función que envía email cuando se actualiza una nueva solicitud
 import { sendEmailWhenReviewDocs } from './sendEmailWhenReviewDocs'
 
+// Librería
+import { capitalize } from 'lodash';
+
 const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
@@ -61,6 +65,7 @@ const FirebaseContextProvider = props => {
 
   // ** Libreria de fechas
   const moment = require('moment')
+
 
   // ** Consultar rol del usuario
 
@@ -1020,7 +1025,109 @@ const FirebaseContextProvider = props => {
       // Si no hay documentos, retornar verdadero indicando que el correo no está registrado
       return true
     }
+  };
+
+  const consultAllDocsInDB = async () => {
+    const coll = collection(db, "solicitudes");
+    const snapshot = await getCountFromServer(coll);
+
+    return snapshot.data().count
   }
+
+  const consultAllObjetivesInDB = async () => {
+    const coll = collection(db, "solicitudes");
+    const q = query(coll, where("state", ">=", 6));
+    const snapshot = await getCountFromServer(q);
+
+    return snapshot.data().count
+  }
+
+  const consultObjetivesOfActualWeek = async () => {
+    const startDate = moment().startOf('isoWeek').toDate();
+    const endDate = moment().endOf('isoWeek').toDate();
+    const documentsByDay = Array(7).fill(0);
+    const coll = collection(db, 'solicitudes');
+    const q = query(coll, where("state", ">=", 6));
+    const snapshot = await getDocs(q);
+
+    snapshot.forEach((doc) => {
+      const start = doc.data().start.toDate(); // Convierte el campo 'start' a una fecha
+      const dayOfWeek = moment(start).isoWeekday(); // Obtiene el día de la semana (1: lunes, 2: martes, etc.)
+      if (moment(start).isSameOrAfter(startDate) && moment(start).isSameOrBefore(endDate)) {
+        documentsByDay[dayOfWeek - 1]++; // Incrementa el contador correspondiente en el array
+      }
+    });
+
+    return documentsByDay
+
+  }
+
+  const consultObjetivesLastSixMonths = async () => {
+    const currentDate = moment();
+    const monthsData = [];
+
+    const coll = collection(db, 'solicitudes');
+
+    for (let i = 0; i < 6; i++) {
+      const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate();
+      const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate();
+
+      const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate));
+      const snapshot = await getDocs(q);
+
+      const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6);
+      const cant = filteredDocs.length;
+
+      const month = capitalize(moment(monthStartDate).locale('es').format('MMM'));
+      monthsData.unshift({ month, cant });
+    }
+
+    return monthsData;
+  };
+
+  const consultAllDocsByPlants = async () => {
+    const coll = collection(db, "solicitudes");
+    const q1 = query(coll, where("plant", "==", 'Planta Concentradora Los Colorados'));
+    const q2 = query(coll, where("plant", "==", 'Planta Concentradora Laguna Seca | Línea 1'));
+    const q3 = query(coll, where("plant", "==", 'Planta Concentradora Laguna Seca | Línea 2'));
+    const q4 = query(coll, where("plant", "==", 'Chancado y Correas'));
+    const q5 = query(coll, where("plant", "==", 'Puerto Coloso'));
+    const q6 = query(coll, where("plant", "==", 'Instalaciones Cátodo'));
+
+    const queryAllPlants = [q1, q2, q3, q4, q5, q6];
+
+    const promises = queryAllPlants.map((query) => getCountFromServer(query));
+    const snapshots = await Promise.all(promises);
+
+    const documentsByPlants = snapshots.map((snapshot) => snapshot.data().count);
+
+    return documentsByPlants;
+  };
+
+  const consultAllObjetivesByPlants = async () => {
+    const coll = collection(db, "solicitudes");
+
+    const queries = [
+      { plant: 'Planta Concentradora Los Colorados' },
+      { plant: 'Planta Concentradora Laguna Seca | Línea 1' },
+      { plant: 'Planta Concentradora Laguna Seca | Línea 2' },
+      { plant: 'Chancado y Correas' },
+      { plant: 'Puerto Coloso' },
+      { plant: 'Instalaciones Cátodo' },
+    ];
+
+    const promises = queries.map(async (item) => {
+      const q = query(coll, where("plant", "==", item.plant), where("state", ">=", 6));
+      const snapshot = await getDocs(q);
+
+      return snapshot.size;
+    });
+
+    const results = await Promise.all(promises);
+
+    return results;
+  };
+
 
   const value = {
     authUser,
@@ -1051,7 +1158,13 @@ const FirebaseContextProvider = props => {
     blockDayInDatabase,
     consultBlockDayInDB,
     consultSAP,
-    consultUserEmailInDB
+    consultUserEmailInDB,
+    consultAllDocsInDB,
+    consultAllObjetivesInDB,
+    consultObjetivesOfActualWeek,
+    consultObjetivesLastSixMonths,
+    consultAllDocsByPlants,
+    consultAllObjetivesByPlants
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

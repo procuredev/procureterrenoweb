@@ -1,3 +1,6 @@
+// ** React Imports
+import { useState, useEffect } from 'react'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -17,9 +20,28 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
+// ** Hooks
+import { useFirebase } from 'src/context/useFirebaseAuth'
+
 const ChartBarsDocsByPlants = () => {
   // ** Hook
+  const {
+    consultAllDocsByPlants
+  } = useFirebase()
   const theme = useTheme()
+
+  const [docsByPlants, setDocsByPlants] = useState([0,0,0,0,0,0])
+
+  useEffect(() => {
+      const fetchData = async () => {
+        const resDocsByPlants = await consultAllDocsByPlants();
+        setDocsByPlants(resDocsByPlants);
+      };
+
+    fetchData();
+  }, [])
+
+
 
   const options = {
     chart: {
@@ -38,13 +60,13 @@ const ChartBarsDocsByPlants = () => {
     legend: { show: false },
     dataLabels: { enabled: false },
     colors: [
-      hexToRGBA(theme.palette.primary.main, 0.1),
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 0.1),
       hexToRGBA(theme.palette.primary.main, 1),
       hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 0.1),
-      hexToRGBA(theme.palette.primary.main, 0.1)
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1),
+      hexToRGBA(theme.palette.primary.main, 1)
     ],
     states: {
       hover: {
@@ -83,7 +105,7 @@ const ChartBarsDocsByPlants = () => {
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts type='bar' height={120} options={options} series={[{ data: [55, 48, 65, 80, 38, 48] }]} />
+        <ReactApexcharts type='bar' height={120} options={options} series={[{ data: docsByPlants }]} />
       </CardContent>
     </Card>
   )
