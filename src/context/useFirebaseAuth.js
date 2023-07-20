@@ -1064,25 +1064,32 @@ const FirebaseContextProvider = props => {
 
   const consultObjetivesLastSixMonths = async () => {
     const currentDate = moment();
-    const monthsData = [];
+  const monthsData = [];
 
-    const coll = collection(db, 'solicitudes');
+  const coll = collection(db, 'solicitudes');
+  const queries = [];
 
-    for (let i = 0; i < 6; i++) {
-      const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate();
-      const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate();
+  for (let i = 0; i < 6; i++) {
+    const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate();
+    const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate();
 
-      const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate));
-      const snapshot = await getDocs(q);
+    const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate));
+    queries.push(getDocs(q));
+  }
 
-      const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6);
-      const cant = filteredDocs.length;
+  const snapshots = await Promise.all(queries);
 
-      const month = capitalize(moment(monthStartDate).locale('es').format('MMM'));
-      monthsData.unshift({ month, cant });
-    }
+  snapshots.forEach((snapshot, index) => {
+    const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6);
+    const cant = filteredDocs.length;
 
-    return monthsData;
+    const monthStartDate = currentDate.clone().subtract(index, 'months').startOf('month');
+    const month = capitalize(monthStartDate.locale('es').format('MMM'));
+
+    monthsData.unshift({ month, cant });
+  });
+
+  return monthsData;
   };
 
   const consultAllDocsByPlants = async () => {
@@ -1128,6 +1135,78 @@ const FirebaseContextProvider = props => {
     return results;
   };
 
+  const consultAllDocsByState = async () => {
+    const coll = collection(db, "solicitudes");
+    const q1 = query(coll, where("state", ">=", 1), where("state", "<", 6));
+    const q2 = query(coll, where("state", ">=", 6), where("state", "<", 10));
+    const q3 = query(coll, where("state", "==", 10));
+
+
+    const queryAllStates = [q1, q2, q3];
+
+    const promises = queryAllStates.map((query) => getCountFromServer(query));
+    const snapshots = await Promise.all(promises);
+
+    const documentsByState = snapshots.map((snapshot) => snapshot.data().count);
+
+    return documentsByState;
+  };
+
+  const getUsersWithSolicitudes = async () => {
+    const collSolicitudes = collection(db, 'solicitudes');
+    const qSolicitudes = query(collSolicitudes);
+    const solicitudesSnapshot = await getDocs(qSolicitudes);
+
+    const solicitudesByUser = {};
+
+    solicitudesSnapshot.forEach((doc) => {
+      const { uid } = doc.data();
+      if (uid) {
+        if (solicitudesByUser[uid]) {
+          solicitudesByUser[uid].docs++;
+        } else {
+          solicitudesByUser[uid] = {
+            id: uid,
+            docs: 1,
+          };
+        }
+      }
+    });
+
+    const sortedUsers = Object.values(solicitudesByUser).sort((a, b) => b.docs - a.docs);
+    const limitedUsers = sortedUsers.slice(0, 10);
+
+    // Consulta adicional a la colección 'users'
+    const collUsers = collection(db, 'users');
+    const usersSnapshot = await getDocs(collUsers);
+
+    const usersWithProperties = limitedUsers.map((user) => {
+      const userSnapshot = usersSnapshot.docs.find((doc) => doc.id === user.id);
+      if (userSnapshot) {
+        const userData = userSnapshot.data();
+
+        if (userData.photoURL) {
+          return {
+            ...user,
+            name: userData.name,
+            plant: userData.plant,
+            avatarSrc: userData.photoURL,
+          };
+        } else {
+          return {
+            ...user,
+            name: userData.name,
+            plant: userData.plant,
+          };
+        }
+      } else {
+        return user;
+      }
+    });
+
+    return usersWithProperties;
+  };
+
 
   const value = {
     authUser,
@@ -1164,7 +1243,9 @@ const FirebaseContextProvider = props => {
     consultObjetivesOfActualWeek,
     consultObjetivesLastSixMonths,
     consultAllDocsByPlants,
-    consultAllObjetivesByPlants
+    consultAllObjetivesByPlants,
+    consultAllDocsByState,
+    getUsersWithSolicitudes
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

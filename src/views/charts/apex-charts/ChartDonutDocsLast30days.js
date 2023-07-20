@@ -1,3 +1,6 @@
+// ** React Imports
+import { useState, useEffect } from 'react'
+
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
@@ -15,18 +18,36 @@ const donutColors = {
   series5: '#ffa1a1'
 }
 
+// ** Hooks
+import { useFirebase } from 'src/context/useFirebaseAuth'
+
 const ChartDonutDocsLast30days = () => {
   // ** Hook
+  const {
+    consultAllDocsByState
+  } = useFirebase()
   const theme = useTheme()
+
+  const [docsByState, setDocsByState] = useState([0,0,0])
+
+  useEffect(() => {
+      const fetchData = async () => {
+        const resDocsByStates = await consultAllDocsByState();
+        setDocsByState(resDocsByStates);
+      };
+
+    fetchData();
+  }, [])
+
+
+  const totalDocuments = docsByState.reduce((total, count) => total + count, 0);
+  const total = `Recibidas: ${totalDocuments}`
 
   const options = {
     stroke: { width: 0 },
     labels: ['en proceso', 'aceptadas', 'rechazadas'],
     colors: [donutColors.series1, donutColors.series2, donutColors.series5],
-    dataLabels: {
-      enabled: true,
-      formatter: val => `${parseInt(val, 10)}%`
-    },
+    dataLabels: { enabled: true, formatter: function (val, opt) { return opt.w.config.series[opt.seriesIndex]} },
     legend: {
       position: 'bottom',
       markers: { offsetX: -3 },
@@ -52,8 +73,7 @@ const ChartDonutDocsLast30days = () => {
             total: {
               show: true,
               fontSize: '1.2rem',
-              label: 'Operational',
-              formatter: () => '31%',
+              label: 'Recibidas',
               color: theme.palette.text.primary
             }
           }
@@ -110,7 +130,7 @@ const ChartDonutDocsLast30days = () => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       />
       <CardContent>
-        <ReactApexcharts type='donut' height={400} options={options} series={[85, 100, 16]} />
+        <ReactApexcharts type='donut' height={400} options={options} series={docsByState} />
       </CardContent>
     </Card>
   )
