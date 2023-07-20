@@ -1185,12 +1185,12 @@ const FirebaseContextProvider = props => {
       if (userSnapshot) {
         const userData = userSnapshot.data();
 
-        if (userData.photoURL) {
+        if (userData.urlFoto) {
           return {
             ...user,
             name: userData.name,
             plant: userData.plant,
-            avatarSrc: userData.photoURL,
+            avatarSrc: userData.urlFoto,
           };
         } else {
           return {
