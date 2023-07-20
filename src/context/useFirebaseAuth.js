@@ -623,7 +623,7 @@ const FirebaseContextProvider = props => {
               q = query(collection(db, 'solicitudes'), where('uid', '==', authUser.uid))
               break
             case 3:
-              q = query(collection(db, 'solicitudes'), where('plant', '==', authUser.plant))
+              q = query(collection(db, 'solicitudes'), where('plant', 'in', authUser.plant))
               break
             case 5:
               q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 2))
