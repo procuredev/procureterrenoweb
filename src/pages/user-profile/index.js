@@ -75,9 +75,9 @@ const TabAccount = () => {
     if (authUser.urlFoto && authUser.urlFoto !== '') {
       setImgSrc(authUser.urlFoto);
     } else {
-      setImgSrc('');
+      setImgSrc('')
     }
-  }, []);
+  }, [])
 
   const handleInputImageChange = (archivo) => {
 
@@ -91,7 +91,7 @@ const TabAccount = () => {
         if (reader.result !== null) {
           resolve(reader.result);
         } else {
-          reject('Error al leer la imagen');
+          reject('Error al leer la imagen')
         }
       };
 
@@ -101,7 +101,7 @@ const TabAccount = () => {
     readImage
       .then(async (result) => {
         // Extraer el tipo MIME de la cadena de datos URL
-        const mimeType = result.split(';')[0].split(':')[1];
+        const mimeType = result.split(';')[0].split(':')[1]
 
         const validatePhoto = () => {
           if (mimeType.includes('image/jpeg') || mimeType.includes('image/jpg') || mimeType.includes('image/png') || mimeType.includes('image/webp') || mimeType.includes('image/gif') || mimeType.includes('image/bmp') || mimeType.includes('image/tiff') || mimeType.includes('image/svg')) {
@@ -112,8 +112,8 @@ const TabAccount = () => {
         }
 
         if (await validatePhoto()) {
-          setImgSrc(result);
-          setInputValue(result);
+          setImgSrc(result)
+          setInputValue(result)
         } else {
           setAlertMessage('Solo puede seleccionar archivos de imágen permitidos: jpeg, jpg, png, webp, gif, bmp, tiff o svg.')
         }
@@ -162,7 +162,9 @@ const TabAccount = () => {
       );
     } else {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
-      const initials = authUser.displayName ?? name
+      const currentName = authUser.displayName ?? name
+
+      const initials = currentName
         .split(' ')
         .map((word) => word.charAt(0))
         .join('');
@@ -170,12 +172,12 @@ const TabAccount = () => {
       avatarContent = (
         <Avatar
           sx={{
-            width: 180,
-            height: 180,
+            width: 200,
+            height: 200,
             borderRadius: '10%',
             objectFit: 'contain',
             bgcolor: 'primary.main',
-            fontSize: '72px', // Tamaño de la fuente ajustado
+            fontSize: '65px', // Tamaño de la fuente ajustado
           }}
         >
           {initials}
@@ -194,9 +196,9 @@ const TabAccount = () => {
 
   // Función que se encarga de visualizar de forma correcta el teléfono que se ingrese
   const handleFormChange = (event) => {
-    const { name, value } = event.target;
+    const { name, value } = event.target
 
-    let newValue = value;
+    let newValue = value
     if (name === 'phone') {
       // Eliminar caracteres que no sean números
       newValue = newValue.replace(/[^0-9]/g, '')
@@ -216,10 +218,10 @@ const TabAccount = () => {
 
   // Función que maneja lo que pasa al hacer click en 'GUARDAR CAMBIOS'
   const handleSubmit = async () => {
-    const trimmedPhone = formData.replace(/\s/g, '');
+    const trimmedPhone = formData.replace(/\s/g, '')
 
     // Antes de iniciar las comprobaciones de validación
-    setErrorMessage('');
+    setErrorMessage('')
 
     const phoneValidator = async() => {
       if (trimmedPhone.length !== 9) {
@@ -275,32 +277,32 @@ const TabAccount = () => {
         </Dialog>
         <Card>
           <form>
-            <CardContent sx={{ pt: 4 }}>
-              <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'left' }}>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <CardHeader title={authUser.displayName ?? 'Por definir'} />
-                  <AvatarFromName/>
-                </Grid>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt:26 }}>
-                  <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
-                    Subir nueva foto
-                    <input
-                      hidden
-                      type='file'
-                      accept='image/jpeg, image/jpg, image/png, image/webp, image/gif, image/bmp, image/tiff, image/svg'
-                      onChange={handleInputImageChange}
-                      id='account-settings-upload-image'
-                    />
-                  </ButtonStyled>
-                  <ResetButtonStyled color='primary' variant='outlined' onClick={handleInputImageReset}>
-                    Restablecer
-                  </ResetButtonStyled>
-                  <ResetButtonStyled color='primary' variant='outlined' onClick={handleRemoveImage}>
-                    Borrar foto
-                  </ResetButtonStyled>
-                </Grid>
+          <CardContent sx={{ pt: 4 }}>
+            <Grid container spacing={6}>
+              <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <CardHeader title={authUser.displayName ?? 'Por definir'} />
+                <AvatarFromName/>
               </Grid>
-            </CardContent>
+              <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'column', gap: {xs: 0, sm: 2, md: 2, lg: 2}, mt: {xs: 2, sm: 26, md: 26, lg: 26} }}>
+                <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
+                  Subir nueva foto
+                  <input
+                    hidden
+                    type='file'
+                    accept='image/jpeg, image/jpg, image/png, image/webp, image/gif, image/bmp, image/tiff, image/svg'
+                    onChange={handleInputImageChange}
+                    id='account-settings-upload-image'
+                  />
+                </ButtonStyled>
+                <ResetButtonStyled color='primary' variant='outlined' onClick={handleInputImageReset}>
+                  Restablecer
+                </ResetButtonStyled>
+                <ResetButtonStyled color='primary' variant='outlined' onClick={handleRemoveImage}>
+                  Borrar foto
+                </ResetButtonStyled>
+              </Grid>
+            </Grid>
+          </CardContent>
             <Divider />
             <CardContent>
               <Grid container spacing={6}>
