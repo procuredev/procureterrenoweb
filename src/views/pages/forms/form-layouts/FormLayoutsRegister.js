@@ -58,7 +58,7 @@ const FormLayoutsBasic = () => {
   const [opShiftOptions, setOpShiftOptions] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUsers, consultUserEmailInDB } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUsers, consultUserEmailInDB, authUser } = useFirebase()
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -143,7 +143,7 @@ const FormLayoutsBasic = () => {
       case values.role === 2 && values.plant !== santiago:
         requiredKeys.push('shift', 'plant', 'opshift') // Utilizamos push para agregar elementos al array
         break
-      case values.role === 4:
+      case values.role === 3:
         requiredKeys.push('plant')
         break
       case [7, 8].includes(values.role):
@@ -276,11 +276,27 @@ const FormLayoutsBasic = () => {
     }
   }
 
+  const handleClose = async () => {
+    if (authUser.role !== 1) {
+      setAlertMessage('Registro cancelado: no se creó ningún usuario. Serás redirigid@ al login.')
+      setTimeout(() => {
+        signAdminFailure().catch(error => {
+          console.log(error.message)
+        })
+        setDialog(false)
+        setAlertMessage('')
+      }, 1500)
+    } else {
+      setDialog(false)
+      setAlertMessage('')
+    }
+  }
+
   const getOptions = async (plant, shift = '') => {
     if (plant.length > 0) {
       console.log(plant.length)
       let options = await getUsers(plant, shift)
-      options.push({name:'No Aplica'})
+      options.push({ name: 'No Aplica' })
       console.log(options)
       if (shift) {
         console.log('solicitante')
@@ -389,69 +405,67 @@ const FormLayoutsBasic = () => {
               </FormControl>
             </Grid>
             {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
-              <>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <Autocomplete
-                      multiple={values.role === 3}
-                      fullWidth
-                      options={names}
-                      value={values.plant}
-                      onChange={handleChange('plant')}
-                      renderInput={params => (
-                        <TextField
-                          {...params}
-                          label='Planta'
-                          InputLabelProps={{ required: true }}
-                          error={errors.plant ? true : false}
-                          helperText={errors.plant}
-                        />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-                {[2, 7, 8].includes(values.role) && values.plant !== santiago && (
-                  <Grid item xs={12}>
-                    <FormControl fullWidth>
-                      <InputLabel>Turno</InputLabel>
-                      <Select
-                        label='Turno'
-                        value={values.shift}
-                        onChange={handleChange('shift')}
-                        error={errors.shift ? true : false}
-                      >
-                        {values.company === 'MEL' && <MenuItem value={'P'}>Turno P</MenuItem>}
-                        {values.company === 'MEL' && <MenuItem value={'Q'}>Turno Q</MenuItem>}
-                        {values.company === 'Procure' && <MenuItem value={'A'}>Turno A</MenuItem>}
-                        {values.company === 'Procure' && <MenuItem value={'B'}>Turno B</MenuItem>}
-                      </Select>
-                      {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
-                    </FormControl>
-                  </Grid>
-                )}
-                {values.company === 'MEL' && values.role === 2 && values.plant !== santiago && (
-                  <Grid item xs={12}>
-                    <FormControl fullWidth>
-                      <InputLabel>Contraturno</InputLabel>
-                      <Select
-                        label='Contraturno'
-                        value={values.opshift}
-                        onChange={handleChange('opshift')}
-                        error={errors.opshift ? true : false}
-                      >
-                        {opShiftOptions.map(element => {
-                          return (
-                            <MenuItem key={element.name} value={element.name}>
-                              {element.name}
-                            </MenuItem>
-                          )
-                        })}
-                      </Select>
-                      {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
-                    </FormControl>
-                  </Grid>
-                )}
-              </>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <Autocomplete
+                    multiple={values.role === 3}
+                    fullWidth
+                    options={names}
+                    value={values.plant}
+                    onChange={handleChange('plant')}
+                    renderInput={params => (
+                      <TextField
+                        {...params}
+                        label='Planta'
+                        InputLabelProps={{ required: true }}
+                        error={errors.plant ? true : false}
+                        helperText={errors.plant}
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Grid>
+            )}
+            {[2, 7, 8].includes(values.role) && values.plant !== santiago && (
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Turno</InputLabel>
+                  <Select
+                    label='Turno'
+                    value={values.shift}
+                    onChange={handleChange('shift')}
+                    error={errors.shift ? true : false}
+                  >
+                    {values.company === 'MEL' && <MenuItem value={'P'}>Turno P</MenuItem>}
+                    {values.company === 'MEL' && <MenuItem value={'Q'}>Turno Q</MenuItem>}
+                    {values.company === 'Procure' && <MenuItem value={'A'}>Turno A</MenuItem>}
+                    {values.company === 'Procure' && <MenuItem value={'B'}>Turno B</MenuItem>}
+                  </Select>
+                  {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
+                </FormControl>
+              </Grid>
+            )}
+            {values.company === 'MEL' && values.role === 2 && values.plant !== santiago && (
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Contraturno</InputLabel>
+                  <Select
+                    label='Contraturno'
+                    value={values.opshift}
+                    onChange={handleChange('opshift')}
+                    error={errors.opshift ? true : false}
+                  >
+                    {opShiftOptions.map(element => {
+                      return (
+                        <MenuItem key={element.name} value={element.name}>
+                          {element.name}
+                        </MenuItem>
+                      )
+                    })}
+                  </Select>
+                  {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
+                </FormControl>
+              </Grid>
             )}
             <Grid item xs={12}>
               <Box
@@ -477,8 +491,8 @@ const FormLayoutsBasic = () => {
                   )}
 
                   <DialogActions>
+                    <Button onClick={() => handleClose()}>Cerrar</Button>
                     {!alertMessage && <Button onClick={() => handleConfirm(values, password)}>Confirmar</Button>}
-                    <Button onClick={() => setDialog(false)}>Cerrar</Button>
                   </DialogActions>
                 </Dialog>
               </Box>

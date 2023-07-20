@@ -24,4 +24,7 @@ NuevoUsuario.acl = {
   subject: 'nuevo-usuario'
 }
 
+NuevoUsuario.guestGuard = false
+NuevoUsuario.authGuard = true
+
 export default NuevoUsuario

@@ -6,7 +6,7 @@ const Navigation = () => {
 
   // ** Hooks
   const { authUser } = useFirebase()
-  const role = authUser.role
+  const role = authUser ? authUser.role : 'none'
 
   // Array que contiene las características del menú navegador
   const menuItems = [

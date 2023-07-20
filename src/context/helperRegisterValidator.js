@@ -54,7 +54,7 @@ export function registerValidator(values) {
     },
     plant: {
       validate: value => {
-        if (values.company === 'Procure') {
+        if (values.company === 'Procure' || values.role === 4) {
           return true // No se valida la planta si la empresa es "Procure"
         }
 
@@ -99,7 +99,11 @@ export function registerValidator(values) {
 
   for (const key in values) {
     if (typeof values[key] === 'string') {
-      if ((key === 'shift' && hasShift && !values[key]) || (!['shift', 'opshift', 'plant'].includes(key) && values[key].trim() === '') || (key === 'opshift' && values.role===2 && !values[key]) ) {
+      if (
+        (key === 'shift' && hasShift && !values[key]) ||
+        (!['shift', 'opshift', 'plant'].includes(key) && values[key].trim() === '') ||
+        (key === 'opshift' && values.role === 2 && !values[key])
+      ) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
     }

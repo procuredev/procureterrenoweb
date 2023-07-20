@@ -37,7 +37,7 @@ const AuthGuard = props => {
     [router.route, authUser]
   )
 
-  if (loading || !authUser) {
+  if ((loading || !authUser) && router.asPath !== '/nuevo-usuario/') {
     return fallback
   }
 
