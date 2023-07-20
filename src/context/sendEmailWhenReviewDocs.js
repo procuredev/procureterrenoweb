@@ -172,7 +172,8 @@ const getUsersOnCopyAndMessage = (
   return { arrayCC: arrayCC, message: message }
 }
 
-  export const sendEmailWhenReviewDocs = async (prevState, newState, requesterId, requirementId) => {
+  export const sendEmailWhenReviewDocs = async (user, prevState, newState, requesterId, requirementId) => {
+
     const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
     // Se rescatan los datos globales de la solicitud:
@@ -215,7 +216,10 @@ const getUsersOnCopyAndMessage = (
       const cOperatorData = await getData(cOperatorUid) // Para este C.Operator se obtiene su datos de Firestore
       const cOperatorEmail = cOperatorData.email // Se selecciona el email del C.Operator
 
+
+
       const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
+        user,
         requesterRole,
         prevState,
         newState,
@@ -322,7 +326,7 @@ const getUsersOnCopyAndMessage = (
                 </tr>
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
-                  <td>${requirementData.coperator}</td>
+                  <td>${requirementData.contop}</td>
                 </tr>
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
@@ -365,6 +369,161 @@ const getUsersOnCopyAndMessage = (
       }
     } else if (requesterRole == 3) {
       // Si el rol de quien hizo la solicitud es 3
+
+      //Se rescatan los datos del C.Operator
+      const cOperatorEmail = '' // Se selecciona el email del C.Operator
+
+
+
+      const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
+        user,
+        requesterRole,
+        prevState,
+        newState,
+        cOperatorEmail,
+        cOwnerEmail,
+        plannerEmail,
+        admContEmail,
+        petitionerEmail
+      )
+
+      const onCC = usersOnCopyAndMessage.arrayCC
+      const message = usersOnCopyAndMessage.message
+
+      // Email dirigido a quien hizo la solicitud, con copia a quien corresponda
+      try {
+        const newDoc = {} // Se genera un elemento vacío
+        const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
+        const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
+
+        const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
+
+        const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
+
+        const startDate = requirementData.start.toDate().toLocaleDateString() // Constante que almacena la fecha de inicio del levantamiento
+
+        // Variable que almacena la fecha de término del levantamiento
+        var endDate = null // Se inicializa como null
+        // Si el campo existe dentro del documento
+        if (requirementData.end) {
+          endDate = requirementData.end.toDate().toLocaleDateString() // Se actualiza endDate con el dato existente
+        } else {
+          // Si el campo no existe dentro del documento
+          endDate = 'Por definir' // La variable endDate queda 'Por definir'
+        }
+
+        // Variable que almacena el número de OT del levantamiento
+        var otNumber = null // Se inicializa como null
+        // Si el campo existe dentro del documento
+        if (requirementData.ot) {
+          otNumber = requirementData.ot // Se actualiza otNumber con el dato existente
+        } else {
+          // Si el campo no existe dentro del documento
+          otNumber = 'Por definir' // La variable otNumber queda 'Por definir'
+        }
+
+        // Variable que almacena el Supervisor que estará a cargo del levantamiento
+        var supervisorName = null // Se inicializa como null
+        // Si el campo existe dentro del documento
+        if (requirementData.supervisor) {
+          supervisorName = requirementData.supervisor // Se actualiza supervisorName con el dato existente
+        } else {
+          // Si el campo no existe dentro del documento
+          supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
+        }
+
+        // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
+        updateDoc(docRef, {
+          to: requesterEmail,
+          cc: onCC,
+          date: fechaCompleta,
+          req: requirementId,
+          emailType: 'reviewDocs',
+          message: {
+            subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+            html: `
+              <h2>Estimad@ ${requesterData.name}:</h2>
+              <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}. A continuación puede encontrar el detalle de la solicitud:</p>
+              <table style="width:100%;">
+                <tr>
+                  <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
+                  <td style="text-align:left; width:80%;">${requirementData.n_request}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
+                  <td>${requirementData.title}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
+                  <td>${otNumber}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
+                  <td>${supervisorName}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
+                  <td>${startDate}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
+                  <td>${endDate}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
+                  <td>${requirementData.plant}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
+                  <td>${requirementData.area}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
+                  <td>${requirementData.fnlocation}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
+                  <td>${requirementData.contop}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
+                  <td>${requirementData.petitioner}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
+                  <td>${requirementData.sap}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
+                  <td>${requirementData.type}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
+                  <td>${requirementData.objective}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
+                  <td>${requirementData.deliverable.join(', ')}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
+                  <td>${requirementData.receiver.map(receiver => receiver.email).join(', ')}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
+                  <td>${requirementData.description}</td>
+                </tr>
+              </table
+              <p>Para mayor información revise la solicitud en nuestra página web</p>
+              <p>Saludos,<br>Procure Terreno Web</p>
+              `
+          }
+        })
+        console.log('E-mail de actualizacion enviado con éxito.')
+      } catch (error) {
+        console.error('Error al enviar email:', error)
+        throw error
+      }
     } else {
       // Si el rol de quien hizo la solicitud es cualquier otro
     }

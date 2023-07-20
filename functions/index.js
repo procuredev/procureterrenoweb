@@ -52,7 +52,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
       // Si prevState es 2 (el usuario anterior es C.Opetor) && newState es 1 (el usuario actual es solicitante)
       if (eventRequestData.prevState === 2 && eventRequestData.newState === 1) {
         // Si ha pasado más de 24 horas desde la fecha del evento
-        if (now - eventCreationDate > 24 * 60 * 60 * 1000) {
+        if (now - eventCreationDate > 24* 60 * 60 * 1000) {
           // Crea un nuevo evento con un UID automático
           const newEvent = {
             date: admin.firestore.Timestamp.fromDate(now), // Se almacena la fecha en que es revisado
@@ -142,7 +142,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
                 subject: `Solicitud de levantamiento: N°${requestData.n_request} - ${requestData.title}`,
                 html: `
                   <h2>Estimad@ ${requestData.user}:</h2>
-                  <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${userContractOperator} modificó la fecha del levantamiento. A continuación puede encontrar el detalle de la solicitud:</p>
+                  <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${reqContractOperatorName} modificó la fecha del levantamiento. A continuación puede encontrar el detalle de la solicitud:</p>
                   <table style="width:100%;">
                     <tr>
                       <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
@@ -182,7 +182,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
                     </tr>
                     <tr>
                       <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
-                      <td>${requestData.coperator}</td>
+                      <td>${requestData.contop}</td>
                     </tr>
                     <tr>
                       <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
@@ -233,7 +233,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
 
 // * Función que revisa la base de datos todos los días a las 6AM
 exports.sendInfoToSupervisorAtSixAM = functions.pubsub
-  .schedule('every day 11:07')
+  .schedule('every day 06:00')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
@@ -287,6 +287,8 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
       // Añade el objeto al array todayWorks
       todayWorks.push(supervisorWork)
 
+      console.log('prueba de console.log')
+
       // ** Empezamos a definir el e-mail
 
       // Se envía el email a cada uno de los supervisores que tienen levantamientos hoy, con una lista de los levantamientos respectictivos
@@ -301,14 +303,17 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
         const supervisorSnapshot = await usersRef.where('name', '==', supervisorWork.supervisor).get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
         const supervisorData = supervisorSnapshot.docs[0].data() // Se almacena en una constante los datos del Supervisor
         const supervisorEmail = supervisorData.email // Se almacena el e-mail del Supervisor
+        console.log('supervisor email: ' + supervisorEmail)
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
         const plannerData = plannerSnapshot.docs[0].data() // Se almacena en una constante los datos del Planificador
         const plannerEmail = plannerData.email // Se almacena el e-mail del Planificador
+        console.log('planificador email: ' + plannerEmail)
 
         const admContratoSnapshot = await usersRef.where('role', '==', 6).get() // Se llama sólo al que cumple con la condición de que su rol es 6 (Administrador de Contrato)
         const admContratoData = admContratoSnapshot.docs[0].data() // Se almacena en una constante los datos del Administrador de Contrato
         const admContratoEmail = admContratoData.email // Se almacena el e-mail del Administrador de Contrato
+        console.log('admCont email: ' + admContratoEmail)
 
         // Si hay mas de 1 levantamiento se escribirá 'levantamientos agendados'
         let youHaveTasks = 'levantamiento agendado'
