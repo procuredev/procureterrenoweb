@@ -143,7 +143,7 @@ const TabAccount = () => {
     let avatarContent
     let name
     if (!authUser.displayName) {
-      name = 'N N'
+      name = 'Por definir'
     }
 
     if (imgSrc !== '' && imgSrc !== 'No definido') {
@@ -164,7 +164,7 @@ const TabAccount = () => {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
       const currentName = authUser.displayName ?? name
 
-      const initials = currentName
+      const initials = currentName.toUpperCase()
         .split(' ')
         .map((word) => word.charAt(0))
         .join('');

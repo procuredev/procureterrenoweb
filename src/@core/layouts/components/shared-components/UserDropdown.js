@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment } from 'react'
+import { useState, Fragment, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -16,6 +16,12 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+// ** Custom Components
+import CustomAvatar from 'src/@core/components/mui/avatar'
+
+// ** Utils Import
+import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Context
 import { useFirebase } from 'src/context/useFirebaseAuth'
@@ -35,6 +41,7 @@ const UserDropdown = props => {
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
+  const [userName, setUserName] = useState('')
 
   // ** Hooks
   const router = useRouter()
@@ -82,19 +89,17 @@ const UserDropdown = props => {
   };
 
   // Se inicializan las variables que serán usadas en el menú desplegable
-  let userName // variable que almacena el nombre del usuario conectado
   let userEmail // variable que almacena el e-mail del usuario conectado
   let userRole // variable que almacena el rol del usuario conectado
 
   // Si no hay un usuario conectado
   if (!authUser){
     // Las variables serán definidas como 'not logged' para evitar problemas de renderizado
-    userName = 'not logged'
     userEmail = 'not logged'
     userRole = 'not Logged'
   } else {
     // Pero si hay un usuario conectado, se definirán las variables
-    userName = authUser.displayName
+
     userEmail = authUser.email
 
     // Condicional que renderizará en rol como un string según el rol del usuario conectado
@@ -121,26 +126,74 @@ const UserDropdown = props => {
     }
   }
 
-  // Se inicializa variable que almacenará el ícono con la foto del usuario conectado
-  let urlFoto
-
-  // Si hay un usuario conectado
-  if(authUser) {
-    // Y si este usuario tiene una foto disponible en la base de datos
-    if (authUser.urlFoto) {
-      // Se visualizará esa foto
-      urlFoto = authUser.urlFoto
+  useEffect(() => {
+    if (authUser.displayName === 'No definido'){
+      setUserName('Por definir')
+    } else if (!authUser.displayName){
+      setUserName('Por definir')
+    } else if (authUser.displayName && authUser.displayName !== ''){
+      setUserName(authUser.displayName)
     } else {
-      // Si no tiene una foto disponible en la base de datos, se visualizará un ícono estándar
-      urlFoto = 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
+      setUserName('Por definir')
     }
+  }, [authUser])
+
+
+
+
+  const renderUserAvatar = () => {
+
+    let avatarContent
+    let name
+    if (!authUser.displayName) {
+      name = 'Por definir'
+    }
+
+    if (authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
+      avatarContent = (
+        <Avatar
+          src={authUser.urlFoto}
+          alt={authUser.displayName}
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            objectFit: 'contain',
+            fontSize: '15px', // Tamaño de la fuente ajustado
+          }}
+        />
+      );
+    } else {
+      // No hay `photo` proporcionada, usar avatar con iniciales del nombre
+      const currentName = authUser.displayName ?? name
+
+      const initials = currentName.toUpperCase()
+        .split(' ')
+        .map((word) => word.charAt(0))
+        .join('');
+
+      avatarContent = (
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            objectFit: 'contain',
+            bgcolor: 'primary.main',
+            fontSize: '15px', // Tamaño de la fuente ajustado
+          }}
+        >
+          {initials}
+        </Avatar>
+      );
+    }
+
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 40 }}>
+        {avatarContent}
+      </Box>
+    )
   }
-
-
-
-    /* authUser === null
-      ? 'https://t4.ftcdn.net/jpg/04/08/24/43/360_F_408244382_Ex6k7k8XYzTbiXLNJgIL8gssebpLLBZQ.jpg'
-      : authUser.urlFoto */
 
   return (
     <Fragment>
@@ -153,7 +206,7 @@ const UserDropdown = props => {
           horizontal: 'right'
         }}
       >
-        <Avatar alt='Profile picture' onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} src={urlFoto} />
+        {renderUserAvatar()}
       </Badge>
       <Menu
         anchorEl={anchorEl}
