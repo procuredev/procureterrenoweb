@@ -172,6 +172,20 @@ const FirebaseContextProvider = props => {
         } catch (error) {
           console.error('Error al subir la imagen:', error)
         }
+
+      } else {
+        const storageRef = ref(storage, `fotoPerfil/${user}/nuevaFoto`)
+
+        try {
+          await uploadString(storageRef, newPhoto)
+          console.log('Uploaded a data_url string!')
+
+          // Actualizar el documento del usuario con la nueva URL de la foto
+          await updateDoc(doc(db, 'users', user), { urlFoto: '' })
+          console.log('URL de la foto eliminada exitosamente')
+        } catch (error) {
+          console.error('Error al subir la imagen:', error)
+        }
       }
     } catch (error) {
       console.error('Error al actualizar el perfil de usuario:', error)
