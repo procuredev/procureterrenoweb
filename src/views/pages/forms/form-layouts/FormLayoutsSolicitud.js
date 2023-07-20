@@ -164,7 +164,6 @@ const FormLayoutsSolicitud = () => {
         console.log(resultSap.sapWithOt)
       }
       console.log(resultSap.sap)
-
     } else {
       setValues({
         ...values,
@@ -343,7 +342,6 @@ const FormLayoutsSolicitud = () => {
   }
 
   const onSubmit = async event => {
-
     event.preventDefault()
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
@@ -367,19 +365,6 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
-  const getPetitionerOptions = async plant => {
-    let options = await getPetitioner(plant)
-
-    setPetitioners(options)
-  }
-
-  // establece el estado del solicitante de acuerdo a la planta pasada por parametro.
-  const getPetitionerOptions2 = async plant => {
-    let options = await getAllPlantUsers(plant)
-    setPetitioners(options)
-  }
-
   // establece el estado del contraturno del solicitante de acuerdo al estado de solicitante seleccionado, pasada por parametro.
   const getPetitionerOpShift = petitioner => {
     let findPetitioner = petitioners.find(user => user.name === petitioner)
@@ -392,13 +377,20 @@ const FormLayoutsSolicitud = () => {
     getReceiverUsers(values.plant).then(value => setAllUsers(value))
   }, [])
 
-  //Establece planta solicitante
+  // Establece solicitante de solicitante xd
+  useEffect(() => {
+    if (authUser.role === 2 && petitioners && petitioners[0]) {
+      setValues({ ...values, petitioner: petitioners[0].name })
+    }
+  }, [petitioners, authUser])
+
+  // Establece planta y contop solicitante
   useEffect(() => {
     let plant = authUser && authUser.plant.map(plant => plant)
 
     if (authUser.role === 2) {
       let onlyPlant = plant[0]
-      setValues({ ...values, plant: onlyPlant })
+      setValues({ ...values, plant: onlyPlant, opshift: authUser.opshift })
       findAreas(onlyPlant)
     }
   }, [])
@@ -632,6 +624,7 @@ const FormLayoutsSolicitud = () => {
                 <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
                 <Box display='flex' alignItems='center'>
                   <Select
+                    disabled={authUser.role===2}
                     value={values.petitioner}
                     onChange={handleChange('petitioner')}
                     label='Solicitante'
@@ -671,6 +664,7 @@ const FormLayoutsSolicitud = () => {
                 <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
                 <Box display='flex' alignItems='center'>
                   <Select
+                    disabled={authUser.role===2}
                     value={values.opshift}
                     onChange={handleChange('opshift')}
                     label='Contraturno del solicitante'

@@ -941,7 +941,8 @@ const FirebaseContextProvider = props => {
       // Arreglos para almacenar las solicitudes con y sin OT asignadas
       let sapWithOt = []
       let sap = []
-
+      let messages
+      
       // Recorrer cada documento y obtener información adicional del usuario asociado
       await Promise.all(
         sapDocs.map(async docItem => {
