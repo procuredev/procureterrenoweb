@@ -86,7 +86,7 @@ const FirebaseContextProvider = props => {
     return {
       uid: user.uid,
       email: user.email,
-      displayName: user.displayName,
+      displayName: data ? data.name || 'No definido' : 'No disponible',
       urlFoto: data ? data.urlFoto || 'No definido' : 'No disponible',
       phone: data ? data.phone || 'No definido' : 'No disponible',
       role: data ? data.role || 'No definido' : 'No disponible',
@@ -448,8 +448,8 @@ const FirebaseContextProvider = props => {
     const newEvent = {
       prevState,
       newState,
-      user: Firebase.auth().currentUser.email,
-      userName: Firebase.auth().currentUser.displayName,
+      user: authUser.email,
+      userName: authUser.displayName,
       date: Timestamp.fromDate(new Date())
     }
 
@@ -533,8 +533,8 @@ const FirebaseContextProvider = props => {
       prevDoc,
       prevState,
       newState,
-      user: Firebase.auth().currentUser.email,
-      userName: Firebase.auth().currentUser.displayName,
+      user: authUser.email,
+      userName: authUser.displayName,
       date: Timestamp.fromDate(new Date())
     }
 

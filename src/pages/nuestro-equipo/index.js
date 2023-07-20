@@ -77,7 +77,7 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
           fontSize: '72px', // Tamaño de la fuente ajustado
         }}
       >
-        {initials}
+        {initials.toUpperCase()}
       </Avatar>
     );
   }
