@@ -99,7 +99,7 @@ export function registerValidator(values) {
 
   for (const key in values) {
     if (typeof values[key] === 'string') {
-      if ((key === 'opshift' && values.role === 2) || (key === 'shift' && hasShift) || (!['shift', 'opshift', 'plant'].includes(key) && values[key].trim() === '')) {
+      if ((key === 'shift' && hasShift && !values[key]) || (!['shift', 'opshift', 'plant'].includes(key) && values[key].trim() === '') || (key === 'opshift' && values.role===2 && !values[key]) ) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
     }

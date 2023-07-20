@@ -681,10 +681,9 @@ const FirebaseContextProvider = props => {
 
   // Obtener los usuarios con un rol y planta específicos (utilizado para contOp y solicitante)
   const getUsers = async (plant, shift = '') => {
-    console.log(plant, 'PLANT')
 
     // Consultar la colección 'users' con los filtros de planta, turno y rol
-    const q = shift
+    const q = shift!==''
       ? query(
           collection(db, 'users'),
           where('plant', 'array-contains-any', plant),

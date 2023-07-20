@@ -87,11 +87,18 @@ const FormLayoutsBasic = () => {
         break
       case 'plant':
         newValue = data
+        if (!Array.isArray(newValue)) {
+          newValue = newValue.split(',')
+        }
         getOptions(newValue)
         break
       case 'shift':
         newValue = event.target.value
-        getOptions(values.plant, newValue)
+        let plantArray = values.plant
+        if (!Array.isArray(values.plant)) {
+          plantArray = values.plant.split(',')
+        }
+        getOptions(plantArray, newValue)
         break
       default:
         newValue = event.target.value
@@ -115,8 +122,9 @@ const FormLayoutsBasic = () => {
       })
     }
   }
-
-  const names = areas.map(plant => plant.name)
+  const santiago = 'Sucursal Santiago'
+  let names = areas.map(plant => plant.name)
+  names = names.concat(santiago)
 
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
@@ -124,37 +132,72 @@ const FormLayoutsBasic = () => {
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
+  const basicKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
+  let requiredKeys = [...basicKeys] // Utilizamos spread operator para crear una copia de basicKeys
+
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
-    for (const key in values) {
-      // Error campos vacíos
-      if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-        newErrors[key] = 'Por favor, selecciona una opción'
-      }
 
-      // Validaciones solo para claves de tipo string
-      if (typeof values[key] === 'string') {
-        // Saca espacios en los values
-        trimmedValues[key] = values[key].replace(/\s+$/, '')
+    switch (true) {
+      case values.role === 2 && values.plant !== santiago:
+        requiredKeys.push('shift', 'plant', 'opshift') // Utilizamos push para agregar elementos al array
+        break
+      case values.role === 4:
+        requiredKeys.push('plant')
+        break
+      case [7, 8].includes(values.role):
+        requiredKeys.push('shift')
+        break
+      default:
+        break // Aunque el default esté vacío, se recomienda colocar el break
+    }
 
-        // Si, el valor ingresado tiene formato de rut (26909763-9 o 26.909.763-9)
-        if (key === 'rut' && isRutLike(values.rut)) {
-          // si es 26.909.763-9 lo formatea para eliminar los puntos quedando: 26909763-9
-          values.rut = formatRut(values.rut)
+    for (const key of requiredKeys) {
+      // Validaciones solo para claves presentes en requiredKeys
+      if (values.hasOwnProperty(key)) {
+        // Error para campos vacíos
+        if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
+          newErrors[key] = 'Por favor, selecciona una opción'
+        }
 
-          // comprueba con el módulo 11 para corroborar el digito verificador
-          if (!validateRut(values.rut)) {
-            newErrors['rut'] = 'Dígito verificador incorrecto'
-          }
-        } else {
-          // Validación regex para otras claves de tipo string
-          if (
-            (key !== 'opshift' && !trimmedValues[key]) ||
-            (validationRegex[key] && !validationRegex[key].test(trimmedValues[key]))
-          ) {
-            newErrors[key] = `Por favor, introduce un ${key} válido`
-          }
+        // Validaciones específicas para cada clave utilizando switch case
+        switch (key) {
+          case 'rut':
+            if (isRutLike(values.rut)) {
+              values.rut = formatRut(values.rut)
+              if (!validateRut(values.rut)) {
+                newErrors['rut'] = 'Dígito verificador incorrecto'
+              }
+            }
+            break
+          case 'shift':
+            if (values.company === 'Procure' && !['A', 'B'].includes(values.shift)) {
+              newErrors['shift'] = 'Por favor, selecciona un valor válido (A o B)'
+            } else if (values.company === 'MEL' && !['P', 'Q'].includes(values.shift)) {
+              newErrors['shift'] = 'Por favor, selecciona un valor válido (P o Q)'
+            }
+            break
+          case 'plant':
+            if ((!Array.isArray(values.plant) && values.role !== 2) || values.plant.length === 0) {
+              newErrors['plant'] = 'Por favor, introduce al menos un valor'
+            } else if (values.role === 2 && Array.isArray(values.plant) && ![0, 1].includes(values.plant.length)) {
+              newErrors['plant'] = 'Debes escoger sólo una planta'
+            }
+            break
+          default:
+            // Validación regex para otras claves de tipo string
+            if (
+              (key !== 'opshift' && !values[key]) ||
+              (validationRegex[key] && !validationRegex[key].test(values[key]))
+            ) {
+              newErrors[key] = `Por favor, introduce un ${key} válido`
+            }
+        }
+
+        // Remover espacios en los valores de tipo string
+        if (typeof values[key] === 'string') {
+          trimmedValues[key] = values[key].replace(/\s+$/, '')
         }
       }
     }
@@ -177,12 +220,14 @@ const FormLayoutsBasic = () => {
   const onSubmit = async event => {
     event.preventDefault()
     const formErrors = validateForm(values)
-    const requiredKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
 
-    if (Object.keys(formErrors).length === 0 || (values.company === 'Procure' && areFieldsValid)) {
+    if (areFieldsValid) {
+      let plant
+      Array.isArray(values.plant) ? (plant = values.plant) : (plant = values.plant.split(','))
+
       try {
-        await createUser(values)
+        await createUser({ ...values, plant })
         setDialog(true)
         setErrors({})
       } catch (error) {
@@ -235,8 +280,10 @@ const FormLayoutsBasic = () => {
     if (plant.length > 0) {
       console.log(plant.length)
       let options = await getUsers(plant, shift)
+      options.push({name:'No Aplica'})
+      console.log(options)
       if (shift) {
-        console.log('contraturno')
+        console.log('solicitante')
         setOpShiftOptions(options)
       } else {
         console.log('contract operator')
@@ -341,25 +388,6 @@ const FormLayoutsBasic = () => {
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
-            {[2, 7, 8].includes(values.role) && (
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Turno</InputLabel>
-                  <Select
-                    label='Turno'
-                    value={values.shift}
-                    onChange={handleChange('shift')}
-                    error={errors.shift ? true : false}
-                  >
-                    {values.company === 'MEL' && <MenuItem value={'P'}>Turno P</MenuItem>}
-                    {values.company === 'MEL' && <MenuItem value={'Q'}>Turno Q</MenuItem>}
-                    {values.company === 'Procure' && <MenuItem value={'A'}>Turno A</MenuItem>}
-                    {values.company === 'Procure' && <MenuItem value={'B'}>Turno B</MenuItem>}
-                  </Select>
-                  {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
-                </FormControl>
-              </Grid>
-            )}
             {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
               <>
                 <Grid item xs={12}>
@@ -382,7 +410,26 @@ const FormLayoutsBasic = () => {
                     />
                   </FormControl>
                 </Grid>
-                {values.company === 'MEL' && values.role === 2 && (
+                {[2, 7, 8].includes(values.role) && values.plant !== santiago && (
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Turno</InputLabel>
+                      <Select
+                        label='Turno'
+                        value={values.shift}
+                        onChange={handleChange('shift')}
+                        error={errors.shift ? true : false}
+                      >
+                        {values.company === 'MEL' && <MenuItem value={'P'}>Turno P</MenuItem>}
+                        {values.company === 'MEL' && <MenuItem value={'Q'}>Turno Q</MenuItem>}
+                        {values.company === 'Procure' && <MenuItem value={'A'}>Turno A</MenuItem>}
+                        {values.company === 'Procure' && <MenuItem value={'B'}>Turno B</MenuItem>}
+                      </Select>
+                      {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
+                    </FormControl>
+                  </Grid>
+                )}
+                {values.company === 'MEL' && values.role === 2 && values.plant !== santiago && (
                   <Grid item xs={12}>
                     <FormControl fullWidth>
                       <InputLabel>Contraturno</InputLabel>
