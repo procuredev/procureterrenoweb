@@ -107,7 +107,7 @@ const renderUserAvatar = row => {
 
 const columns = [
   {
-    flex: 0.25,
+    flex: 0.2,
     field: 'name',
     minWidth: 200,
     headerName: 'User',
@@ -125,7 +125,7 @@ const columns = [
     }
   },
   {
-    flex: 0.3,
+    flex: 0.35,
     minWidth: 130,
     field: 'plant',
     headerName: 'Planta',
@@ -136,7 +136,7 @@ const columns = [
     )
   },
   {
-    flex: 0.1,
+    flex: 0.05,
     minWidth: 130,
     field: 'docs',
     headerName: 'Solicitudes',
