@@ -276,7 +276,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           callback={writeCallback}
           approves={approve}
         ></AlertDialog>
-        {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
+        {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} editButtonVisible={true} />}
       </Box>
     </Card>
   )

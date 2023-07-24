@@ -140,13 +140,13 @@ const AppCalendar = () => {
       case undefined:
         color = theme.palette.secondary.main
         break
-      case 'shutdown':
+      case 'Shutdown':
         color = theme.palette.error.main
         break
-      case 'outage':
+      case 'Outage':
         color = theme.palette.warning.main
         break
-      case 'normal':
+      case 'Normal':
       default:
         color = theme.palette.primary.main
         break
@@ -452,7 +452,7 @@ const AppCalendar = () => {
           }}
         >
           <FullCalendar {...calendarOptions} />
-          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
+          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} editButtonVisible={false} />}
           {dayDialogOpen && (
             <Dialog sx={{'.MuiPaper-root': {minWidth:'30%'}}} open={dayDialogOpen}>
               <DialogTitle id='alert-dialog-title'>Información</DialogTitle>

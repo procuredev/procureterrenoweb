@@ -37,7 +37,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
-export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
+export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
   let { title, state, description, start, user, date, area, id, ot, end, shift } = doc
   const [values, setValues] = useState({})
   const [editable, setEditable] = useState(false)
@@ -47,7 +47,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
   const { updateDocs, useEvents } = useFirebase()
 
   const theme = useTheme()
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
+  const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
   let display = fullScreen ? 'auto' : 'none'
 
   // Verifica estado
@@ -126,7 +126,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
       TransitionComponent={Transition}
       scroll='body'
     >
-      <AppBar sx={{ position: 'relative', display: { display } }}>
+      {/* <AppBar sx={{ position: 'relative', display: { display } }}>
         <Toolbar>
           <IconButton edge='start' color='inherit' onClick={() => handleClose()} aria-label='close'>
             <CloseIcon />
@@ -138,9 +138,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
             Cerrar
           </Button>
         </Toolbar>
-      </AppBar>
+      </AppBar> */}
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ width: ' 500px', maxWidth: 700, margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
+      <Paper sx={{ margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
             <Skeleton />
@@ -161,7 +161,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                   sx={{ width: 90 }}
                 />
                 <Box>
-                  <IconButton
+                  {editButtonVisible ? (
+                    <IconButton
                     onClick={() => setEditable(prev => !prev)}
                     color='primary'
                     aria-label='edit'
@@ -169,6 +170,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData }) => {
                   >
                     <Edit />
                   </IconButton>
+                  ) : (
+                  <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
+                  {''}
+                </Typography>
+                 )
+                }
                   <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
                     {/*este botón debería cerrar y setEditable false*/}
                     <Close />
