@@ -22,10 +22,10 @@ const dictionary = {
   5: {
     name: 'Planificador',
     title: 'En revisión',
-    details: 'En espera de revisión por Adm. Contrato',
+    details: 'En espera de revisión por Administrador de Contrato',
     color: 'warning'
   },
-  6: { name: 'Adm. Contrato', title: 'Aprobado', details: 'En espera de revisión por Supervisor', color: 'warning' },
+  6: { name: 'Administrador de Contrato', title: 'Aprobado', details: 'En espera de asignación de Proyectistas', color: 'warning' },
   7: { name: 'Supervisor', title: 'Aprobado', details: 'Aprobado por supervisor', color: 'primary' },
   8: { name: 'Proyectista', title: 'Aprobado', details: 'Aprobado por supervisor', color: 'primary' },
   9: { name: 'Gerente', title: 'Aprobado', details: 'Aprobado por supervisor', color: 'primary' },

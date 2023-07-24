@@ -101,8 +101,7 @@ export function registerValidator(values) {
     if (typeof values[key] === 'string') {
       if (
         (key === 'shift' && hasShift && !values[key]) ||
-        (!['shift', 'opshift', 'plant'].includes(key) && values[key].trim() === '') ||
-        (key === 'opshift' && values.role === 2 && !values[key])
+        (!['shift', 'opshift', 'plant'].includes(key) && values[key].trim() === '')
       ) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }

@@ -38,7 +38,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 })
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
-  let { title, state, description, start, user, date, area, id, ot, end, shift } = doc
+  let { title, state, description, start, user, date, plant, area, id, ot, end, shift } = doc
   const [values, setValues] = useState({})
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -57,6 +57,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const initialValues = {
     title,
+    plant,
     area,
     start: start.seconds,
     ...(ot && { ot }),
@@ -161,6 +162,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   sx={{ width: 90 }}
                 />
                 <Box>
+                  {/*Botón para editar*/}
                   {editButtonVisible ? (
                     <IconButton
                     onClick={() => setEditable(prev => !prev)}
@@ -182,9 +184,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   </IconButton>
                 </Box>
               </Box>
-              <Typography variant='button' sx={{ fontSize: 14, mb: 2 }} color='textSecondary'>
-                {state ? dictionary[state].details : ''}
-              </Typography>
               {/*Título */}
               {editable && roleData && roleData.canEditValues ? (
                 <TextField
@@ -197,7 +196,27 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
               ) : (
                 <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
-                  {title}
+                  Título: {title}
+                </Typography>
+              )}
+              <Typography sx={{ mb: 4 }} color='textSecondary'>
+                Estado: {state ? dictionary[state].details : ''}
+              </Typography>
+              {/*Planta*/}
+              {editable && roleData && roleData.canEditValues ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                  <TextField
+                    onChange={e => setValues({ ...values, plant: e.target.value })}
+                    label='Planta'
+                    id='plant-input'
+                    defaultValue={plant}
+                    size='small'
+                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                  />
+                </Box>
+              ) : (
+                <Typography sx={{ mb: 4 }} color='textSecondary'>
+                  Planta: {plant}
                 </Typography>
               )}
               {/*Área*/}
@@ -214,7 +233,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </Box>
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Área {area}
+                  Área: {area}
                 </Typography>
               )}
               {/*Fecha de inicio*/}
@@ -236,24 +255,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   Fecha de inicio: {start && unixToDate(start.seconds)[0]}
                 </Typography>
               )}
-              {/*Asigna OT */}
-              {editable && roleData && roleData.canEditValues ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    onChange={e => setValues({ ...values, ot: e.target.value })}
-                    label='OT'
-                    id='OT-input'
-                    defaultValue={ot}
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                  />
-                </Box>
-              ) : (
-                ot &&
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  OT: {ot}
-                </Typography>
-              )}
               {/*Asigna término */}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -271,6 +272,24 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
                   Fecha de término: {end && unixToDate(end.seconds)[0]}
+                </Typography>
+              )}
+              {/*Asigna OT */}
+              {editable && roleData && roleData.canEditValues ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                  <TextField
+                    onChange={e => setValues({ ...values, ot: e.target.value })}
+                    label='OT'
+                    id='OT-input'
+                    defaultValue={ot}
+                    size='small'
+                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                  />
+                </Box>
+              ) : (
+                ot &&
+                <Typography sx={{ mb: 4 }} color='textSecondary'>
+                  OT Procure: {ot}
                 </Typography>
               )}
               {/*Asigna turno */}
@@ -292,17 +311,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               )}
               {/*Descripción */}
               {editable && roleData && roleData.canEditValues ? (
-                <TextField
-                  onChange={e => setValues({ ...values, description: e.target.value })}
-                  label='Descripción'
-                  id='desc-input'
-                  defaultValue={description}
-                  size='small'
-                  sx={{ mb: 5, mr: 2 }}
-                />
+                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                  <TextField
+                    onChange={e => setValues({ ...values, description: e.target.value })}
+                    label='Descripción'
+                    id='desc-input'
+                    defaultValue={description}
+                    size='small'
+                    sx={{ mb: 5, mr: 2, flex: 'auto'  }}
+                  />
+                </Box>
               ) : (
-                <Typography variant='body2' sx={{ mb: 3 }}>
-                  {description}
+                <Typography sx={{ mb: 4 }} color='textSecondary'>
+                  Descripción: {description}
                 </Typography>
               )}
 
@@ -312,23 +333,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </Button>
               ) : null}
 
-              <TimelineItem sx={{ mt: 1 }}>
-                <TimelineOppositeContent color='textSecondary'>
-                  {date && unixToDate(date.seconds)}
-                </TimelineOppositeContent>
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent>
-                  <Typography>{state ? dictionary[state].details : ''}</Typography>
-                  <Typography variant='body2'> Creado por {user}</Typography>
-                </TimelineContent>
-              </TimelineItem>
+
               {eventData !== undefined &&
                 eventData.length > 0 &&
                 eventData.map(element => {
-                  let modified = element.prevDoc ? (element.prevDoc.start ? 'Devuelto' : 'Modificado') : 'Aprobado'
+                  let modified = element.prevDoc ? (element.prevDoc.start ? 'Modificado' : 'Modificado') : 'Aprobado'
                   let status = element.newState === 10 ? 'Rechazado' : modified
 
                   return (
@@ -351,6 +360,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     </div>
                   )
                 })}
+              <TimelineItem sx={{ mt: 1 }}>
+                <TimelineOppositeContent color='textSecondary'>
+                  {date && unixToDate(date.seconds)}
+                </TimelineOppositeContent>
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector />
+                </TimelineSeparator>
+                <TimelineContent>
+                  <Typography variant='body1'> Solicitud hecha por {user}</Typography>
+                  <Typography variant='body2'>{state ? dictionary[state].details : ''}</Typography>
+                </TimelineContent>
+              </TimelineItem>
             </Timeline>
           </Box>
         )}

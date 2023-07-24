@@ -577,7 +577,7 @@ const FirebaseContextProvider = props => {
 
     useEffect(() => {
       if (authUser && id) {
-        const q = query(collection(db, 'solicitudes', id, 'events'), orderBy('date'))
+        const q = query(collection(db, 'solicitudes', id, 'events'), orderBy('date', 'desc'))
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
           try {
@@ -942,7 +942,7 @@ const FirebaseContextProvider = props => {
       let sapWithOt = []
       let sap = []
       let messages
-      
+
       // Recorrer cada documento y obtener información adicional del usuario asociado
       await Promise.all(
         sapDocs.map(async docItem => {

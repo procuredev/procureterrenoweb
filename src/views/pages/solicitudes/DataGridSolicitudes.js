@@ -33,7 +33,8 @@ const DataGrid = () => {
 
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot(true)
-  console.log(data)
+
+  // console.log(data)
 
   useEffect(() => {
     const role = async () => {

@@ -141,7 +141,7 @@ const FormLayoutsBasic = () => {
 
     switch (true) {
       case values.role === 2 && values.plant !== santiago:
-        requiredKeys.push('shift', 'plant', 'opshift') // Utilizamos push para agregar elementos al array
+        requiredKeys.push('shift', 'plant') // Utilizamos push para agregar elementos al array
         break
       case values.role === 3:
         requiredKeys.push('plant')
