@@ -112,7 +112,7 @@ const FormLayoutsSolicitud = () => {
       case selectFields.includes(prop): {
         newValue = event.target.value
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-        if (prop === 'petitioner') {
+        if (prop === 'petitioner' && authUser.role !== 2) {
           getPetitionerOpShift(newValue)
         }
         if (prop === 'plant') {
@@ -377,20 +377,15 @@ const FormLayoutsSolicitud = () => {
     getReceiverUsers(values.plant).then(value => setAllUsers(value))
   }, [])
 
-  // Establece solicitante de solicitante xd
-  useEffect(() => {
-    if (authUser.role === 2 && petitioners && petitioners[0]) {
-      setValues({ ...values, petitioner: petitioners[0].name })
-    }
-  }, [petitioners, authUser])
-
-  // Establece planta y contop solicitante
+  // Establece planta solicitante y contop solicitante
   useEffect(() => {
     let plant = authUser && authUser.plant.map(plant => plant)
 
     if (authUser.role === 2) {
       let onlyPlant = plant[0]
-      setValues({ ...values, plant: onlyPlant, opshift: authUser.opshift })
+      let userOption = authUser.displayName
+      let userOpshift = authUser.opshift
+      setValues({ ...values, plant: onlyPlant, opshift: userOpshift, petitioner: userOption })
       findAreas(onlyPlant)
     }
   }, [])
@@ -408,7 +403,7 @@ const FormLayoutsSolicitud = () => {
 
   return (
     <Card>
-      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={alertMessage} maxWidth={false}>
+      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
         <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
           Atención
         </DialogTitle>
@@ -483,7 +478,9 @@ const FormLayoutsSolicitud = () => {
               <FormControl
                 fullWidth
                 sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                disabled={authUser.role === 2}
+                disabled={
+                  authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
+                }
                 error={errors.plant ? true : false}
               >
                 <InputLabel id='input-label-area'>Planta</InputLabel>
@@ -495,7 +492,8 @@ const FormLayoutsSolicitud = () => {
                     value={values.plant}
                     onChange={handleChange('plant')}
                   >
-                    {authUser && authUser.plant === 'allPlants'
+                    {authUser.role === 2 &&
+                    (authUser.plant[0] === 'Sucursal Santiago' || authUser.plant[0] === 'allPlants')
                       ? areas.map(plant => {
                           return (
                             <MenuItem key={plant.name} value={plant.name}>
@@ -624,28 +622,29 @@ const FormLayoutsSolicitud = () => {
                 <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
                 <Box display='flex' alignItems='center'>
                   <Select
-                    disabled={authUser.role===2}
+                    disabled={
+                      authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
+                    }
                     value={values.petitioner}
                     onChange={handleChange('petitioner')}
                     label='Solicitante'
                     id='id-solicitante'
                     labelId='labelId-solicitante'
                   >
-                    {authUser && authUser.plant === 'allPlants'
-                      ? petitioners.map(user => {
-                          return (
-                            <MenuItem key={user.name} value={user.name}>
-                              {user.name}
-                            </MenuItem>
-                          )
-                        })
-                      : petitioners.map(user => {
-                          return (
-                            <MenuItem key={user.name} value={user.name}>
-                              {user.name}
-                            </MenuItem>
-                          )
-                        })}
+                    {authUser.role === 2 &&
+                    (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants') ? (
+                      <MenuItem key={authUser.displayName} value={authUser.displayName}>
+                        {authUser.displayName}
+                      </MenuItem>
+                    ) : (
+                      petitioners.map(user => {
+                        return (
+                          <MenuItem key={user.name} value={user.name}>
+                            {user.name}
+                          </MenuItem>
+                        )
+                      })
+                    )}
                   </Select>
                   <StyledTooltip title='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'>
                     <InfoIcon color='action' />
@@ -664,18 +663,21 @@ const FormLayoutsSolicitud = () => {
                 <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
                 <Box display='flex' alignItems='center'>
                   <Select
-                    disabled={authUser.role===2}
+                    disabled={authUser.role === 2}
                     value={values.opshift}
                     onChange={handleChange('opshift')}
                     label='Contraturno del solicitante'
                     id='id-contraturno'
                     labelId='labelId-contraturno'
                   >
-                    {authUser.plant === 'allPlants' ? (
+                    {authUser.role === 3 ||
+                    authUser.plant === 'allPlants' ||
+                    authUser.plant === 'Solicitante Santiago' ? (
                       <MenuItem value={petitionerOpShift}>{petitionerOpShift}</MenuItem>
                     ) : (
                       <MenuItem value={authUser.opshift}>{authUser.opshift}</MenuItem>
                     )}
+                     <MenuItem value={'No Aplica'}>{'No Aplica'}</MenuItem>
                   </Select>
                   <StyledTooltip title='Corresponde a la persona que trabaja en el turno de la semana siguiente del solicitante.'>
                     <InfoIcon color='action' />

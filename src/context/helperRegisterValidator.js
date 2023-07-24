@@ -16,7 +16,7 @@ export function registerValidator(values) {
     'Chancado y Correas',
     'Puerto Coloso',
     'Instalaciones Cátodo',
-    'allPlants'
+    'Sucursal Santiago'
   ]
 
   const validations = {
@@ -58,7 +58,7 @@ export function registerValidator(values) {
           return true // No se valida la planta si la empresa es "Procure"
         }
 
-        if (Array.isArray(value)) {
+        if (Array.isArray(value)) {v
           if (values.role === 2) {
             return value.length === 1 && value.every(item => valPlant.includes(item))
           } else {
