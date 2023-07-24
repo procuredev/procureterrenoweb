@@ -1,6 +1,5 @@
 import FirebaseContextProvider from 'src/context/useFirebaseAuth'
 
-
 // ** Next Imports
 import Head from 'next/head'
 import { Router } from 'next/router'

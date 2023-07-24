@@ -1,12 +1,14 @@
+import {useContext} from 'react';
+
 // ** Hooks Import
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { FirebaseContext } from 'src/context/useFirebaseAuth'
 
 
 const Navigation = () => {
 
   // ** Hooks
-  const { authUser } = useFirebase()
-  const role = authUser ? authUser.role : 'none'
+  const firebase = useContext(FirebaseContext);
+  const role = firebase.authUser ? firebase.authUser.role : 'none'
 
   // Array que contiene las características del menú navegador
   const menuItems = [
