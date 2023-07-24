@@ -846,39 +846,31 @@ const FirebaseContextProvider = props => {
   // **FIN - FUNCIONES CREADAS POR JORGE**
 
   // Bloquear o desbloquear un día en la base de datos
-  const blockDayInDatabase = async values => {
-    const { date, cause } = values
-    const dateUnix = getUnixTime(date)
+  const blockDayInDatabase = async (date, cause = '') => {
+    const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
     const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
 
-    return new Promise(async (resolve, reject) => {
-      try {
-        const docSnap = await getDoc(docRef)
-        if (docSnap.exists()) {
-          const data = docSnap.data()
-          if (data.blocked === true) {
-            // Si el día ya está bloqueado, lo desbloquea en el documento
-            await setDoc(docRef, { blocked: false })
-            resolve('Día desbloqueado')
-          } else if (cause && cause.length > 0) {
-            // Si existe pero no está bloqueado, actualiza el campo blocked a true
-            await setDoc(docRef, { blocked: true, cause })
-            resolve('Día bloqueado')
-          } else {
-            reject(new Error('Para bloquear la fecha debe proporcionar un motivo'))
-          }
-        } else if (cause && cause.length > 0) {
-          // Si no existe el día, crea el documento con blocked = true
-          await setDoc(docRef, { blocked: true, cause })
-          resolve('Día bloqueado')
-        } else {
-          reject(new Error('Para bloquear la fecha debe proporcionar un motivo'))
-        }
-      } catch (error) {
-        console.log(error)
-        reject(new Error('Error al bloquear el día: ' + error))
+    const docSnap = await getDoc(docRef)
+    if (docSnap.exists()) {
+      const data = docSnap.data()
+      if (data.blocked === true) {
+        // Si el día ya está bloqueado, lo desbloquea en el documento
+        await setDoc(docRef, { blocked: false })
+        console.log('Día desbloqueado')
+      } else if (cause.length > 0) {
+        // Si existe pero no está bloqueado, actualiza el campo blocked a true
+        await setDoc(docRef, { blocked: true, cause })
+        console.log('Día bloqueado')
+      } else {
+        alert('para bloquear la fecha debe proporcionar un motivo')
       }
-    })
+    } else if (cause.length > 0) {
+      // Si no existe el día, crea el documento con blocked = true
+      await setDoc(docRef, { blocked: true, cause })
+      console.log('Día bloqueado')
+    } else {
+      alert('para bloquear la fecha debe proporcionar un motivo')
+    }
   }
 
   // Consultar si existen solicitudes para una fecha específica
@@ -889,12 +881,12 @@ const FirebaseContextProvider = props => {
 
     const allDocs = []
 
-    // Consultar la colección 'solicitudes' donde el campo 'start' sea igual a la fecha
+    //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
     const q = query(collection(db, 'solicitudes'), where('start', '==', date))
     const querySnapshot = await getDocs(q)
 
     querySnapshot.forEach(doc => {
-      // Obtener los datos de cada documento y agregarlos al array 'allDocs'
+      // doc.data() is never undefined for query doc snapshots
       allDocs.push({ ...doc.data(), id: doc.id })
     })
 
@@ -909,12 +901,14 @@ const FirebaseContextProvider = props => {
   const consultBlockDayInDB = async date => {
     const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
     const fechaTimestamp = Timestamp.fromMillis(dateUnix * 1000) // Convierte a objeto Timestamp de Firebase
-    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
+    const docRef = doc(collection(db, 'diasBloqueados'), date.toString())
+
+
     const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
       const data = docSnap.data()
       if (data.blocked === true) {
-        // Si el día ya está bloqueado, retornar un objeto con información detallada
+        // Si el día ya está bloqueado, lo desbloquea en el documento
         return { msj: `El día que ha seleccionado se encuentra inhabilitado, motivo: ${data.cause} `, blocked: true }
       } else {
         let msj = await dateWithDocs(fechaTimestamp)

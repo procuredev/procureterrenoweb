@@ -66,7 +66,7 @@ const AppCalendar = () => {
   const addEventSidebarWidth = 400
   const { skin, direction } = settings
   const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
-  const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDay } = useFirebase()
+  const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
   const data = useSnapshot()
   const theme = useTheme()
 
@@ -127,7 +127,7 @@ const AppCalendar = () => {
   }
 
   const handleBlockConfirmation = async () => {
-    await blockDay(dayDialogOpen, blockReason).then(console.log(calendarRef.current))
+    await blockDayInDatabase(dayDialogOpen, blockReason).then(console.log(calendarRef.current))
     setOpen(false)
     setDayDialogOpen(false)
     setBlockReason('')
@@ -452,7 +452,7 @@ const AppCalendar = () => {
           }}
         >
           <FullCalendar {...calendarOptions} />
-          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} editButtonVisible={false} />}
+          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
           {dayDialogOpen && (
             <Dialog sx={{'.MuiPaper-root': {minWidth:'30%'}}} open={dayDialogOpen}>
               <DialogTitle id='alert-dialog-title'>Información</DialogTitle>
