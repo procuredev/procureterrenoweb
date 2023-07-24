@@ -145,11 +145,11 @@ const UserDropdown = props => {
 
     let avatarContent
     let name
-    if (!authUser.displayName) {
+    if (!authUser || !authUser.displayName) {
       name = 'Por definir'
     }
 
-    if (authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
+    if ( authUser && authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
       avatarContent = (
         <Avatar
           src={authUser.urlFoto}
