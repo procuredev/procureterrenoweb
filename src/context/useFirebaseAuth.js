@@ -358,6 +358,7 @@ const FirebaseContextProvider = props => {
           uid: user.uid,
           user: user.displayName,
           userEmail: user.email,
+          userRole: authUser.role,
           date: Timestamp.fromDate(new Date()),
           n_request: requestNumber
         })
@@ -839,6 +840,8 @@ const FirebaseContextProvider = props => {
 
     return allDocs
   }
+
+
 
   // **FIN - FUNCIONES CREADAS POR JORGE**
 

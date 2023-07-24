@@ -38,7 +38,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 })
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
-  let { title, state, description, start, user, date, plant, area, id, ot, end, shift } = doc
+  let { title, state, description, start, user, date, plant, area, id, ot, end, shift, userRole } = doc
   const [values, setValues] = useState({})
   const [editable, setEditable] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -370,7 +370,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </TimelineSeparator>
                 <TimelineContent>
                   <Typography variant='body1'> Solicitud hecha por {user}</Typography>
-                  <Typography variant='body2'>{state ? dictionary[state].details : ''}</Typography>
+                  {userRole == 2 ? (<Typography variant='body2'> En espera de revisión de Contract Operator </Typography>)
+                  :(<Typography variant='body2'> En espera de revisión de Planificador</Typography>)}
                 </TimelineContent>
               </TimelineItem>
             </Timeline>
