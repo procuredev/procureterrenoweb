@@ -5,6 +5,7 @@ import { Fragment, useState, useEffect } from 'react'
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
 // ** MUI Imports
+import Tooltip from '@mui/material/Tooltip'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
@@ -54,19 +55,23 @@ const DataGrid = () => {
   const tabContent = authUser ? [
     {
       data: data,
-      label: 'Todas las solicitudes'
+      label: 'Todas las solicitudes',
+      info: 'Todas las solicitudes'
     },
     {
       data: data.filter(doc => doc.state === authUser.role-1),
-      label: 'Por aprobar'
+      label: 'Por aprobar',
+      info: 'Solicitudes pendientes de mi aprobación'
     },
     {
       data: data.filter(doc => doc.state >= 6 && doc.state < 10),
-      label: 'Aprobadas'
+      label: 'Aprobadas',
+      info: 'Solicitudes aprobadas por Procure'
     },
     {
       data: data.filter(doc => doc.state === 10),
-      label: 'Rechazadas'
+      label: 'Rechazadas',
+      info: 'Solicitudes rechazadas'
     },
   ] : []
 
@@ -87,7 +92,9 @@ const DataGrid = () => {
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <TabList onChange={handleChange} aria-label="lab API tabs example">
             {tabContent.map((element, index) => (
+              <Tooltip arrow title={element.info} placement="top-end" key={element.label}>
               <Tab label={element.label} value={`${index + 1}`} key={index} />
+            </Tooltip>
             ))}
           </TabList>
         </Box>

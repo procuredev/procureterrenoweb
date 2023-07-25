@@ -7,6 +7,8 @@ import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
+import Fade from "@mui/material/Fade";
+import Tooltip from '@mui/material/Tooltip'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -14,7 +16,7 @@ import { Typography, IconButton } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import { DataGrid, 	esES } from '@mui/x-data-grid'
+import { DataGrid, esES } from '@mui/x-data-grid'
 import CardHeader from '@mui/material/CardHeader'
 import { DateRangePicker } from '@mui/lab'
 import { date } from 'yup/lib/locale'
@@ -84,13 +86,32 @@ const TableBasic = ({ rows, role, roleData }) => {
         const { row } = params
 
         return (
-          <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-            <IconButton onClick={() => handleClickOpen(row)}>
-              <OpenInNewOutlined sx={{ fontSize: 18 }} />
-            </IconButton>
-
-            <Typography variant='string'>{row.title}</Typography>
-          </Box>
+          <Tooltip
+            title={row.title}
+            placement='bottom-end'
+            key={row.title}
+            leaveTouchDelay={0}
+            TransitionComponent={Fade}
+            TransitionProps={{ timeout: 0 }}
+          >
+            <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+              <IconButton onClick={() => handleClickOpen(row)}>
+                <OpenInNewOutlined sx={{ fontSize: 18 }} />
+              </IconButton>
+              <Typography
+                sx={{
+                  textDecoration: 'none',
+                  transition: 'text-decoration 0.2s',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+                variant='string'
+              >
+                {row.title}
+              </Typography>
+            </Box>
+          </Tooltip>
         )
       }
     },
@@ -265,7 +286,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           columnVisibilityModel={{
             ot: md,
             user: md,
-            end: xl,
+            end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
             actions: roleData.canApprove
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
@@ -276,7 +297,15 @@ const TableBasic = ({ rows, role, roleData }) => {
           callback={writeCallback}
           approves={approve}
         ></AlertDialog>
-        {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} editButtonVisible={true} />}
+        {open && (
+          <FullScreenDialog
+            open={open}
+            handleClose={handleClose}
+            doc={doc}
+            roleData={roleData}
+            editButtonVisible={true}
+          />
+        )}
       </Box>
     </Card>
   )
