@@ -19,11 +19,19 @@ const priceRow = (qty, unit) => {
   return qty * unit
 }
 
-const createRow = (desc, qty, unit) => {
+const createRow = (draftman) => {
+  const { name, qty, unit } = draftman;
+  const price = priceRow(qty, unit);
+
+  return { desc: name, qty, unit, price };
+};
+
+/* const createRow = (desc, qty, unit) => {
   const price = priceRow(qty, unit)
 
   return { desc, qty, unit, price }
-}
+} */
+
 
 const subtotal = items => {
   return items.map(({ price }) => price).reduce((sum, i) => sum + i, 0)
@@ -38,7 +46,8 @@ const invoiceSubtotal = subtotal(rows)
 const invoiceTaxes = TAX_RATE * invoiceSubtotal
 const invoiceTotal = invoiceTaxes + invoiceSubtotal
 
-const TableSpanning = () => {
+const TableSpanning = (draftmen) => {
+  const rows = draftmen.map(createRow);
   const [updatedRows, setUpdatedRows] = useState(rows)
 
   const handleQtyChange = (index, value) => {
@@ -81,14 +90,7 @@ const TableSpanning = () => {
               <TableCell align='right'>{ccyFormat(row.price)}</TableCell>
             </TableRow>
           ))}
-          {/* {rows.map(row => (
-            <TableRow key={row.desc}>
-              <TableCell>{row.desc}</TableCell>
-              <TableCell align='right'>{row.qty}</TableCell>
-              <TableCell align='right'>{row.unit}</TableCell>
-              <TableCell align='right'>{ccyFormat(row.price)}</TableCell>
-            </TableRow>
-          ))} */}
+
 
           <TableRow>
             <TableCell rowSpan={3} />

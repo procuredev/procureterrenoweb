@@ -66,6 +66,20 @@ const Navigation = () => {
       ],
       authorizedRoles: [1]
     },
+    {
+      title: 'Supervisor',
+      icon: 'mdi:shield-account-outline',
+      children: [
+        {
+          path: '/levantamientos',
+          title: 'Levantamientos',
+          icon: 'mdi:account-hard-hat',
+          subject: 'levantamientos',
+        },
+      ],
+
+      authorizedRoles: [7]
+    }
   ]
 
   // Función para filtrar los enlaces del menú según el rol del usuario

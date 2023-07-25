@@ -49,6 +49,7 @@ import { sendEmailWhenReviewDocs } from './sendEmailWhenReviewDocs'
 
 // Librería
 import { capitalize } from 'lodash';
+import { async } from '@firebase/util'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
@@ -438,6 +439,16 @@ const FirebaseContextProvider = props => {
         let week = moment(docSnapshot.start).isoWeek()
         week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
         await updateDoc(ref, { supervisorShift })
+      }
+    }else if (authUser.role === 7) {
+      if(Array.isArray(approves)){
+        newState = 7
+        const draftmen = approves
+        await updateDoc(ref, { draftmen })
+      } else {
+        newState = 8
+        const horasLevantamiento = approves
+        await updateDoc(ref, { horasLevantamiento })
       }
     } else {
       newState = approves ? authUser.role : 10
@@ -1218,6 +1229,35 @@ const FirebaseContextProvider = props => {
     return usersWithProperties;
   };
 
+   // Obtener usuarios con rol 8 según su turno
+   const getUserProyectistas = async shift => {
+    // Definir la consulta con una condición de igualdad en el campo 'shift'
+    const q = query(collection(db, 'users'), where('role', '==', 8), where('shift', '==', shift))
+
+    // Obtener los documentos que coinciden con la consulta
+    const proyectistasQuerySnapshot = await getDocs(q)
+
+    // Obtener la lista de documentos
+    const proyectistasDocs = proyectistasQuerySnapshot.docs
+
+    // Crear un arreglo para almacenar todos los documentos
+    let allDocs = []
+
+    // Recorrer cada documento y agregarlo al arreglo 'allDocs'
+    proyectistasDocs.forEach(doc => {
+      if(doc.data().urlFoto){
+        allDocs.push({ userId: doc.id, name: doc.data().name, avatar: doc.data().urlFoto })
+      } else {
+        allDocs.push({ userId: doc.id, name: doc.data().name, unit: doc.data().unit })
+      }
+    })
+
+    return allDocs
+  };
+
+  const addProyectistas = async (draftmen, id) => {
+
+  }
 
   const value = {
     authUser,
@@ -1256,7 +1296,8 @@ const FirebaseContextProvider = props => {
     consultAllDocsByPlants,
     consultAllObjetivesByPlants,
     consultAllDocsByState,
-    getUsersWithSolicitudes
+    getUsersWithSolicitudes,
+    getUserProyectistas
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
