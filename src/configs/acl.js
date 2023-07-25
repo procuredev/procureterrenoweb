@@ -19,7 +19,7 @@ const defineRulesFor = (role, subject) => {
   } else if (role === 6) {
     can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile'])
   } else if (role === 7) {
-    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile'])
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile', 'levantamientos'])
   } else if (role === 8) {
     can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile'])
   } else if (role === 9) {
