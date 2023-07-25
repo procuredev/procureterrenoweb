@@ -78,7 +78,7 @@ const Navigation = () => {
         },
       ],
 
-      authorizedRoles: [7]
+      authorizedRoles: [1, 7]
     }
   ]
 

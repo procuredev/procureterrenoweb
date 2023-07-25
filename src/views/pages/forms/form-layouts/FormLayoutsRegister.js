@@ -392,6 +392,7 @@ const FormLayoutsBasic = () => {
                   onChange={handleChange('role')}
                   error={errors.role ? true : false}
                 >
+                  {values.company === 'Procure' && <MenuItem value={1}>Admin</MenuItem>}
                   {values.company === 'MEL' && <MenuItem value={2}>Solicitante</MenuItem>}
                   {values.company === 'MEL' && <MenuItem value={3}>Contract Operator</MenuItem>}
                   {values.company === 'MEL' && <MenuItem value={4}>Contract Owner</MenuItem>}
@@ -399,7 +400,8 @@ const FormLayoutsBasic = () => {
                   {values.company === 'Procure' && <MenuItem value={6}>Administrador de Contrato</MenuItem>}
                   {values.company === 'Procure' && <MenuItem value={7}>Supervisor</MenuItem>}
                   {values.company === 'Procure' && <MenuItem value={8}>Proyectista</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={9}>Gerente</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={9}>Control Documental</MenuItem>}
+                  {values.company === 'Procure' && <MenuItem value={10}>Gerente</MenuItem>}
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
@@ -417,7 +419,7 @@ const FormLayoutsBasic = () => {
                       <TextField
                         {...params}
                         label='Planta'
-                        InputLabelProps={{ required: true }}
+                        InputLabelProps={{ required: false }}
                         error={errors.plant ? true : false}
                         helperText={errors.plant}
                       />
