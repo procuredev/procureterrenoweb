@@ -176,10 +176,10 @@ const FormLayoutsSolicitud = () => {
   }
 
   const validationRegex = {
-    title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
-    description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    sap: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    fnlocation: /[^0-9]/g
+    title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
+    description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    sap: /[^\s0-9]/g, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    fnlocation: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
@@ -188,7 +188,7 @@ const FormLayoutsSolicitud = () => {
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description']
     for (const key in values) {
       // Error campos vacíos
-      if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
+      if ( key !== ('fnlocation' || 'sap') && (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0))) {
         newErrors[key] = 'Por favor, especifica una opción válida'
       }
 
@@ -593,6 +593,7 @@ const FormLayoutsSolicitud = () => {
               </Box>
             </Grid>
 
+            {/* Functional Location */}
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Box display='flex' alignItems='center'>
@@ -604,7 +605,7 @@ const FormLayoutsSolicitud = () => {
                     onChange={handleChange('fnlocation')}
                     error={errors.fnlocation ? true : false}
                     helperText={errors.fnlocation}
-                    inputProps={{ maxLength: 4 }}
+                    inputProps={{ maxLength: 25 }}
                   />
                   <StyledTooltip title='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'>
                     <InfoIcon color='action' />
@@ -613,6 +614,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Solicitante */}
             <Grid item xs={12}>
               <FormControl
                 fullWidth
@@ -654,6 +656,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Contraturno del Solicitante */}
             <Grid item xs={12}>
               <FormControl
                 fullWidth
@@ -687,6 +690,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Estado Operacional de la Planta */}
             <Grid item xs={12}>
               <FormControl
                 fullWidth
@@ -715,6 +719,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Máquina Detenida */}
             <Grid item xs={12}>
               <FormControl
                 fullWidth
@@ -743,6 +748,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* SAP */}
             <Grid item xs={12}>
               <FormControl fullWidth error={errors.sap ? true : false}>
                 <Box display='flex' alignItems='center'>
@@ -763,6 +769,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Tipo de Levantamiento */}
             <Grid item xs={12}>
               <FormControl
                 fullWidth
@@ -794,6 +801,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Entregables */}
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Box display='flex' alignItems='center'>
@@ -820,6 +828,7 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* Destinatarios */}
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Box display='flex' alignItems='center'>

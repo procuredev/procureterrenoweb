@@ -86,27 +86,27 @@ export function solicitudValidator(values) {
 
   const valDetention = ['yes', 'no', 'n/a']
 
-  const valTitle = /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
-  const valDescription = /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
-  const valSap = /^[0-9+]{4,6}$/
-  const valFnLocation = /^[0-9+]{4,6}$/
+  const valTitle = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
+  const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
+  const valSap = /^[0-9+]{0,10}$/
+  const valFnLocation = /^[a-zA-Z0-9 -./]{0,25}$/ // /^[0-9+]{4,6}$/
 
   const validations = {
     title: {
       validate: value => valTitle.test(value),
-      message: 'El título debe contener solo letras, números y espacios en blanco.'
+      message: 'El título no admite caracteres especiales.'
     },
     description: {
       validate: value => valDescription.test(value),
-      message: 'La descripción debe contener solo letras, números y espacios en blanco.'
+      message: 'La descripción no admite caracteres especiales.'
     },
     sap: {
       validate: value => valSap.test(value),
-      message: 'El SAP solo recibe campos numéricos y debe tener 4-6 caracteres.'
+      message: 'El SAP solo recibe campos numéricos y debe tener de 8 a 10 caracteres.'
     },
     fnlocation: {
       validate: value => valFnLocation.test(value),
-      message: 'El funtional location solo recibe campos numéricos y debe tener 4-6 caracteres.'
+      message: 'El Functional Location solo recibe caracteres alfa-numéricos y debe tener máximo 25 caracteres.'
     },
     area: {
       validate: value => {
@@ -166,10 +166,40 @@ export function solicitudValidator(values) {
   }
 
   for (const key in values) {
+    let keyStringName = ''
+    if (key == 'title') {
+      keyStringName = 'Título'
+    } else if (key == 'plant') {
+      keyStringName = 'Planta'
+    } else if (key == 'area') {
+      keyStringName = 'Área'
+    } else if (key == 'contop') {
+      keyStringName = 'Contract Operator'
+    } else if (key == 'fnlocation') {
+      keyStringName = 'Functional Location'
+    } else if (key == 'petitioner') {
+      keyStringName = 'Solicitante'
+    } else if (key == 'opshift') {
+      keyStringName = 'Contraturno del Solicitante'
+    } else if (key == 'type') {
+      keyStringName = 'Estado Operacional de la Planta'
+    } else if (key == 'detention') {
+      keyStringName = '¿Estará la máquina detenida?'
+    } else if (key == 'sap') {
+      keyStringName = 'Número SAP'
+    } else if (key == 'objective') {
+      keyStringName = 'Tipo de Levantamiento'
+    }
+
     if (typeof values[key] === 'string') {
-      if (key !== 'opshift' && values[key].trim() === '') {
-        console.log('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
-        throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
+      console.log('type ' + typeof values[key])
+      console.log('key ' + key)
+      console.log('keyValue ' + values[key])
+      console.log('trim ' + values[key].trim())
+
+      if (key !== ('opshift' && 'sap' && 'fnlocation') && values[key].trim() === '') {
+        console.log('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
+        throw new Error('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
       }
     }
     if (!['receiver', 'deliverable', 'start', 'sap', 'fnlocation'].includes(key) && typeof values[key] !== 'string') {
