@@ -35,7 +35,7 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import TableSpanning from 'src/views/table/mui/TableSpanning'
 
-const TableLevantamiento = ({ rows, role, shift, roleData }) => {
+const TableLevantamiento = ({ rows, role, roleData }) => {
   const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
@@ -223,7 +223,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
               row.state === 6 ? (
                 <>
                   <Button
-                    onClick={authUser.role === 7 ? () => handleClickOpen(row) : null}
+                    onClick={role === 7 ? () => handleClickOpen(row) : null}
                     variant='contained'
                     color='secondary'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -252,7 +252,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Button
-                      onClick={authUser.role === 7 ? () => handleClickOpen(row) : null}
+                      onClick={role === 7 ? () => handleClickOpen(row) : null}
                       variant='contained'
                       color='secondary'
                       sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -285,7 +285,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
               row.state === 7 ? (
                 <>
                   <Button
-                    onClick={authUser.role === 7 ? () => handleClickOpenDone(row) : null}
+                    onClick={role === 7 ? () => handleClickOpenDone(row) : null}
                     variant='contained'
                     color='success'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -314,7 +314,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Button
-                      onClick={authUser.role === 7 ? () => handleClickOpenDone(row) : null}
+                      onClick={role === 7 ? () => handleClickOpenDone(row) : null}
                       variant='contained'
                       color='success'
                       sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -347,7 +347,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
             user: md,
             end: xl,
 
-            actions: roleData
+            actions: roleData.canApprove
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         />

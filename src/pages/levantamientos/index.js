@@ -20,7 +20,7 @@ const Levantamientos = () => {
 }
 
 Levantamientos.acl = {
-  subject: 'levantamientos'
+  subject: 'solicitudes'
 }
 
 export default Levantamientos

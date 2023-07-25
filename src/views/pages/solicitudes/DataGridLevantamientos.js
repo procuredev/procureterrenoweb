@@ -109,7 +109,7 @@ const DataGridLevantamientos = () => {
         </Box>
         {tabContent.map((element, index) => (
           <Grid item xs={12} key={index}>
-            <TabPanel key={index} value={`${index + 1}`}><TableLevantamiento rows={element.data} role={authUser.role}/>
+            <TabPanel key={index} value={`${index + 1}`}><TableLevantamiento rows={element.data} roleData={roleData} role={authUser.role}/>
             </TabPanel>
           </Grid>
         ))}
@@ -117,6 +117,7 @@ const DataGridLevantamientos = () => {
     </Box>
   )
 }
+
 
 export default DataGridLevantamientos
 
