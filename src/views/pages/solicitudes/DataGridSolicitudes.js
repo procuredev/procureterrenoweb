@@ -9,11 +9,11 @@ import Tooltip from '@mui/material/Tooltip'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
+import Box from '@mui/material/Box'
+import Tab from '@mui/material/Tab'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import TabPanel from '@mui/lab/TabPanel'
 
 // ** Custom Components Imports
 import PageHeader from 'src/@core/components/page-header'
@@ -27,10 +27,9 @@ import TableBasicSort from 'src/views/table/data-grid/TableBasicSort'
 import TableSelection from 'src/views/table/data-grid/TableSelection'
 import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 
-
 const DataGrid = () => {
-  const [value, setValue] = useState('1');
-  const [roleData, setRoleData] = useState({name:'admin'});
+  const [value, setValue] = useState('1')
+  const [roleData, setRoleData] = useState({ name: 'admin' })
 
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot(true)
@@ -45,37 +44,37 @@ const DataGrid = () => {
       }
     }
 
-    role();
-  }, []);
+    role()
+  }, [])
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+    setValue(newValue)
+  }
 
-  const tabContent = authUser ? [
-    {
-      data: data,
-      label: 'Todas las solicitudes',
-      info: 'Todas las solicitudes'
-    },
-    {
-      data: data.filter(doc => doc.state === authUser.role-1),
-      label: 'Por aprobar',
-      info: 'Solicitudes pendientes de mi aprobación'
-    },
-    {
-      data: data.filter(doc => doc.state >= 6 && doc.state < 10),
-      label: 'Aprobadas',
-      info: 'Solicitudes aprobadas por Procure'
-    },
-    {
-      data: data.filter(doc => doc.state === 10),
-      label: 'Rechazadas',
-      info: 'Solicitudes rechazadas'
-    },
-  ] : []
-
-
+  const tabContent = authUser
+    ? [
+        {
+          data: data,
+          label: 'Todas las solicitudes',
+          info: 'Todas las solicitudes'
+        },
+        {
+          data: data.filter(doc => doc.state === authUser.role - 1),
+          label: 'Por aprobar',
+          info: 'Solicitudes pendientes de mi aprobación'
+        },
+        {
+          data: data.filter(doc => doc.state >= 6 && doc.state < 10),
+          label: 'Aprobadas',
+          info: 'Solicitudes aprobadas por Procure'
+        },
+        {
+          data: data.filter(doc => doc.state === 10),
+          label: 'Rechazadas',
+          info: 'Solicitudes rechazadas'
+        }
+      ]
+    : []
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
@@ -90,17 +89,24 @@ const DataGrid = () => {
       />
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList onChange={handleChange} aria-label="lab API tabs example">
+          <TabList onChange={handleChange} aria-label='lab API tabs example'>
             {tabContent.map((element, index) => (
-              <Tooltip arrow title={element.info} placement="top-end" key={element.label}>
-              <Tab label={element.label} value={`${index + 1}`} key={index} />
-            </Tooltip>
+              <Tab
+                label={
+                  <Tooltip arrow title={element.info} placement='top-end' key={element.label}>
+                    <span>{element.label}</span>
+                  </Tooltip>
+                }
+                value={`${index + 1}`}
+                key={index}
+              />
             ))}
           </TabList>
         </Box>
         {tabContent.map((element, index) => (
           <Grid item xs={12} key={index}>
-            <TabPanel key={index} value={`${index + 1}`}><TableBasic rows={element.data} roleData={roleData} role={authUser.role}/>
+            <TabPanel key={index} value={`${index + 1}`}>
+              <TableBasic rows={element.data} roleData={roleData} role={authUser.role} />
             </TabPanel>
           </Grid>
         ))}
@@ -110,4 +116,3 @@ const DataGrid = () => {
 }
 
 export default DataGrid
-

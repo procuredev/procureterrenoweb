@@ -7,7 +7,7 @@ import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
-import Fade from "@mui/material/Fade";
+import Fade from '@mui/material/Fade'
 import Tooltip from '@mui/material/Tooltip'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
@@ -168,6 +168,17 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      field: 'supervisorShift',
+      headerName: 'Turno',
+      flex: 0.4,
+      minWidth: 90,
+      renderCell: params => {
+        const { row } = params
+
+        return <div>{row.state>=6?(row.supervisorShift || 'No definido') : 'Por confirmar'}</div>
+      }
+    },
+    {
       field: 'ot',
       headerName: 'OT',
       flex: 0.3,
@@ -195,7 +206,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         return (
           <>
             {md ? (
-              row.state === role - 1 ? (
+              (role === 3 ? row.contop === authUser.displayName : row.state === role - 1) ? (
                 <>
                   <Button
                     onClick={() => handleClickOpenAlert(row, true)}
@@ -222,8 +233,10 @@ const TableBasic = ({ rows, role, roleData }) => {
                     <Clear sx={{ fontSize: 18 }} />
                   </Button>
                 </>
-              ) : (
+              ) : row.state > role ? (
                 'Revisado'
+              ) : (
+                'Pendiente de revisión'
               )
             ) : row.state === role - 1 ? (
               <>
@@ -267,8 +280,10 @@ const TableBasic = ({ rows, role, roleData }) => {
                   </Container>
                 </Select>
               </>
-            ) : (
+            ) : row.state >= role ? (
               'Revisado'
+            ) : (
+              'Pendiente de revisión'
             )}
           </>
         )
@@ -287,6 +302,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             ot: md,
             user: md,
             end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
+            supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
             actions: roleData.canApprove
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
