@@ -373,13 +373,12 @@ const AppCalendar = () => {
       if (foundObject && foundObject.value.blocked) {
         return 'blocked' // Retorna 'week' si el día está bloqueado
       }
+      else {
+        const week = moment(date.date).isoWeek()
+        let color = week % 2 == 0 && !date.isToday && 'week'
 
-      // else {
-      //   const week = moment(date.date).isoWeek()
-      //   let color = week % 2 == 0 && !date.isToday && 'week'
-
-      //   return color
-      // }
+        return color
+      }
     },
     fixedWeekCount: false,
     dateClick: async function (info) {
