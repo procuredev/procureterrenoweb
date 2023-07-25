@@ -91,7 +91,7 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
     const inputValue = e.target.value;
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
-    if (!isNaN(inputValue) && Number(inputValue) > 1) {
+    if (!isNaN(inputValue) && Number(inputValue) > 0) {
       setHorasLevantamiento(inputValue);
       setError(''); // Limpia el mensaje de error si existe
     } else {
