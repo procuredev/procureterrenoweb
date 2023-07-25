@@ -223,7 +223,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
               row.state === 6 ? (
                 <>
                   <Button
-                    onClick={() => handleClickOpen(row)}
+                    onClick={authUser.role === 7 ? () => handleClickOpen(row) : null}
                     variant='contained'
                     color='secondary'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -252,7 +252,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Button
-                      onClick={() => handleClickOpen(row)}
+                      onClick={authUser.role === 7 ? () => handleClickOpen(row) : null}
                       variant='contained'
                       color='secondary'
                       sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -285,7 +285,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
               row.state === 7 ? (
                 <>
                   <Button
-                    onClick={() => handleClickOpenDone(row)}
+                    onClick={authUser.role === 7 ? () => handleClickOpenDone(row) : null}
                     variant='contained'
                     color='success'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -314,7 +314,7 @@ const TableLevantamiento = ({ rows, role, shift, roleData }) => {
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Button
-                      onClick={() => handleClickOpenDone(row)}
+                      onClick={authUser.role === 7 ? () => handleClickOpenDone(row) : null}
                       variant='contained'
                       color='success'
                       sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}

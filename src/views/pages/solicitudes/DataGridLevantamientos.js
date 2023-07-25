@@ -43,14 +43,31 @@ const DataGridLevantamientos = () => {
       }
     }
 
-    role();
-  }, []);
+    role()
+  }, [])
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  const tabContent = authUser ? [
+  const tabContent = authUser.role === 1 ? [
+    {
+      data: data.filter(doc => doc.state >= 6 && doc.state < 10),
+      label: 'Todos los levantamientos'
+    },
+    {
+      data: data.filter(doc => doc.state === 6),
+      label: 'Agendados'
+    },
+    {
+      data: data.filter(doc => doc.state === 7),
+      label: 'En Proceso'
+    },
+    {
+      data: data.filter(doc => doc.state === 8),
+      label: 'Terminados'
+    },
+  ] : [
     {
       data: data.filter(doc => doc.state >= 6 && doc.state < 10 && doc.supervisorShift === authUser.shift),
       label: 'Todos los levantamientos'
@@ -67,7 +84,7 @@ const DataGridLevantamientos = () => {
       data: data.filter(doc => doc.state === 8 && doc.supervisorShift === authUser.shift),
       label: 'Terminados'
     },
-  ] : []
+  ]
 
 
 

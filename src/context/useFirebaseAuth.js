@@ -471,7 +471,7 @@ const FirebaseContextProvider = props => {
     await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
 
     // Se envía e-mail al prevState y al newState
-    sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
+    //sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
   }
 
   // ** Modifica otros campos documentos
@@ -559,7 +559,7 @@ const FirebaseContextProvider = props => {
     await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
 
     // Se envía e-mail al prevState y al newState
-    sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
+    //sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
   }
 
   // ** Modifica otros campos Usuarios
@@ -680,6 +680,7 @@ const FirebaseContextProvider = props => {
 
   // Obtener los datos de un rol
   const getRoleData = async role => {
+    console.log(role)
     const docRef = doc(db, 'roles', role)
     const docSnap = await getDoc(docRef)
     let data = docSnap.data()
