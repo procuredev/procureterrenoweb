@@ -1175,6 +1175,23 @@ const FirebaseContextProvider = props => {
     return documentsByState;
   };
 
+  const consultAllObjetivesByState = async () => {
+    const coll = collection(db, "solicitudes");
+    const q1 = query(coll, where("state", "==", 6));
+    const q2 = query(coll, where("state", "==", 7));
+    const q3 = query(coll, where("state", ">=", 8), where("state", "<", 10));
+
+
+    const queryAllStates = [q1, q2, q3];
+
+    const promises = queryAllStates.map((query) => getCountFromServer(query));
+    const snapshots = await Promise.all(promises);
+
+    const documentsByState = snapshots.map((snapshot) => snapshot.data().count);
+
+    return documentsByState;
+  };
+
   const getUsersWithSolicitudes = async () => {
     const collSolicitudes = collection(db, 'solicitudes');
     const qSolicitudes = query(collSolicitudes);
@@ -1256,9 +1273,7 @@ const FirebaseContextProvider = props => {
     return allDocs
   };
 
-  const addProyectistas = async (draftmen, id) => {
 
-  }
 
   const value = {
     authUser,
@@ -1297,6 +1312,7 @@ const FirebaseContextProvider = props => {
     consultAllDocsByPlants,
     consultAllObjetivesByPlants,
     consultAllDocsByState,
+    consultAllObjetivesByState,
     getUsersWithSolicitudes,
     getUserProyectistas
   }

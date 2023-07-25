@@ -1,3 +1,6 @@
+// ** React Imports
+import { useState, useEffect } from 'react'
+
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
@@ -15,18 +18,35 @@ const donutColors = {
   series5: '#ffa1a1'
 }
 
+// ** Hooks
+import { useFirebase } from 'src/context/useFirebaseAuth'
+
 const ChartDonutObjetivesLast30days = () => {
   // ** Hook
+  const {
+    consultAllObjetivesByState
+  } = useFirebase()
   const theme = useTheme()
+
+  const [objByState, setObjByState] = useState([0,0,0])
+
+  useEffect(() => {
+      const fetchData = async () => {
+        const resObjByStates = await consultAllObjetivesByState();
+        setObjByState(resObjByStates);
+      };
+
+    fetchData();
+  }, [])
+
+  const totalObjetives = objByState.reduce((total, count) => total + count, 0);
+  const total = `Total: ${totalObjetives}`
 
   const options = {
     stroke: { width: 0 },
-    labels: ['en ejecución', 'agendados', 'terminados'],
-    colors: [donutColors.series1, donutColors.series3, donutColors.series2],
-    dataLabels: {
-      enabled: true,
-      formatter: val => `${parseInt(val, 10)}%`
-    },
+    labels: ['agendados', 'en ejecución',  'terminados'],
+    colors: [donutColors.series3, donutColors.series1, donutColors.series2],
+    dataLabels: { enabled: true, formatter: function (val, opt) { return opt.w.config.series[opt.seriesIndex]} },
     legend: {
       position: 'bottom',
       markers: { offsetX: -3 },
@@ -52,8 +72,8 @@ const ChartDonutObjetivesLast30days = () => {
             total: {
               show: true,
               fontSize: '1.2rem',
-              label: 'Operational',
-              formatter: () => '31%',
+              label: 'Total',
+
               color: theme.palette.text.primary
             }
           }
@@ -110,7 +130,7 @@ const ChartDonutObjetivesLast30days = () => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       />
       <CardContent>
-        <ReactApexcharts type='donut' height={400} options={options} series={[85, 66, 50]} />
+        <ReactApexcharts type='donut' height={400} options={options} series={objByState} />
       </CardContent>
     </Card>
   )
