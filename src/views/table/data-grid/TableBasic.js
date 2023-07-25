@@ -238,7 +238,7 @@ const TableBasic = ({ rows, role, roleData }) => {
               ) : (
                 'Pendiente de revisión'
               )
-            ) : row.state === role - 1 ? (
+            ) : (role === 3 ? row.contop === authUser.displayName : row.state === role - 1)? (
               <>
                 <Select
                   labelId='demo-simple-select-label'
