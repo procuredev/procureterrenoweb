@@ -1,3 +1,5 @@
+import React, { useState } from 'react'
+
 // ** MUI Imports
 import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
@@ -37,6 +39,15 @@ const invoiceTaxes = TAX_RATE * invoiceSubtotal
 const invoiceTotal = invoiceTaxes + invoiceSubtotal
 
 const TableSpanning = () => {
+  const [updatedRows, setUpdatedRows] = useState(rows)
+
+  const handleQtyChange = (index, value) => {
+    const updatedRow = { ...updatedRows[index], qty: value }
+    const updatedRowsArray = [...updatedRows]
+    updatedRowsArray[index] = updatedRow
+    setUpdatedRows(updatedRowsArray)
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label='spanning table'>
@@ -55,14 +66,30 @@ const TableSpanning = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map(row => (
+
+        {updatedRows.map((row, index) => (
+            <TableRow key={row.desc}>
+              <TableCell>{row.desc}</TableCell>
+              <TableCell align='right'>
+                <input
+                  type='number'
+                  value={row.qty}
+                  onChange={(e) => handleQtyChange(index, parseInt(e.target.value))}
+                />
+              </TableCell>
+              <TableCell align='right'>{row.unit}</TableCell>
+              <TableCell align='right'>{ccyFormat(row.price)}</TableCell>
+            </TableRow>
+          ))}
+          {/* {rows.map(row => (
             <TableRow key={row.desc}>
               <TableCell>{row.desc}</TableCell>
               <TableCell align='right'>{row.qty}</TableCell>
               <TableCell align='right'>{row.unit}</TableCell>
               <TableCell align='right'>{ccyFormat(row.price)}</TableCell>
             </TableRow>
-          ))}
+          ))} */}
+
           <TableRow>
             <TableCell rowSpan={3} />
             <TableCell colSpan={2}>Subtotal</TableCell>
@@ -76,6 +103,11 @@ const TableSpanning = () => {
           <TableRow>
             <TableCell colSpan={2}>Total</TableCell>
             <TableCell align='right'>{ccyFormat(invoiceTotal)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell rowSpan={3} />
+            <TableCell colSpan={2}>Horas total</TableCell>
+            <TableCell align='right'>{ccyFormat(invoiceSubtotal)}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
