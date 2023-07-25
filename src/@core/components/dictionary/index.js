@@ -26,7 +26,7 @@ const dictionary = {
     color: 'warning'
   },
   6: { name: 'Administrador de Contrato', title: 'Aprobado', details: 'En espera de asignación de Proyectistas', color: 'warning' },
-  7: { name: 'Supervisor', title: 'Aprobado', details: 'Aprobado por supervisor', color: 'primary' },
+  7: { name: 'Supervisor', title: 'Proyectistas asignados', details: 'En espera de término del levantamiento', color: 'primary' },
   8: { name: 'Proyectista', title: 'Aprobado', details: 'Aprobado por supervisor', color: 'primary' },
   9: { name: 'Gerente', title: 'Aprobado', details: 'Aprobado por supervisor', color: 'primary' },
   10: { name: 'Rechazado', title: 'Rechazado', details: 'Rechazado', color: 'error' },

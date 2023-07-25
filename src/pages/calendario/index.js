@@ -18,6 +18,10 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 
+// ** Tooltip
+import tippy from 'tippy.js';
+import 'tippy.js/dist/tippy.css'; // No olvides importar los estilos CSS
+
 const moment = require('moment')
 
 // ** Hooks
@@ -155,10 +159,31 @@ const AppCalendar = () => {
     return color
   }
 
-  const eventTitle = doc => {
+  const eventResume = doc => {
+    let ot = ''
+    let n_request = ''
+    let plant = ''
+    let realTitle = ''
+
+    if (doc.ot) {
+      ot = doc.ot
+    }
+
+    if (doc.n_request) {
+      n_request = doc.n_request
+    }
+
+    if (doc.title){
+      realTitle = doc.title
+    }
+
+    if (doc.plant) {
+      plant = doc.plant
+    }
+
     let title = doc.ot ? `OT ${doc.ot} - ${doc.title}` : doc.title
 
-    return title
+    return {resume:{realTitle:realTitle, ot:ot, n_request:n_request, plant:plant}, title:title}
   }
 
   const otherWeek = date => {
@@ -280,14 +305,33 @@ const AppCalendar = () => {
   const calendarOptions = {
     ref:calendarRef,
     events: content[filter].data.map(a => ({
-      title: eventTitle(a),
+      title: eventResume(a).title,
       start: a.start.seconds * 1000,
       allDay: true,
       id: a.id,
       description: a.description,
       backgroundColor: setColor(a),
-      borderColor: 'transparent'
+      borderColor: 'transparent',
+      resume: eventResume(a).resume
     })),
+    showNonCurrentDates: false,
+    eventDidMount: function(info) {
+      tippy(info.el, {
+        content: `
+        OT Procure: ${info.event.extendedProps.resume.ot}<br />
+        N° Solicitud: ${info.event.extendedProps.resume.n_request}<br />
+        Título: ${info.event.extendedProps.resume.realTitle}<br />
+        Planta: ${info.event.extendedProps.resume.plant}<br />
+      `,
+        allowHTML: true,
+        theme: 'light', // O el tema que desees
+      });
+    },
+    eventWillUnmount: function(info) {
+      if (info.el.tooltip) {
+        info.el.tooltip.dispose();
+      }
+    },
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: 'dayGridMonth',
     headerToolbar: {
@@ -328,12 +372,14 @@ const AppCalendar = () => {
 
       if (foundObject && foundObject.value.blocked) {
         return 'blocked' // Retorna 'week' si el día está bloqueado
-      } else {
-        const week = moment(date.date).isoWeek()
-        let color = week % 2 == 0 && !date.isToday && 'week'
-
-        return color
       }
+
+      // else {
+      //   const week = moment(date.date).isoWeek()
+      //   let color = week % 2 == 0 && !date.isToday && 'week'
+
+      //   return color
+      // }
     },
     fixedWeekCount: false,
     dateClick: async function (info) {
