@@ -42,7 +42,8 @@ import areas from 'src/@core/components/plants-areas/index'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
-import CircularProgress from '@mui/material/CircularProgress';
+import CircularProgress from '@mui/material/CircularProgress'
+import Paper from '@mui/material/Paper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -51,6 +52,34 @@ import Icon from 'src/@core/components/icon'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@emotion/react'
 import { DonutSmallOutlined } from '@mui/icons-material'
+
+// Styled component for the upload image inside the dropzone area
+const Img = styled('img')(({ theme }) => ({
+  [theme.breakpoints.up('md')]: {
+    marginRight: theme.spacing(10)
+  },
+  [theme.breakpoints.down('md')]: {
+    marginBottom: theme.spacing(4)
+  },
+  [theme.breakpoints.down('sm')]: {
+    width: 250
+  }
+}))
+
+// Styled component for the heading inside the dropzone area
+const HeadingTypography = styled(Typography)(({ theme }) => ({
+  marginBottom: theme.spacing(5),
+  [theme.breakpoints.down('sm')]: {
+    marginBottom: theme.spacing(4)
+  }
+}))
+
+//Styled tooltip-popover
+const StyledTooltip = styled(Tooltip)(({ theme }) => ({
+  /* marginRight: theme.spacing(5), */
+  marginLeft: theme.spacing(4),
+  fontSize: '1.5em'
+}))
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -283,59 +312,69 @@ const FormLayoutsSolicitud = () => {
   }
 
   const renderFilePreview = file => {
-    if (file.type.startsWith('image')) {
-      return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
-    } else {
-      return <Icon icon='mdi:file-document-outline' />
-    }
+    return (
+      <Paper
+        elevation={0} // Ajusta el nivel de elevación según tus preferencias
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '10px',
+          border: `4px solid ${theme.palette.primary.main}`,
+          borderRadius: '4px',
+          width: '220px'
+        }}
+      >
+        {file.type.startsWith('image') ? (
+          <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
+        ) : (
+          <Icon icon='mdi:file-document-outline' fontSize={50} />
+        )}
+        <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml:'10px' }}>
+          {`... ${file.name.slice(file.name.length-15, file.name.length)}`}
+        </Typography>
+      </Paper>
+    )
   }
 
-  const fileList = files.map(file => (
-    <ListItem key={file.name}>
-      <div className='file-details'>
-        <div className='file-preview'>{renderFilePreview(file)}</div>
-        <div>
-          <Typography className='file-name'>{file.name}</Typography>
-          <Typography className='file-size' variant='body2'>
-            {Math.round(file.size / 100) / 10 > 1000
-              ? `${(Math.round(file.size / 100) / 10000).toFixed(1)} mb`
-              : `${(Math.round(file.size / 100) / 10).toFixed(1)} kb`}
-          </Typography>
-        </div>
-      </div>
-      <IconButton onClick={() => handleRemoveFile(file)}>
-        <Icon icon='mdi:close' fontSize={20} />
-      </IconButton>
-    </ListItem>
-  ))
-
-  // Styled component for the upload image inside the dropzone area
-  const Img = styled('img')(({ theme }) => ({
-    [theme.breakpoints.up('md')]: {
-      marginRight: theme.spacing(10)
-    },
-    [theme.breakpoints.down('md')]: {
-      marginBottom: theme.spacing(4)
-    },
-    [theme.breakpoints.down('sm')]: {
-      width: 250
-    }
-  }))
-
-  // Styled component for the heading inside the dropzone area
-  const HeadingTypography = styled(Typography)(({ theme }) => ({
-    marginBottom: theme.spacing(5),
-    [theme.breakpoints.down('sm')]: {
-      marginBottom: theme.spacing(4)
-    }
-  }))
-
-  //Styled tooltip-popover
-  const StyledTooltip = styled(Tooltip)(({ theme }) => ({
-    /* marginRight: theme.spacing(5), */
-    marginLeft: theme.spacing(4),
-    fontSize: '1.5em'
-  }))
+  const fileList = (
+    <Grid container spacing={2}>
+      {files.map(file => (
+        <Grid item key={file.name}>
+          <Paper
+            elevation={0}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '10px',
+              border: `4px solid ${theme.palette.primary.main}`,
+              borderRadius: '4px',
+              width: '220px',
+              position: 'relative', // Agregamos esta propiedad para posicionar el icono correctamente
+            }}
+          >
+            {file.type.startsWith('image') ? (
+              <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
+            ) : (
+              <Icon icon='mdi:file-document-outline' fontSize={50} />
+            )}
+            <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml:'10px' }}>
+              {`... ${file.name.slice(file.name.length-15, file.name.length)}`}
+            </Typography>
+            <IconButton
+              onClick={() => handleRemoveFile(file)}
+              sx={{
+                position: 'absolute', // Posicionamos el icono en relación al Paper
+                top: '0px', // Ajusta el valor según la posición vertical deseada
+                right: '0px', // Ajusta el valor según la posición horizontal deseada
+              }}
+            >
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  )
 
   const handleRemoveAllFiles = () => {
     setFiles
