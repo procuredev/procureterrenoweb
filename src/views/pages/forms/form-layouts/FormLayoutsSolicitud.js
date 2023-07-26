@@ -612,7 +612,7 @@ const FormLayoutsSolicitud = () => {
               </Typography>
             </Grid>
 
-            {/* Contract operator */}
+            {/* Contract operator
             <Grid item xs={12}>
               <Box display='flex' alignItems='center' width='100%'>
                 <FormControl
@@ -644,6 +644,44 @@ const FormLayoutsSolicitud = () => {
                   {errors.contop && <FormHelperText>{errors.contop}</FormHelperText>}
                 </FormControl>
               </Box>
+            </Grid> */}
+
+            {/* Contract Operator */}
+            <Grid item xs={12}>
+              <FormControl
+                fullWidth
+                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
+                error={errors.contop ? true : false}
+              >
+                <InputLabel id='input-label-contop'>Contract Operator</InputLabel>
+                <Box display='flex' alignItems='center'>
+                  <Select
+                    value={values.contop}
+                    onChange={handleChange('contop')}
+                    label='Contract Operator'
+                    id='id-contop'
+                    labelId='labelId-contop'
+                  >
+                    {authUser.role === 3 ? (
+                      <MenuItem key={authUser.displayName} value={authUser.displayName}>
+                        {authUser.displayName}
+                      </MenuItem>
+                      ) : (
+                      contOpOptions.map(contop => {
+                        return (
+                          <MenuItem key={contop.name} value={contop.name}>
+                            {contop.name}
+                          </MenuItem>
+                        )
+                      }))
+                    }
+                  </Select>
+                  <StyledTooltip title='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'>
+                    <InfoIcon color='action' />
+                  </StyledTooltip>
+                </Box>
+                {errors.petitioner && <FormHelperText>{errors.petitioner}</FormHelperText>}
+              </FormControl>
             </Grid>
 
             {/* Functional Location */}
