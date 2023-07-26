@@ -178,7 +178,7 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
     <Dialog
       fullWidth
       open={open}
-      maxWidth='md'
+      maxWidth='xs'
       scroll='body'
       onClose={() => handleClose()}
       TransitionComponent={Transition}
@@ -194,22 +194,10 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
         </IconButton>
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
-            Share Project
+            Agregar Proyectistas
           </Typography>
-          <Typography variant='body2'>Share project with a team members</Typography>
+          <Typography variant='body2'>{doc.title}</Typography>
         </Box>
-        <InputLabel
-          htmlFor='add-members'
-          sx={{
-            mb: 1.5,
-            fontWeight: 500,
-            lineHeight: '2rem',
-            display: 'inline-flex',
-            fontSize: ['1.125rem', '1.25rem']
-          }}
-        >
-          Add Members
-        </InputLabel>
         <Autocomplete
           autoHighlight
           sx={{ mb: 8 }}
@@ -231,7 +219,7 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
             </ListItem>
           )}
         />
-        <Typography variant='h6'>{`${draftmen.length} Members`}</Typography>
+        <Typography variant='h6'>{`${draftmen.length} Seleccionados`}</Typography>
         <List dense sx={{ py: 4 }}>
           {draftmen.map(draftman => {
             return (

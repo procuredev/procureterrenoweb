@@ -131,7 +131,7 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
     <Dialog
       fullWidth
       open={open}
-      maxWidth='md'
+      maxWidth='xs'
       scroll='body'
       onClose={() => handleClose()}
       TransitionComponent={Transition}
