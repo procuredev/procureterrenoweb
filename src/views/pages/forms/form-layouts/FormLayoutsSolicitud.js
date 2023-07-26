@@ -178,7 +178,7 @@ const FormLayoutsSolicitud = () => {
   const validationRegex = {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    sap: /[^\s0-9]/g, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    sap: /[^A-Z\s0-9- -.\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
   }
 
@@ -188,9 +188,12 @@ const FormLayoutsSolicitud = () => {
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description']
     for (const key in values) {
       // Error campos vacíos
-      if ( key !== ('fnlocation' || 'sap') && (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0))) {
-        newErrors[key] = 'Por favor, especifica una opción válida'
+      if (key !== 'fnlocation' && key !== 'sap') {
+        if ((values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0))) {
+          newErrors[key] = 'Por favor, especifica una opción válida'
+        }
       }
+
 
       // Validaciones solo para claves de tipo string
       if (textFieldValues.includes(values[key])) {
@@ -750,23 +753,24 @@ const FormLayoutsSolicitud = () => {
 
             {/* SAP */}
             <Grid item xs={12}>
-              <FormControl fullWidth error={errors.sap ? true : false}>
-                <Box display='flex' alignItems='center'>
-                  <TextField
-                    fullWidth
-                    value={values.sap}
-                    onChange={handleChange('sap')}
-                    onBlur={onBlur}
-                    label='Número SAP'
-                    id='sap-input'
-                    inputProps={{ maxLength: 10 }}
-                  />
-                  <StyledTooltip title='Rellena este campo sólo si conoces el número SAP'>
-                    <InfoIcon color='action' />
-                  </StyledTooltip>
-                  {errors.sap && <FormHelperText>{errors.sap}</FormHelperText>}
-                </Box>
-              </FormControl>
+              <Box display='flex' alignItems='center'>
+                <TextField
+                  InputLabelProps={{ required: false }}
+                  fullWidth
+                  type='number'
+                  label='Número SAP'
+                  id='sap-input'
+                  onBlur={onBlur}
+                  value={values.sap}
+                  onChange={handleChange('sap')}
+                  error={errors.sap ? true : false}
+                  helperText={errors.sap}
+                  inputProps={{ maxLength: 10 }}
+                />
+                <StyledTooltip title='Rellena este campo sólo si conoces el número SAP'>
+                  <InfoIcon color='action' />
+                </StyledTooltip>
+              </Box>
             </Grid>
 
             {/* Tipo de Levantamiento */}

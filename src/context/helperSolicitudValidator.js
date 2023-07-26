@@ -189,26 +189,39 @@ export function solicitudValidator(values) {
       keyStringName = 'Número SAP'
     } else if (key == 'objective') {
       keyStringName = 'Tipo de Levantamiento'
+    } else if (key == 'deliverable') {
+      keyStringName = 'Entregables del levantamiento'
+    } else if (key == 'receiver') {
+      keyStringName = 'Destinatarios'
+    } else if (key == 'description') {
+      keyStringName = 'Descripción'
     }
 
     if (typeof values[key] === 'string') {
-      console.log('type ' + typeof values[key])
-      console.log('key ' + key)
-      console.log('keyValue ' + values[key])
-      console.log('trim ' + values[key].trim())
-
-      if (key !== ('opshift' && 'sap' && 'fnlocation') && values[key].trim() === '') {
+      if (key == 'fnlocation' || key == 'sap' || key == 'opshift') {
+        // console.log('hacer nada')
+      } else {
+        if (values[key].trim() === '') {
+          console.log('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
+          throw new Error('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
+        }
+      }
+    } else {
+      if (values[key] == '') {
         console.log('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
         throw new Error('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
       }
     }
+
     if (!['receiver', 'deliverable', 'start', 'sap', 'fnlocation'].includes(key) && typeof values[key] !== 'string') {
       console.log(`El campo ${key} debe ser en formato texto.`)
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
+
     if (validations.hasOwnProperty(key)) {
       const { validate, message } = validations[key]
       if (!validate(values[key])) {
+        console.log('asdasdasdas aers')
         console.log(message)
         throw new Error(message)
       }
