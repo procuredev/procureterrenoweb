@@ -160,7 +160,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      minWidth: 110,
+      minWidth: 200,
       flex: 0.1,
       renderCell: params => {
         const { row } = params
@@ -180,7 +180,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       field: 'plant',
       headerName: 'Planta',
       flex: 0.3,
-      minWidth: 100,
+      minWidth: 200,
       renderCell: params => {
         const { row } = params
 
@@ -345,7 +345,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
           columnVisibilityModel={{
             ot: md,
             user: md,
-            end: xl,
+            end: md,
 
             actions: roleData.canApprove
           }}
