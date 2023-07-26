@@ -40,7 +40,7 @@ import ListItem from '@mui/material/ListItem'
 import { styled } from '@mui/material/styles'
 import areas from 'src/@core/components/plants-areas/index'
 import InfoIcon from '@mui/icons-material/Info'
-import Tooltip from '@mui/material/Tooltip'
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
 import CircularProgress from '@mui/material/CircularProgress'
 import Paper from '@mui/material/Paper'
@@ -75,11 +75,21 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 }))
 
 //Styled tooltip-popover
-const StyledTooltip = styled(Tooltip)(({ theme }) => ({
-  /* marginRight: theme.spacing(5), */
-  marginLeft: theme.spacing(4),
-  fontSize: '1.5em'
-}))
+const StyledTooltip = styled(({ className, ...props }) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: theme.palette.grey[700],
+    color: 'white',
+    boxShadow: theme.shadows[1],
+    fontSize: '1.0em', // Aquí es donde especificas el tamaño del texto
+    padding: theme.spacing(4, 4)
+  },
+}));
+
+const StyledInfoIcon = styled(InfoIcon)(({ theme }) => ({
+  marginLeft: theme.spacing(4), // Añade un margen a la izquierda del InfoIcon
+}));
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -494,7 +504,7 @@ const FormLayoutsSolicitud = () => {
                   inputProps={{ maxLength: 25 }}
                 />
                 <StyledTooltip title='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'>
-                  <InfoIcon color='action'/>
+                  <StyledInfoIcon color='action'/>
                 </StyledTooltip>
               </Box>
             </Grid>
@@ -519,7 +529,7 @@ const FormLayoutsSolicitud = () => {
                       }}
                     />
                     <StyledTooltip title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
-                      <InfoIcon color='action' />
+                      <StyledInfoIcon color='action' />
                     </StyledTooltip>
                   </Box>
                 </LocalizationProvider>
@@ -564,7 +574,7 @@ const FormLayoutsSolicitud = () => {
                         })}
                   </Select>
                   <StyledTooltip title='Selecciona la planta correspondiente.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.plant && <FormHelperText>{errors.plant}</FormHelperText>}
@@ -597,7 +607,7 @@ const FormLayoutsSolicitud = () => {
                     })}
                   </Select>
                   <StyledTooltip title='Selecciona el área dentro de tu planta en dónde se ejecutará la tarea que requieres.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.area && <FormHelperText>{errors.area}</FormHelperText>}
@@ -677,7 +687,7 @@ const FormLayoutsSolicitud = () => {
                     }
                   </Select>
                   <StyledTooltip title='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.petitioner && <FormHelperText>{errors.petitioner}</FormHelperText>}
@@ -699,7 +709,7 @@ const FormLayoutsSolicitud = () => {
                     inputProps={{ maxLength: 25 }}
                   />
                   <StyledTooltip title='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
               </FormControl>
@@ -740,7 +750,7 @@ const FormLayoutsSolicitud = () => {
                     )}
                   </Select>
                   <StyledTooltip title='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.petitioner && <FormHelperText>{errors.petitioner}</FormHelperText>}
@@ -774,7 +784,7 @@ const FormLayoutsSolicitud = () => {
                      <MenuItem value={'No Aplica'}>{'No Aplica'}</MenuItem>
                   </Select>
                   <StyledTooltip title='Corresponde a la persona que trabaja en el turno de la semana siguiente del solicitante.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.opshift && <FormHelperText>{errors.opshift}</FormHelperText>}
@@ -803,7 +813,7 @@ const FormLayoutsSolicitud = () => {
                     <MenuItem value='Shutdown'>Shutdown</MenuItem>
                   </Select>
                   <StyledTooltip title='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
@@ -832,7 +842,7 @@ const FormLayoutsSolicitud = () => {
                     <MenuItem value='n/a'>No aplica</MenuItem>
                   </Select>
                   <StyledTooltip title='Selecciona si la máquina estará detenida, no lo estará o no aplica el caso.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.detention && <FormHelperText>{errors.detention}</FormHelperText>}
@@ -856,7 +866,7 @@ const FormLayoutsSolicitud = () => {
                   inputProps={{ maxLength: 10 }}
                 />
                 <StyledTooltip title='Rellena este campo sólo si conoces el número SAP'>
-                  <InfoIcon color='action' />
+                  <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>
             </Grid>
@@ -886,7 +896,7 @@ const FormLayoutsSolicitud = () => {
                     <MenuItem value='Topografía'>Topografía</MenuItem>
                   </Select>
                   <StyledTooltip title='Selecciona cuál es el tipo de levantamiento que necesitas para tu trabajo. Sólo podrás seleccionar una opción. Si requieres más de un tipo de levantamiento, deberás hacer una nueva solicitud para cada tipo de levantamiento.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
                 {errors.objective && <FormHelperText>{errors.objective}</FormHelperText>}
@@ -914,7 +924,7 @@ const FormLayoutsSolicitud = () => {
                     )}
                   />
                   <StyledTooltip title='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
               </FormControl>
@@ -943,7 +953,7 @@ const FormLayoutsSolicitud = () => {
                     )}
                   />
                   <StyledTooltip title='Selecciona a quién o a quiénes deberemos enviar los entregables.'>
-                    <InfoIcon color='action' />
+                    <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
               </FormControl>
@@ -966,7 +976,7 @@ const FormLayoutsSolicitud = () => {
                   />
                 </FormControl>
                 <StyledTooltip title='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'>
-                  <InfoIcon color='action' />
+                  <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>
             </Grid>
