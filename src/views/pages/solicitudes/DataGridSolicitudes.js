@@ -102,8 +102,8 @@ const DataGrid = () => {
     },
     pendingApproval: {
       label: 'Por aprobar',
-      canSee: [2, 3], // Ejemplo de números permitidos para ver este filtro
-      filterFunction: (doc) => doc.state === authUser.role - 1,
+      canSee: [2, 3, 5], // Ejemplo de números permitidos para ver este filtro
+      filterFunction: authUser.role === 5 ? (doc) => doc.state === 3 || 4 : (doc) => doc.state === authUser.role - 1,
     },
     approved: {
       label: 'Aprobadas',
@@ -200,7 +200,7 @@ const DataGrid = () => {
           info: 'Todas las solicitudes'
         },
         {
-          data: data.filter(doc => doc.state === authUser.role - 1),
+          data: data.filter(authUser.role === 5 ? (doc) => doc.state === 3 || 4 : (doc) => doc.state === authUser.role - 1),
           label: 'Por aprobar',
           info: 'Solicitudes pendientes de mi aprobación'
         },
