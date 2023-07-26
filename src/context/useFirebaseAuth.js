@@ -414,9 +414,9 @@ const FirebaseContextProvider = props => {
     if (authUser.role === 2) {
       newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 2 ? 4 : 6) : 10
       if (newState === 6) {
-        let week = moment(docSnapshot.start).isoWeek()
-        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
-        await updateDoc(ref, { supervisorShift })
+        let week = moment(docSnapshot.start.toDate()).isoWeek();
+        supervisorShift = week % 2 === 0 ? 'A' : 'B';
+        await updateDoc(ref, { supervisorShift });
       }
     } else if (authUser.role === 3) {
       if (eventDocs.lenght > 0) {
@@ -428,11 +428,7 @@ const FirebaseContextProvider = props => {
       } else {
         newState = approves ? authUser.role + 1 : 10
       }
-      if (newState === 6) {
-        let week = moment(docSnapshot.start).isoWeek()
-        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
-        await updateDoc(ref, { supervisorShift })
-      }
+
     } else if (authUser.role === 6) {
       console.log(eventDocs)
       if (eventDocs.length > 0) {
@@ -447,10 +443,10 @@ const FirebaseContextProvider = props => {
         console.log('No se encontraron eventos')
         newState = approves ? authUser.role : 10
       }
-      if (newState === authUser.role) {
-        let week = moment(docSnapshot.start).isoWeek()
-        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
-        await updateDoc(ref, { supervisorShift })
+      if (newState === 6) {
+        let week = moment(docSnapshot.start.toDate()).isoWeek();
+        supervisorShift = week % 2 === 0 ? 'A' : 'B';
+        await updateDoc(ref, { supervisorShift });
       }
     }else if (authUser.role === 7) {
       if(Array.isArray(approves)){
@@ -528,11 +524,10 @@ const FirebaseContextProvider = props => {
       changedFields.state = newState
     } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0 && docSnapshot.state >= 6) {
       // si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
-      if (changedFields.start) {
-        let supervisorShift
-        let week = moment(changedFields.start).isoWeek()
-        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
-        await updateDoc(ref, { supervisorShift })
+      if (newState === 6) {
+        let week = moment(docSnapshot.start.toDate()).isoWeek();
+        supervisorShift = week % 2 === 0 ? 'A' : 'B';
+        await updateDoc(ref, { supervisorShift });
       }
       newState = docSnapshot.state
     } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
