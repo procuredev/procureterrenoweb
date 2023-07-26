@@ -235,6 +235,35 @@ const TableBasic = ({ rows, role, roleData }) => {
                 </>
               ) : row.state > role ? (
                 'Revisado'
+              ) : role === 5 && row.state === 3 || 4 ? (
+                <>
+                  <Button
+                    onClick={() => handleClickOpenAlert(row, true)}
+                    variant='contained'
+                    color='success'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Check sx={{ fontSize: 18 }} />
+                  </Button>
+                  <Button
+                    onClick={() => handleClickOpen(row)}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Edit sx={{ fontSize: 18 }} />
+                  </Button>
+                  <Button
+                    onClick={() => handleClickOpenAlert(row, false)}
+                    variant='contained'
+                    color='error'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Clear sx={{ fontSize: 18 }} />
+                  </Button>
+                </>
+              ) : row.state > role ? (
+                'Revisado'
               ) : (
                 'Pendiente de revisión'
               )
@@ -281,6 +310,50 @@ const TableBasic = ({ rows, role, roleData }) => {
                 </Select>
               </>
             ) : row.state >= role ? (
+              'Revisado'
+            ) : role === 5 && row.state === 3 || 4 ? (
+              <>
+                <Select
+                  labelId='demo-simple-select-label'
+                  id='demo-simple-select'
+                  size='small'
+                  IconComponent={() => <MoreHorizIcon />}
+                  sx={{
+                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                  }}
+                >
+                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Button
+                      onClick={() => handleClickOpenAlert(row, true)}
+                      variant='contained'
+                      color='success'
+                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                    >
+                      <Check sx={{ fontSize: 18 }} />
+                    </Button>
+                    <Button
+                      onClick={() => handleClickOpen(row)}
+                      variant='contained'
+                      color='secondary'
+                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                    >
+                      <Edit sx={{ fontSize: 18 }} />
+                    </Button>
+                    <Button
+                      onClick={() => handleClickOpenAlert(row, false)}
+                      variant='contained'
+                      color='error'
+                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                    >
+                      <Clear sx={{ fontSize: 18 }} />
+                    </Button>
+                  </Container>
+                </Select>
+              </>
+            ) : row.state > role ? (
               'Revisado'
             ) : (
               'Pendiente de revisión'
