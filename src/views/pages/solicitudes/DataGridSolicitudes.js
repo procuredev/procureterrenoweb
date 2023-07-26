@@ -128,6 +128,11 @@ const DataGrid = () => {
     approvedByMEL: {
       label: 'Aprobadas por MEL',
       canSee: [1, 2, 3, 4, 5, 6, 7, 9],
+      filterFunction: (doc) => doc.state === 4
+    },
+    approvedByMEL: {
+      label: 'Aprobadas por MEL',
+      canSee: [1, 2, 3, 4, 5, 6, 7, 9],
       filterFunction: (doc) => doc.state === 3
     },
     approvedByProcure: {
