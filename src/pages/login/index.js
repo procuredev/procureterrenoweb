@@ -26,6 +26,11 @@ import FormHelperText from '@mui/material/FormHelperText'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -97,6 +102,7 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
 
   // ** Hooks
 
@@ -132,12 +138,34 @@ const LoginPage = () => {
       .catch(error => {
         // Manejar el error y mostrar el mensaje al usuario
         const errorMessage = error.message
-        setErrorMessage(errorMessage)
+        setAlertMessage(errorMessage)
+
+        // setErrorMessage(errorMessage)
       })
   }
 
   return (
     <Box className='content-right'>
+      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
+      <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
+        Atención
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ m: 2, whiteSpace: 'pre-line' }} id='alert-dialog-description'>
+          {alertMessage}
+        </DialogContentText>
+        <DialogActions>
+          <Button
+            size='small'
+            onClick={() => {
+              setAlertMessage('')
+            }}
+          >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </DialogContent>
+    </Dialog>
       <RightWrapper sx={{ margin: 'auto' }}>
         <Paper
           elevation={9}
