@@ -74,7 +74,7 @@ const DataGridLevantamientos = () => {
     },
     {
       data: data.filter(doc => doc.state === 6 && doc.supervisorShift === authUser.shift),
-      label: 'Agendados'
+      label: 'Por Revisar'
     },
     {
       data: data.filter(doc => doc.state === 7 && doc.supervisorShift === authUser.shift),
@@ -90,7 +90,7 @@ const DataGridLevantamientos = () => {
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
-      <PageHeader
+      {/* <PageHeader
         title={
           <Typography variant='h5'>
             <Link href='https://mui.com/x/react-data-grid/' target='_blank'>
@@ -98,7 +98,7 @@ const DataGridLevantamientos = () => {
             </Link>
           </Typography>
         }
-      />
+      /> */}
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <TabList onChange={handleChange} aria-label="lab API tabs example">

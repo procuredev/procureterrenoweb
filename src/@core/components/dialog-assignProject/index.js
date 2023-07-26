@@ -133,7 +133,7 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
   // ** Hooks
   const { settings } = useSettings()
   const hidden = useMediaQuery(theme => theme.breakpoints.down('sm'))
-  const { updateDocs, useEvents, reviewDocs } = useFirebase()
+  const { updateDocs, useEvents, reviewDocs, updateDraftmenAndAddEvent } = useFirebase()
 
   // ** Var
   const { direction } = settings
@@ -164,10 +164,9 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
   }
 
   const onsubmit = (id) => {
-    if(draftmen.length > 0) {
-      console.log(id)
-      reviewDocs(id, draftmen)
-      handleClose()
+    if (draftmen.length > 0) {
+      reviewDocs(id, draftmen);
+      handleClose();
     }
   }
 

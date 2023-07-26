@@ -111,8 +111,6 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
 
  const onsubmit = (id) => {
     if (horasLevantamiento !== '') {
-      console.log(id, horasLevantamiento);
-
       reviewDocs(id, horasLevantamiento)
 
 
@@ -120,7 +118,7 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
       // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase
       handleClose();
     } else {
-      setError('Por favor, ingrese un número mayor a 1.');
+      setError('Por favor, ingrese un número mayor a 0.');
     }
   }
 

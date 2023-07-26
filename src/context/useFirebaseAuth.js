@@ -390,7 +390,19 @@ const FirebaseContextProvider = props => {
     const docSnapshot = querySnapshot.data()
     const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
-    const devolutionState = userQuerySnapshot.data().role - 1
+    const devolutionState = userQuerySnapshot.data().role - 1;
+
+   /*  if (userQuerySnapshot.exists()) {
+      const devolutionState = userQuerySnapshot.data().role - 1;
+
+      // Resto del código que usa devolutionState
+    } else {
+      console.log('El documento del usuario no existe o no contiene datos válidos.');
+
+      // Manejo del caso en que el documento no existe o está vacío
+    } */
+
+
 
     const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
     const eventQuerySnapshot = await getDocs(eventQuery)
@@ -444,6 +456,7 @@ const FirebaseContextProvider = props => {
       if(Array.isArray(approves)){
         newState = 7
         const draftmen = approves
+
         await updateDoc(ref, { draftmen })
       } else {
         newState = 8
@@ -1266,7 +1279,7 @@ const FirebaseContextProvider = props => {
       if(doc.data().urlFoto){
         allDocs.push({ userId: doc.id, name: doc.data().name, avatar: doc.data().urlFoto })
       } else {
-        allDocs.push({ userId: doc.id, name: doc.data().name, unit: doc.data().unit })
+        allDocs.push({ userId: doc.id, name: doc.data().name}) //, unit: doc.data().unit
       }
     })
 
@@ -1314,7 +1327,7 @@ const FirebaseContextProvider = props => {
     consultAllDocsByState,
     consultAllObjetivesByState,
     getUsersWithSolicitudes,
-    getUserProyectistas
+    getUserProyectistas,
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
