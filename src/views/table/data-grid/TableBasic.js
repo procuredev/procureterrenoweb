@@ -175,7 +175,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       renderCell: params => {
         const { row } = params
 
-        return <div>{row.state>=6?(row.supervisorShift || 'No definido') : 'Por confirmar'}</div>
+        return <div>{row.state >= 6 ? row.supervisorShift || 'No definido' : 'Por confirmar'}</div>
       }
     },
     {
@@ -202,158 +202,64 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Acciones',
       renderCell: params => {
         const { row } = params
+        const hasPrevState = role !== 3 && row.state === role - 1
+        const isContop = role === 3 && row.contop === authUser.displayName
+        const isPlanner = role === 5 && (row.state === 3 || row.state === 4)
+        const isRevisado = row.state > role
+        const canEdit = hasPrevState || isContop || isPlanner
+        const flexDirection = md ? 'row' : 'column'
+
+        const renderButtons = (
+          <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
+            <Button
+              onClick={() => handleClickOpenAlert(row, true)}
+              variant='contained'
+              color='success'
+              sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+            >
+              <Check sx={{ fontSize: 18 }} />
+            </Button>
+            <Button
+              onClick={() => handleClickOpen(row)}
+              variant='contained'
+              color='secondary'
+              sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+            >
+              <Edit sx={{ fontSize: 18 }} />
+            </Button>
+            <Button
+              onClick={() => handleClickOpenAlert(row, false)}
+              variant='contained'
+              color='error'
+              sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+            >
+              <Clear sx={{ fontSize: 18 }} />
+            </Button>
+          </Container>
+        )
 
         return (
           <>
-            {md ? (
-              (role === 3 ? row.contop === authUser.displayName : row.state === role - 1) ? (
-                <>
-                  <Button
-                    onClick={() => handleClickOpenAlert(row, true)}
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <Check sx={{ fontSize: 18 }} />
-                  </Button>
-                  <Button
-                    onClick={() => handleClickOpen(row)}
-                    variant='contained'
-                    color='secondary'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <Edit sx={{ fontSize: 18 }} />
-                  </Button>
-                  <Button
-                    onClick={() => handleClickOpenAlert(row, false)}
-                    variant='contained'
-                    color='error'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <Clear sx={{ fontSize: 18 }} />
-                  </Button>
-                </>
-              ) : row.state > role ? (
-                'Revisado'
-              ) : role === 5 && row.state === 3 || 4 ? (
-                <>
-                  <Button
-                    onClick={() => handleClickOpenAlert(row, true)}
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <Check sx={{ fontSize: 18 }} />
-                  </Button>
-                  <Button
-                    onClick={() => handleClickOpen(row)}
-                    variant='contained'
-                    color='secondary'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <Edit sx={{ fontSize: 18 }} />
-                  </Button>
-                  <Button
-                    onClick={() => handleClickOpenAlert(row, false)}
-                    variant='contained'
-                    color='error'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <Clear sx={{ fontSize: 18 }} />
-                  </Button>
-                </>
-              ) : row.state > role ? (
-                'Revisado'
+            {canEdit ? (
+              md ? (
+                renderButtons
               ) : (
-                'Pendiente de revisión'
+                <Select
+                  labelId='demo-simple-select-label'
+                  id='demo-simple-select'
+                  size='small'
+                  IconComponent={() => <MoreHorizIcon />}
+                  sx={{
+                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                  }}
+                >
+                  {renderButtons}
+                </Select>
               )
-            ) : (role === 3 ? row.contop === authUser.displayName : row.state === role - 1)? (
-              <>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  size='small'
-                  IconComponent={() => <MoreHorizIcon />}
-                  sx={{
-                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                  }}
-                >
-                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Button
-                      onClick={() => handleClickOpenAlert(row, true)}
-                      variant='contained'
-                      color='success'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <Check sx={{ fontSize: 18 }} />
-                    </Button>
-                    <Button
-                      onClick={() => handleClickOpen(row)}
-                      variant='contained'
-                      color='secondary'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <Edit sx={{ fontSize: 18 }} />
-                    </Button>
-                    <Button
-                      onClick={() => handleClickOpenAlert(row, false)}
-                      variant='contained'
-                      color='error'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <Clear sx={{ fontSize: 18 }} />
-                    </Button>
-                  </Container>
-                </Select>
-              </>
-            ) : row.state >= role ? (
-              'Revisado'
-            ) : role === 5 && row.state === 3 || 4 ? (
-              <>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  size='small'
-                  IconComponent={() => <MoreHorizIcon />}
-                  sx={{
-                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                  }}
-                >
-                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Button
-                      onClick={() => handleClickOpenAlert(row, true)}
-                      variant='contained'
-                      color='success'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <Check sx={{ fontSize: 18 }} />
-                    </Button>
-                    <Button
-                      onClick={() => handleClickOpen(row)}
-                      variant='contained'
-                      color='secondary'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <Edit sx={{ fontSize: 18 }} />
-                    </Button>
-                    <Button
-                      onClick={() => handleClickOpenAlert(row, false)}
-                      variant='contained'
-                      color='error'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <Clear sx={{ fontSize: 18 }} />
-                    </Button>
-                  </Container>
-                </Select>
-              </>
-            ) : row.state > role ? (
+            ) : isRevisado ? (
               'Revisado'
             ) : (
               'Pendiente de revisión'
