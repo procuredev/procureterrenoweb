@@ -42,6 +42,7 @@ import areas from 'src/@core/components/plants-areas/index'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
+import CircularProgress from '@mui/material/CircularProgress';
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -95,6 +96,7 @@ const FormLayoutsSolicitud = () => {
   const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({})
   const [values, setValues] = useState(initialValues)
+  const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation']
@@ -332,7 +334,7 @@ const FormLayoutsSolicitud = () => {
   const StyledTooltip = styled(Tooltip)(({ theme }) => ({
     /* marginRight: theme.spacing(5), */
     marginLeft: theme.spacing(4),
-    fontSize: '1.6em'
+    fontSize: '1.5em'
   }))
 
   const handleRemoveAllFiles = () => {
@@ -354,16 +356,25 @@ const FormLayoutsSolicitud = () => {
 
     if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked || !invalidFiles) {
       try {
+        setIsUploading(true) // Se activa el Spinner
+
         const solicitud = await newDoc({ ...values, start: values.start._d })
-        setAlertMessage('Documento creado exitosamente con ID: ' + solicitud.id)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
+
+        // Luego de completar la carga, puedes ocultar el spinner
+        setIsUploading(false)
+
+        // Se envía el mensaje de éxito
+        setAlertMessage('Documento creado exitosamente con ID: ' + solicitud.id)
         handleRemoveAllFiles()
         setValues(initialValues)
         setErrors({})
       } catch (error) {
         setAlertMessage(error.message)
+        setIsUploading(false) // Se cierra el spinner en caso de error
       }
     } else {
+      setIsUploading(false)
       setErrors(formErrors)
     }
   }
@@ -444,7 +455,7 @@ const FormLayoutsSolicitud = () => {
                   inputProps={{ maxLength: 25 }}
                 />
                 <StyledTooltip title='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'>
-                  <InfoIcon color='action' />
+                  <InfoIcon color='action'/>
                 </StyledTooltip>
               </Box>
             </Grid>
@@ -757,7 +768,7 @@ const FormLayoutsSolicitud = () => {
                 <TextField
                   InputLabelProps={{ required: false }}
                   fullWidth
-                  type='number'
+                  type='text'
                   label='Número SAP'
                   id='sap-input'
                   onBlur={onBlur}
@@ -937,6 +948,17 @@ const FormLayoutsSolicitud = () => {
                 <Button type='submit' variant='contained' size='large'>
                   Enviar Solicitud
                 </Button>
+                {isUploading && <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={isUploading} closeAfterTransition={true} maxWidth={false}>
+                  <DialogTitle sx={{ mt: 2, textAlign: 'center' }} id='spinner-dialog-title'>
+                    Enviando solicitud
+                  </DialogTitle>
+                  <DialogContent sx={{ textAlign: 'center' }}>
+                    <CircularProgress
+                    size={40} // Ajusta el tamaño del CircularProgress según tus preferencias
+                  />
+                  </DialogContent>
+                </Dialog>
+                }
               </Box>
             </Grid>
           </Grid>
