@@ -167,7 +167,7 @@ const ForgotPassword = () => {
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>
               <TextField
-                error={helperText}
+                error={helperText !== ''}
                 autoFocus
                 type='email'
                 id='email'
