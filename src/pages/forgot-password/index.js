@@ -17,6 +17,11 @@ import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import FormHelperText from '@mui/material/FormHelperText'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -81,6 +86,7 @@ const ForgotPassword = () => {
   const [helperText, setHelperText] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [email, setEmail] = useState('')
+  const [alertMessage, setAlertMessage] = useState('')
 
   const handleEmailChange = event => {
     const updatedEmail = event.target.value
@@ -107,9 +113,11 @@ const ForgotPassword = () => {
 
     try {
       await resetPassword(email)
-      toast.success('Se ha enviado un correo con indicaciones para cambiar tu contraseña', {
-        position: 'top-right'
-      })
+      setAlertMessage('Se ha enviado un correo con indicaciones para cambiar tu contraseña')
+
+      // toast.success('Se ha enviado un correo con indicaciones para cambiar tu contraseña', {
+      //   position: 'top-right'
+      // })
     } catch (error) {
       let errorMessage = error.message
 
@@ -118,7 +126,9 @@ const ForgotPassword = () => {
       } else if (errorMessage === 'Firebase: Error (auth/invalid-email).') {
         errorMessage = 'Por favor, ingresa un e-mail válido'
       }
-      setErrorMessage(errorMessage)
+
+      // setErrorMessage(errorMessage)
+      setAlertMessage('Se ha enviado un correo con indicaciones para cambiar tu contraseña')
     }
   }
 
@@ -128,6 +138,26 @@ const ForgotPassword = () => {
 
   return (
     <Box className='content-right'>
+      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
+      <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
+        Atención
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ m: 2, whiteSpace: 'pre-line' }} id='alert-dialog-description'>
+          {alertMessage}
+        </DialogContentText>
+        <DialogActions>
+          <Button
+            size='small'
+            onClick={() => {
+              setAlertMessage('')
+            }}
+          >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </DialogContent>
+    </Dialog>
       <RightWrapper sx={{ margin: 'auto' }}>
         <Paper
           elevation={9}
