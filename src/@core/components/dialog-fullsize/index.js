@@ -54,7 +54,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   state = typeof state === 'number' ? state : 100
 
   const eventArray = useEvents(id)
-  
+
   const formatDate = start => {
     if (!start || !start.seconds) {
       return ""; // Return an empty string or some default value if start is not provided
@@ -299,22 +299,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </Typography>
               )}
               {/*Asigna turno */}
-              {editable && roleData && roleData.canEditValues ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    onChange={e => setValues({ ...values, shift: e.target.value })}
-                    label='Asignar turno'
-                    id='shift-input'
-                    defaultValue='Turno'
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                  />
-                </Box>
-              ) : ( shift &&
+              {shift &&
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
                   Turno: {shift}
                 </Typography>
-              )}
+              }
               {/*Descripción */}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
