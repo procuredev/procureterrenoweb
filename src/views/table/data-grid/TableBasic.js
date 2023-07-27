@@ -122,7 +122,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       flex: 0.4,
       renderCell: params => {
         const { row } = params
-        let state = row.state && typeof row.state === 'number' ? row.state : 100
+        let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
 
         return (
           <CustomChip

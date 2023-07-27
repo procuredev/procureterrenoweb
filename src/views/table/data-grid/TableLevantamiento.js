@@ -14,7 +14,7 @@ import { Typography, IconButton } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import { DataGrid, 	esES } from '@mui/x-data-grid'
+import { DataGrid, esES } from '@mui/x-data-grid'
 import CardHeader from '@mui/material/CardHeader'
 import { DateRangePicker } from '@mui/lab'
 import { date } from 'yup/lib/locale'
@@ -25,11 +25,11 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import { DialogDoneProject } from 'src/@core/components/dialog-doneProject'
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
-import { ArrowDropDown, Check, Clear, Edit  } from '@mui/icons-material'
+import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material'
 
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 
-import EngineeringIcon from '@mui/icons-material/Engineering';
+import EngineeringIcon from '@mui/icons-material/Engineering'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
@@ -43,7 +43,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState({})
   const [proyectistas, setProyectistas] = useState([])
-  const [loadingProyectistas, setLoadingProyectistas] = useState(true);
+  const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
   const { reviewDocs, authUser, getUserProyectistas } = useFirebase()
 
@@ -114,17 +114,16 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
 
   useEffect(() => {
     const fetchProyectistas = async () => {
-      const resProyectistas = await getUserProyectistas(authUser.shift);
-      setProyectistas(resProyectistas);
-      setLoadingProyectistas(false);
-    };
+      const resProyectistas = await getUserProyectistas(authUser.shift)
+      setProyectistas(resProyectistas)
+      setLoadingProyectistas(false)
+    }
 
-    fetchProyectistas();
+    fetchProyectistas()
 
     /* const resProyectistas = getUserProyectistas(authUser.shift)
     setProyectistas(resProyectistas) */
   }, [authUser.shift])
-
 
   const columns = [
     {
@@ -164,7 +163,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       flex: 0.1,
       renderCell: params => {
         const { row } = params
-        let state = row.state && typeof row.state === 'number' ? row.state : 100
+        let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
 
         return (
           <CustomChip
@@ -228,7 +227,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
                     color='secondary'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
                   >
-                    <EngineeringIcon  sx={{ fontSize: 18 }} />
+                    <EngineeringIcon sx={{ fontSize: 18 }} />
                   </Button>
                 </>
               ) : row.state === 7 ? (
@@ -257,7 +256,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
                       color='secondary'
                       sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
                     >
-                      <EngineeringIcon  sx={{ fontSize: 18 }} />
+                      <EngineeringIcon sx={{ fontSize: 18 }} />
                     </Button>
                   </Container>
                 </Select>
@@ -268,7 +267,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
               'Terminado'
             )}
           </>
-        );
+        )
       }
     },
     {
@@ -296,7 +295,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
               ) : row.state === 6 ? (
                 'Sin asignar'
               ) : (
-                 'Terminado'
+                'Terminado'
               )
             ) : row.state === 7 ? (
               <>
@@ -327,10 +326,10 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             ) : row.state === 6 ? (
               'Sin asignar'
             ) : (
-               'Terminado'
+              'Terminado'
             )}
           </>
-        );
+        )
       }
     }
   ]
@@ -354,16 +353,23 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         <AlertDialog
           open={openAlert}
           handleClose={handleCloseAlert}
-
           callback={writeCallback}
           approves={approve}
         ></AlertDialog>
         {loadingProyectistas ? (
-            <p>Loading...</p>
-          ) : (
-          <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={ proyectistas}  />)
-        }
-        {openEvents && <FullScreenDialog open={openEvents} handleClose={handleCloseEvents} doc={doc} roleData={roleData} editButtonVisible={false} />}
+          <p>Loading...</p>
+        ) : (
+          <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
+        )}
+        {openEvents && (
+          <FullScreenDialog
+            open={openEvents}
+            handleClose={handleCloseEvents}
+            doc={doc}
+            roleData={roleData}
+            editButtonVisible={false}
+          />
+        )}
         {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} />}
       </Box>
     </Card>
