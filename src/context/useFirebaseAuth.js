@@ -428,6 +428,11 @@ const FirebaseContextProvider = props => {
       } else {
         newState = approves ? authUser.role + 1 : 10
       }
+      if (newState === 6) {
+        let week = moment(docSnapshot.start).isoWeek()
+        week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
+        await updateDoc(ref, { supervisorShift })
+      }
 
     } else if (authUser.role === 6) {
       console.log(eventDocs)
@@ -437,7 +442,7 @@ const FirebaseContextProvider = props => {
         newState = approves
           ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
             ? devolutionState
-            : authUser.role
+            : authUser.role -1
           : 10
       } else {
         console.log('No se encontraron eventos')
