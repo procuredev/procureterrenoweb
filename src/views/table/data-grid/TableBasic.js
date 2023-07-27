@@ -283,6 +283,12 @@ const TableBasic = ({ rows, role, roleData }) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid
+          disableColumnMenu //disable built-in mui filters
+          initialState={{
+            sorting: {
+              sortModel: [{ field: 'date', sort: 'desc' }]
+            }
+          }}
           hideFooterSelectedRowCount
           rows={rows}
           columns={columns}
