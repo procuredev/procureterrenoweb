@@ -202,11 +202,12 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Acciones',
       renderCell: params => {
         const { row } = params
+        const isPetitioner = role === 2 && row.state === role - 2
         const hasPrevState = role !== 3 && row.state === role - 1
-        const isContop = role === 3 && row.contop === authUser.displayName && row.state === 2
+        const isContop = role === 3 && row.contop === authUser.displayName && (row.state === 2 || row.state === 1)
         const isPlanner = role === 5 && (row.state === 3 || row.state === 4)
         const isRevisado = row.state > role
-        const canEdit = hasPrevState || isContop || isPlanner
+        const canEdit = hasPrevState || isContop || isPlanner || isPetitioner
         const flexDirection = md ? 'row' : 'column'
 
         const renderButtons = (

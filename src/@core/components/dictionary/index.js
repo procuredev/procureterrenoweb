@@ -10,8 +10,8 @@
 // white -> custom blanco (definido en: src/layouts/UserThemeOptions.js)
 // yello -> custom amarillo (definido en: src/layouts/UserThemeOptions.js)
 const dictionary = {
-  0: { name: 'Admin', title: 'En revisión', longTitle: 'En revisión', details: 'En espera de revisión por Solicitante', color: 'white' }, // Blanco
-  1: { name: 'Admin', title: 'Devuelto', longTitle: 'Devuelto para revisión', details: 'En espera de revisión por Solicitante', color: 'orange' }, // Naranaja
+  0: { name: 'Devuelto', title: 'Devuelto', longTitle: 'Devuelto para revisión', details: 'En espera de revisión por Solicitante', color: 'orange' }, // Naranaja
+  1: { name: 'Devuelto', title: 'Devuelto', longTitle: 'Devuelto para revisión', details: 'En espera de revisión por Contract Operator', color: 'orange' }, // Naranaja
   2: { name: 'Solicitante', title: 'En revisión', longTitle: 'En revisión por MEL', details: 'En espera de revisión por Contract Operator', color: 'info'}, // Azul
   3: { name: 'Contract Operator', title: 'En revisión', longTitle: 'En revisión por Procure', details: 'En espera de revisión por Contract Owner', color: 'info'}, // Azul
   4: { name: 'Contract Owner', title: 'En revisión', longTitle: 'En revisión por Procure', details: 'En espera de revisión por Planificador', color: 'info'}, // Azul
