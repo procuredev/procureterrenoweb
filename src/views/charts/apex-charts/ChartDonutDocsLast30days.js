@@ -29,15 +29,17 @@ const ChartDonutDocsLast30days = () => {
   const theme = useTheme()
 
   const [docsByState, setDocsByState] = useState([0,0,0])
+  const [loading, setLoading] = useState(true); // Agregamos un estado para indicar si estamos cargando los datos
 
   useEffect(() => {
-      const fetchData = async () => {
-        const resDocsByStates = await consultAllDocsByState();
-        setDocsByState(resDocsByStates);
-      };
+    const fetchData = async () => {
+      const resDocsByStates = await consultAllDocsByState();
+      setDocsByState(resDocsByStates);
+      setLoading(false); // Cuando los datos se han cargado, actualizamos el estado a false
+    };
 
     fetchData();
-  }, [])
+  }, [loading]);
 
 
   const totalDocuments = docsByState.reduce((total, count) => total + count, 0);
@@ -121,6 +123,8 @@ const ChartDonutDocsLast30days = () => {
     ]
   }
 
+
+
   return (
     <Card>
       <CardHeader
@@ -130,7 +134,8 @@ const ChartDonutDocsLast30days = () => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       />
       <CardContent>
-        <ReactApexcharts type='donut' height={400} options={options} series={docsByState} />
+        {loading? <p>Cargando datos...</p> : <ReactApexcharts type='donut' height={400} options={options} series={docsByState} />}
+
       </CardContent>
     </Card>
   )

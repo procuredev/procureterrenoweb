@@ -43,6 +43,15 @@ const ChartBarsObjetivesByPlants = () => {
 
 
   const options = {
+    /* tooltip: {
+      custom: ({ series, seriesIndex, dataPointIndex, w }) => {
+        const value = series[seriesIndex][dataPointIndex];
+
+        // Personaliza el texto del tooltip
+
+        return `<span>${value} solicitudes</span>`;
+      },
+    }, */
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }
@@ -80,7 +89,9 @@ const ChartBarsObjetivesByPlants = () => {
       axisBorder: { show: false },
       categories: ['LC', 'LS1', 'LS2', 'ChC', 'PC', 'IC'],
       labels: {
-        style: { colors: theme.palette.text.disabled }
+        style: {
+          colors: theme.palette.text.disabled
+        }
       }
     },
     yaxis: { show: false },
