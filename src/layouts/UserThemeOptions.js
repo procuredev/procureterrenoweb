@@ -40,7 +40,7 @@ const UserThemeOptions = () => {
         light: '#FFF9AE',
         main: '#F8ED62',
         dark: '#E9D700',
-        contrastText: '#FFF'
+        contrastText: '#000'
       }
     },
 
