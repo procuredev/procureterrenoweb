@@ -501,7 +501,7 @@ const FormLayoutsSolicitud = () => {
                   onChange={handleChange('title')}
                   error={errors.title ? true : false}
                   helperText={errors.title}
-                  inputProps={{ maxLength: 25 }}
+                  inputProps={{ maxLength: 100 }}
                 />
                 <StyledTooltip title='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'>
                   <StyledInfoIcon color='action'/>
