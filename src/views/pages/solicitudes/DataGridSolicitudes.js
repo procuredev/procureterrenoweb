@@ -264,16 +264,8 @@ const DataGrid = () => {
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
-      <PageHeader
-        title={
-          <Typography variant='h5'  sx={{ mb:5 }}>
-            <Link href='https://mui.com/x/react-data-grid/' target='_blank'>
-              Solicitudes
-            </Link>
-          </Typography>
-        }
-      />
-      <Grid container spacing={2}>
+
+      <Grid container spacing={2} sx={{m:3}}>
         <Grid item xs={12} sm={10}>
           <Grid container spacing={2}>
             {filterTypes.map(type => (

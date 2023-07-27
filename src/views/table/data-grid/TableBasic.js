@@ -203,7 +203,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       renderCell: params => {
         const { row } = params
         const hasPrevState = role !== 3 && row.state === role - 1
-        const isContop = role === 3 && row.contop === authUser.displayName
+        const isContop = role === 3 && row.contop === authUser.displayName && row.state === 2
         const isPlanner = role === 5 && (row.state === 3 || row.state === 4)
         const isRevisado = row.state > role
         const canEdit = hasPrevState || isContop || isPlanner

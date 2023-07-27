@@ -54,17 +54,36 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   state = typeof state === 'number' ? state : 100
 
   const eventArray = useEvents(id)
+  
+  const formatDate = start => {
+    if (!start || !start.seconds) {
+      return ""; // Return an empty string or some default value if start is not provided
+    }
+
+    const fecha = unixToDate(start.seconds)[0];
+    const partesFecha = fecha.split("/");
+
+    const dia = partesFecha[0].padStart(2, "0"); // Add leading zero if day is less than 10
+    const mes = partesFecha[1].padStart(2, "0");
+    const año = partesFecha[2];
+
+    const fechaFormateada = año + "-" + mes + "-" + dia;
+
+    return fechaFormateada;
+  };
+
 
   const initialValues = {
     title,
     plant,
     area,
-    start: start.seconds,
+    start: start && formatDate(start),
     ...(ot && { ot }),
-    ...(end && { end }),
+    ...(end && { end: formatDate(end) }), // Convert end to desired date format
     ...(shift && { shift }),
-    description
-  }
+    description,
+  };
+
 
   // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
@@ -104,19 +123,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleCloseAlert = () => {
     setOpenAlert(false)
     setEditable(false)
-  }
-
-   const formatDate = start => {
-    const fecha = unixToDate(start.seconds)[0]
-    const partesFecha = fecha.split('/')
-
-    const dia = partesFecha[0]
-    const mes = partesFecha[1].padStart(2, '0')
-    const año = partesFecha[2]
-
-    const fechaFormateada = año + '-' + mes + '-' + dia
-
-    return fechaFormateada
   }
 
   return (
@@ -245,7 +251,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     label='Fecha de inicio'
                     type='date'
                     id='start-input'
-                    defaultValue={start && formatDate(start)}
+                    defaultValue={values.start}
                     size='small'
                     sx={{ mb: 5, mr: 2, flex: 'auto' }}
                   />
@@ -266,7 +272,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     id='end-input'
                     size='small'
                     sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                    defaultValue={end && formatDate(end)}
+                    defaultValue={values.end}
                   />
                 </Box>
               ) : (
