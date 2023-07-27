@@ -211,21 +211,23 @@ const TableBasic = ({ rows, role, roleData }) => {
 
         const renderButtons = (
           <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
-            <Button
-              onClick={() => handleClickOpenAlert(row, true)}
-              variant='contained'
-              color='success'
-              sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-            >
-              <Check sx={{ fontSize: 18 }} />
-            </Button>
+            {!isPlanner && (
+              <Button
+                onClick={() => handleClickOpenAlert(row, true)}
+                variant='contained'
+                color='success'
+                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                <Check sx={{ fontSize: 18 }} />
+              </Button>
+            )}
             <Button
               onClick={() => handleClickOpen(row)}
               variant='contained'
-              color='secondary'
+              color={isPlanner ? 'success' : 'secondary'}
               sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
             >
-              <Edit sx={{ fontSize: 18 }} />
+              {isPlanner ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
             </Button>
             <Button
               onClick={() => handleClickOpenAlert(row, false)}
