@@ -167,7 +167,7 @@ const FormLayoutsSolicitud = () => {
         break
       }
       case prop === 'start': {
-        let startDate = event._d
+        let startDate = event
         const resultDate = await consultBlockDayInDB(startDate)
         if (resultDate.blocked) {
           setAlertMessage(resultDate.msj)
@@ -175,7 +175,7 @@ const FormLayoutsSolicitud = () => {
           setAlertMessage(resultDate.msj)
           setValues({
             ...values,
-            start: moment(startDate).startOf('date')
+            start: moment(startDate).startOf('date').add(4, 'hours') //arreglo charcha pero util -> no se cambia la fecha (Chile es UTC-4 y en verano UTC-3)
           })
         }
       }
