@@ -273,6 +273,12 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   ]
 
+  const isPetitioner = role === 2 && doc.state === role - 2
+  const hasPrevState = role !== 3 && doc.state === role - 1
+  const isContop = role === 3 && doc.contop === authUser.displayName && (doc.state === 2 || doc.state === 1)
+  const isPlanner = role === 5 && (doc.state === 3 || doc.state === 4)
+  const canEdit = hasPrevState || isContop || isPlanner || isPetitioner
+
   return (
     <Card>
       <Box sx={{ height: 500 }}>
@@ -301,7 +307,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             handleClose={handleClose}
             doc={doc}
             roleData={roleData}
-            editButtonVisible={true}
+            editButtonVisible={canEdit}
           />
         )}
       </Box>
