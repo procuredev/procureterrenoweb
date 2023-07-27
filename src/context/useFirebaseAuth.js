@@ -390,7 +390,7 @@ const FirebaseContextProvider = props => {
     const docSnapshot = querySnapshot.data()
     const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
-    const devolutionState = userQuerySnapshot.data().role - 1;
+    const devolutionState = userQuerySnapshot.data().role - 2;
 
    /*  if (userQuerySnapshot.exists()) {
       const devolutionState = userQuerySnapshot.data().role - 1;
@@ -412,7 +412,7 @@ const FirebaseContextProvider = props => {
     let newState
     let supervisorShift
     if (authUser.role === 2) {
-      newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 2 ? 4 : 6) : 10
+      newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 0 ? 6 : 4) : 10
       if (newState === 6) {
         let week = moment(docSnapshot.start.toDate()).isoWeek();
         supervisorShift = week % 2 === 0 ? 'A' : 'B';
@@ -421,7 +421,7 @@ const FirebaseContextProvider = props => {
     } else if (authUser.role === 3) {
       if (eventDocs.lenght > 0) {
         newState = approves
-          ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 5
+          ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 1
             ? 6
             : authUser.role + 1
           : 10
@@ -442,7 +442,7 @@ const FirebaseContextProvider = props => {
         newState = approves
           ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
             ? devolutionState
-            : authUser.role -1
+            : authUser.role
           : 10
       } else {
         console.log('No se encontraron eventos')
