@@ -111,25 +111,16 @@ const ForgotPassword = () => {
       return
     }
 
-    try {
-      await resetPassword(email)
+    await resetPassword(email).then(user => {
+      // Manejar la respuesta exitosa
       setAlertMessage('Se ha enviado un correo con indicaciones para cambiar tu contraseña')
+    })
+    .catch(error => {
+      // Manejar el error y mostrar el mensaje al usuario
+      const errorMessage = error.message
+      setAlertMessage(errorMessage)
+    })
 
-      // toast.success('Se ha enviado un correo con indicaciones para cambiar tu contraseña', {
-      //   position: 'top-right'
-      // })
-    } catch (error) {
-      let errorMessage = error.message
-
-      if (errorMessage === 'Firebase: Error (auth/user-not-found).') {
-        errorMessage = 'El e-mail ingresado no existe dentro de nuestro sistema'
-      } else if (errorMessage === 'Firebase: Error (auth/invalid-email).') {
-        errorMessage = 'Por favor, ingresa un e-mail válido'
-      }
-
-      // setErrorMessage(errorMessage)
-      setAlertMessage('Se ha enviado un correo con indicaciones para cambiar tu contraseña')
-    }
   }
 
   const imageSource =
