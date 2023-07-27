@@ -257,40 +257,12 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
             )
           })}
         </List>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 2 } }}>
-            {/* <Icon icon='mdi:account-multiple-outline' fontSize='1.25rem' />
-            <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-              {`Public to ${themeConfig.templateName} - Pixinvent`}
-            </Typography> */}
-          </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Asignar Proyectistas
           </Button>
         </Box>
-        <Menu
-          keepMounted
-          anchorEl={anchorEl}
-          onClose={handleClose}
-          open={Boolean(anchorEl)}
-          id='modal-share-examples'
-          anchorOrigin={{ vertical: 'bottom', horizontal: direction === 'ltr' ? 'right' : 'left' }}
-          transformOrigin={{ vertical: 'top', horizontal: direction === 'ltr' ? 'right' : 'left' }}
-        >
-          <MenuItem value='owner' sx={{ fontSize: '0.875rem' }} onClick={handleClose}>
-            Owner
-          </MenuItem>
-          <MenuItem value='Can Edit' sx={{ fontSize: '0.875rem' }} onClick={handleClose}>
-            Can Edit
-          </MenuItem>
-          <MenuItem value='Can Comment' sx={{ fontSize: '0.875rem' }} onClick={handleClose}>
-            Can Comment
-          </MenuItem>
-          <MenuItem value='Can View' sx={{ fontSize: '0.875rem' }} onClick={handleClose}>
-            Can View
-          </MenuItem>
-        </Menu>
       </DialogContent>
     </Dialog>
   )

@@ -200,13 +200,7 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
             )
           })}
         </List>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 2 } }}>
-            {/* <Icon icon='mdi:account-multiple-outline' fontSize='1.25rem' />
-            <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-              {`Public to ${themeConfig.templateName} - Pixinvent`}
-            </Typography> */}
-          </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar
