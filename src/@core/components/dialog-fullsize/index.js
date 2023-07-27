@@ -38,9 +38,12 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 })
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
+   // Nueva variable para definir el valor inicial de 'editable'
+  let isPlanner = (roleData && roleData.id === "5")
+
   let { title, state, description, start, user, date, plant, area, id, ot, end, shift, userRole } = doc
   const [values, setValues] = useState({})
-  const [editable, setEditable] = useState(false)
+  const [editable, setEditable] = useState(isPlanner)
   const [openAlert, setOpenAlert] = useState(false)
   const [eventData, setEventData] = useState(undefined)
 
@@ -169,7 +172,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <Box>
                   {/*Botón para editar*/}
-                  {editButtonVisible ? (
+                  {(editButtonVisible && !isPlanner) ? (
                     <IconButton
                     onClick={() => setEditable(prev => !prev)}
                     color='primary'
@@ -265,6 +268,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
+                  required = {isPlanner}
                     onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
                     InputLabelProps={{ shrink: true }}
                     label='Fecha de término'
@@ -284,6 +288,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
+                    required = {isPlanner}
                     onChange={e => setValues({ ...values, ot: e.target.value })}
                     label='OT'
                     id='OT-input'
@@ -298,7 +303,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   OT Procure: {ot}
                 </Typography>
               )}
-              {/*Asigna turno */}
+              {/* Turno */}
               {shift &&
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
                   Turno: {shift}
@@ -324,7 +329,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
               {editable ? (
                 <Button onClick={() => handleOpenAlert()} variant='contained'>
-                  Guardar
+                  {isPlanner ? 'Aprobar y guardar' : 'Guardar'}
                 </Button>
               ) : null}
 
