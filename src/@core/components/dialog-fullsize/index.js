@@ -5,6 +5,10 @@ import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import Close from '@mui/icons-material/Close'
 import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogActions from '@mui/material/DialogActions'
+import DialogTitle from '@mui/material/DialogTitle'
 import Paper from '@mui/material/Paper'
 import Box from '@mui/system/Box'
 import TextField from '@mui/material/TextField'
@@ -38,11 +42,12 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 })
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
-   // Nueva variable para definir el valor inicial de 'editable'
-  let isPlanner = (roleData && roleData.id === "5")
+  // Nueva variable para definir el valor inicial de 'editable'
+  let isPlanner = roleData && roleData.id === '5'
 
   let { title, state, description, start, user, date, plant, area, id, ot, end, shift, userRole } = doc
   const [values, setValues] = useState({})
+  const [message, setMessage] = useState('')
   const [editable, setEditable] = useState(isPlanner)
   const [openAlert, setOpenAlert] = useState(false)
   const [eventData, setEventData] = useState(undefined)
@@ -60,21 +65,20 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const formatDate = start => {
     if (!start || !start.seconds) {
-      return ""; // Return an empty string or some default value if start is not provided
+      return '' // Return an empty string or some default value if start is not provided
     }
 
-    const fecha = unixToDate(start.seconds)[0];
-    const partesFecha = fecha.split("/");
+    const fecha = unixToDate(start.seconds)[0]
+    const partesFecha = fecha.split('/')
 
-    const dia = partesFecha[0].padStart(2, "0"); // Add leading zero if day is less than 10
-    const mes = partesFecha[1].padStart(2, "0");
-    const año = partesFecha[2];
+    const dia = partesFecha[0].padStart(2, '0') // Add leading zero if day is less than 10
+    const mes = partesFecha[1].padStart(2, '0')
+    const año = partesFecha[2]
 
-    const fechaFormateada = año + "-" + mes + "-" + dia;
+    const fechaFormateada = año + '-' + mes + '-' + dia
 
-    return fechaFormateada;
-  };
-
+    return fechaFormateada
+  }
 
   const initialValues = {
     title,
@@ -84,9 +88,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     ...(ot && { ot }),
     ...(end && { end: formatDate(end) }), // Convert end to desired date format
     ...(shift && { shift }),
-    description,
-  };
-
+    description
+  }
 
   // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
@@ -101,7 +104,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   // Handlea dialog
 
   const handleOpenAlert = () => {
-    setOpenAlert(true)
+    if (roleData.id === '5') {
+      if (values.end && values.ot) {
+        setOpenAlert(true)
+      } else {
+        setMessage('Debes ingresar OT y fecha de término')
+      }
+    } else {
+      setOpenAlert(true)
+    }
   }
 
   const writeCallback = () => {
@@ -136,19 +147,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       TransitionComponent={Transition}
       scroll='body'
     >
-      {/* <AppBar sx={{ position: 'relative', display: { display } }}>
-        <Toolbar>
-          <IconButton edge='start' color='inherit' onClick={() => handleClose()} aria-label='close'>
-            <CloseIcon />
-          </IconButton>
-          <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
-            Detalles de la solicitud
-          </Typography>
-          <Button autoFocus color='inherit' onClick={() => handleClose()}>
-            Cerrar
-          </Button>
-        </Toolbar>
-      </AppBar> */}
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
       <Paper sx={{ margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
@@ -172,21 +170,20 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <Box>
                   {/*Botón para editar*/}
-                  {(editButtonVisible && !isPlanner) ? (
+                  {editButtonVisible && !isPlanner ? (
                     <IconButton
-                    onClick={() => setEditable(prev => !prev)}
-                    color='primary'
-                    aria-label='edit'
-                    component='button'
-                  >
-                    <Edit />
-                  </IconButton>
+                      onClick={() => setEditable(prev => !prev)}
+                      color='primary'
+                      aria-label='edit'
+                      component='button'
+                    >
+                      <Edit />
+                    </IconButton>
                   ) : (
-                  <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
-                  {''}
-                </Typography>
-                 )
-                }
+                    <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
+                      {''}
+                    </Typography>
+                  )}
                   <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
                     {/*este botón debería cerrar y setEditable false*/}
                     <Close />
@@ -268,7 +265,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
-                  required = {isPlanner}
+                    required={isPlanner}
                     onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
                     InputLabelProps={{ shrink: true }}
                     label='Fecha de término'
@@ -288,7 +285,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                   <TextField
-                    required = {isPlanner}
+                    required={isPlanner}
                     onChange={e => setValues({ ...values, ot: e.target.value })}
                     label='OT'
                     id='OT-input'
@@ -298,17 +295,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   />
                 </Box>
               ) : (
-                ot &&
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  OT Procure: {ot}
-                </Typography>
+                ot && (
+                  <Typography sx={{ mb: 4 }} color='textSecondary'>
+                    OT Procure: {ot}
+                  </Typography>
+                )
               )}
               {/* Turno */}
-              {shift &&
+              {shift && (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
                   Turno: {shift}
                 </Typography>
-              }
+              )}
               {/*Descripción */}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -318,7 +316,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     id='desc-input'
                     defaultValue={description}
                     size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto'  }}
+                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
                   />
                 </Box>
               ) : (
@@ -332,7 +330,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   {isPlanner ? 'Aprobar y guardar' : 'Guardar'}
                 </Button>
               ) : null}
-
 
               {eventData !== undefined &&
                 eventData.length > 0 &&
@@ -370,15 +367,28 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </TimelineSeparator>
                 <TimelineContent>
                   <Typography variant='body1'> Solicitud hecha por {user}</Typography>
-                  {userRole == 2 ? (<Typography variant='body2'> En espera de revisión de Contract Operator </Typography>)
-                  : userRole == 3 ? (<Typography variant='body2'> En espera de revisión de Planificador</Typography>)
-                  : (<Typography variant='body2'> En espera de revisión</Typography>)}
+                  {userRole == 2 ? (
+                    <Typography variant='body2'> En espera de revisión de Contract Operator </Typography>
+                  ) : userRole == 3 ? (
+                    <Typography variant='body2'> En espera de revisión de Planificador</Typography>
+                  ) : (
+                    <Typography variant='body2'> En espera de revisión</Typography>
+                  )}
                 </TimelineContent>
               </TimelineItem>
             </Timeline>
           </Box>
         )}
       </Paper>
+      <Dialog open={!!message} aria-labelledby='message-dialog-title' aria-describedby='message-dialog-description'>
+        <DialogTitle id='message-dialog-title'>Creando solicitud</DialogTitle>
+        <DialogContent>
+          <DialogContentText id='message-dialog-description'>{message}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setMessage('')}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   )
 }
