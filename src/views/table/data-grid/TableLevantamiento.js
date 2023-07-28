@@ -179,11 +179,22 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       field: 'plant',
       headerName: 'Planta',
       flex: 0.3,
-      minWidth: 200,
+      minWidth: 180,
       renderCell: params => {
         const { row } = params
 
         return <div>{row.plant || 'N/A'}</div>
+      }
+    },
+    {
+      field: 'date',
+      headerName: 'Creación',
+      flex: 0.1,
+      minWidth: 90,
+      renderCell: params => {
+        const { row } = params
+
+        return <div>{unixToDate(row.date.seconds)[0]}</div>
       }
     },
     {
@@ -209,7 +220,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       }
     },
     {
-      field: 'user',
+      field: 'assign',
       headerName: 'Asignar',
       flex: 0.1,
       minWidth: md ? 90 : 80,
@@ -273,7 +284,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       flex: 0.1,
       minWidth: md ? 110 : 80,
-      field: 'actions',
+      field: 'done',
       headerName: 'Terminar',
       renderCell: params => {
         const { row } = params
@@ -343,8 +354,9 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
           columns={columns}
           columnVisibilityModel={{
             ot: md,
-            user: md,
             end: md,
+            assign: md,
+            done: md,
 
             actions: roleData.canApprove
           }}

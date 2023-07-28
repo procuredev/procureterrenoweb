@@ -653,6 +653,9 @@ const FirebaseContextProvider = props => {
             case 5:
               q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 2))
               break
+              case 7:
+                q = query(collection(db, 'solicitudes'), where('state', '>=', 6), orderBy('state'), orderBy('date', 'desc'))
+              break
             default:
               if (getAllDocs.includes(authUser.role) && ![1, 9].includes(authUser.role)) {
                 q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 1))
@@ -660,6 +663,8 @@ const FirebaseContextProvider = props => {
               break
           }
         }
+
+
 
         const unsubscribe = onSnapshot(q, async querySnapshot => {
           try {

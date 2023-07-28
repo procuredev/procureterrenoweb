@@ -90,15 +90,6 @@ const DataGridLevantamientos = () => {
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
-      {/* <PageHeader
-        title={
-          <Typography variant='h5'>
-            <Link href='https://mui.com/x/react-data-grid/' target='_blank'>
-              Levantamientos
-            </Link>
-          </Typography>
-        }
-      /> */}
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <TabList onChange={handleChange} aria-label="lab API tabs example">

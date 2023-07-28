@@ -168,7 +168,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   label={state ? dictionary[state].title : 'Cargando...'}
                   color={state ? dictionary[state].color : 'primary'}
                   size='small'
-                  sx={{ width: 90 }}
+                  sx={{ width: 180 }}
                 />
                 <Box>
                   {/*Botón para editar*/}
