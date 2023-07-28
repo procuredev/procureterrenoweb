@@ -94,7 +94,7 @@ const StyledInfoIcon = styled(InfoIcon)(({ theme }) => ({
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
-    start: moment.utc().startOf('date'),
+    start: moment.utc().startOf('date').add(8, 'hours'),
     plant: '',
     area: '',
     contop: '',
@@ -175,7 +175,7 @@ const FormLayoutsSolicitud = () => {
           setAlertMessage(resultDate.msj)
           setValues({
             ...values,
-            start: moment(startDate).startOf('date').add(4, 'hours') //arreglo charcha pero util -> no se cambia la fecha (Chile es UTC-4 y en verano UTC-3)
+            start: moment(startDate).startOf('date').add(8, 'hours') //arreglo charcha pero util -> no se cambia la fecha (Chile es UTC-4 y en verano UTC-3)
           })
         }
       }

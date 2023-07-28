@@ -48,6 +48,33 @@ const searchbyColletionAndField = async (col, field, value) => {
   }
 }
 
+ // Obtener usuarios con rol 8 según su turno
+ const getSupervisorData = async (shift) => {
+  // Realiza la consulta según el campo proporcionado
+  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', '==', shift))
+
+  try {
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) {
+      console.log(`No se encontró ningún vsupervisor para el turno ${shift}`)
+
+      return null
+    } else {
+      // Accede al UID de la solicitud encontrada
+      const uid = querySnapshot.docs[0].id
+      const name = querySnapshot.docs[0].data().name
+      const email = querySnapshot.docs[0].data().email
+
+      return {uid: uid, name: name, email: email}
+    }
+  } catch (error) {
+    console.log('Error al buscar la solicitud: ', error)
+
+    return null
+  }
+}
+
 // Función que retorna los usuarios que deben ir en copia y el mensaje respectivo
 const getUsersOnCopyAndMessage = (
   user,
@@ -207,6 +234,17 @@ const getUsersOnCopyAndMessage = (
     const dataPetitioner = await getData(petitionerUid) // Para el solicitante indicado en el campo "Solicitante" se obtiene su datos de Firestore
     const petitionerEmail = dataPetitioner.email // Se selecciona el email del solicitante indicado en el campo "Solicitante"
 
+    // Se rescatan los datos de quien será el Supervisor una vez que la solicituc alcanzaels estado 6
+    var supervisorEmail = null
+    var supervisorName = null
+    if (requirementData.supervisorShift) {
+      const supervisorShift = requirementData.supervisorShift // Se rescata el nombre del campo "supervisorShift" en la base de datos
+      const supervisorData = await getSupervisorData(supervisorShift) // Para el supervisor indicado se obtiene su datos de Firestore
+      supervisorEmail = supervisorData.email // Se selecciona el email del supervisor
+      supervisorName = supervisorData.name // Se selecciona el email del supervisor
+    }
+
+
     if (requesterRole == 2) {
       // Si el rol de quien hizo la solicitud es 2
 
@@ -266,10 +304,9 @@ const getUsersOnCopyAndMessage = (
         }
 
         // Variable que almacena el Supervisor que estará a cargo del levantamiento
-        var supervisorName = null // Se inicializa como null
         // Si el campo existe dentro del documento
-        if (requirementData.supervisor) {
-          supervisorName = requirementData.supervisor // Se actualiza supervisorName con el dato existente
+        if (supervisorName) {
+           // Se actualiza supervisorName con el dato existente
         } else {
           // Si el campo no existe dentro del documento
           supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
