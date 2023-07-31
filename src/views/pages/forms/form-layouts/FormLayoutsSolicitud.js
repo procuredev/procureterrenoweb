@@ -169,15 +169,17 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event
-        const resultDate = await consultBlockDayInDB(startDate.toDate());
+        setValues({
+          ...values,
+          start: moment.tz(startDate, 'America/Santiago').startOf('day'),
+        })
+
+        const resultDate = await consultBlockDayInDB(startDate.toDate())
+
         if (resultDate.blocked) {
           setAlertMessage(resultDate.msj)
         } else {
           setAlertMessage(resultDate.msj)
-          setValues({
-            ...values,
-            start: moment.tz(startDate, 'America/Santiago').startOf('day'),
-          })
         }
       }
     }
@@ -401,10 +403,10 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isBlocked = await consultBlockDayInDB(values.start._d)
+    const isBlocked = await consultBlockDayInDB(values.start.toDate())
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
 
-    if (Object.keys(formErrors).length === 0 || areFieldsValid || !isBlocked || !invalidFiles) {
+    if (Object.keys(formErrors).length === 0 && areFieldsValid === true && isBlocked.blocked === false && invalidFiles.length === 0) {
       try {
         setIsUploading(true) // Se activa el Spinner
 
@@ -424,6 +426,9 @@ const FormLayoutsSolicitud = () => {
         setIsUploading(false) // Se cierra el spinner en caso de error
       }
     } else {
+      if(isBlocked.blocked){
+        setAlertMessage(isBlocked.msj)
+      }
       setIsUploading(false)
       setErrors(formErrors)
     }
