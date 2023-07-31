@@ -169,7 +169,7 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event
-        const resultDate = await consultBlockDayInDB(startDate)
+        const resultDate = await consultBlockDayInDB(startDate.toDate());
         if (resultDate.blocked) {
           setAlertMessage(resultDate.msj)
         } else {
