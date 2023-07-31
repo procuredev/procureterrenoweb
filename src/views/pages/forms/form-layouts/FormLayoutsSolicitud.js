@@ -417,7 +417,7 @@ const FormLayoutsSolicitud = () => {
         setIsUploading(false)
 
         // Se envía el mensaje de éxito
-        setAlertMessage('Documento creado exitosamente con ID: ' + solicitud.id)
+        setAlertMessage('Documento creado exitosamente')
         handleRemoveAllFiles()
         setValues(initialValues)
         setErrors({})
