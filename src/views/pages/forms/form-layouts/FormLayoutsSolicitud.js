@@ -6,7 +6,8 @@ import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useRouter } from 'next/router'
 
 // ** Date Library
-import moment from 'moment'
+//import moment from 'moment'
+import moment from 'moment-timezone'
 import 'moment/locale/es'
 
 // ** MUI Imports
@@ -94,7 +95,7 @@ const StyledInfoIcon = styled(InfoIcon)(({ theme }) => ({
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
-    start: moment.utc().startOf('date').add(8, 'hours'),
+    start: moment.tz('America/Santiago').startOf('day'),
     plant: '',
     area: '',
     contop: '',
@@ -175,7 +176,7 @@ const FormLayoutsSolicitud = () => {
           setAlertMessage(resultDate.msj)
           setValues({
             ...values,
-            start: moment(startDate).startOf('date').add(8, 'hours') //arreglo charcha pero util -> no se cambia la fecha (Chile es UTC-4 y en verano UTC-3)
+            start: moment.tz(startDate, 'America/Santiago').startOf('day'),
           })
         }
       }
@@ -407,7 +408,7 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: values.start._d })
+        const solicitud = await newDoc({ ...values, start: values.start.toDate() })
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
