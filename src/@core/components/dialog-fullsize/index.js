@@ -100,6 +100,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       } else {
         setMessage('Debes ingresar OT y fecha de término')
       }
+    } else if (roleData.id === '6' && values.start && !values.end) {
+      setMessage('Debes modificar la fecha de término')
     } else {
       setOpenAlert(true)
     }
@@ -135,7 +137,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const handleDateChange = dateField => date => {
-    setValues({ ...values, [dateField]: moment.tz(date, 'America/Santiago').startOf('day') })
+    setValues({ ...values, [dateField]: moment.tz(date, 'GMT').startOf('day') })
   }
 
   return (
@@ -249,7 +251,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               )}
               {/*Fecha de inicio*/}
               {editable && roleData && roleData.canEditDate ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap',  mb: 5}}>
                   <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                     <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                       <Box display='flex' alignItems='center'>
@@ -271,8 +273,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </Typography>
               )}
               {/*Asigna término */}
-              {editable && roleData && roleData.canEditValues ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+              {editable && roleData && roleData.canEditDate ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
                   <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                     <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                       <Box display='flex' alignItems='center'>

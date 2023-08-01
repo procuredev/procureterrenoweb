@@ -484,7 +484,7 @@ const FirebaseContextProvider = props => {
   }
 
   // ** Modifica otros campos documentos
-  const updateDocs = async (id, obj, eventDocs) => {
+  const updateDocs = async (id, obj) => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
     const docSnapshot = querySnapshot.data()
@@ -505,18 +505,19 @@ const FirebaseContextProvider = props => {
       let value = obj[key]
       if (key === 'start' || key === 'end') {
         // Asegura que value sea un objeto de fecha válido de Moment.js
-        value = moment(value)
+        value = moment(value).startOf('day')
+        value = value._d
       }
 
       // Verifica si el valor ha cambiado y lo guarda, si es fecha lo formatea
       if (value && value !== docSnapshot[key]) {
-        changedFields[key] = key === 'start' || key === 'end' ? value.toDate() : value
+        changedFields[key] = value
         prevDoc[key] = docSnapshot[key]
       }
 
       // Registra si no existía start o end, si es fecha formatea el nuevo
       if (!docSnapshot[key]) {
-        changedFields[key] = key === 'start' || key === 'end' ? value.toDate() : value
+        changedFields[key] = value
         prevDoc[key] = 'none'
       }
     }
@@ -542,14 +543,9 @@ const FirebaseContextProvider = props => {
         newState = authUser.role
         changedFields.state = newState
       }
-    } else if (isAdmCon && eventDocs.length > 0) {
+    } else if (isAdmCon) {
       // ** Admin Contrato
-      newState =
-        eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
-          ? eventDocs[0].data().prevDoc.start.seconds === obj.start
-            ? authUser.role
-            : previousRole
-          : obj.start !== docSnapshot.start.seconds
+      newState = obj.start !== docSnapshot.start.seconds
           ? previousRole
           : authUser.role
 
@@ -569,16 +565,15 @@ const FirebaseContextProvider = props => {
       date: Timestamp.fromDate(new Date())
     }
 
-    if (Object.keys(prevDoc).length === 0) {
+    if (Object.keys(prevDoc).length === 0 || Object.keys(changedFields).length <= 0) {
       console.log('No se escribió ningún documento')
-    }
-    if (Object.keys(changedFields).length > 0) {
+    } else {
       await updateDoc(ref, changedFields)
-    }
-    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+      await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
 
-    // Se envía e-mail al prevState y al newState
+      // Se envía e-mail al prevState y al newState
     sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
+    }
   }
 
   // ** Modifica otros campos Usuarios
