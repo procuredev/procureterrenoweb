@@ -68,12 +68,11 @@ const Navigation = () => {
     },
     {
       title: 'Supervisor',
-      icon: 'mdi:shield-account-outline',
+      icon: 'mdi:account-hard-hat',
       children: [
         {
           path: '/levantamientos',
           title: 'Levantamientos',
-          icon: 'mdi:account-hard-hat',
           subject: 'levantamientos',
         },
       ],

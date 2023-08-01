@@ -127,6 +127,7 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
   const [show, setShow] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
   const [draftmen, setDraftmen] = useState([])
+  const [filteredOptions, setFilteredOptions] = useState(proyectistas);
 
 
 
@@ -170,6 +171,14 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
     }
   }
 
+  const filterOptions = (options, { inputValue }) => {
+    // Convierte las opciones seleccionadas en un array de nombres
+    const selectedNames = draftmen.map((draftman) => draftman.name);
+
+    // Filtra las opciones y devuelve solo las que no están en el array de nombres seleccionados
+    return options.filter((option) => !selectedNames.includes(option.name));
+  };
+
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
   return (
@@ -201,10 +210,11 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
           autoHighlight
           sx={{ mb: 8 }}
           id='add-members'
-          options={proyectistas}
+          options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
           ListboxComponent={List}
           getOptionLabel={option => option.name}
           renderInput={params => <TextField {...params} size='small' placeholder='Seleccionar proyectistas...' />}
+          filterOptions={filterOptions} // Agrega este prop
           renderOption={(props, option) => (
             <ListItem {...props} onClick={() => handleListItemClick(option)}>
               <ListItemAvatar>
@@ -253,7 +263,7 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
                       onClick={() => handleClickDelete(draftman.name)}
                       aria-controls='modal-share-examples'
                     >
-                      <Icon icon='mdi:delete-circle-outline' fontSize={20} color= '#f44336' />
+                      <Icon icon='mdi:delete-forever' fontSize={20} color= '#f44336' />
                     </IconButton>
                 </ListItemSecondaryAction>
               </ListItem>
