@@ -13,14 +13,16 @@ import Paper from '@mui/material/Paper'
 import Box from '@mui/system/Box'
 import TextField from '@mui/material/TextField'
 import Edit from '@mui/icons-material/Edit'
-import AppBar from '@mui/material/AppBar'
+import FormControl from '@mui/material/FormControl'
 import Chip from '@mui/material/Chip'
 import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import CloseIcon from '@mui/icons-material/Close'
 import Slide from '@mui/material/Slide'
 import Skeleton from '@mui/material/Skeleton'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import {
   Timeline,
   TimelineItem,
@@ -36,6 +38,11 @@ import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase, getData } from 'src/context/useFirebaseAuth'
 import localDate from 'src/@core/utils/handle-date-offset'
+
+// ** Date Library
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -63,30 +70,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const eventArray = useEvents(id)
 
-  const formatDate = start => {
-    if (!start || !start.seconds) {
-      return '' // Return an empty string or some default value if start is not provided
-    }
-
-    const fecha = unixToDate(start.seconds)[0]
-    const partesFecha = fecha.split('/')
-
-    const dia = partesFecha[0].padStart(2, '0') // Add leading zero if day is less than 10
-    const mes = partesFecha[1].padStart(2, '0')
-    const año = partesFecha[2]
-
-    const fechaFormateada = año + '-' + mes + '-' + dia
-
-    return fechaFormateada
-  }
-
   const initialValues = {
     title,
     plant,
     area,
-    start: start && formatDate(start),
+    start: start && moment.unix(start.seconds).tz('America/Santiago').startOf('day'),
     ...(ot && { ot }),
-    ...(end && { end: formatDate(end) }), // Convert end to desired date format
+    ...(end && { end: moment.unix(end.seconds).tz('America/Santiago').startOf('day') }),
     ...(shift && { shift }),
     description
   }
@@ -137,6 +127,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleCloseAlert = () => {
     setOpenAlert(false)
     setEditable(false)
+  }
+
+  // Función onchange utilizando currying
+  const handleInputChange = field => event => {
+    setValues({ ...values, [field]: event.target.value })
+  }
+
+  const handleDateChange = dateField => date => {
+    setValues({ ...values, [dateField]: moment.tz(date, 'America/Santiago').startOf('day') })
   }
 
   return (
@@ -192,14 +191,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               </Box>
               {/*Título */}
               {editable && roleData && roleData.canEditValues ? (
-                <TextField
-                  onChange={e => setValues({ ...values, title: e.target.value })}
-                  label='Título'
-                  id='title-input'
-                  defaultValue={title}
-                  size='small'
-                  sx={{ mt: 5, mb: 5, mr: 2 }}
-                />
+                <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                  <TextField
+                    onChange={handleInputChange('title')}
+                    label='Título'
+                    id='title-input'
+                    defaultValue={title}
+                    size='small'
+                    sx={{ mt: 5, mb: 5, mr: 2 }}
+                  />
+                </FormControl>
               ) : (
                 <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
                   Título: {title}
@@ -211,14 +212,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {/*Planta*/}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    onChange={e => setValues({ ...values, plant: e.target.value })}
-                    label='Planta'
-                    id='plant-input'
-                    defaultValue={plant}
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                  />
+                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                    <TextField
+                      onChange={handleInputChange('plant')}
+                      label='Planta'
+                      id='plant-input'
+                      defaultValue={plant}
+                      size='small'
+                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                    />
+                  </FormControl>
                 </Box>
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
@@ -228,14 +231,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {/*Área*/}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    onChange={e => setValues({ ...values, area: e.target.value })}
-                    label='Área'
-                    id='area-input'
-                    defaultValue={area}
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                  />
+                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                    <TextField
+                      onChange={handleInputChange('area')}
+                      label='Área'
+                      id='area-input'
+                      defaultValue={area}
+                      size='small'
+                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                    />
+                  </FormControl>
                 </Box>
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
@@ -245,16 +250,20 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {/*Fecha de inicio*/}
               {editable && roleData && roleData.canEditDate ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    InputLabelProps={{ shrink: true }}
-                    onChange={e => setValues({ ...values, start: localDate(e.target.value) })}
-                    label='Fecha de inicio'
-                    type='date'
-                    id='start-input'
-                    defaultValue={values.start}
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                  />
+                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                      <Box display='flex' alignItems='center'>
+                        <DatePicker
+                          minDate={moment().subtract(1, 'year')}
+                          maxDate={moment().add(1, 'year')}
+                          label='Fecha de inicio'
+                          value={values.start}
+                          onChange={handleDateChange('start')}
+                          InputLabelProps={{ shrink: true, required: true }}
+                        />
+                      </Box>
+                    </LocalizationProvider>
+                  </FormControl>
                 </Box>
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
@@ -264,17 +273,20 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {/*Asigna término */}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    required={isPlanner}
-                    onChange={e => setValues({ ...values, end: localDate(e.target.value) })}
-                    InputLabelProps={{ shrink: true }}
-                    label='Fecha de término'
-                    type='date'
-                    id='end-input'
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                    defaultValue={values.end}
-                  />
+                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                      <Box display='flex' alignItems='center'>
+                        <DatePicker
+                          minDate={moment().subtract(1, 'year')}
+                          maxDate={moment().add(1, 'year')}
+                          label='Fecha de término'
+                          value={values.end}
+                          onChange={handleDateChange('end')}
+                          InputLabelProps={{ shrink: true, required: true }}
+                        />
+                      </Box>
+                    </LocalizationProvider>
+                  </FormControl>
                 </Box>
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>
@@ -284,15 +296,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {/*Asigna OT */}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    required={isPlanner}
-                    onChange={e => setValues({ ...values, ot: e.target.value })}
-                    label='OT'
-                    id='OT-input'
-                    defaultValue={ot}
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                  />
+                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                    <TextField
+                      required={isPlanner}
+                      onChange={handleInputChange('ot')}
+                      label='OT'
+                      id='OT-input'
+                      defaultValue={ot}
+                      size='small'
+                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                    />
+                  </FormControl>
                 </Box>
               ) : (
                 ot && (
@@ -310,14 +324,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {/*Descripción */}
               {editable && roleData && roleData.canEditValues ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <TextField
-                    onChange={e => setValues({ ...values, description: e.target.value })}
-                    label='Descripción'
-                    id='desc-input'
-                    defaultValue={description}
-                    size='small'
-                    sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                  />
+                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                    <TextField
+                      onChange={handleInputChange('description')}
+                      label='Descripción'
+                      id='desc-input'
+                      defaultValue={description}
+                      size='small'
+                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                    />
+                  </FormControl>
                 </Box>
               ) : (
                 <Typography sx={{ mb: 4 }} color='textSecondary'>

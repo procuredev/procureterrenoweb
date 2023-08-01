@@ -48,7 +48,7 @@ import { sendEmailNewPetition } from './sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './sendEmailWhenReviewDocs'
 
 // Librería
-import { capitalize } from 'lodash';
+import { capitalize } from 'lodash'
 import { async } from '@firebase/util'
 
 const FirebaseContextProvider = props => {
@@ -66,7 +66,6 @@ const FirebaseContextProvider = props => {
 
   // ** Libreria de fechas
   const moment = require('moment')
-
 
   // ** Consultar rol del usuario
 
@@ -173,7 +172,6 @@ const FirebaseContextProvider = props => {
         } catch (error) {
           console.error('Error al subir la imagen:', error)
         }
-
       } else {
         const storageRef = ref(storage, `fotoPerfil/${user}/nuevaFoto`)
 
@@ -390,9 +388,9 @@ const FirebaseContextProvider = props => {
     const docSnapshot = querySnapshot.data()
     const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
-    const devolutionState = userQuerySnapshot.data().role - 2;
+    const devolutionState = userQuerySnapshot.data().role - 2
 
-   /*  if (userQuerySnapshot.exists()) {
+    /*  if (userQuerySnapshot.exists()) {
       const devolutionState = userQuerySnapshot.data().role - 1;
 
       // Resto del código que usa devolutionState
@@ -401,8 +399,6 @@ const FirebaseContextProvider = props => {
 
       // Manejo del caso en que el documento no existe o está vacío
     } */
-
-
 
     const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
     const eventQuerySnapshot = await getDocs(eventQuery)
@@ -414,9 +410,9 @@ const FirebaseContextProvider = props => {
     if (authUser.role === 2) {
       newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 0 ? 6 : 4) : 10
       if (newState === 6) {
-        let week = moment(docSnapshot.start.toDate()).isoWeek();
-        supervisorShift = week % 2 === 0 ? 'A' : 'B';
-        await updateDoc(ref, { supervisorShift });
+        let week = moment(docSnapshot.start.toDate()).isoWeek()
+        supervisorShift = week % 2 === 0 ? 'A' : 'B'
+        await updateDoc(ref, { supervisorShift })
       }
     } else if (authUser.role === 3) {
       if (eventDocs.lenght > 0) {
@@ -433,7 +429,6 @@ const FirebaseContextProvider = props => {
         week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
         await updateDoc(ref, { supervisorShift })
       }
-
     } else if (authUser.role === 6) {
       console.log(eventDocs)
       if (eventDocs.length > 0) {
@@ -449,12 +444,12 @@ const FirebaseContextProvider = props => {
         newState = approves ? authUser.role : 10
       }
       if (newState === 6) {
-        let week = moment(docSnapshot.start.toDate()).isoWeek();
-        supervisorShift = week % 2 === 0 ? 'A' : 'B';
-        await updateDoc(ref, { supervisorShift });
+        let week = moment(docSnapshot.start.toDate()).isoWeek()
+        supervisorShift = week % 2 === 0 ? 'A' : 'B'
+        await updateDoc(ref, { supervisorShift })
       }
-    }else if (authUser.role === 7) {
-      if(Array.isArray(approves)){
+    } else if (authUser.role === 7) {
+      if (Array.isArray(approves)) {
         newState = 7
         const draftmen = approves
 
@@ -493,7 +488,7 @@ const FirebaseContextProvider = props => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
     const docSnapshot = querySnapshot.data()
-    const prevState = docSnapshot.state // 'estado anterior'
+    const prevState = docSnapshot.state
     const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
     const devolutionState = userQuerySnapshot.data().role - 1
@@ -502,34 +497,21 @@ const FirebaseContextProvider = props => {
     let newState
     let newEvent = {}
 
-    const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
-    const eventQuerySnapshot = await getDocs(eventQuery)
-    const eventDocs = eventQuerySnapshot.docs
-
     for (const key in obj) {
-      let resource = moment(obj[key]).startOf('date')._d
-      let objKeySeconds = getUnixTime(resource)
-      if (key !== 'start' && key !== 'end' && obj[key] !== docSnapshot[key]) {
-        changedFields[key] = obj[key]
+      let value = obj[key]
+      if (key === 'start' || key === 'end') {
+        // Asegúrate de que value sea un objeto de fecha válido de Moment.js
+        value = moment(value)
+      }
+
+      // Verifica si el valor ha cambiado y realiza acciones apropiadas
+      if (value && value !== docSnapshot[key]) {
+        changedFields[key] = key === 'start' || key === 'end' ? value.toDate() : value
         prevDoc[key] = docSnapshot[key]
       }
 
-      if (key === 'start' && docSnapshot[key] && objKeySeconds !== docSnapshot[key].seconds) {
-        changedFields[key] = new Date(obj[key] * 1000)
-        console.log(key, "key")
-        console.log(obj[key])
-        prevDoc[key] = docSnapshot[key]
-      } else if (key === 'end'){
-        console.log("**********")
-        console.log(key, "key")
-        console.log(obj[key])
-        console.log("**********")
-        changedFields[key] = new Date(obj[key] * 1000)
-        prevDoc[key] = docSnapshot[key]
-      }
-
-      if (!docSnapshot[key] ) {
-        changedFields[key] = key === 'start' || key === 'end' ? new Date(obj[key] * 1000) : obj[key]
+      if (!docSnapshot[key]) {
+        changedFields[key] = key === 'start' || key === 'end' ? value.toDate() : value
         prevDoc[key] = 'none'
       }
     }
@@ -540,9 +522,9 @@ const FirebaseContextProvider = props => {
     } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0 && docSnapshot.state >= 6) {
       // si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
       if (newState === 6) {
-        let week = moment(docSnapshot.start.toDate()).isoWeek();
-        supervisorShift = week % 2 === 0 ? 'A' : 'B';
-        await updateDoc(ref, { supervisorShift });
+        let week = moment(docSnapshot.start.toDate()).isoWeek()
+        supervisorShift = week % 2 === 0 ? 'A' : 'B'
+        await updateDoc(ref, { supervisorShift })
       }
       newState = docSnapshot.state
     } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
@@ -663,8 +645,13 @@ const FirebaseContextProvider = props => {
             case 5:
               q = query(collection(db, 'solicitudes'), where('state', '>=', authUser.role - 2))
               break
-              case 7:
-                q = query(collection(db, 'solicitudes'), where('state', '>=', 6), orderBy('state'), orderBy('date', 'desc'))
+            case 7:
+              q = query(
+                collection(db, 'solicitudes'),
+                where('state', '>=', 6),
+                orderBy('state'),
+                orderBy('date', 'desc')
+              )
               break
             default:
               if (getAllDocs.includes(authUser.role) && ![1, 9].includes(authUser.role)) {
@@ -673,8 +660,6 @@ const FirebaseContextProvider = props => {
               break
           }
         }
-
-
 
         const unsubscribe = onSnapshot(q, async querySnapshot => {
           try {
@@ -722,16 +707,16 @@ const FirebaseContextProvider = props => {
 
   // Obtener los usuarios con un rol y planta específicos (utilizado para contOp y solicitante)
   const getUsers = async (plant, shift = '') => {
-
     // Consultar la colección 'users' con los filtros de planta, turno y rol
-    const q = shift!==''
-      ? query(
-          collection(db, 'users'),
-          where('plant', 'array-contains-any', plant),
-          where('shift', '!=', shift),
-          where('role', '==', 2)
-        )
-      : query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 3))
+    const q =
+      shift !== ''
+        ? query(
+            collection(db, 'users'),
+            where('plant', 'array-contains-any', plant),
+            where('shift', '!=', shift),
+            where('role', '==', 2)
+          )
+        : query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 3))
 
     const querySnapshot = await getDocs(q)
     let allDocs = []
@@ -880,8 +865,6 @@ const FirebaseContextProvider = props => {
 
     return allDocs
   }
-
-
 
   // **FIN - FUNCIONES CREADAS POR JORGE**
 
@@ -1075,94 +1058,93 @@ const FirebaseContextProvider = props => {
       // Si no hay documentos, retornar verdadero indicando que el correo no está registrado
       return true
     }
-  };
+  }
 
   const consultAllDocsInDB = async () => {
-    const coll = collection(db, "solicitudes");
-    const snapshot = await getCountFromServer(coll);
+    const coll = collection(db, 'solicitudes')
+    const snapshot = await getCountFromServer(coll)
 
     return snapshot.data().count
   }
 
   const consultAllObjetivesInDB = async () => {
-    const coll = collection(db, "solicitudes");
-    const q = query(coll, where("state", ">=", 6));
-    const snapshot = await getCountFromServer(q);
+    const coll = collection(db, 'solicitudes')
+    const q = query(coll, where('state', '>=', 6))
+    const snapshot = await getCountFromServer(q)
 
     return snapshot.data().count
   }
 
   const consultObjetivesOfActualWeek = async () => {
-    const startDate = moment().startOf('isoWeek').toDate();
-    const endDate = moment().endOf('isoWeek').toDate();
-    const documentsByDay = Array(7).fill(0);
-    const coll = collection(db, 'solicitudes');
-    const q = query(coll, where("state", ">=", 6));
-    const snapshot = await getDocs(q);
+    const startDate = moment().startOf('isoWeek').toDate()
+    const endDate = moment().endOf('isoWeek').toDate()
+    const documentsByDay = Array(7).fill(0)
+    const coll = collection(db, 'solicitudes')
+    const q = query(coll, where('state', '>=', 6))
+    const snapshot = await getDocs(q)
 
-    snapshot.forEach((doc) => {
-      const start = doc.data().start.toDate(); // Convierte el campo 'start' a una fecha
-      const dayOfWeek = moment(start).isoWeekday(); // Obtiene el día de la semana (1: lunes, 2: martes, etc.)
+    snapshot.forEach(doc => {
+      const start = doc.data().start.toDate() // Convierte el campo 'start' a una fecha
+      const dayOfWeek = moment(start).isoWeekday() // Obtiene el día de la semana (1: lunes, 2: martes, etc.)
       if (moment(start).isSameOrAfter(startDate) && moment(start).isSameOrBefore(endDate)) {
-        documentsByDay[dayOfWeek - 1]++; // Incrementa el contador correspondiente en el array
+        documentsByDay[dayOfWeek - 1]++ // Incrementa el contador correspondiente en el array
       }
-    });
+    })
 
     return documentsByDay
-
   }
 
   const consultObjetivesLastSixMonths = async () => {
-    const currentDate = moment();
-  const monthsData = [];
+    const currentDate = moment()
+    const monthsData = []
 
-  const coll = collection(db, 'solicitudes');
-  const queries = [];
+    const coll = collection(db, 'solicitudes')
+    const queries = []
 
-  for (let i = 0; i < 6; i++) {
-    const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate();
-    const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate();
+    for (let i = 0; i < 6; i++) {
+      const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate()
+      const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate()
 
-    const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate));
-    queries.push(getDocs(q));
+      const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate))
+      queries.push(getDocs(q))
+    }
+
+    const snapshots = await Promise.all(queries)
+
+    snapshots.forEach((snapshot, index) => {
+      const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6)
+      const cant = filteredDocs.length
+
+      const monthStartDate = currentDate.clone().subtract(index, 'months').startOf('month')
+      const month = capitalize(monthStartDate.locale('es').format('MMM'))
+
+      monthsData.unshift({ month, cant })
+    })
+
+    return monthsData
   }
 
-  const snapshots = await Promise.all(queries);
-
-  snapshots.forEach((snapshot, index) => {
-    const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6);
-    const cant = filteredDocs.length;
-
-    const monthStartDate = currentDate.clone().subtract(index, 'months').startOf('month');
-    const month = capitalize(monthStartDate.locale('es').format('MMM'));
-
-    monthsData.unshift({ month, cant });
-  });
-
-  return monthsData;
-  };
-
   const consultAllDocsByPlants = async () => {
-    const coll = collection(db, "solicitudes");
-    const q1 = query(coll, where("plant", "==", 'Planta Concentradora Los Colorados'));
-    const q2 = query(coll, where("plant", "==", 'Planta Concentradora Laguna Seca | Línea 1'));
-    const q3 = query(coll, where("plant", "==", 'Planta Concentradora Laguna Seca | Línea 2'));
-    const q4 = query(coll, where("plant", "==", 'Chancado y Correas'));
-    const q5 = query(coll, where("plant", "==", 'Puerto Coloso'));
-    const q6 = query(coll, where("plant", "==", 'Instalaciones Cátodo'));
+    const coll = collection(db, 'solicitudes')
+    const q1 = query(coll, where('plant', '==', 'Planta Concentradora Los Colorados'))
+    const q2 = query(coll, where('plant', '==', 'Planta Concentradora Laguna Seca | Línea 1'))
+    const q3 = query(coll, where('plant', '==', 'Planta Concentradora Laguna Seca | Línea 2'))
+    const q4 = query(coll, where('plant', '==', 'Chancado y Correas'))
+    const q5 = query(coll, where('plant', '==', 'Puerto Coloso'))
+    const q6 = query(coll, where('plant', '==', 'Instalaciones Cátodo'))
 
-    const queryAllPlants = [q1, q2, q3, q4, q5, q6];
+    const queryAllPlants = [q1, q2, q3, q4, q5, q6]
 
-    const promises = queryAllPlants.map((query) => getCountFromServer(query));
-    const snapshots = await Promise.all(promises);
+    const promises = queryAllPlants.map(query => getCountFromServer(query))
+    const snapshots = await Promise.all(promises)
 
-    const documentsByPlants = snapshots.map((snapshot) => snapshot.data().count);
+    const documentsByPlants = snapshots.map(snapshot => snapshot.data().count)
 
-    return documentsByPlants;
-  };
+    return documentsByPlants
+  }
 
   const consultAllObjetivesByPlants = async () => {
-    const coll = collection(db, "solicitudes");
+    const coll = collection(db, 'solicitudes')
 
     const queries = [
       { plant: 'Planta Concentradora Los Colorados' },
@@ -1170,112 +1152,110 @@ const FirebaseContextProvider = props => {
       { plant: 'Planta Concentradora Laguna Seca | Línea 2' },
       { plant: 'Chancado y Correas' },
       { plant: 'Puerto Coloso' },
-      { plant: 'Instalaciones Cátodo' },
-    ];
+      { plant: 'Instalaciones Cátodo' }
+    ]
 
-    const promises = queries.map(async (item) => {
-      const q = query(coll, where("plant", "==", item.plant), where("state", ">=", 6));
-      const snapshot = await getDocs(q);
+    const promises = queries.map(async item => {
+      const q = query(coll, where('plant', '==', item.plant), where('state', '>=', 6))
+      const snapshot = await getDocs(q)
 
-      return snapshot.size;
-    });
+      return snapshot.size
+    })
 
-    const results = await Promise.all(promises);
+    const results = await Promise.all(promises)
 
-    return results;
-  };
+    return results
+  }
 
   const consultAllDocsByState = async () => {
-    const coll = collection(db, "solicitudes");
-    const q1 = query(coll, where("state", ">=", 1), where("state", "<", 6));
-    const q2 = query(coll, where("state", ">=", 6), where("state", "<", 10));
-    const q3 = query(coll, where("state", "==", 10));
+    const coll = collection(db, 'solicitudes')
+    const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6))
+    const q2 = query(coll, where('state', '>=', 6), where('state', '<', 10))
+    const q3 = query(coll, where('state', '==', 10))
 
+    const queryAllStates = [q1, q2, q3]
 
-    const queryAllStates = [q1, q2, q3];
+    const promises = queryAllStates.map(query => getCountFromServer(query))
+    const snapshots = await Promise.all(promises)
 
-    const promises = queryAllStates.map((query) => getCountFromServer(query));
-    const snapshots = await Promise.all(promises);
+    const documentsByState = snapshots.map(snapshot => snapshot.data().count)
 
-    const documentsByState = snapshots.map((snapshot) => snapshot.data().count);
-
-    return documentsByState;
-  };
+    return documentsByState
+  }
 
   const consultAllObjetivesByState = async () => {
-    const coll = collection(db, "solicitudes");
-    const q1 = query(coll, where("state", "==", 6));
-    const q2 = query(coll, where("state", "==", 7));
-    const q3 = query(coll, where("state", ">=", 8), where("state", "<", 10));
+    const coll = collection(db, 'solicitudes')
+    const q1 = query(coll, where('state', '==', 6))
+    const q2 = query(coll, where('state', '==', 7))
+    const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10))
 
+    const queryAllStates = [q1, q2, q3]
 
-    const queryAllStates = [q1, q2, q3];
+    const promises = queryAllStates.map(query => getCountFromServer(query))
+    const snapshots = await Promise.all(promises)
 
-    const promises = queryAllStates.map((query) => getCountFromServer(query));
-    const snapshots = await Promise.all(promises);
+    const documentsByState = snapshots.map(snapshot => snapshot.data().count)
 
-    const documentsByState = snapshots.map((snapshot) => snapshot.data().count);
-
-    return documentsByState;
-  };
+    return documentsByState
+  }
 
   const getUsersWithSolicitudes = async () => {
-    const collSolicitudes = collection(db, 'solicitudes');
-    const qSolicitudes = query(collSolicitudes);
-    const solicitudesSnapshot = await getDocs(qSolicitudes);
+    const collSolicitudes = collection(db, 'solicitudes')
+    const qSolicitudes = query(collSolicitudes)
+    const solicitudesSnapshot = await getDocs(qSolicitudes)
 
-    const solicitudesByUser = {};
+    const solicitudesByUser = {}
 
-    solicitudesSnapshot.forEach((doc) => {
-      const { uid } = doc.data();
+    solicitudesSnapshot.forEach(doc => {
+      const { uid } = doc.data()
       if (uid) {
         if (solicitudesByUser[uid]) {
-          solicitudesByUser[uid].docs++;
+          solicitudesByUser[uid].docs++
         } else {
           solicitudesByUser[uid] = {
             id: uid,
-            docs: 1,
-          };
+            docs: 1
+          }
         }
       }
-    });
+    })
 
-    const sortedUsers = Object.values(solicitudesByUser).sort((a, b) => b.docs - a.docs);
-    const limitedUsers = sortedUsers.slice(0, 10);
+    const sortedUsers = Object.values(solicitudesByUser).sort((a, b) => b.docs - a.docs)
+    const limitedUsers = sortedUsers.slice(0, 10)
 
     // Consulta adicional a la colección 'users'
-    const collUsers = collection(db, 'users');
-    const usersSnapshot = await getDocs(collUsers);
+    const collUsers = collection(db, 'users')
+    const usersSnapshot = await getDocs(collUsers)
 
-    const usersWithProperties = limitedUsers.map((user) => {
-      const userSnapshot = usersSnapshot.docs.find((doc) => doc.id === user.id);
+    const usersWithProperties = limitedUsers.map(user => {
+      const userSnapshot = usersSnapshot.docs.find(doc => doc.id === user.id)
       if (userSnapshot) {
-        const userData = userSnapshot.data();
+        const userData = userSnapshot.data()
 
         if (userData.urlFoto) {
           return {
             ...user,
             name: userData.name,
             plant: userData.plant,
-            avatarSrc: userData.urlFoto,
-          };
+            avatarSrc: userData.urlFoto
+          }
         } else {
           return {
             ...user,
             name: userData.name,
-            plant: userData.plant,
-          };
+            plant: userData.plant
+          }
         }
       } else {
-        return user;
+        return user
       }
-    });
+    })
 
-    return usersWithProperties;
-  };
+    return usersWithProperties
+  }
 
-   // Obtener usuarios con rol 8 según su turno
-   const getUserProyectistas = async shift => {
+  // Obtener usuarios con rol 8 según su turno
+  const getUserProyectistas = async shift => {
     // Definir la consulta con una condición de igualdad en el campo 'shift'
     const q = query(collection(db, 'users'), where('role', '==', 8), where('shift', '==', shift))
 
@@ -1290,15 +1270,15 @@ const FirebaseContextProvider = props => {
 
     // Recorrer cada documento y agregarlo al arreglo 'allDocs'
     proyectistasDocs.forEach(doc => {
-      if(doc.data().urlFoto){
+      if (doc.data().urlFoto) {
         allDocs.push({ userId: doc.id, name: doc.data().name, avatar: doc.data().urlFoto })
       } else {
-        allDocs.push({ userId: doc.id, name: doc.data().name}) //, unit: doc.data().unit
+        allDocs.push({ userId: doc.id, name: doc.data().name }) //, unit: doc.data().unit
       }
     })
 
     return allDocs
-  };
+  }
 
   const value = {
     authUser,
