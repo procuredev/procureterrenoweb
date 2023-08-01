@@ -388,12 +388,12 @@ const FirebaseContextProvider = props => {
     const docSnapshot = querySnapshot.data()
     const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
-    const devolutionState = userQuerySnapshot.data().role - 2
+    const previousRole = userQuerySnapshot.data().role - 2
 
     /*  if (userQuerySnapshot.exists()) {
-      const devolutionState = userQuerySnapshot.data().role - 1;
+      const previousRole = userQuerySnapshot.data().role - 1;
 
-      // Resto del código que usa devolutionState
+      // Resto del código que usa previousRole
     } else {
       console.log('El documento del usuario no existe o no contiene datos válidos.');
 
@@ -415,7 +415,7 @@ const FirebaseContextProvider = props => {
         await updateDoc(ref, { supervisorShift })
       }
     } else if (authUser.role === 3) {
-      if (eventDocs.lenght > 0) {
+      if (eventDocs.length > 0) {
         newState = approves
           ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 1
             ? 6
@@ -436,7 +436,7 @@ const FirebaseContextProvider = props => {
         console.log(lastEvent)
         newState = approves
           ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
-            ? devolutionState
+            ? previousRole
             : authUser.role
           : 10
       } else {
@@ -484,14 +484,18 @@ const FirebaseContextProvider = props => {
   }
 
   // ** Modifica otros campos documentos
-  const updateDocs = async (id, obj) => {
+  const updateDocs = async (id, obj, eventDocs) => {
     const ref = doc(db, 'solicitudes', id)
     const querySnapshot = await getDoc(ref)
     const docSnapshot = querySnapshot.data()
     const prevState = docSnapshot.state
     const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
-    const devolutionState = userQuerySnapshot.data().role - 1
+    const previousRole = userQuerySnapshot.data().role - 1
+    const isContop = authUser.role === 3
+    const isPlanner = authUser.role === 5
+    const isAdmCon = authUser.role === 6
+    const isUnchanged = Object.keys(obj).length === 0
     let changedFields = {}
     let prevDoc = {}
     let newState
@@ -500,52 +504,62 @@ const FirebaseContextProvider = props => {
     for (const key in obj) {
       let value = obj[key]
       if (key === 'start' || key === 'end') {
-        // Asegúrate de que value sea un objeto de fecha válido de Moment.js
+        // Asegura que value sea un objeto de fecha válido de Moment.js
         value = moment(value)
       }
 
-      // Verifica si el valor ha cambiado y realiza acciones apropiadas
+      // Verifica si el valor ha cambiado y lo guarda, si es fecha lo formatea
       if (value && value !== docSnapshot[key]) {
         changedFields[key] = key === 'start' || key === 'end' ? value.toDate() : value
         prevDoc[key] = docSnapshot[key]
       }
 
+      // Registra si no existía start o end, si es fecha formatea el nuevo
       if (!docSnapshot[key]) {
         changedFields[key] = key === 'start' || key === 'end' ? value.toDate() : value
         prevDoc[key] = 'none'
       }
     }
 
-    if (authUser.role === 3 && obj.start !== docSnapshot.start.seconds) {
-      newState = devolutionState
+    // ** Flujo estados
+    // ** Contract operator
+    // Cambio fecha contop: de estado 2 --> 1 o 0
+    if (isContop && obj.start !== docSnapshot.start.seconds) {
+      newState = previousRole - 1
       changedFields.state = newState
-    } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0 && docSnapshot.state >= 6) {
-      // si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
-      if (newState === 6) {
-        let week = moment(docSnapshot.start.toDate()).isoWeek()
-        supervisorShift = week % 2 === 0 ? 'A' : 'B'
-        await updateDoc(ref, { supervisorShift })
+    } else if (isPlanner && !isUnchanged) {
+      // ** Planificador
+      // Si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
+      if (docSnapshot.state >= 6) {
+        if (obj.start !== docSnapshot.start.seconds) {
+          let week = moment(docSnapshot.start.toDate()).isoWeek()
+          supervisorShift = week % 2 === 0 ? 'A' : 'B'
+          await updateDoc(ref, { supervisorShift })
+        }
+        newState = docSnapshot.state
+      } else {
+        // Si planificador cambia de fecha, solictud cambia state a 5
+        newState = authUser.role
+        changedFields.state = newState
       }
-      newState = docSnapshot.state
-    } else if (authUser.role === 5 && Object.keys(prevDoc).length > 0) {
-      // si planificador cambia de fecha, solictud cambia state a 5
-      newState = authUser.role
-      changedFields.state = newState
-    } else if (authUser.role === 6 && eventDocs.length > 0) {
+    } else if (isAdmCon && eventDocs.length > 0) {
+      // ** Admin Contrato
       newState =
         eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
           ? eventDocs[0].data().prevDoc.start.seconds === obj.start
             ? authUser.role
-            : devolutionState
+            : previousRole
           : obj.start !== docSnapshot.start.seconds
-          ? devolutionState
+          ? previousRole
           : authUser.role
 
       changedFields.state = newState
     } else {
+      // ** Default
       newState = authUser.role
       changedFields.state = newState
     }
+
     newEvent = {
       prevDoc,
       prevState,

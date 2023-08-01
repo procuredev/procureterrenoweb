@@ -162,8 +162,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
-                  label={state ? dictionary[state].title : 'Cargando...'}
-                  color={state ? dictionary[state].color : 'primary'}
+                  label={state || state === 0 ? dictionary[state].title : 'Cargando...'}
+                  color={state || state === 0 ? dictionary[state].color : 'primary'}
                   size='small'
                   sx={{ width: 180 }}
                 />
