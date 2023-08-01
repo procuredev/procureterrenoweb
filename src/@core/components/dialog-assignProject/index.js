@@ -209,9 +209,10 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
             <ListItem {...props} onClick={() => handleListItemClick(option)}>
               <ListItemAvatar>
                 {option.avatar? <Avatar src={`/images/avatars/${option.avatar}`} alt={option.name} sx={{ height: 28, width: 28 }} /> :
-                  <CustomAvatar skin='light' sx={{ mr: 3, width: 28, height: 28, fontSize: '.8rem' }}>
+                  <CustomAvatar skin='light' sx={{ mr: 3, width: 28, height: 28, objectFit: 'contain', bgcolor: 'primary.main', color: 'white', fontSize: '.8rem' }}>
                   {getInitials(option.name ? option.name : 'John Doe')}
-                </CustomAvatar> }
+                </CustomAvatar>
+                }
 
               </ListItemAvatar>
               <ListItemText primary={option.name} />
@@ -234,9 +235,11 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
                 <ListItemAvatar>
                   {draftman.avatar?
                     <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} /> :
-                    <CustomAvatar skin='light' >
-                      {getInitials(draftman.name ? draftman.name : 'John Doe')}
-                    </CustomAvatar> }
+                    <CustomAvatar skin='light' sx={{ mr: 3, width: 34, height: 34, objectFit: 'contain', bgcolor: 'primary.main', color: 'white', fontSize: '.8rem' }}>
+                    {getInitials(draftman.name ? draftman.name : 'John Doe')}
+                  </CustomAvatar>
+
+                     }
                 </ListItemAvatar>
                 <ListItemText
                   primary={draftman.name}

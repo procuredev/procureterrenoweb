@@ -97,10 +97,15 @@ const renderUserAvatar = row => {
   if (row.avatarSrc) {
     return <CustomAvatar src={row.avatarSrc} sx={{ mr: 3, width: 34, height: 34 }} />
   } else {
+
+
     return (
-      <CustomAvatar skin='light' sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}>
+
+
+      <CustomAvatar skin='light' sx={{ mr: 3, width: 34, height: 34, objectFit: 'contain', bgcolor: 'primary.main', color: 'white', fontSize: '.8rem' }}>
         {getInitials(row.name ? row.name : 'John Doe')}
       </CustomAvatar>
+
     )
   }
 }
