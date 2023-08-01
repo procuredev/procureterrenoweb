@@ -57,7 +57,7 @@ const searchbyColletionAndField = async (col, field, value) => {
     const querySnapshot = await getDocs(q)
 
     if (querySnapshot.empty) {
-      console.log(`No se encontró ningún vsupervisor para el turno ${shift}`)
+      console.log(`No se encontró ningún supervisor para el turno ${shift}`)
 
       return null
     } else {
@@ -85,6 +85,7 @@ const getUsersOnCopyAndMessage = (
   cOwnerEmail,
   plannerEmail,
   admContEmail,
+  supervisorEmail,
   petitionerFieldEmail
 ) => {
   var arrayCC = [] // Se inicializa un array vacío
@@ -151,6 +152,18 @@ const getUsersOnCopyAndMessage = (
       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
       message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
     }
+
+    // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+    else if (prevState == 6 && newState == 7) {
+      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+      message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
+    }
+
+    // && prevState es 7 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+    else if (prevState == 7 && newState == 8) {
+      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+      message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
+    }
   }
 
   // Si el rol de quien hizo la solicitud es "Contract Operator"
@@ -174,7 +187,7 @@ const getUsersOnCopyAndMessage = (
     }
 
     // && prevState es 5 && newState es 2 -> Modificación hecha por Procure
-    else if (prevState == 5 && newState == 2) {
+    else if (prevState == 5 && newState == 1) {
       arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
       message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
     }
@@ -187,8 +200,20 @@ const getUsersOnCopyAndMessage = (
 
     // && prevState es 5 && newState es 10 -> Solicitud rechazada por Procure
     else if (prevState == 5 && newState == 10) {
-      arrayCC = [cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
       message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+    }
+
+    // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+    else if (prevState == 6 && newState == 7) {
+      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+      message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
+    }
+
+    // && prevState es 7 && newState es 7 -> Supervisor termina el levantamiento
+    else if (prevState == 7 && newState == 8) {
+      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+      message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
     }
   }
 
@@ -231,19 +256,25 @@ const getUsersOnCopyAndMessage = (
     // Se rescatan los datos de quien se indicó como "solicitante" en ese campo al generar la solicitud
     const petitionerName = requirementData.petitioner // Se rescata el nombre del campo "Solicitiante" en Nueva Solicitud
     const petitionerUid = await searchbyColletionAndField('users', 'name', petitionerName) // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del solicitante indicado en el campo "Solicitante"
-    const dataPetitioner = await getData(petitionerUid) // Para el solicitante indicado en el campo "Solicitante" se obtiene su datos de Firestore
-    const petitionerEmail = dataPetitioner.email // Se selecciona el email del solicitante indicado en el campo "Solicitante"
+    const petitionerData = await getData(petitionerUid) // Para el solicitante indicado en el campo "Solicitante" se obtiene su datos de Firestore
+    const petitionerEmail = petitionerData.email // Se selecciona el email del solicitante indicado en el campo "Solicitante"
 
-    // Se rescatan los datos de quien será el Supervisor una vez que la solicituc alcanzaels estado 6
-    var supervisorEmail = null
-    var supervisorName = null
+    // Se rescatan los datos de quien será el Supervisor una vez que la solicitud alcanza el estado 6
+    // Variable que almacena el Supervisor que estará a cargo del levantamiento
+    var supervisorEmail = ''
+    var supervisorName = ''
+
+    // Si el campo existe dentro del documento
     if (requirementData.supervisorShift) {
+      // Se actualiza supervisorName con el dato existente
       const supervisorShift = requirementData.supervisorShift // Se rescata el nombre del campo "supervisorShift" en la base de datos
       const supervisorData = await getSupervisorData(supervisorShift) // Para el supervisor indicado se obtiene su datos de Firestore
       supervisorEmail = supervisorData.email // Se selecciona el email del supervisor
       supervisorName = supervisorData.name // Se selecciona el email del supervisor
+    } else {
+      // Si el campo no existe dentro del documento
+      supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
     }
-
 
     if (requesterRole == 2) {
       // Si el rol de quien hizo la solicitud es 2
@@ -254,8 +285,6 @@ const getUsersOnCopyAndMessage = (
       const cOperatorData = await getData(cOperatorUid) // Para este C.Operator se obtiene su datos de Firestore
       const cOperatorEmail = cOperatorData.email // Se selecciona el email del C.Operator
 
-
-
       const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
         user,
         requesterRole,
@@ -265,6 +294,7 @@ const getUsersOnCopyAndMessage = (
         cOwnerEmail,
         plannerEmail,
         admContEmail,
+        supervisorEmail,
         petitionerEmail
       )
 
@@ -301,15 +331,6 @@ const getUsersOnCopyAndMessage = (
         } else {
           // Si el campo no existe dentro del documento
           otNumber = 'Por definir' // La variable otNumber queda 'Por definir'
-        }
-
-        // Variable que almacena el Supervisor que estará a cargo del levantamiento
-        // Si el campo existe dentro del documento
-        if (supervisorName) {
-           // Se actualiza supervisorName con el dato existente
-        } else {
-          // Si el campo no existe dentro del documento
-          supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
         }
 
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
@@ -421,6 +442,7 @@ const getUsersOnCopyAndMessage = (
         cOwnerEmail,
         plannerEmail,
         admContEmail,
+        supervisorEmail,
         petitionerEmail
       )
 
@@ -457,16 +479,6 @@ const getUsersOnCopyAndMessage = (
         } else {
           // Si el campo no existe dentro del documento
           otNumber = 'Por definir' // La variable otNumber queda 'Por definir'
-        }
-
-        // Variable que almacena el Supervisor que estará a cargo del levantamiento
-        var supervisorName = null // Se inicializa como null
-        // Si el campo existe dentro del documento
-        if (requirementData.supervisor) {
-          supervisorName = requirementData.supervisor // Se actualiza supervisorName con el dato existente
-        } else {
-          // Si el campo no existe dentro del documento
-          supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
         }
 
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email

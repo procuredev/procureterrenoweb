@@ -25,6 +25,32 @@ const admin = require('firebase-admin')
 // Se inicializa el SDK admin de Firebase
 admin.initializeApp()
 
+const getSupervisorData = async (shift) => {
+  // Realiza la consulta según el campo proporcionado
+  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', '==', shift))
+
+  try {
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) {
+      console.log(`No se encontró ningún supervisor para el turno ${shift}`)
+
+      return null
+    } else {
+      // Accede al UID de la solicitud encontrada
+      const uid = querySnapshot.docs[0].id
+      const name = querySnapshot.docs[0].data().name
+      const email = querySnapshot.docs[0].data().email
+
+      return {uid: uid, name: name, email: email}
+    }
+  } catch (error) {
+    console.log('Error al buscar la solicitud: ', error)
+
+    return null
+  }
+}
+
 // * Función que revisa la base de datos cada 60 minutos
 exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes').onRun(async context => {
   const requestsRef = admin.firestore().collection('solicitudes') // Se llama a la colección de datos 'solicitudes' en Firestore
@@ -121,11 +147,18 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
               otNumber = 'Por definir' // La variable otNumber queda 'Por definir'
             }
 
+            // Se rescatan los datos de quien será el Supervisor una vez que la solicitud alcanza el estado 6
             // Variable que almacena el Supervisor que estará a cargo del levantamiento
-            var supervisorName = null // Se inicializa como null
+            var supervisorEmail = ''
+            var supervisorName = ''
+
             // Si el campo existe dentro del documento
-            if (requestData.supervisor) {
-              supervisorName = requestData.supervisor // Se actualiza supervisorName con el dato existente
+            if (requestData.supervisorShift) {
+              // Se actualiza supervisorName con el dato existente
+              const supervisorShift = requestData.supervisorShift // Se rescata el nombre del campo "supervisorShift" en la base de datos
+              const supervisorData = await getSupervisorData(supervisorShift) // Para el supervisor indicado se obtiene su datos de Firestore
+              supervisorEmail = supervisorData.email // Se selecciona el email del supervisor
+              supervisorName = supervisorData.name // Se selecciona el email del supervisor
             } else {
               // Si el campo no existe dentro del documento
               supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
@@ -142,7 +175,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
                 subject: `Solicitud de levantamiento: N°${requestData.n_request} - ${requestData.title}`,
                 html: `
                   <h2>Estimad@ ${requestData.user}:</h2>
-                  <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${reqContractOperatorName} modificó la fecha del levantamiento. A continuación puede encontrar el detalle de la solicitud:</p>
+                  <p>Con fecha ${fechaCompleta.toLocaleDateString('es-CL')} a las ${fechaCompleta.toLocaleTimeString('es-CL')}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${reqContractOperatorName} modificó la fecha del levantamiento. A continuación puede encontrar el detalle de la solicitud:</p>
                   <table style="width:100%;">
                     <tr>
                       <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
@@ -245,14 +278,14 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
     const requestsSnapshot = await requestsRef.where('start', '>=', today).where('start', '<', tomorrow).get() // Busca documentos cuya fecha de inicio sea hoy
 
     const requestsDocs = requestsSnapshot.docs
-      .filter(doc => 'supervisor' in doc.data())
-      .filter(doc => doc.data().state == 6) // Se filtra requestDocs para llamar a aquellos documentos que tienen un campo 'supervisor' y que su estado sea 6 (aprobado por Procure)
+      .filter(doc => 'supervisorShift' in doc.data())
+      .filter(doc => (doc.data().state == 6 || doc.data().state == 7)) // Se filtra requestDocs para llamar a aquellos documentos que tienen un campo 'supervisorShift' y que su estado sea 6 o 7 (aprobado por Procure, pero sin terminar)
 
     let supervisorArray = [] // Crea un array vacío para almacenar los supervisores
 
-    // Itera sobre cada documento para encontrar los nombres de los Supervisores que tienen trabajos para hoy
+    // Itera sobre cada documento para encontrar los turnos de los Supervisores que tienen trabajos para hoy
     requestsDocs.forEach(doc => {
-      const supervisor = doc.data().supervisor // Se almacena el nombre del Supervisor
+      const supervisor = doc.data().supervisorShift // Se almacena el nombre del Supervisor
 
       // Verifica si el supervisor ya existe en el array. Si no existe, lo añade.
       if (!supervisorArray.includes(supervisor)) {
@@ -270,7 +303,7 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
       for (let j = 0; j < requestsDocs.length; j++) {
         const requestDoc = requestsDocs[j] // Se almacena el requerimiento j
         const requestDocData = requestDoc.data() // Se obtienen los datos del requerimiento j
-        const requestSupervisor = requestDocData.supervisor // Se almacena el nombre del supervisor del levantamiento j
+        const requestSupervisor = requestDocData.supervisorShift // Se almacena el nombre del supervisor del levantamiento j
 
         // Si el nombre del supervisor del levantamiento j es igual al del array supervisorArray[i] se añadirá esta tarea al array
         if (supervisorArray[i] == requestSupervisor) {
@@ -280,14 +313,12 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
 
       // Se define el objeto a almacenar, el cual contendrá el nombre del supervisor y las tareas que tiene este supervisor
       let supervisorWork = {
-        supervisor: supervisorArray[i],
+        supervisorShift: supervisorArray[i],
         tasks: supervisorTasks
       }
 
       // Añade el objeto al array todayWorks
       todayWorks.push(supervisorWork)
-
-      console.log('prueba de console.log')
 
       // ** Empezamos a definir el e-mail
 
@@ -300,9 +331,10 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
 
         const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
 
-        const supervisorSnapshot = await usersRef.where('name', '==', supervisorWork.supervisor).get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
+        const supervisorSnapshot = await usersRef.where('shift', '==', supervisorWork.supervisorShift).where('role', '==', 7).get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
         const supervisorData = supervisorSnapshot.docs[0].data() // Se almacena en una constante los datos del Supervisor
         const supervisorEmail = supervisorData.email // Se almacena el e-mail del Supervisor
+        const supervisorName = supervisorData.name // Se almacena el e-mail del Supervisor
         console.log('supervisor email: ' + supervisorEmail)
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
@@ -348,9 +380,9 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
           date: now,
           emailType: 'supervisorDailyTasks',
           message: {
-            subject: `Resumen de hoy ${today.toLocaleDateString()} - ${supervisorWork.supervisor}`,
+            subject: `Resumen de hoy ${today.toLocaleDateString('es-CL')} - ${supervisorName}`,
             html: `
-              <h2>Estimad@ ${supervisorWork.supervisor}:</h2>
+              <h2>Estimad@ ${supervisorName}:</h2>
               <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para hoy. A continuación se presenta el detalle de cada una de ellos:</p>
                 ${tasksHtml}
               <p>Para mayor información revise la solicitud en nuestra página web</p>
