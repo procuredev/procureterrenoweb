@@ -43,7 +43,7 @@ const ChartBarsObjetivesByPlants = () => {
 
 
   const options = {
-    /* tooltip: {
+    tooltip: {
       custom: ({ series, seriesIndex, dataPointIndex, w }) => {
         const value = series[seriesIndex][dataPointIndex];
 
@@ -51,7 +51,7 @@ const ChartBarsObjetivesByPlants = () => {
 
         return `<span>${value} solicitudes</span>`;
       },
-    }, */
+    },
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }
