@@ -112,31 +112,31 @@ const getUsersOnCopyAndMessage = (
     }
 
     // && prevState es 2 && newState es 1 -> Solicitud modificada por C.Operator
-    else if (prevState == 2 && newState == 1) {
+    else if (prevState == 2 && newState == 0) {
       arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
       message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
     }
 
     // && prevState es 1 && newState es 4 -> Modificación hecha por C.Operator fue aceptada por Solicitante
-    else if (prevState == 1 && newState == 4) {
+    else if (prevState == 0 && newState == 4) {
       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, Planificador y Adm.Contrato
       message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
     }
 
     // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
-    else if (prevState == 1 && newState == 2) {
+    else if (prevState == 0 && newState == 2) {
       arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
       message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
     }
 
     // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
-    else if (prevState == 5 && newState == 1) {
+    else if (prevState == 5 && newState == 0) {
       arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
       message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
     }
 
     // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
-    else if (prevState == 1 && newState == 6) {
+    else if (prevState == 0 && newState == 6) {
       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
       message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
     }
