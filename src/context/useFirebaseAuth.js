@@ -202,21 +202,21 @@ const FirebaseContextProvider = props => {
 
       // Crea contraseña alfanumerica de 10 digitos
       // Se comenta esta funcion para posterior uso en producción
-      /* const newPassword = generatorPassword.generate({
+      const newPassword = generatorPassword.generate({
         length: 10,
         numbers: true
-      }) */
+      })
 
       // Crea usuario
       try {
-        await Firebase.auth().createUserWithEmailAndPassword(email, 'password') // Reemplazar 'password' por newPassword
+        await Firebase.auth().createUserWithEmailAndPassword(email, newPassword) // Reemplazar 'password' por newPassword
       } catch (createError) {
         console.log('Error al crear el usuario:', createError)
         throw createError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
       }
 
       // Envía correo para cambiar la contraseña
-      // resetPassword(email)
+      resetPassword(email)
 
       // Guardar uid en un estado
       setNewUID(Firebase.auth().currentUser.uid)

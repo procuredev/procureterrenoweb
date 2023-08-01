@@ -46,6 +46,7 @@ import Tooltip, { tooltipClasses } from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
 import CircularProgress from '@mui/material/CircularProgress'
 import Paper from '@mui/material/Paper'
+import  DialogErrorFile  from 'src/@core/components/dialog-errorFile'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -137,10 +138,13 @@ const FormLayoutsSolicitud = () => {
   const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({})
   const [values, setValues] = useState(initialValues)
+  const [errorFileMsj, setErrorFileMsj] = useState('')
+  const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
+  const [validateUrlVideo, setValidUrlVideo] = useState({ url: 'https://url.com', tempUrl: '' })
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation']
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop']
     const autoFields = ['deliverable', 'receiver']
     let newValue
@@ -220,6 +224,13 @@ const FormLayoutsSolicitud = () => {
     return resultSap
   }
 
+  const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('http')
+
+  const onBlurUrlVideo = e => {
+
+    setValidUrlVideo({ url: validateUrlVideo.tempUrl, tempUrl: validateUrlVideo.url })
+  }
+
   const validationRegex = {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
@@ -276,7 +287,7 @@ const FormLayoutsSolicitud = () => {
   } */
 
   const validateFiles = acceptedFiles => {
-    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
+    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
 
     const isValidImage = file => {
@@ -298,11 +309,23 @@ const FormLayoutsSolicitud = () => {
     const validationResults = acceptedFiles.map(file => {
       return {
         name: file.name,
-        isValid: isValidFile(file)
+        isValid: isValidFile(file),
+        msj: `${file.name}`
       }
     })
 
     return validationResults
+  }
+
+   const handleOpenErrorDialog = msj => {
+    console.log(msj)
+
+    setErrorFileMsj(msj)
+    setErrorDialog(true)
+  }
+
+  const handleCloseErrorDialog = () => {
+    setErrorDialog(false)
   }
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -310,6 +333,11 @@ const FormLayoutsSolicitud = () => {
       const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
       if (invalidFiles.length > 0) {
         console.log(validateFiles(invalidFiles))
+
+        const res = validateFiles(invalidFiles)
+        console.log(res[0].msj, "res.msj")
+        const msj = res[0].msj
+        handleOpenErrorDialog(msj)
 
         return invalidFiles
       }
@@ -722,6 +750,27 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
+            {/* TAG */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <Box display='flex' alignItems='center'>
+                  <TextField
+                    fullWidth
+                    type='text'
+                    label='TAG'
+                    value={values.tag}
+                    onChange={handleChange('tag')}
+                    error={errors.tag ? true : false}
+                    helperText={errors.tag}
+                    inputProps={{ maxLength: 5 }}
+                  />
+                  <StyledTooltip title='Ingresa el código TAG para identificar el levantamiento.'>
+                    <StyledInfoIcon color='action' />
+                  </StyledTooltip>
+                </Box>
+              </FormControl>
+            </Grid>
+
             {/* Solicitante */}
             <Grid item xs={12}>
               <FormControl
@@ -917,7 +966,7 @@ const FormLayoutsSolicitud = () => {
                   <Autocomplete
                     multiple
                     fullWidth
-                    options={['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe']}
+                    options={['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe', 'Nube de Puntos']}
                     value={values.deliverable}
                     onChange={handleChange('deliverable')}
                     renderInput={params => (
@@ -983,6 +1032,28 @@ const FormLayoutsSolicitud = () => {
                   />
                 </FormControl>
                 <StyledTooltip title='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'>
+                  <StyledInfoIcon color='action' />
+                </StyledTooltip>
+              </Box>
+            </Grid>
+
+             {/* VideoUrl */}
+             <Grid item xs={12}>
+              <Box display='flex' alignItems='center'>
+                <TextField
+                  InputLabelProps={{ required: false }}
+                  fullWidth
+                  type='text'
+                  label='Video url'
+                  id='urlVideo-input'
+                  onBlur={onBlurUrlVideo}
+                  value={values.urlvideo}
+                  onChange={event => setValidUrlVideo({ url: 'https://url.com', tempUrl: event.target.value })}
+                  error={isValidUrlVideo(validateUrlVideo.url)}
+                  helperText={isValidUrlVideo(validateUrlVideo.url) ? "URL incorrecta" : ""}
+                  inputProps={{ maxLength: 25 }}
+                />
+                <StyledTooltip title='Rellena este campo sólo si tienes el link del video'>
                   <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>
@@ -1057,8 +1128,11 @@ const FormLayoutsSolicitud = () => {
             </Grid>
           </Grid>
         </form>
+
       </CardContent>
+      {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
     </Card>
+
   )
 }
 

@@ -115,7 +115,7 @@ const columns = [
     flex: 0.2,
     field: 'name',
     minWidth: 200,
-    headerName: 'User',
+    headerName: 'Usuario',
     renderCell: ({ row }) => {
       return (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
