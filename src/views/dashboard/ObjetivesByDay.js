@@ -102,7 +102,7 @@ const ObjetivesByDay = () => {
   return (
     <Card>
       <CardHeader
-        title='Levantamientos por día'
+        title='Levantamientos de esta semana'
         subheader={totalSemanal}
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
