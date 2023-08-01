@@ -507,18 +507,28 @@ const FirebaseContextProvider = props => {
     const eventDocs = eventQuerySnapshot.docs
 
     for (const key in obj) {
+      let resource = moment(obj[key]).startOf('date')._d
+      let objKeySeconds = getUnixTime(resource)
       if (key !== 'start' && key !== 'end' && obj[key] !== docSnapshot[key]) {
         changedFields[key] = obj[key]
         prevDoc[key] = docSnapshot[key]
       }
 
-      if ((key === 'start' || key === 'end') && docSnapshot[key] && obj[key].seconds !== docSnapshot[key].seconds) {
+      if (key === 'start' && docSnapshot[key] && objKeySeconds !== docSnapshot[key].seconds) {
         changedFields[key] = new Date(obj[key] * 1000)
+        console.log(key, "key")
         console.log(obj[key])
+        prevDoc[key] = docSnapshot[key]
+      } else if (key === 'end'){
+        console.log("**********")
+        console.log(key, "key")
+        console.log(obj[key])
+        console.log("**********")
+        changedFields[key] = new Date(obj[key] * 1000)
         prevDoc[key] = docSnapshot[key]
       }
 
-      if (!docSnapshot[key]) {
+      if (!docSnapshot[key] ) {
         changedFields[key] = key === 'start' || key === 'end' ? new Date(obj[key] * 1000) : obj[key]
         prevDoc[key] = 'none'
       }
