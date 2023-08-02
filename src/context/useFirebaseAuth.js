@@ -507,17 +507,28 @@ const FirebaseContextProvider = props => {
 
     for (const key in obj) {
       let value = obj[key]
-      if (key === 'start' || key === 'end') {
+      if (key === 'start' ) {
         // Asegura que value sea un objeto de fecha válido de Moment.js
-        value = moment(value).startOf('day')
-        value = value._d
+        value = moment(value.toDate()).toDate()
+      } else if (key === 'end') {
+        value = moment(value.toDate()).toDate()
       }
 
       // Verifica si el valor ha cambiado y lo guarda, si es fecha lo formatea
-      if (value && value !== docSnapshot[key]) {
-        changedFields[key] = value
-        prevDoc[key] = docSnapshot[key]
+      if(key === 'start') {
+        if (value && value.getTime() !== docSnapshot[key].toDate().getTime()) {
+          changedFields[key] = value
+          prevDoc[key] = docSnapshot[key].toDate()
+        }
+
+      } else {
+        if (value && value !== docSnapshot[key]) {
+          changedFields[key] = value
+          prevDoc[key] = docSnapshot[key]
+        }
       }
+
+
 
       // Registra si no existía start o end, si es fecha formatea el nuevo
       if (!docSnapshot[key]) {
@@ -528,15 +539,14 @@ const FirebaseContextProvider = props => {
 
     // ** Flujo estados
     // ** Contract operator
-    // Cambio fecha contop: de estado 2 --> 1 o 0
-    if (isContop && obj.start !== docSnapshot.start.seconds) {
+    if (isContop && obj.start.toDate().getTime() !== docSnapshot.start.toDate().getTime()) {
       newState = previousRole - 1
       changedFields.state = newState
     } else if (isPlanner && !isUnchanged) {
       // ** Planificador
       // Si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
       if (docSnapshot.state >= 6) {
-        if (obj.start !== docSnapshot.start.seconds) {
+        if (obj.start !== docSnapshot.start.seconds*1000) {
           let week = moment(docSnapshot.start.toDate()).isoWeek()
           supervisorShift = week % 2 === 0 ? 'A' : 'B'
           await updateDoc(ref, { supervisorShift })
@@ -553,7 +563,7 @@ const FirebaseContextProvider = props => {
       const prevDocExists = eventData.prevDoc && eventData.prevDoc.start;
 
       // Verificar si prevDoc existe y si su propiedad 'start' es igual a la que estaba antes
-      const changeDateBack = prevDocExists && eventData.prevDoc.start.seconds === obj.start;
+      const changeDateBack = prevDocExists && eventData.prevDoc.start.toDate().getTime() === obj.start.toDate().getTime();
 
       if (changeDateBack) {
         // Caso: prevDoc existe y su propiedad 'start' es igual a 'start' del form
@@ -561,7 +571,7 @@ const FirebaseContextProvider = props => {
       } else if (prevDocExists) {
         // Caso: prevDoc existe pero su propiedad 'start' es diferente a obj.start
         newState = devolutionState - 1; // Devuelto a 2 menos el rol del autor (solicitante 0 y contop 1)
-      } else if (obj.start !== docSnapshot.start.seconds) {
+      } else if (obj.start.toDate().getTime() !== docSnapshot.start.toDate().getTime()) {
         // Caso: no han habido cambios, pero 'start' del form es diferente al start actual
         newState = devolutionState - 1; // Devuelto a 2 menos el rol del autor (solicitante 0 y contop 1)
       } else {
