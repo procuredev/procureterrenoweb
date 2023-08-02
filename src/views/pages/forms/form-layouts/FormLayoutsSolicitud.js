@@ -227,7 +227,7 @@ const FormLayoutsSolicitud = () => {
     return resultSap
   }
 
-  const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('http')
+  const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('https://')
 
   const onBlurUrlVideo = e => {
 
@@ -1057,7 +1057,7 @@ const FormLayoutsSolicitud = () => {
                   helperText={isValidUrlVideo(validateUrlVideo.url) ? "URL incorrecta" : ""}
                   inputProps={{ maxLength: 25 }}
                 />
-                <StyledTooltip title='Rellena este campo sólo si tienes el link del video. La url empezar con http'>
+                <StyledTooltip title='Rellena este campo sólo si tienes el link del video. La url empezar con https://'>
                   <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>
