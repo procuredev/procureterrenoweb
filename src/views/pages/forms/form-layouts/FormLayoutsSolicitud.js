@@ -110,7 +110,10 @@ const FormLayoutsSolicitud = () => {
     objective: '',
     deliverable: [],
     receiver: [],
-    description: ''
+    description: '',
+    tag: '',
+    urlvideo: ''
+
   }
 
   // ** Hooks
