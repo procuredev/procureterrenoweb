@@ -235,7 +235,8 @@ const FormLayoutsSolicitud = () => {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^A-Z\s0-9- -.\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    fnlocation: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
+    fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    tag: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
@@ -762,9 +763,9 @@ const FormLayoutsSolicitud = () => {
                     onChange={handleChange('tag')}
                     error={errors.tag ? true : false}
                     helperText={errors.tag}
-                    inputProps={{ maxLength: 5 }}
+                    inputProps={{ maxLength: 25 }}
                   />
-                  <StyledTooltip title='Ingresa el código TAG para identificar el levantamiento.'>
+                  <StyledTooltip title='Ingresa el código TAG para identificar el equipo.'>
                     <StyledInfoIcon color='action' />
                   </StyledTooltip>
                 </Box>
@@ -1053,7 +1054,7 @@ const FormLayoutsSolicitud = () => {
                   helperText={isValidUrlVideo(validateUrlVideo.url) ? "URL incorrecta" : ""}
                   inputProps={{ maxLength: 25 }}
                 />
-                <StyledTooltip title='Rellena este campo sólo si tienes el link del video'>
+                <StyledTooltip title='Rellena este campo sólo si tienes el link del video. La url empezar con http'>
                   <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>

@@ -80,7 +80,7 @@ export function solicitudValidator(values) {
     'Topografía'
   ]
 
-  const allowedDeliverables = ['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe']
+  const allowedDeliverables = ['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe', 'Nube de Puntos']
 
   const valType = ['Normal', 'Outage', 'Shutdown']
 
