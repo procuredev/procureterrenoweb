@@ -228,10 +228,10 @@ const FormLayoutsSolicitud = () => {
 
   const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('https://')
 
-  const onBlurUrlVideo = e => {
+ /*  const onBlurUrlVideo = e => {
 
     setValidUrlVideo({ url: validateUrlVideo.tempUrl, tempUrl: validateUrlVideo.url })
-  }
+  } */
 
   const validationRegex = {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
@@ -432,6 +432,9 @@ const FormLayoutsSolicitud = () => {
 
   const onSubmit = async event => {
     event.preventDefault()
+    if (values.urlvideo !== undefined) {
+      setValidUrlVideo({ url: validateUrlVideo.tempUrl, tempUrl: validateUrlVideo.url })
+    }
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
@@ -1049,7 +1052,8 @@ const FormLayoutsSolicitud = () => {
                   type='text'
                   label='Video url'
                   id='urlVideo-input'
-                  onBlur={onBlurUrlVideo}
+
+                  //onBlur={onBlurUrlVideo}
                   value={values.urlvideo}
                   onChange={event => setValidUrlVideo({ url: 'https://url.com', tempUrl: event.target.value })}
                   error={isValidUrlVideo(validateUrlVideo.url)}
