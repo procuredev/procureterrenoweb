@@ -245,10 +245,10 @@ const FormLayoutsSolicitud = () => {
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
-    const textFieldValues = ['title', 'fnlocation', 'sap', 'description']
+    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag']
     for (const key in values) {
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap') {
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag') {
         if ((values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0))) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
