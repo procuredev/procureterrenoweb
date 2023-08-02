@@ -560,10 +560,10 @@ const FirebaseContextProvider = props => {
         newState = authUser.role; // Avanza
       } else if (prevDocExists) {
         // Caso: prevDoc existe pero su propiedad 'start' es diferente a obj.start
-        newState = devolutionState; // Devuelto a estado 5
+        newState = devolutionState - 1; // Devuelto a 2 menos el rol del autor (solicitante 0 y contop 1)
       } else if (obj.start !== docSnapshot.start.seconds) {
         // Caso: no han habido cambios, pero 'start' del form es diferente al start actual
-        newState = devolutionState; // Devuelto a estado 5
+        newState = devolutionState - 1; // Devuelto a 2 menos el rol del autor (solicitante 0 y contop 1)
       } else {
         // Caso: no han habido cambios, y 'start' del form es igual al start actual
         newState = authUser.role; // Avanza
