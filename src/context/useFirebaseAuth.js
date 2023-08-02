@@ -604,7 +604,7 @@ const FirebaseContextProvider = props => {
       await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
 
       // Se envía e-mail al prevState y al newState
-    sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
+      await sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
     }
   }
 
