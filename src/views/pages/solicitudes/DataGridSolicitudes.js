@@ -33,6 +33,15 @@ const DataGrid = () => {
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot(true)
+  const moment = require('moment')
+
+  const otherWeek = date => {
+    let dateFormatted = new Date(date * 1000)
+    let week = moment(dateFormatted).isoWeek()
+    console.log(week)
+
+    return week % 2 == 0
+  }
 
   // Objeto de configuración de filtros
   const [filterConfig, setFilterConfig] = useState({
@@ -45,49 +54,49 @@ const DataGrid = () => {
     pendingApproval: {
       label: 'Por aprobar',
       canSee: [2, 3, 5], // Ejemplo de números permitidos para ver este filtro
-      type: 'State',
+      type: 'Estado',
       filterFunction: authUser.role === 5 ? doc => doc.state === 3 || 4 : doc => doc.state === authUser.role - 1
     },
     approved: {
       label: 'Aprobadas',
       canSee: [1, 2, 3], // Ejemplo de números permitidos para ver este filtro
-      type: 'State',
+      type: 'Estado',
       filterFunction: doc => doc.state >= 6 && doc.state < 10
     },
     rejected: {
       label: 'Rechazadas',
       canSee: [3, 4, 5], // Ejemplo de números permitidos para ver este filtro
-      type: 'State',
+      type: 'Estado',
       filterFunction: doc => doc.state === 10
     },
     inReviewByMEL: {
       label: 'En revisión por MEL',
       canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'State',
+      type: 'Estado',
       filterFunction: doc => doc.state === 2
     },
     inReviewByProcure: {
       label: 'En revisión por Procure',
       canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'State',
+      type: 'Estado',
       filterFunction: doc => doc.state === 5
     },
     approvedByMEL: {
       label: 'Aprobadas por MEL',
       canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'State',
+      type: 'Estado',
       filterFunction: doc => doc.state === 4
     },
     approvedByProcure: {
       label: 'Aprobadas por Procure',
       canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'State',
+      type: 'Estado',
       filterFunction: doc => doc.state >= 6 && doc.state < 10
     },
     myRequests: {
       label: 'Mis solicitudes',
       canSee: [1, 2, 3],
-      type: 'Author',
+      type: 'Autor',
       filterFunction: doc => doc.uid === authUser.uid
     },
     withOT: {
@@ -104,14 +113,14 @@ const DataGrid = () => {
     },
     shiftA: {
       label: 'Turno P',
-      canSee: [1, 3, 4, 5, 6, 9],
-      type: 'Shift',
+      canSee: [1, 2, 3, 4, 5, 6, 9],
+      type: 'Turno',
       filterFunction: doc => otherWeek(doc.start.seconds)
     },
     shiftB: {
       label: 'Turno Q',
-      canSee: [1, 3, 4, 5, 6, 9],
-      type: 'Shift',
+      canSee: [1, 2, 3, 4, 5, 6, 9],
+      type: 'Turno',
       filterFunction: doc => !otherWeek(doc.start.seconds)
     },
     myWeek: {
@@ -147,8 +156,6 @@ const DataGrid = () => {
     return initialValues
   })
 
-  const moment = require('moment')
-
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
@@ -161,20 +168,13 @@ const DataGrid = () => {
     }))
   }
 
-  const otherWeek = date => {
-    let dateFormatted = new Date(date * 1000)
-    let week = moment(dateFormatted).isoWeek()
-
-    return week % 2 == 0
-  }
-
-  const filterByLabel = label => {
+  const filterByLabel = (label, translation) => {
     const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
 
     const filteredOptions = allOptions.reduce((result, element) => {
       result[element] = {
         label: `${element}`,
-        type: `${label}`,
+        type: `${translation}`,
         canSee: [1, 2, 5, 6, 7, 9],
         filterFunction: doc => doc[label] === element
       }
@@ -192,8 +192,11 @@ const DataGrid = () => {
   const [activeFilterKey, setActiveFilterKey] = useState(filterKeys[0])
 
   const handleClearFilters = () => {
-    setActiveFilterKey(filterKeys[0])
-    setInputValue('')
+    let cleanValues = {}
+    filterTypes.forEach(key => {
+      cleanValues[key] = 'all'
+    })
+    setValues(cleanValues)
   }
 
   const tabContent = authUser
@@ -257,23 +260,19 @@ const DataGrid = () => {
     initializeValues()
   }, [])
 
-  const filterByPlant = () => filterByLabel('plant')
-  const filterByJobType = () => filterByLabel('objective')
+  const filterByPlant = () => filterByLabel('plant', 'Planta')
+  const filterByJobType = () => filterByLabel('objective', 'Objetivo')
 
   useEffect(() => {
-    let filtro = filterByJobType()
-    console.log(filtro)
+    let jobType = filterByJobType()
+    let plant = filterByPlant()
     setFilterConfig(prevConfig => ({
       ...prevConfig,
-      ...filtro
+      ...jobType,
+      ...plant
     }))
   }, [data])
 
-  useEffect(() => {
-    console.log(filterConfig)
-  }, [filterConfig])
-
-  // Function to apply filters to the data rows
   // Function to apply filters to the data rows
   const applyFilters = (data, activeFilters) => {
     return data.filter(row => {
@@ -299,16 +298,20 @@ const DataGrid = () => {
                       labelId={`select-label-${type}`}
                       label={`${type}`}
                       value={values[type]}
-                      onChange={e => handleFilterChange(type, e.target.value)} // Pass the selected value to handleFilterChange
+                      onChange={e => handleFilterChange(type, e.target.value)}
                     >
-                      <MenuItem value=''>{`${type}`}</MenuItem>
-                      {options.map(optionGroup =>
-                        optionGroup.map(option => (
-                          <MenuItem key={option.key} value={option.key}>
-                            {option.label}
-                          </MenuItem>
-                        ))
-                      )}
+                      <MenuItem key={'all'} value={'all'}>
+                        Todas
+                      </MenuItem>
+                      {options
+                        .filter((group, index) => index === filterTypes.indexOf(type))
+                        .map(optionGroup =>
+                          optionGroup.map(option => (
+                            <MenuItem key={option.key} value={option.key}>
+                              {option.label}
+                            </MenuItem>
+                          ))
+                        )}
                     </Select>
                   </Fragment>
                 </FormControl>
