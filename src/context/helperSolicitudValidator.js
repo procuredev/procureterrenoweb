@@ -80,7 +80,14 @@ export function solicitudValidator(values) {
     'Topografía'
   ]
 
-  const allowedDeliverables = ['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe', 'Nube de Puntos']
+  const allowedDeliverables = [
+    'Sketch',
+    'Plano de Fabricación',
+    'Plano de Diseño',
+    'Memoria de Cálculo',
+    'Informe',
+    'Nube de Puntos'
+  ]
 
   const valType = ['Normal', 'Outage', 'Shutdown']
 
@@ -165,49 +172,35 @@ export function solicitudValidator(values) {
     }
   }
 
-  for (const key in values) {
-    let keyStringName = ''
-    if (key == 'title') {
-      keyStringName = 'Título'
-    } else if (key == 'plant') {
-      keyStringName = 'Planta'
-    } else if (key == 'area') {
-      keyStringName = 'Área'
-    } else if (key == 'contop') {
-      keyStringName = 'Contract Operator'
-    } else if (key == 'fnlocation') {
-      keyStringName = 'Functional Location'
-    } else if (key == 'petitioner') {
-      keyStringName = 'Solicitante'
-    } else if (key == 'opshift') {
-      keyStringName = 'Contraturno del Solicitante'
-    } else if (key == 'type') {
-      keyStringName = 'Estado Operacional de la Planta'
-    } else if (key == 'detention') {
-      keyStringName = '¿Estará la máquina detenida?'
-    } else if (key == 'sap') {
-      keyStringName = 'Número SAP'
-    } else if (key == 'objective') {
-      keyStringName = 'Tipo de Levantamiento'
-    } else if (key == 'deliverable') {
-      keyStringName = 'Entregables del levantamiento'
-    } else if (key == 'receiver') {
-      keyStringName = 'Destinatarios'
-    } else if (key == 'description') {
-      keyStringName = 'Descripción'
-    }
+  const keyMap = {
+    title: 'Título',
+    plant: 'Planta',
+    area: 'Área',
+    contop: 'Contract Operator',
+    fnlocation: 'Functional Location',
+    petitioner: 'Solicitante',
+    opshift: 'Contraturno del Solicitante',
+    type: 'Estado Operacional de la Planta',
+    detention: '¿Estará la máquina detenida?',
+    sap: 'Número SAP',
+    objective: 'Tipo de Levantamiento',
+    deliverable: 'Entregables del levantamiento',
+    receiver: 'Destinatarios',
+    description: 'Descripción',
+    urlvideo: 'URL de video',
+    tag: 'TAG'
+  }
 
-    if (typeof values[key] === 'string') {
-      if (key == 'fnlocation' || key == 'sap' || key == 'opshift') {
-        // console.log('hacer nada')
-      } else {
-        if (values[key].trim() === '') {
-          console.log('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
-          throw new Error('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
-        }
+  for (const key in values) {
+    let keyStringName = keyMap[key] || [key]
+    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag']
+
+    if (typeof values[key] === 'string' && !nonRequiredFields.includes(key)) {
+      if (values[key].trim() === '') {
+        throw new Error('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
       }
     } else {
-      if (values[key] == '') {
+      if (values[key] == '' && !nonRequiredFields.includes(key)) {
         console.log('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
         throw new Error('Debes rellenar todos los campos. ' + `Error en el campo ${keyStringName}. `)
       }

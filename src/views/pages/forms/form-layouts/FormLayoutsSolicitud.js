@@ -248,7 +248,7 @@ const FormLayoutsSolicitud = () => {
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag']
     for (const key in values) {
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag') {
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo') {
         if ((values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0))) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
@@ -438,7 +438,7 @@ const FormLayoutsSolicitud = () => {
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isBlocked = await consultBlockDayInDB(values.start.toDate())
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
-
+    console.log(formErrors)
     if (Object.keys(formErrors).length === 0 && areFieldsValid === true && isBlocked.blocked === false && invalidFiles.length === 0) {
       try {
         setIsUploading(true) // Se activa el Spinner
