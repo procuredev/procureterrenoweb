@@ -369,7 +369,7 @@ const FirebaseContextProvider = props => {
         })
 
         // Se envia email a quienes corresponda
-        sendEmailNewPetition(authUser, values, docRef.id, requestNumber)
+        await sendEmailNewPetition(authUser, values, docRef.id, requestNumber)
 
         console.log('Nueva solicitud creada con éxito.')
 
@@ -480,7 +480,7 @@ const FirebaseContextProvider = props => {
     await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
 
     // Se envía e-mail al prevState y al newState
-    sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
+    await sendEmailWhenReviewDocs(authUser, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
   }
 
   // ** Modifica otros campos documentos
