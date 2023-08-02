@@ -500,6 +500,10 @@ const FirebaseContextProvider = props => {
     let prevDoc = {}
     let newState
     let newEvent = {}
+    const devolutionState = userQuerySnapshot.data().role - 1
+    const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
+    const eventQuerySnapshot = await getDocs(eventQuery)
+    const eventDocs = eventQuerySnapshot.docs
 
     for (const key in obj) {
       let value = obj[key]
@@ -540,17 +544,34 @@ const FirebaseContextProvider = props => {
         newState = docSnapshot.state
       } else {
         // Si planificador cambia de fecha, solictud cambia state a 5
-        newState = authUser.role
+        newState = authUser.role // Avanza
         changedFields.state = newState
       }
-    } else if (isAdmCon) {
-      // ** Admin Contrato
-      newState = obj.start !== docSnapshot.start.seconds
-          ? previousRole
-          : authUser.role
+    } else if (isAdmCon && eventDocs.length > 0) {
+      // Desestructurar el evento más reciente y extraer la propiedad 'data'
+      const { data: eventData } = eventDocs[0];
+      const prevDocExists = eventData.prevDoc && eventData.prevDoc.start;
 
-      changedFields.state = newState
-    } else {
+      // Verificar si prevDoc existe y si su propiedad 'start' es igual a la que estaba antes
+      const changeDateBack = prevDocExists && eventData.prevDoc.start.seconds === obj.start;
+
+      if (changeDateBack) {
+        // Caso: prevDoc existe y su propiedad 'start' es igual a 'start' del form
+        newState = authUser.role; // Avanza
+      } else if (prevDocExists) {
+        // Caso: prevDoc existe pero su propiedad 'start' es diferente a obj.start
+        newState = devolutionState; // Devuelto a estado 5
+      } else if (obj.start !== docSnapshot.start.seconds) {
+        // Caso: no han habido cambios, pero 'start' del form es diferente al start actual
+        newState = devolutionState; // Devuelto a estado 5
+      } else {
+        // Caso: no han habido cambios, y 'start' del form es igual al start actual
+        newState = authUser.role; // Avanza
+      }
+
+      changedFields.state = newState;
+    }
+     else {
       // ** Default
       newState = authUser.role
       changedFields.state = newState
