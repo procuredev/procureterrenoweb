@@ -250,7 +250,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </Typography>
               )}
               {/*Fecha de inicio*/}
-              {editable && roleData && roleData.canEditDate ? (
+              {editable && roleData && roleData.canEditStart ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap',  mb: 5}}>
                   <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                     <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
@@ -273,7 +273,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 </Typography>
               )}
               {/*Asigna término */}
-              {editable && roleData && roleData.canEditDate ? (
+              {editable && roleData && roleData.canEditEnd ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
                   <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                     <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
