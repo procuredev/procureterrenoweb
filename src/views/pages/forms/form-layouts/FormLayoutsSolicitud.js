@@ -1056,7 +1056,7 @@ const FormLayoutsSolicitud = () => {
                   helperText={isValidUrlVideo(validateUrlVideo.url) ? "URL incorrecta" : ""}
                   inputProps={{ maxLength: 25 }}
                 />
-                <StyledTooltip title='Rellena este campo sólo si tienes el link del video. La url empezar con https://'>
+                <StyledTooltip title='Rellena este campo sólo si tienes el link del video. La url debe empezar con https://'>
                   <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>
