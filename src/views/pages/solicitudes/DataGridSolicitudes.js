@@ -26,70 +26,16 @@ import PageHeader from 'src/@core/components/page-header'
 
 // ** Demo Components Imports
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import TableFilter from 'src/views/table/data-grid/TableFilter'
-import TableColumns from 'src/views/table/data-grid/TableColumns'
-import TableEditable from 'src/views/table/data-grid/TableEditable'
-import TableBasicSort from 'src/views/table/data-grid/TableBasicSort'
-import TableSelection from 'src/views/table/data-grid/TableSelection'
-import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 
 const DataGrid = () => {
   const [value, setValue] = useState('1')
   const [inputValue, setInputValue] = useState('')
   const [roleData, setRoleData] = useState({ name: 'admin' })
-  const [values, setValues] = useState({})
-
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot(true)
 
-  const moment = require('moment')
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
-  }
-
-  // Function to handle changes when a filter is selected from Autocomplete or Select
-  const handleFilterChange = (key, value) => {
-    setValues(prevValues => ({
-      ...prevValues,
-      [key]: value
-    }))
-  }
-
-  const otherWeek = date => {
-    let dateFormatted = new Date(date * 1000)
-    let week = moment(dateFormatted).isoWeek()
-
-    return week % 2 == 0
-  }
-
-  const filterByLabel = label => {
-    const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
-
-    const filteredOptions = allOptions.reduce((result, element) => {
-      result[element] = {
-        data: data.filter(doc => doc[label] === element),
-        label: `${element}`,
-        type: `${label}`,
-        canSee: [1, 5, 6, 7, 9]
-      }
-
-      return result
-    }, {})
-
-    return filteredOptions
-  }
-
-  const filterByPlant = () => {
-    return filterByLabel('plant')
-  }
-
-  const filterByJobType = () => {
-    return filterByLabel('objective')
-  }
-
   // Objeto de configuración de filtros
-  const filterConfig = {
+  const [filterConfig, setFilterConfig] = useState({
     all: {
       label: 'Todas las solicitudes',
       canSee: [1, 2, 3, 4, 5],
@@ -173,9 +119,70 @@ const DataGrid = () => {
       type: 'General',
       canSee: [1, 7],
       filterFunction: doc => otherWeek(doc.start.seconds)
-    },
-    ...filterByJobType(),
-    ...filterByPlant()
+    }
+  })
+
+  const [filterTypes, setFilterTypes] = useState([])
+
+  const [options, setOptions] = useState([])
+
+  // Obtener todas las opciones únicas de "type" en el objeto filterConfig
+  useEffect(() => {
+    const types = [...new Set(Object.values(filterConfig).map(item => item.type))]
+    setFilterTypes(types)
+  }, [filterConfig])
+
+  useEffect(() => {
+    const options = filterTypes.map(type => getFilterOptionsByType(type))
+    console.log(options)
+    setOptions(options)
+  }, [filterTypes])
+
+  const [values, setValues] = useState(() => {
+    const initialValues = {}
+    filterTypes.forEach(key => {
+      initialValues[key] = ''
+    })
+
+    return initialValues
+  })
+
+  const moment = require('moment')
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue)
+  }
+
+  // Function to handle changes when a filter is selected from Autocomplete or Select
+  const handleFilterChange = (key, value) => {
+    setValues(prevValues => ({
+      ...prevValues,
+      [key]: value
+    }))
+  }
+
+  const otherWeek = date => {
+    let dateFormatted = new Date(date * 1000)
+    let week = moment(dateFormatted).isoWeek()
+
+    return week % 2 == 0
+  }
+
+  const filterByLabel = label => {
+    const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
+
+    const filteredOptions = allOptions.reduce((result, element) => {
+      result[element] = {
+        label: `${element}`,
+        type: `${label}`,
+        canSee: [1, 2, 5, 6, 7, 9],
+        filterFunction: doc => doc[label] === element
+      }
+
+      return result
+    }, {})
+
+    return filteredOptions
   }
 
   // Obtener las claves de filtro desde el objeto de configuración
@@ -214,14 +221,14 @@ const DataGrid = () => {
       ]
     : []
 
-  // Obtener todas las opciones únicas de "type" en el objeto filterConfig
-  const filterTypes = [...new Set(Object.values(filterConfig).map(item => item.type))]
-
   // Función para filtrar las opciones según el tipo seleccionado
   const getFilterOptionsByType = type => {
-    return Object.entries(filterConfig).filter(([key, { canSee, type: filterType }]) => {
-      return canSee.includes(authUser.role) && filterType === type
-    })
+    return Object.entries(filterConfig)
+      .filter(([key, value]) => value.type === type && value.canSee.includes(authUser.role))
+      .map(([key, value]) => ({
+        key,
+        label: value.label
+      }))
   }
 
   useEffect(() => {
@@ -250,6 +257,22 @@ const DataGrid = () => {
     initializeValues()
   }, [])
 
+  const filterByPlant = () => filterByLabel('plant')
+  const filterByJobType = () => filterByLabel('objective')
+
+  useEffect(() => {
+    let filtro = filterByJobType()
+    console.log(filtro)
+    setFilterConfig(prevConfig => ({
+      ...prevConfig,
+      ...filtro
+    }))
+  }, [data])
+
+  useEffect(() => {
+    console.log(filterConfig)
+  }, [filterConfig])
+
   // Function to apply filters to the data rows
   // Function to apply filters to the data rows
   const applyFilters = (data, activeFilters) => {
@@ -264,8 +287,7 @@ const DataGrid = () => {
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
-
-      <Grid container spacing={2} sx={{m:3}}>
+      <Grid container spacing={2} sx={{ m: 3 }}>
         <Grid item xs={12} sm={10}>
           <Grid container spacing={2}>
             {filterTypes.map(type => (
@@ -280,11 +302,13 @@ const DataGrid = () => {
                       onChange={e => handleFilterChange(type, e.target.value)} // Pass the selected value to handleFilterChange
                     >
                       <MenuItem value=''>{`${type}`}</MenuItem>
-                      {getFilterOptionsByType(type).map(([key, { label }]) => (
-                        <MenuItem key={key} value={key}>
-                          {label}
-                        </MenuItem>
-                      ))}
+                      {options.map(optionGroup =>
+                        optionGroup.map(option => (
+                          <MenuItem key={option.key} value={option.key}>
+                            {option.label}
+                          </MenuItem>
+                        ))
+                      )}
                     </Select>
                   </Fragment>
                 </FormControl>
