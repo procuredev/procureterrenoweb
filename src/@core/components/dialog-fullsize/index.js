@@ -74,9 +74,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     title,
     plant,
     area,
-    start: start && moment.unix(start.seconds).tz('America/Santiago').startOf('day'),
+    start: start && moment(start.toDate()),
     ...(ot && { ot }),
-    ...(end && { end: moment.unix(end.seconds).tz('America/Santiago').startOf('day') }),
+    ...(end && { end: moment(start.toDate())}),
     ...(shift && { shift }),
     description
   }
@@ -137,7 +137,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const handleDateChange = dateField => date => {
-    setValues({ ...values, [dateField]: moment.tz(date, 'GMT').startOf('day') })
+    setValues({ ...values, [dateField]: moment(date.toDate())})
   }
 
   return (
