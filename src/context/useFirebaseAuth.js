@@ -540,13 +540,14 @@ const FirebaseContextProvider = props => {
     // ** Flujo estados
     // ** Contract operator
     if (isContop && obj.start.toDate().getTime() !== docSnapshot.start.toDate().getTime()) {
-      newState = previousRole - 1
+      const isMyRequest = docSnapshot.uid === authUser.uid
+      newState = isMyRequest ? authUser.role + 1 : previousRole - 1
       changedFields.state = newState
     } else if (isPlanner && !isUnchanged) {
       // ** Planificador
       // Si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
       if (docSnapshot.state >= 6) {
-        if (obj.start !== docSnapshot.start.seconds*1000) {
+        if (obj.start.toDate().getTime() !== docSnapshot.start.toDate().getTime()) {
           let week = moment(docSnapshot.start.toDate()).isoWeek()
           supervisorShift = week % 2 === 0 ? 'A' : 'B'
           await updateDoc(ref, { supervisorShift })
