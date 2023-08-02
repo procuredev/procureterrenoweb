@@ -112,7 +112,6 @@ const FormLayoutsSolicitud = () => {
     receiver: [],
     description: '',
     tag: '',
-    urlvideo: ''
 
   }
 
