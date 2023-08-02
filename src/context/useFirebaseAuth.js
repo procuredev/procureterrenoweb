@@ -560,11 +560,11 @@ const FirebaseContextProvider = props => {
       }
     } else if (isAdmCon && eventDocs.length > 0) {
       // Desestructurar el evento más reciente y extraer la propiedad 'data'
-      const { data: eventData } = eventDocs[0];
-      const prevDocExists = eventData.prevDoc && eventData.prevDoc.start;
+
+      const prevDocExists = eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start;
 
       // Verificar si prevDoc existe y si su propiedad 'start' es igual a la que estaba antes
-      const changeDateBack = prevDocExists && eventData.prevDoc.start.toDate().getTime() === obj.start.toDate().getTime();
+      const changeDateBack = prevDocExists && eventDocs[0].data().prevDoc.start.toDate().getTime() === obj.start.toDate().getTime();
 
       if (changeDateBack) {
         // Caso: prevDoc existe y su propiedad 'start' es igual a 'start' del form
