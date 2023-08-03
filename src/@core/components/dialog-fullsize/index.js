@@ -86,7 +86,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     area,
     start: start && moment(start.toDate()),
     ...(ot && { ot }),
-    ...(end && { end: moment(start.toDate()) }),
+    ...(end && { end: moment(end.toDate()) }),
     ...(shift && { shift }),
     description
   }
