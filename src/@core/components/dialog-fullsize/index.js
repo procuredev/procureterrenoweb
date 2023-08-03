@@ -104,14 +104,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   // Handlea dialog
 
   const handleOpenAlert = () => {
-    const hasFormChanges = Object.values(fieldChanges).some(hasChange => hasChange);
+    const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange);
     if (roleData.id === '5') {
-      if (values.end && values.ot) {
+      if (hasChanges.end && hasChanges.ot) {
         setOpenAlert(true);
       } else {
         setMessage('Debes ingresar OT y fecha de término');
       }
-    } else if (roleData.id === '6' && values.start && !values.end) {
+    } else if (roleData.id === '6' && hasChanges.start && !hasChanges.end) {
       setMessage('Debes modificar la fecha de término');
     } else if (hasFormChanges) {
       setOpenAlert(true);
@@ -125,7 +125,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const newData = {};
 
     for (const key in values) {
-      if (fieldChanges[key]) {
+      if (hasChanges[key]) {
         newData[key] = values[key];
       }
     }
@@ -363,7 +363,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
               {editable ? (
                 <Button
-                disabled={isPlanner ? false : !Object.values(hasChanges).some(hasChange => hasChange)}
+                disabled={isPlanner ? !(hasChanges.ot && hasChanges.end) : !Object.values(hasChanges).some(hasChange => hasChange)}
                 onClick={() => handleOpenAlert()}
                 variant='contained'
               >
