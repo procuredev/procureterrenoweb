@@ -966,7 +966,7 @@ const FirebaseContextProvider = props => {
 
   // Consultar si un día está bloqueado en la base de datos
   const consultBlockDayInDB = async date => {
-    const fechaTimestamp = Timestamp.fromMillis(date * 1000) // Convierte a objeto Timestamp de Firebase
+    const fechaTimestamp = Timestamp.fromMillis(date) // Convierte a objeto Timestamp de Firebase
     const docRef = doc(collection(db, 'diasBloqueados'), date.toString())
 
     const docSnap = await getDoc(docRef)
