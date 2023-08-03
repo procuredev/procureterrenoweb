@@ -91,7 +91,7 @@ const FirebaseContextProvider = props => {
       phone: data ? data.phone || 'No definido' : 'No disponible',
       role: data ? data.role || 'No definido' : 'No disponible',
       plant: data ? data.plant || 'No definido' : 'No disponible',
-      engineering: data ? data.engineering || 'No definido' : 'No disponible',
+      engineering: data ? data.engineering || false : false,
       shift: data ? data.shift || 'No definido' : 'No disponible',
       company: data ? data.company || 'No definido' : 'No disponible',
       contop: data ? data.contop || 'No definido' : 'No disponible',
@@ -363,7 +363,8 @@ const FirebaseContextProvider = props => {
           userEmail: user.email,
           userRole: authUser.role,
           date: Timestamp.fromDate(new Date()),
-          n_request: requestNumber
+          n_request: requestNumber,
+          engineering: authUser.engineering
         })
 
         // Establecemos los campos adicionales de la solicitud
