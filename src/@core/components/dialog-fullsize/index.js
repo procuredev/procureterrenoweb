@@ -59,6 +59,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [openAlert, setOpenAlert] = useState(false)
   const [eventData, setEventData] = useState(undefined)
 
+  const [hasChanges, setHasChanges] = useState({
+    title: false,
+    plant: false,
+    area: false,
+    start: false,
+    end: false,
+    ot: false,
+    shift: false,
+    description: false,
+  });
   const { updateDocs, useEvents } = useFirebase()
 
   const theme = useTheme()
@@ -76,7 +86,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     area,
     start: start && moment(start.toDate()),
     ...(ot && { ot }),
-    ...(end && { end: moment(start.toDate())}),
+    ...(end && { end: moment(start.toDate()) }),
     ...(shift && { shift }),
     description
   }
@@ -94,37 +104,41 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   // Handlea dialog
 
   const handleOpenAlert = () => {
+    const hasFormChanges = Object.values(fieldChanges).some(hasChange => hasChange);
     if (roleData.id === '5') {
       if (values.end && values.ot) {
-        setOpenAlert(true)
+        setOpenAlert(true);
       } else {
-        setMessage('Debes ingresar OT y fecha de término')
+        setMessage('Debes ingresar OT y fecha de término');
       }
     } else if (roleData.id === '6' && values.start && !values.end) {
-      setMessage('Debes modificar la fecha de término')
+      setMessage('Debes modificar la fecha de término');
+    } else if (hasFormChanges) {
+      setOpenAlert(true);
     } else {
-      setOpenAlert(true)
+      setMessage('No has realizado cambios en el formulario.');
     }
-  }
+  };
+
 
   const writeCallback = () => {
-    const newData = {}
+    const newData = {};
 
     for (const key in values) {
-      console.log(values)
-      console.log(initialValues)
-      if (values[key] && values[key] !== initialValues[key]) {
-        newData[key] = values[key]
+      if (fieldChanges[key]) {
+        newData[key] = values[key];
       }
     }
+
     if (Object.keys(newData).length > 0) {
-      updateDocs(id, values)
+      updateDocs(id, newData);
+    } else {
+      console.log('No se escribió ningún documento');
     }
-    if (Object.keys(newData).length === 0) {
-      console.log('No se escribió ningún documento')
-    }
-    handleCloseAlert()
-  }
+
+    handleCloseAlert();
+  };
+
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
@@ -133,12 +147,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   // Función onchange utilizando currying
   const handleInputChange = field => event => {
-    setValues({ ...values, [field]: event.target.value })
-  }
+    const fieldValue = event.target.value;
+    setValues({ ...values, [field]: fieldValue });
+    setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] });
+  };
 
   const handleDateChange = dateField => date => {
-    setValues({ ...values, [dateField]: moment(date.toDate())})
-  }
+    const fieldValue = moment(date.toDate());
+    setValues({ ...values, [dateField]: fieldValue });
+    setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) });
+  };
 
   return (
     <Dialog
@@ -251,7 +269,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               )}
               {/*Fecha de inicio*/}
               {editable && roleData && roleData.canEditStart ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap',  mb: 5}}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
                   <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                     <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                       <Box display='flex' alignItems='center'>
@@ -344,9 +362,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               )}
 
               {editable ? (
-                <Button onClick={() => handleOpenAlert()} variant='contained'>
-                  {isPlanner ? 'Aprobar y guardar' : 'Guardar'}
-                </Button>
+                <Button
+                disabled={isPlanner ? false : !Object.values(hasChanges).some(hasChange => hasChange)}
+                onClick={() => handleOpenAlert()}
+                variant='contained'
+              >
+                {isPlanner ? 'Aprobar y guardar' : 'Guardar'}
+              </Button>
               ) : null}
 
               {eventData !== undefined &&
