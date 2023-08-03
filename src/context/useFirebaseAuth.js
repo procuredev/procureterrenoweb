@@ -408,7 +408,8 @@ const FirebaseContextProvider = props => {
     let newState
     let supervisorShift
     if (authUser.role === 2) {
-      newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 0 ? 6 : 4) : 10
+      newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 5 && eventDocs[0].data().newState === 0 ? 6 : 4) : 10
+
       if (newState === 6) {
         let week = moment(docSnapshot.start.toDate()).isoWeek()
         supervisorShift = week % 2 === 0 ? 'A' : 'B'
@@ -492,6 +493,7 @@ const FirebaseContextProvider = props => {
     const userRef = doc(db, 'users', docSnapshot.uid)
     const userQuerySnapshot = await getDoc(userRef)
     const previousRole = userQuerySnapshot.data().role - 1
+    const isSolicitante = authUser.role === 2
     const isContop = authUser.role === 3
     const isPlanner = authUser.role === 5
     const isAdmCon = authUser.role === 6
@@ -581,8 +583,7 @@ const FirebaseContextProvider = props => {
       }
 
       changedFields.state = newState;
-    }
-     else {
+    } else {
       // ** Default
       newState = authUser.role
       changedFields.state = newState
