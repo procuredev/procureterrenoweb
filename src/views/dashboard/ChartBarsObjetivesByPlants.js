@@ -43,15 +43,6 @@ const ChartBarsObjetivesByPlants = () => {
 
 
   const options = {
-    tooltip: {
-      custom: ({ series, seriesIndex, dataPointIndex, w }) => {
-        const value = series[seriesIndex][dataPointIndex];
-
-        // Personaliza el texto del tooltip
-
-        return `<span>${value} solicitudes</span>`;
-      },
-    },
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }
@@ -115,7 +106,7 @@ const ChartBarsObjetivesByPlants = () => {
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts type='bar' height={120} options={options} series={[{ data: objByPlants }]} />
+        <ReactApexcharts type='bar' height={120} options={options} series={[{ name:'Levantamientos', data: objByPlants }]} />
       </CardContent>
     </Card>
   )
