@@ -912,7 +912,8 @@ const FirebaseContextProvider = props => {
 
   // Bloquear o desbloquear un día en la base de datos
   const blockDayInDatabase = async (date, cause = '') => {
-    const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
+    const convertDate = moment(date).startOf().toDate()
+    const dateUnix = getUnixTime(convertDate) // Convierte la fecha a segundos Unix
     const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
 
     const docSnap = await getDoc(docRef)
@@ -964,9 +965,8 @@ const FirebaseContextProvider = props => {
 
   // Consultar si un día está bloqueado en la base de datos
   const consultBlockDayInDB = async date => {
-    const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
-    const fechaTimestamp = Timestamp.fromMillis(dateUnix * 1000) // Convierte a objeto Timestamp de Firebase
-    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
+    const fechaTimestamp = Timestamp.fromMillis(date * 1000) // Convierte a objeto Timestamp de Firebase
+    const docRef = doc(collection(db, 'diasBloqueados'), date.toString())
 
     const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
