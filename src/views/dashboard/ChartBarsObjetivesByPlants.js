@@ -32,9 +32,14 @@ const ChartBarsObjetivesByPlants = () => {
 
   const [objByPlants, setObjByPlants] = useState([0,0,0,0,0,0])
 
+  const plants = ['Los Colorados', 'Laguna Seca 1', 'Laguna Seca 2', 'Chancado y Correas', 'Puerto Coloso', 'Instalacones Cátodo']
+  const resObjByPlants2 = objByPlants.map((el,index) => ({x: plants[index], y: el}));
+        console.log(resObjByPlants2)
+
   useEffect(() => {
       const fetchData = async () => {
         const resObjByPlants = await consultAllObjetivesByPlants();
+
         setObjByPlants(resObjByPlants);
       };
 
@@ -43,6 +48,16 @@ const ChartBarsObjetivesByPlants = () => {
 
 
   const options = {
+    tooltip: {
+      x: {
+        formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
+         //const value = series[seriesIndex][dataPointIndex];
+          const plants = ['Los Colorados', 'Laguna Seca 1', 'Laguna Seca 2', 'Chancado y Correas', 'Puerto Coloso', 'Instalacones Cátodo']
+
+          return plants[dataPointIndex]
+        }
+      }
+    },
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }
@@ -75,6 +90,9 @@ const ChartBarsObjetivesByPlants = () => {
         filter: { type: 'none' }
       }
     },
+    series: [{
+      data: resObjByPlants2,
+  }],
     xaxis: {
       axisTicks: { show: false },
       axisBorder: { show: false },
@@ -83,7 +101,7 @@ const ChartBarsObjetivesByPlants = () => {
         style: {
           colors: theme.palette.text.disabled
         }
-      }
+      },
     },
     yaxis: { show: false },
     grid: {

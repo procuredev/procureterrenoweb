@@ -43,6 +43,16 @@ const ObjetivesByDay = () => {
 
 
   const options = {
+    tooltip: {
+      x: {
+        formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
+         //const value = series[seriesIndex][dataPointIndex];
+          const plants = ['Los Colorados', 'Laguna Seca 1', 'Laguna Seca 2', 'Chancado y Correas', 'Puerto Coloso', 'Instalacones Cátodo']
+
+          return plants[dataPointIndex]
+        }
+      }
+    },
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }
