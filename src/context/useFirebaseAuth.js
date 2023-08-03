@@ -204,10 +204,11 @@ const FirebaseContextProvider = props => {
 
       // Crea contraseña alfanumerica de 10 digitos
       // Se comenta esta funcion para posterior uso en producción
-      const newPassword = generatorPassword.generate({
-        length: 10,
-        numbers: true
-      })
+      // const newPassword = generatorPassword.generate({
+      //   length: 10,
+      //   numbers: true
+      // })
+      const newPassword = 'password'
 
       // Crea usuario
       try {
