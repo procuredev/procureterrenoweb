@@ -363,7 +363,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
               {editable ? (
                 <Button
-                disabled={isPlanner ? !(hasChanges.ot && hasChanges.end) : !Object.values(hasChanges).some(hasChange => hasChange)}
+                disabled={isPlanner ? false : !Object.values(hasChanges).some(hasChange => hasChange)}
                 onClick={() => handleOpenAlert()}
                 variant='contained'
               >
