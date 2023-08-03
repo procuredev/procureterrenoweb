@@ -43,6 +43,7 @@ const FormLayoutsBasic = () => {
     company: '',
     role: '',
     plant: [],
+    engineering: '',
     shift: '',
     opshift: ''
   }
@@ -437,6 +438,25 @@ const FormLayoutsBasic = () => {
                       />
                     )}
                   />
+                </FormControl>
+              </Grid>
+            )}
+
+            {/* Ingeniería Integrada */}
+            {values.company === 'MEL' && values.role === 2 && values.plant.includes(santiago) && (
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Ingeniería integrada</InputLabel>
+                  <Select
+                    label='Ingeniería integrada'
+                    value={values.engineering}
+                    onChange={handleChange('engineering')}
+                    error={errors.engineering ? true : false}
+                  >
+                    {<MenuItem value={true}>Si</MenuItem>}
+                    {<MenuItem value={false}>No</MenuItem>}
+                  </Select>
+                  {errors.engineering && <FormHelperText error>{errors.engineering}</FormHelperText>}
                 </FormControl>
               </Grid>
             )}

@@ -91,6 +91,7 @@ const FirebaseContextProvider = props => {
       phone: data ? data.phone || 'No definido' : 'No disponible',
       role: data ? data.role || 'No definido' : 'No disponible',
       plant: data ? data.plant || 'No definido' : 'No disponible',
+      engineering: data ? data.engineering || 'No definido' : 'No disponible',
       shift: data ? data.shift || 'No definido' : 'No disponible',
       company: data ? data.company || 'No definido' : 'No disponible',
       contop: data ? data.contop || 'No definido' : 'No disponible',
@@ -244,7 +245,7 @@ const FirebaseContextProvider = props => {
   }
 
   const createUserInDatabase = values => {
-    const { name, rut, phone, email, plant, shift, company, role, opshift, urlFoto } = values
+    const { name, rut, phone, email, plant, engineering, shift, company, role, opshift, urlFoto } = values
 
     const photoURL = Firebase.auth().currentUser.photoURL
 
@@ -258,6 +259,7 @@ const FirebaseContextProvider = props => {
           company: company,
           role: role,
           ...(plant && { plant }),
+          ...(engineering && { engineering }),
           ...(shift && { shift }),
           ...(opshift && { opshift }),
           photoURL: photoURL
