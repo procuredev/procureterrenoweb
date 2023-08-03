@@ -80,7 +80,11 @@ export function registerValidator(values) {
         ) {
           return true
         } else if (values.company === 'MEL' && values.role === 2) {
-          return valShiftMel.includes(value)
+          if (values.plant.includes('Sucursal Santiago')) {
+            return true
+          } else {
+            return valShiftMel.includes(value)
+          }
         } else if (values.company === 'Procure' && (values.role === 7 || values.role === 8)) {
           return valShiftProcure.includes(value)
         }

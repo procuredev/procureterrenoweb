@@ -140,7 +140,7 @@ const FormLayoutsBasic = () => {
     const newErrors = {}
 
     switch (true) {
-      case values.role === 2 && values.plant !== santiago:
+      case values.role === 2 && !values.plant.includes(santiago):
         requiredKeys.push('shift', 'plant') // Utilizamos push para agregar elementos al array
         break
       case values.role === 3:
@@ -313,6 +313,7 @@ const FormLayoutsBasic = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
+            {/* Nombre */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -327,6 +328,7 @@ const FormLayoutsBasic = () => {
               />
             </Grid>
 
+            {/* RUT */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -340,6 +342,8 @@ const FormLayoutsBasic = () => {
                 inputProps={{ maxLength: 12 }}
               />
             </Grid>
+
+            {/* Teléfono */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -354,6 +358,8 @@ const FormLayoutsBasic = () => {
                 InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
               />
             </Grid>
+
+            {/* e-mail */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -368,6 +374,8 @@ const FormLayoutsBasic = () => {
                 onBlur={onBlur}
               />
             </Grid>
+
+            {/* Empresa */}
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel>Empresa</InputLabel>
@@ -383,6 +391,8 @@ const FormLayoutsBasic = () => {
                 {errors.company && <FormHelperText error>{errors.company}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            {/* Rol */}
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel>Rol</InputLabel>
@@ -406,6 +416,8 @@ const FormLayoutsBasic = () => {
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            {/* Planta */}
             {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
@@ -428,7 +440,9 @@ const FormLayoutsBasic = () => {
                 </FormControl>
               </Grid>
             )}
-            {[2, 7, 8].includes(values.role) && values.plant !== santiago && (
+
+            {/* Turno */}
+            {[2, 7, 8].includes(values.role) && !values.plant.includes(santiago) && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Turno</InputLabel>
@@ -447,7 +461,9 @@ const FormLayoutsBasic = () => {
                 </FormControl>
               </Grid>
             )}
-            {values.company === 'MEL' && values.role === 2 && values.plant !== santiago && (
+
+            {/* Contraturno */}
+            {values.company === 'MEL' && values.role === 2 && !values.plant.includes(santiago) && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Contraturno</InputLabel>
