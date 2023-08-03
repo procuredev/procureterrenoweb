@@ -355,6 +355,10 @@ const getUsersOnCopyAndMessage = (
                   <td>${requirementData.title}</td>
                 </tr>
                 <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
+                  <td>${requirementData.engineering ? 'Si' : 'No'}</td>
+                </tr>
+                <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
                   <td>${otNumber}</td>
                 </tr>
@@ -501,6 +505,10 @@ const getUsersOnCopyAndMessage = (
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
                   <td>${requirementData.title}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
+                  <td>${requirementData.engineering ? 'Si' : 'No'}</td>
                 </tr>
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>

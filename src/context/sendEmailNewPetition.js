@@ -97,8 +97,24 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
                   <td>${values.title}</td>
                 </tr>
                 <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
+                  <td>${user.engineering ? 'Si' : 'No'}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
+                  <td>${'Por definir'}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
+                  <td>${'Por definir'}</td>
+                </tr>
+                <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
                   <td>${values.start.toLocaleDateString()}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
+                  <td>${'Por definir'}</td>
                 </tr>
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
@@ -115,6 +131,10 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
                   <td>${values.contop}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
+                  <td>${values.petitioner}</td>
                 </tr>
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
@@ -200,8 +220,24 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
                   <td>${values.title}</td>
                 </tr>
                 <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
+                  <td>${user.engineering ? 'Si' : 'No'}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
+                  <td>${'Por definir'}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
+                  <td>${'Por definir'}</td>
+                </tr>
+                <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
                   <td>${values.start.toLocaleDateString()}</td>
+                </tr>
+                <tr>
+                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
+                  <td>${'Por definir'}</td>
                 </tr>
                 <tr>
                   <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>

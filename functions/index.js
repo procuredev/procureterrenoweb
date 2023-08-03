@@ -186,6 +186,10 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
                       <td>${requestData.title}</td>
                     </tr>
                     <tr>
+                      <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
+                      <td>${requestData.engineering ? 'Si' : 'No'}</td>
+                    </tr>
+                    <tr>
                       <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
                       <td>${otNumber}</td>
                     </tr>
