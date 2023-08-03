@@ -160,6 +160,7 @@ const FirebaseContextProvider = props => {
       if (newPhoto !== null && newPhoto !== '') {
         const storageRef = ref(storage, `fotoPerfil/${user}/nuevaFoto`)
 
+
         try {
           await uploadString(storageRef, newPhoto, 'data_url')
           console.log('Uploaded a data_url string!')

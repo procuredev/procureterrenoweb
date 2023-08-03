@@ -78,7 +78,7 @@ const ObjetivesByDay = () => {
     xaxis: {
       axisTicks: { show: false },
       axisBorder: { show: false },
-      categories: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+      categories: ['Lun.', 'Mar.', 'Mie.', 'Jue.', 'Vie.', 'Sab.', 'Dom.'],
       labels: {
         style: { colors: theme.palette.text.disabled }
       }

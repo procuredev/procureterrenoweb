@@ -104,7 +104,7 @@ const TabAccount = () => {
         const mimeType = result.split(';')[0].split(':')[1]
 
         const validatePhoto = () => {
-          if (mimeType.includes('image/jpeg') || mimeType.includes('image/jpg') || mimeType.includes('image/png') || mimeType.includes('image/webp') || mimeType.includes('image/gif') || mimeType.includes('image/bmp') || mimeType.includes('image/tiff') || mimeType.includes('image/svg')) {
+          if (mimeType.includes('image/jpeg') || mimeType.includes('image/jpg') || mimeType.includes('image/png') || mimeType.includes('image/webp') || mimeType.includes('image/bmp') || mimeType.includes('image/tiff') || mimeType.includes('image/svg')) {
             return true
           } else {
             return false
@@ -115,7 +115,7 @@ const TabAccount = () => {
           setImgSrc(result)
           setInputValue(result)
         } else {
-          setAlertMessage('Solo puede seleccionar archivos de imágen permitidos: jpeg, jpg, png, webp, gif, bmp, tiff o svg.')
+          setAlertMessage('Solo puede seleccionar archivos de imágen permitidos: jpeg, jpg, png, webp, bmp, tiff o svg.')
         }
 
 
