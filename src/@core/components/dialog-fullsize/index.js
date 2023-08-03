@@ -106,17 +106,28 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleOpenAlert = async () => {
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
     if (roleData.id === '5') {
-      if (!end && !ot && hasChanges.end && hasChanges.ot) {
+      // Agrega end/ot
+      if ((!end && hasChanges.end) || (!ot && hasChanges.ot)) {
         setOpenAlert(true)
+
+        // Ya viene con end u ot
       } else if (end && ot && state === 4) {
         await reviewDocs(id, true)
           .then(handleClose())
           .catch(error => alert(error))
-      } else if (!end && !ot) {
+
+        //No trae ni agrega end/ot
+      } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
         setMessage('Debes ingresar OT y fecha de término')
+      } else {
+        setOpenAlert(true)
       }
+
+      // Planificador cambia start pero no end
     } else if (roleData.id === '6' && hasChanges.start && !hasChanges.end) {
       setMessage('Debes modificar la fecha de término')
+
+      // Planificador cambia cualquier otro campo
     } else if (hasFormChanges) {
       setOpenAlert(true)
     } else {
