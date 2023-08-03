@@ -111,7 +111,7 @@ const ObjetivesByMonth = () => {
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts type='bar' height={120} options={options} series={[{ data: objetivesOfLastSixMonths }]} />
+        <ReactApexcharts type='bar' height={120} options={options} series={[{ name:'Levantamientos', data: objetivesOfLastSixMonths }]} />
       </CardContent>
     </Card>
   )
