@@ -409,6 +409,7 @@ const FirebaseContextProvider = props => {
     const eventQuerySnapshot = await getDocs(eventQuery)
     const eventDocs = eventQuerySnapshot.docs
 
+
     const prevState = querySnapshot.data().state // 'estado anterior'
     let newState
     let supervisorShift
