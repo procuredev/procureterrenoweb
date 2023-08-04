@@ -428,7 +428,7 @@ const FirebaseContextProvider = props => {
       }
 
       if (newState === 6) {
-        let week = moment(docSnapshot.start).isoWeek()
+        let week = moment(docSnapshot.start.toDate()).isoWeek()
         week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
         await updateDoc(ref, { supervisorShift })
       }
