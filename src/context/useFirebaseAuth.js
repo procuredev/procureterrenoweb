@@ -422,14 +422,11 @@ const FirebaseContextProvider = props => {
       }
     } else if (authUser.role === 3) {
       if (eventDocs.length > 0) {
-        newState = approves
-          ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 1
-            ? 6
-            : authUser.role + 1
-          : 10
+        newState = approves ? (eventDocs[0].data().prevState === 5 ? 6 : authUser.role + 1) : 10
       } else {
         newState = approves ? authUser.role + 1 : 10
       }
+
       if (newState === 6) {
         let week = moment(docSnapshot.start).isoWeek()
         week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
@@ -449,11 +446,13 @@ const FirebaseContextProvider = props => {
         console.log('No se encontraron eventos')
         newState = approves ? authUser.role : 10
       }
+
       if (newState === 6) {
         let week = moment(docSnapshot.start.toDate()).isoWeek()
         supervisorShift = week % 2 === 0 ? 'A' : 'B'
         await updateDoc(ref, { supervisorShift })
       }
+
     } else if (authUser.role === 7) {
       if (Array.isArray(approves)) {
         newState = 7
