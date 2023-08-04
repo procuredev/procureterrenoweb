@@ -9,7 +9,7 @@ import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import ReactDOM from 'react-dom'
 
-const apiKey = 'AIzaSyCGcA3qkE7-0FPXVgvc1cNxraGpc__D0Fs'
+const apiKey = process.env.REACT_APP_GOOGLE_MAP_KEY //'AIzaSyCGcA3qkE7-0FPXVgvc1cNxraGpc__D0Fs'
 
 const UserLocationIcon = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none" class="css-i6dzq1">
