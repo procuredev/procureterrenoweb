@@ -318,7 +318,7 @@ const AppCalendar = () => {
     eventDidMount: function(info) {
       tippy(info.el, {
         content: `
-        OT Procure: ${info.event.extendedProps.resume.ot}<br />
+        OT Procure: ${info.event.extendedProps.resume.ot || 'No definida'}<br />
         N° Solicitud: ${info.event.extendedProps.resume.n_request}<br />
         Título: ${info.event.extendedProps.resume.realTitle}<br />
         Planta: ${info.event.extendedProps.resume.plant}<br />
