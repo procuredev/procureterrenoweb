@@ -413,7 +413,7 @@ const FirebaseContextProvider = props => {
     let newState
     let supervisorShift
     if (authUser.role === 2) {
-      newState = approves ? (eventDocs[0].data().prevDoc && eventDocs[0].data().prevState === 5 && eventDocs[0].data().newState === 0 ? 6 : 4) : 10
+      newState = approves ? (eventDocs[0].data().prevState === 5 && eventDocs[0].data().newState === 0 ? 6 : 4) : 10
 
       if (newState === 6) {
         let week = moment(docSnapshot.start.toDate()).isoWeek()
