@@ -2,19 +2,32 @@ import { AbilityBuilder, Ability } from '@casl/ability'
 
 export const AppAbility = Ability
 
-/**
- * Please define your own Ability rules according to your app requirements.
- * We have just shown Admin and Client rules for demo purpose where
- * admin can manage everything and client can just visit ACL page
- */
+// Se definen las reglas que regirán para cada uno de los roles que existen en el sistema
+// Es importante que can sea igual a 'manage' para que no se caiga el sistema
 const defineRulesFor = (role, subject) => {
   const { can, rules } = new AbilityBuilder(AppAbility)
-  if (role === 'admin') {
+  if (role === 1) {
     can('manage', 'all')
-  } else if (role === 'client') {
-    can(['read'], 'acl-page')
+  } else if (role === 2) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'nueva-solicitud', 'solicitudes', 'user-profile'])
+  } else if (role === 3) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'nueva-solicitud', 'solicitudes', 'user-profile'])
+  } else if (role === 4) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile'])
+  } else if (role === 5) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile'])
+  } else if (role === 6) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile'])
+  } else if (role === 7) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile', 'levantamientos'])
+  } else if (role === 8) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile'])
+  } else if (role === 9) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile'])
+  } else if (role === 10) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile'])
   } else {
-    can(['read', 'create', 'update', 'delete'], subject)
+    can('manage', subject)
   }
 
   return rules

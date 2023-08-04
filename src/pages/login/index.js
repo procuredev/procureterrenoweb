@@ -1,5 +1,7 @@
+//Hola
+//hola como estas
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -8,6 +10,7 @@ import { useRouter } from 'next/router'
 // ** MUI Components
 import Paper from '@mui/material/Paper'
 import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
@@ -23,6 +26,11 @@ import FormHelperText from '@mui/material/FormHelperText'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -33,7 +41,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Hooks
-import { useAuth } from 'src/context/FirebaseContext'
+import { useFirebase } from 'src/context/useFirebaseAuth'
 import useBgColor from 'src/@core/hooks/useBgColor'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
@@ -47,23 +55,6 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 
 // ** Styled Components
-const LoginIllustrationWrapper = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(20),
-  paddingRight: '0 !important',
-  [theme.breakpoints.down('lg')]: {
-    padding: theme.spacing(10)
-  }
-}))
-
-const LoginIllustration = styled('img')(({ theme }) => ({
-  maxWidth: '48rem',
-  [theme.breakpoints.down('xl')]: {
-    maxWidth: '38rem'
-  },
-  [theme.breakpoints.down('lg')]: {
-    maxWidth: '30rem'
-  }
-}))
 
 const RightWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -85,9 +76,7 @@ const BoxWrapper = styled(Box)(({ theme }) => ({
 const TypographyStyled = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
   textAlign: 'center',
-  letterSpacing: '0.18px',
-  marginBottom: theme.spacing(1.5),
-  [theme.breakpoints.down('md')]: { marginTop: theme.spacing(8) }
+  letterSpacing: '0.18px'
 }))
 
 const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
@@ -98,8 +87,11 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  email: yup.string().email().required(),
-  password: yup.string().min(5).required()
+  email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'),
+  password: yup
+    .string()
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .required('Por favor, ingresa tu contraseña')
 })
 
 const defaultValues = {
@@ -107,12 +99,13 @@ const defaultValues = {
 }
 
 const LoginPage = () => {
+  const [errorMessage, setErrorMessage] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
 
   // ** Hooks
-  const auth = useAuth()
-  const { authUser } = useAuth()
+
   const theme = useTheme()
   const bgColors = useBgColor()
   const { settings } = useSettings()
@@ -120,7 +113,7 @@ const LoginPage = () => {
 
   // ** Vars
   const { skin } = settings
-  const { signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } = useAuth()
+  const { authUser, signInWithEmailAndPassword } = useFirebase()
   const router = useRouter()
 
   const {
@@ -137,17 +130,42 @@ const LoginPage = () => {
   const onSubmit = data => {
     const { email, password } = data
 
-    auth.signInWithEmailAndPassword(email, password)
+    signInWithEmailAndPassword(email, password)
+      .then(user => {
+        // Manejar la respuesta exitosa
+        console.log(user)
+      })
+      .catch(error => {
+        // Manejar el error y mostrar el mensaje al usuario
+        const errorMessage = error.message
+        setAlertMessage(errorMessage)
 
-    //viendo como meter el condicional aca (ruteo)
-
-
+        // setErrorMessage(errorMessage)
+      })
   }
-  const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
 
   return (
     <Box className='content-right'>
-
+      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
+      <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
+        Atención
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ m: 2, whiteSpace: 'pre-line' }} id='alert-dialog-description'>
+          {alertMessage}
+        </DialogContentText>
+        <DialogActions>
+          <Button
+            size='small'
+            onClick={() => {
+              setAlertMessage('')
+            }}
+          >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </DialogContent>
+    </Dialog>
       <RightWrapper sx={{ margin: 'auto' }}>
         <Paper
           elevation={9}
@@ -162,13 +180,29 @@ const LoginPage = () => {
           }}
         >
           <BoxWrapper>
+            <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Box
+                component='img'
+                sx={{ width: '60%', m: 3 }}
+                src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png'
+              />
+              <TypographyStyled
+                variant='h7'
+                sx={{ m: 2 }}
+              >{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
 
-            <Box sx={{ mb: 6 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Box component='img' sx={{ width: '60%' }} src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png' />
-                <TypographyStyled sx={{ mt: 5, mb: 5 }} variant='h7'>{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
+              <Box sx={{ m: 2 }}>
+                {errorMessage ? (
+                  <Alert severity='error' onClose={() => setErrorMessage('')}>
+                    <AlertTitle>Error</AlertTitle>
+                    {errorMessage}
+                  </Alert>
+                ) : (
+                  <TypographyStyled variant='body2' sx={{ textAlign: 'center' }}>
+                    Iniciar sesión
+                  </TypographyStyled>
+                )}
               </Box>
-              <Typography variant='body2'>Iniciar sesión</Typography>
             </Box>
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -199,7 +233,7 @@ const LoginPage = () => {
                   name='password'
                   control={control}
                   rules={{ required: true }}
-                  render={({ field: {onChange, onBlur } }) => (
+                  render={({ field: { onChange, onBlur } }) => (
                     <OutlinedInput
                       onBlur={onBlur}
                       label='Password'
@@ -246,42 +280,6 @@ const LoginPage = () => {
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
                 Entrar
               </Button>
-
-              {/*<Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <Typography sx={{ mr: 2, color: 'text.secondary' }}>Nuevo en la plataforma?</Typography>
-                <Typography href='/register' component={Link} sx={{ color: 'primary.main', textDecoration: 'none' }}>
-                  Crea tu cuenta aquí
-                </Typography>
-              </Box>
-              <Divider
-                sx={{
-                  '& .MuiDivider-wrapper': { px: 4 },
-                  mt: theme => `${theme.spacing(5)} !important`,
-                  mb: theme => `${theme.spacing(7.5)} !important`
-                }}
-              >
-                or
-              </Divider>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <IconButton href='/' component={Link} sx={{ color: '#497ce2' }} onClick={e => e.preventDefault()}>
-                  <Icon icon='mdi:facebook' />
-                </IconButton>
-                <IconButton href='/' component={Link} sx={{ color: '#1da1f2' }} onClick={e => e.preventDefault()}>
-                  <Icon icon='mdi:twitter' />
-                </IconButton>
-                <IconButton
-                  href='/'
-                  component={Link}
-                  onClick={e => e.preventDefault()}
-                  sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : 'grey.300') }}
-                >
-                  <Icon icon='mdi:github' />
-                </IconButton>
-                <IconButton href='/' component={Link} sx={{ color: '#db4437' }} onClick={e => e.preventDefault()}>
-                  <Icon icon='mdi:google' />
-                </IconButton>
-              </Box>*/}
-
             </form>
           </BoxWrapper>
         </Paper>
@@ -289,6 +287,7 @@ const LoginPage = () => {
     </Box>
   )
 }
+
 LoginPage.getLayout = page => <BlankLayout>{page}</BlankLayout>
 LoginPage.guestGuard = true
 

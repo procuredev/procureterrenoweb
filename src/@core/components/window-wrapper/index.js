@@ -25,3 +25,4 @@ const WindowWrapper = ({ children }) => {
 }
 
 export default WindowWrapper
+

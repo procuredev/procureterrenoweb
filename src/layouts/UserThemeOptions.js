@@ -17,6 +17,30 @@ const UserThemeOptions = () => {
         main: '#91C13D',
         dark: '#65872B',
         contrastText: '#FFF'
+      },
+      orange: {
+        light: '#FA9C1B',
+        main: '#F58216',
+        dark: '#F05E16',
+        contrastText: '#FFF'
+      },
+      black: {
+        light: '#56564C',
+        main: '#1F1F1E',
+        dark: '#030300',
+        contrastText: '#FFF'
+      },
+      white: {
+        light: '#FFFFFF',
+        main: '#F6F6F6',
+        dark: '#ECECEC',
+        contrastText: '#000'
+      },
+      yellow: {
+        light: '#FFF9AE',
+        main: '#F8ED62',
+        dark: '#E9D700',
+        contrastText: '#000'
       }
     },
 

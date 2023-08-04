@@ -22,3 +22,35 @@ code:not([class*='language-']):after {
 code[class*='language-'] {
   padding: 0;
 }
+
+.apexcharts-tooltip {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #000;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.apexcharts-tooltip-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.apexcharts-tooltip-series-group {
+  display: flex;
+  align-items: center;
+}
+
+.apexcharts-tooltip-marker {
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+}
+
+/* Personaliza los colores para cada barra */
+.apexcharts-tooltip-marker-0 {
+  background-color: #00c853;
+}
+
+.apexcharts-tooltip-marker-1 {
+  background-color: #ff1744;
+}

@@ -19,11 +19,8 @@ const NuevaSolicitud = () => {
   )
 }
 
-/*
 NuevaSolicitud.acl = {
-  action: 'manage',
-  subject: 'nueva-solicitud'
+  subject: 'solicitudes'
 }
-*/
 
 export default NuevaSolicitud

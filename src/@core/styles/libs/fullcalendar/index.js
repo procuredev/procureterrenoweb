@@ -16,6 +16,21 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
     display: 'flex',
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
+    '& .fc-day-today': {
+      background: `${theme.palette.background.default} !important`,
+      backgroundColor: `${theme.palette.action.hover} !important`,
+      borderColor: `${theme.palette.background.default} !important`,
+      borderWidth: '5px !important',
+      borderStyle: 'solid !important'
+    },
+    '& .week': {
+      background: `${theme.palette.background.default} !important`,
+      backgroundColor: `${theme.palette.action.hover} !important`
+    },
+    '& .blocked': {
+      background: `${hexToRGBA(theme.palette.error.light, 0.5)} !important`,
+      backgroundColor: `${hexToRGBA(theme.palette.error.light, 0.5)} !important`
+    },
     '& .fc': {
       zIndex: 1,
 
@@ -237,7 +252,11 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
         },
         '&.fc-daygrid-event': {
           marginLeft: '4px',
-          marginRight: '4px'
+          marginRight: '4px',
+          '&:hover': {
+            width: 'fit-content !important',
+            minWidth: '-webkit-fill-available'
+          }
         }
       },
       '& .fc-view-harness': {
@@ -308,6 +327,9 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
           color: theme.palette.text.disabled
         }
       },
+      '& .fc-daygrid-body-unbalanced .fc-daygrid-day-events': {
+        minHeight: '5.5em' /* in addition to being a min-height during natural height, equalizes the heights a little bit */
+      },
 
       // ** All Views Event
       '& .fc-daygrid-day-number': {
@@ -319,12 +341,13 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
         textDecoration: 'none !important',
         color: `${theme.palette.text.primary} !important`
       },
-      '& .fc-day-today:not(.fc-popover)': {
-        '&:not(.fc-col-header-cell)': {
-          background: `${theme.palette.background.default} !important`,
-          backgroundColor: `${theme.palette.action.hover} !important`
-        }
-      },
+
+      // '& .fc-day-today:not(.fc-popover)': {
+      //   '&:not(.fc-col-header-cell)': {
+      //     background: `${theme.palette.background.default} !important`,
+      //     backgroundColor: `${theme.palette.action.focus} !important`
+      //   }
+      // },
 
       // ** WeekView
       '& .fc-timegrid': {

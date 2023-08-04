@@ -6,8 +6,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-export default function AlertDialog({open, handleClose, callback}) {
-
+export default function AlertDialog({open, handleClose, callback, approves}) {
 
   return (
 
@@ -22,7 +21,7 @@ export default function AlertDialog({open, handleClose, callback}) {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            ¿Estás segur@?
+            ¿Estás segur@ de que quieres {(approves === undefined) ? 'modificar' : (approves ? 'aprobar' : 'rechazar')} la solicitud?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
