@@ -27,6 +27,12 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
   }
 
   useEffect(() => {
+    const types = [...new Set(Object.values(filterConfig).map(item => item.type))]
+    const options = types.map(type => getFilterOptionsByType(type))
+    setOptions(options)
+  }, [filterConfig, authUser])
+
+  useEffect(() => {
     const initializeValues = () => {
       const newValues = options.reduce((values, optionGroup) => {
         const optionGroupName = Object.keys(optionGroup)[0]
@@ -39,12 +45,6 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
     initializeValues()
     handleClearFilters(initialValues)
   }, [options])
-
-  useEffect(() => {
-    const types = [...new Set(Object.values(filterConfig).map(item => item.type))]
-    const options = types.map(type => getFilterOptionsByType(type))
-    setOptions(options)
-  }, [filterConfig, authUser])
 
   return (
     <Grid container spacing={2} sx={{ m: 3 }}>
@@ -85,7 +85,6 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
           variant='outlined'
           onClick={() => {
             handleClearFilters(initialValues)
-            console.log(initialValues)
           }}
           sx={{ width: '100%' }}
         >

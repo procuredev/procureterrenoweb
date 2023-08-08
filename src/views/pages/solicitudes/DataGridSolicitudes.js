@@ -15,13 +15,14 @@ import TabPanel from '@mui/lab/TabPanel'
 
 // ** Custom Components Imports
 import FilterComponent from 'src/@core/components/filter-component'
-
-// ** Demo Components Imports
 import TableBasic from 'src/views/table/data-grid/TableBasic'
+import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
+import filterByLabel from 'src/@core/components/custom-filters/customFilters'
 
 const DataGrid = () => {
   const [values, setValues] = useState({})
   const [tabValue, setTabValue] = useState('1')
+  const [filterConfig, setFilterConfig] = useState({})
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot(true)
@@ -34,95 +35,10 @@ const DataGrid = () => {
     return week % 2 == 0
   }
 
-  let isAShift = Boolean(authUser.shift === 'A')
-
   // Objeto de configuración de filtros
-  const [filterConfig, setFilterConfig] = useState({
-    all: {
-      label: 'Todas las solicitudes',
-      canSee: [],
-      type: 'General', // Ejemplo de números permitidos para ver este filtro
-      filterFunction: doc => true // Mostrar todos los documentos
-    },
-    pendingApproval: {
-      label: 'Por aprobar',
-      canSee: [2, 3, 5], // Ejemplo de números permitidos para ver este filtro
-      type: 'Estado',
-      filterFunction: authUser.role === 5 ? doc => doc.state === 3 || 4 : doc => doc.state === authUser.role - 1
-    },
-    approved: {
-      label: 'Aprobadas',
-      canSee: [1, 2, 3], // Ejemplo de números permitidos para ver este filtro
-      type: 'Estado',
-      filterFunction: doc => doc.state >= 6 && doc.state < 10
-    },
-    rejected: {
-      label: 'Rechazadas',
-      canSee: [3, 4, 5], // Ejemplo de números permitidos para ver este filtro
-      type: 'Estado',
-      filterFunction: doc => doc.state === 10
-    },
-    inReviewByMEL: {
-      label: 'En revisión por MEL',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'Estado',
-      filterFunction: doc => doc.state === 2
-    },
-    inReviewByProcure: {
-      label: 'En revisión por Procure',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'Estado',
-      filterFunction: doc => doc.state === 5
-    },
-    approvedByMEL: {
-      label: 'Aprobadas por MEL',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'Estado',
-      filterFunction: doc => doc.state === 4
-    },
-    approvedByProcure: {
-      label: 'Aprobadas por Procure',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'Estado',
-      filterFunction: doc => doc.state >= 6 && doc.state < 10
-    },
-    myRequests: {
-      label: 'Mis solicitudes',
-      canSee: [1, 2, 3],
-      type: 'Autor',
-      filterFunction: doc => doc.uid === authUser.uid
-    },
-    withOT: {
-      label: 'Tiene OT',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'OT',
-      filterFunction: doc => doc.hasOwnProperty('ot')
-    },
-    withoutOT: {
-      label: 'Sin OT',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9],
-      type: 'OT',
-      filterFunction: doc => !doc.hasOwnProperty('ot')
-    },
-    shiftA: {
-      label: 'Turno P',
-      canSee: [1, 2, 3, 4, 5, 6, 9],
-      type: 'Turno',
-      filterFunction: doc => otherWeek(doc.start.seconds)
-    },
-    shiftB: {
-      label: 'Turno Q',
-      canSee: [1, 2, 3, 4, 5, 6, 9],
-      type: 'Turno',
-      filterFunction: doc => !otherWeek(doc.start.seconds)
-    },
-    myWeek: {
-      label: 'Aprobadas por Procure en mi semana',
-      type: 'General',
-      canSee: [1, 7],
-      filterFunction: isAShift ? doc => otherWeek(doc.start.seconds) : doc => !otherWeek(doc.start.seconds)
-    }
-  })
+  useEffect(() => {
+    setFilterConfig(generateFilterConfig(authUser, otherWeek));
+  }, [authUser]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)
@@ -130,8 +46,6 @@ const DataGrid = () => {
 
   // Function to handle changes when a filter is selected from Autocomplete or Select
   const handleFilterChange = (key, value) => {
-    console.log(key)
-    console.log(value)
     setValues(prevValues => ({
       ...prevValues,
       [key]: value
@@ -175,25 +89,8 @@ const DataGrid = () => {
   }, [])
 
   // Adds data-based filters
-  const filterByLabel = (label, translation) => {
-    const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
-
-    const filteredOptions = allOptions.reduce((result, element) => {
-      result[element] = {
-        label: `${element}`,
-        type: `${translation}`,
-        canSee: [1, 2, 5, 6, 7, 9],
-        filterFunction: doc => doc[label] === element
-      }
-
-      return result
-    }, {})
-
-    return filteredOptions
-  }
-
-  const filterByPlant = () => filterByLabel('plant', 'Planta')
-  const filterByJobType = () => filterByLabel('objective', 'Objetivo')
+  const filterByPlant = () => filterByLabel('plant', 'Planta', data)
+  const filterByJobType = () => filterByLabel('objective', 'Objetivo', data)
 
   useEffect(() => {
     let jobType = filterByJobType()

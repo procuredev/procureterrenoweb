@@ -1,16 +1,6 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import FormGroup from '@mui/material/FormGroup'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
-import FormControl from '@mui/material/FormControl'
-import FormLabel from '@mui/material/FormLabel'
-import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import Close from '@mui/icons-material/Close'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -19,8 +9,8 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 
 // ** Tooltip
-import tippy from 'tippy.js';
-import 'tippy.js/dist/tippy.css'; // No olvides importar los estilos CSS
+import tippy from 'tippy.js'
+import 'tippy.js/dist/tippy.css'
 
 const moment = require('moment')
 
@@ -28,10 +18,8 @@ const moment = require('moment')
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useFirebase } from 'src/context/useFirebaseAuth'
 import { useTheme } from '@mui/material/styles'
-import useBgColor from 'src/@core/hooks/useBgColor'
 
 // ** FullCalendar & App Components Imports
-
 import CalendarWrapper from 'src/@core/styles/libs/fullcalendar'
 
 // ** React Import
@@ -44,12 +32,14 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
+// ** Component Imports
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
+import FilterComponent from 'src/@core/components/filter-component'
+import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
+import filterByLabel from 'src/@core/components/custom-filters/customFilters'
 
 const AppCalendar = () => {
-  const calendarRef = useRef();
+  const calendarRef = useRef()
 
   const initialEvent = {
     title: 'title',
@@ -66,10 +56,7 @@ const AppCalendar = () => {
   const { settings } = useSettings()
 
   // ** Vars
-  const leftSidebarWidth = 260
-  const addEventSidebarWidth = 400
   const { skin, direction } = settings
-  const mdAbove = useMediaQuery(theme => theme.breakpoints.up('md'))
   const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
   const data = useSnapshot()
   const theme = useTheme()
@@ -77,23 +64,12 @@ const AppCalendar = () => {
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState(initialEvent)
-  const [filter, setFilter] = useState('all')
-  const [inputValue, setInputValue] = useState('')
-  const [checkbox, setCheckbox] = useState(false)
+  const [filterConfig, setFilterConfig] = useState({})
+  const [filters, setFilters] = useState({})
   const [dayDialogOpen, setDayDialogOpen] = useState(false)
   const [blockResult, setBlockResult] = useState([])
   const [consultationResult, setConsultationResult] = useState('')
   const [blockReason, setBlockReason] = useState('')
-
-  const handleDatesRender = () => {
-    const calendarApi = calendarRef.current.getApi()
-    const view = calendarApi.view
-
-    // Obtener las fechas visibles en el DayGrid
-    const visibleDates = view.currentStart.toISOString().split('T')[0]
-
-    // console.log(visibleDates)
-  }
 
   const handleModalToggle = clickedEvent => {
     let document = data.find(doc => doc.id === clickedEvent.id)
@@ -108,12 +84,17 @@ const AppCalendar = () => {
     setDoc(initialEvent)
   }
 
-  const handleChange = (event, value) => {
-    if (value) {
-      setFilter(value[0])
-      setInputValue(event.target.innerText)
-    }
+  const otherWeek = date => {
+    let dateFormatted = new Date(date * 1000)
+    let week = moment(dateFormatted).isoWeek()
+
+    return week % 2 == 0
   }
+
+  // Objeto de configuración de filtros
+  useEffect(() => {
+    setFilterConfig(generateFilterConfig(authUser, otherWeek))
+  }, [authUser])
 
   useEffect(() => {
     const role = async () => {
@@ -125,6 +106,37 @@ const AppCalendar = () => {
 
     role()
   }, [])
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prevValues => ({
+      ...prevValues,
+      [key]: value
+    }))
+  }
+
+  // Adds data-based filters
+  const filterByPlant = () => filterByLabel('plant', 'Planta', data)
+  const filterByJobType = () => filterByLabel('objective', 'Objetivo', data)
+
+  useEffect(() => {
+    let jobType = filterByJobType()
+    let plant = filterByPlant()
+    setFilterConfig(prevConfig => ({
+      ...prevConfig,
+      ...jobType,
+      ...plant
+    }))
+  }, [data])
+
+  const applyFilters = (events, activeFilters) => {
+    return events.filter(event => {
+      return Object.entries(activeFilters).every(([key, value]) => {
+        if (!value) return true // Mantener si el filtro no está seleccionado
+
+        return filterConfig[value].filterFunction(event)
+      })
+    })
+  }
 
   const handleBlockReasonChange = event => {
     setBlockReason(event.target.value)
@@ -173,7 +185,7 @@ const AppCalendar = () => {
       n_request = doc.n_request
     }
 
-    if (doc.title){
+    if (doc.title) {
       realTitle = doc.title
     }
 
@@ -183,128 +195,12 @@ const AppCalendar = () => {
 
     let title = doc.ot ? `OT ${doc.ot} - ${doc.title}` : doc.title
 
-    return {resume:{realTitle:realTitle, ot:ot, n_request:n_request, plant:plant}, title:title}
+    return { resume: { realTitle: realTitle, ot: ot, n_request: n_request, plant: plant }, title: title }
   }
-
-  const otherWeek = date => {
-    let dateFormatted = new Date(date * 1000)
-    let week = moment(dateFormatted).isoWeek()
-
-    return week % 2 == 0
-  }
-
-  const filterByLabel = label => {
-    const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
-
-    const filteredOptions = allOptions.reduce((result, element) => {
-      result[element] = {
-        data: data.filter(doc => doc[label] === element),
-        label: `${element}`,
-        canSee: [1, 5, 6, 7, 9]
-      }
-      result['rejected' + element] = {
-        data: data.filter(doc => doc[label] === element && doc.state === 10),
-        label: `Rechazadas ${element}`,
-        canSee: [1, 5, 6, 7, 9]
-      }
-
-      return result
-    }, {})
-
-    return filteredOptions
-  }
-
-  const filterByPlant = () => {
-    return filterByLabel('plant')
-  }
-
-  const filterByJobType = () => {
-    return filterByLabel('objective')
-  }
-
-  const content =
-    data && authUser
-      ? {
-          all: {
-            data: data,
-            label: 'Todas las solicitudes',
-            canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-          },
-          pendingApprovalByMe: {
-            data: data.filter(doc => doc.state === authUser.role - 1),
-            label: 'Pendientes de mi aprobación',
-            canSee: [1, 2, 3, 5, 6]
-          },
-          inReviewByMEL: {
-            data: data.filter(doc => doc.state === 2),
-            label: 'En revisión por MEL',
-            canSee: [1, 2, 3, 4, 5, 6, 7, 9]
-          },
-          inReviewByProcure: {
-            data: data.filter(doc => doc.state === 5),
-            label: 'En revisión por Procure',
-            canSee: [1, 2, 3, 4, 5, 6, 7, 9]
-          },
-          approvedByMEL: {
-            data: data.filter(doc => doc.state === 3),
-            label: 'Aprobadas por MEL',
-            canSee: [1, 2, 3, 4, 5, 6, 7, 9]
-          },
-          approvedByProcure: {
-            data: data.filter(doc => doc.state >= 6 && doc.state < 10),
-            label: 'Aprobadas por Procure',
-            canSee: [1, 2, 3, 4, 5, 6, 7, 9]
-          },
-          myRejected: {
-            data: data.filter(doc => doc.state === 10 && doc.uid === authUser.uid),
-            label: 'Mis solicitudes rechazadas',
-            canSee: [1, 2, 3]
-          },
-          allRejected: {
-            data: data.filter(doc => doc.state === 10),
-            label: 'Todas las rechazadas',
-            canSee: [1, 4, 5, 6, 7, 9]
-          },
-          requestedByMe: {
-            data: data.filter(doc => doc.uid === authUser.uid),
-            label: 'Mis solicitudes',
-            canSee: [1, 2, 3]
-          },
-          withOT: {
-            data: data.filter(doc => doc.hasOwnProperty('ot')),
-            label: 'Tiene OT',
-            canSee: [1, 2, 3, 4, 5, 6, 7, 9]
-          },
-          withoutOT: {
-            data: data.filter(doc => !doc.hasOwnProperty('ot')),
-            label: 'Sin OT',
-            canSee: [1, 2, 3, 4, 5, 6, 7, 9]
-          },
-          shiftA: {
-            data: data.filter(doc => otherWeek(doc.start.seconds)),
-            label: 'Turno P',
-            canSee: [1, 3, 4, 5, 6, 9]
-          },
-          shiftB: {
-            data: data.filter(doc => !otherWeek(doc.start.seconds)),
-            label: 'Turno Q',
-            canSee: [1, 3, 4, 5, 6, 9]
-          },
-
-          //Pendiente revisar semana según usuario
-          approvedByProcureInMyWeek: {
-            data: data.filter(doc => doc.state >= 6 && doc.state < 10 && otherWeek(doc.start.seconds)),
-            label: 'Aprobadas por Procure en mi semana',
-            canSee: [1, 7]
-          },
-          ...filterByJobType(),
-          ...filterByPlant()
-        }
-      : {}
 
   const calendarOptions = {
-    ref:calendarRef,
-    events: content[filter].data.map(a => ({
+    ref: calendarRef,
+    events: applyFilters(data, filters).map(a => ({
       title: eventResume(a).title,
       start: a.start.seconds * 1000,
       allDay: true,
@@ -315,7 +211,7 @@ const AppCalendar = () => {
       resume: eventResume(a).resume
     })),
     showNonCurrentDates: false,
-    eventDidMount: function(info) {
+    eventDidMount: function (info) {
       tippy(info.el, {
         content: `
         OT Procure: ${info.event.extendedProps.resume.ot || 'No definida'}<br />
@@ -324,12 +220,12 @@ const AppCalendar = () => {
         Planta: ${info.event.extendedProps.resume.plant}<br />
       `,
         allowHTML: true,
-        theme: 'light', // O el tema que desees
-      });
+        theme: 'light' // O el tema que desees
+      })
     },
-    eventWillUnmount: function(info) {
+    eventWillUnmount: function (info) {
       if (info.el.tooltip) {
-        info.el.tooltip.dispose();
+        info.el.tooltip.dispose()
       }
     },
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
@@ -352,14 +248,6 @@ const AppCalendar = () => {
       list: 'lista'
     },
     eventDisplay: 'block',
-    customButtons: {
-      showFilters: {
-        text: 'Filtros',
-        click: function () {
-          setCheckbox(state => !state)
-        }
-      }
-    },
     firstDay: 1,
     dayCellClassNames: function (date) {
       const foundObject = blockResult.find(obj => {
@@ -372,8 +260,7 @@ const AppCalendar = () => {
 
       if (foundObject && foundObject.value.blocked) {
         return 'blocked' // Retorna 'week' si el día está bloqueado
-      }
-      else {
+      } else {
         const week = moment(date.date).isoWeek()
         let color = week % 2 == 0 && !date.isToday && 'week'
 
@@ -382,7 +269,7 @@ const AppCalendar = () => {
     },
     fixedWeekCount: false,
     dateClick: async function (info) {
-      const result = await consultBlockDayInDB(new Date(info.date).getTime()/1000)
+      const result = await consultBlockDayInDB(new Date(info.date).getTime() / 1000)
       setConsultationResult(result)
       setDayDialogOpen(info.date)
     },
@@ -423,58 +310,13 @@ const AppCalendar = () => {
 
   return (
     <>
-      {checkbox && (
-        <Box
-          sx={{
-            mb: 5,
-            px: 5,
-
-            flexGrow: 1,
-            borderRadius: 1,
-            backgroundColor: 'background.paper',
-            boxShadow: skin === 'bordered' ? 0 : 6,
-            ...(skin === 'bordered' && { border: theme => `1px solid ${theme.palette.divider}` })
-          }}
-        >
-          <FormControl
-            fullWidth
-            sx={{ mb: 5, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}
-          >
-            <FormLabel id='autocomplete-label' sx={{ mb: 3, pt: 3 }}>
-              Filtros
-            </FormLabel>
-            <IconButton
-              onClick={() => setCheckbox(prev => !prev)}
-              color='primary'
-              component='button'
-              sx={{ justifyContent: 'flex-end', width: 'min-content' }}
-            >
-              <Close />
-            </IconButton>
-            <Autocomplete
-              fullWidth
-              clearOnBlur
-              options={Object.entries(content).filter(([key, { canSee }]) => {
-                return canSee.includes(authUser.role)
-              })}
-              getOptionLabel={([key, { data, label }]) => (label ? label : '')}
-              renderInput={params => <TextField {...params} placeholder='Filtrar por...' />}
-              value={filter}
-              inputValue={inputValue}
-              isOptionEqualToValue={(option, value) => option[0] === value}
-              onInputChange={(event, newInputValue, reason) => {
-                if (reason === 'input') {
-                  setInputValue(newInputValue)
-                } else if (reason === 'clear') {
-                  setInputValue('')
-                  setFilter('all')
-                }
-              }}
-              onChange={handleChange}
-            />
-          </FormControl>
-        </Box>
-      )}
+      <FilterComponent
+        filterConfig={filterConfig}
+        activeFilters={filters}
+        handleFilterChange={handleFilterChange}
+        handleClearFilters={setFilters}
+        authUser={authUser}
+      />
 
       <CalendarWrapper
         className='app-calendar'
@@ -499,7 +341,7 @@ const AppCalendar = () => {
           <FullCalendar {...calendarOptions} />
           {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
           {dayDialogOpen && (
-            <Dialog sx={{'.MuiPaper-root': {minWidth:'30%'}}} open={dayDialogOpen}>
+            <Dialog sx={{ '.MuiPaper-root': { minWidth: '30%' } }} open={dayDialogOpen}>
               <DialogTitle id='alert-dialog-title'>Información</DialogTitle>
               <DialogContent>
                 <DialogContentText id='alert-dialog-description'>{consultationResult.msj}</DialogContentText>
@@ -524,7 +366,11 @@ const AppCalendar = () => {
               <DialogActions>
                 <Button onClick={() => setDayDialogOpen(false)}>Cerrar</Button>
                 {authUser.role === 5 && (
-                  <Button autoFocus onClick={handleBlockConfirmation} disabled={!blockReason && !consultationResult.blocked}>
+                  <Button
+                    autoFocus
+                    onClick={handleBlockConfirmation}
+                    disabled={!blockReason && !consultationResult.blocked}
+                  >
                     {consultationResult.blocked ? 'Desbloquear' : 'Bloquear'}
                   </Button>
                 )}
