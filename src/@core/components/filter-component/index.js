@@ -11,7 +11,6 @@ import Tooltip from '@mui/material/Tooltip'
 const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, handleClearFilters, authUser }) => {
   const [options, setOptions] = useState([])
   const [initialValues, setInitialValues] = useState({})
-  const filterTypes = Object.keys(filterConfig)
 
   const getFilterOptionsByType = type => {
     const optionsByType = Object.entries(filterConfig)
@@ -59,8 +58,6 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
           return null;
         }
 
-        console.log(options)
-
         return (
           <Grid item xs={6} sm={4} md={3} key={optionGroupName}>
             <FormControl sx={{ width: '100%' }}>
@@ -68,7 +65,7 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
               <Select
                 labelId={`select-label-${optionGroupName}`}
                 label={optionGroupName}
-                value={activeFilters[optionGroupName]}
+                value={activeFilters[optionGroupName] || ''}
                 onChange={e => handleFilterChange(optionGroupName, e.target.value)}
               >
                 <MenuItem key={`all-${optionGroupName}`} value={''}>
