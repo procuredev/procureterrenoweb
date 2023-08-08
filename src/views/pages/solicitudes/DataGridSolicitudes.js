@@ -22,14 +22,14 @@ import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 
 // ** Custom Components Imports
-import PageHeader from 'src/@core/components/page-header'
+import FilterComponent from 'src/@core/components/filter-component'
 
 // ** Demo Components Imports
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 const DataGrid = () => {
-  const [value, setValue] = useState('1')
-  const [inputValue, setInputValue] = useState('')
+  const [values, setValues] = useState({})
+  const [tabValue, setTabValue] = useState('1')
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot(true)
@@ -38,7 +38,6 @@ const DataGrid = () => {
   const otherWeek = date => {
     let dateFormatted = new Date(date * 1000)
     let week = moment(dateFormatted).isoWeek()
-    console.log(week)
 
     return week % 2 == 0
   }
@@ -131,33 +130,8 @@ const DataGrid = () => {
     }
   })
 
-  const [filterTypes, setFilterTypes] = useState([])
-
-  const [options, setOptions] = useState([])
-
-  // Obtener todas las opciones únicas de "type" en el objeto filterConfig
-  useEffect(() => {
-    const types = [...new Set(Object.values(filterConfig).map(item => item.type))]
-    setFilterTypes(types)
-  }, [filterConfig])
-
-  useEffect(() => {
-    const options = filterTypes.map(type => getFilterOptionsByType(type))
-    console.log(options)
-    setOptions(options)
-  }, [filterTypes])
-
-  const [values, setValues] = useState(() => {
-    const initialValues = {}
-    filterTypes.forEach(key => {
-      initialValues[key] = ''
-    })
-
-    return initialValues
-  })
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue)
   }
 
   // Function to handle changes when a filter is selected from Autocomplete or Select
@@ -166,37 +140,6 @@ const DataGrid = () => {
       ...prevValues,
       [key]: value
     }))
-  }
-
-  const filterByLabel = (label, translation) => {
-    const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
-
-    const filteredOptions = allOptions.reduce((result, element) => {
-      result[element] = {
-        label: `${element}`,
-        type: `${translation}`,
-        canSee: [1, 2, 5, 6, 7, 9],
-        filterFunction: doc => doc[label] === element
-      }
-
-      return result
-    }, {})
-
-    return filteredOptions
-  }
-
-  // Obtener las claves de filtro desde el objeto de configuración
-  const filterKeys = Object.keys(filterConfig)
-
-  // Estado para mantener la clave de filtro activo actualmente
-  const [activeFilterKey, setActiveFilterKey] = useState(filterKeys[0])
-
-  const handleClearFilters = () => {
-    let cleanValues = {}
-    filterTypes.forEach(key => {
-      cleanValues[key] = 'all'
-    })
-    setValues(cleanValues)
   }
 
   const tabContent = authUser
@@ -224,16 +167,6 @@ const DataGrid = () => {
       ]
     : []
 
-  // Función para filtrar las opciones según el tipo seleccionado
-  const getFilterOptionsByType = type => {
-    return Object.entries(filterConfig)
-      .filter(([key, value]) => value.type === type && value.canSee.includes(authUser.role))
-      .map(([key, value]) => ({
-        key,
-        label: value.label
-      }))
-  }
-
   useEffect(() => {
     const role = async () => {
       if (authUser) {
@@ -245,20 +178,23 @@ const DataGrid = () => {
     role()
   }, [])
 
-  useEffect(() => {
-    // Function to set initial values based on filterKeys
-    const initializeValues = () => {
-      const initialValues = {}
+ // Adds data-based filters
+  const filterByLabel = (label, translation) => {
+    const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
 
-      filterTypes.forEach(key => {
-        initialValues[key] = ''
-      })
+    const filteredOptions = allOptions.reduce((result, element) => {
+      result[element] = {
+        label: `${element}`,
+        type: `${translation}`,
+        canSee: [1, 2, 5, 6, 7, 9],
+        filterFunction: doc => doc[label] === element
+      }
 
-      setValues(initialValues)
-    }
+      return result
+    }, {})
 
-    initializeValues()
-  }, [])
+    return filteredOptions
+  }
 
   const filterByPlant = () => filterByLabel('plant', 'Planta')
   const filterByJobType = () => filterByLabel('objective', 'Objetivo')
@@ -286,62 +222,16 @@ const DataGrid = () => {
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
-      <Grid container spacing={2} sx={{ m: 3 }}>
-        <Grid item xs={12} sm={10}>
-          <Grid container spacing={2}>
-            {filterTypes.map(type => (
-              <Grid item xs={6} sm={4} md={3} key={type}>
-                <FormControl sx={{ width: '100%' }}>
-                  <Fragment key={type}>
-                    <InputLabel id={`select-label-${type}`}>{`${type}`}</InputLabel>
-                    <Select
-                      labelId={`select-label-${type}`}
-                      label={`${type}`}
-                      value={values[type]}
-                      onChange={e => handleFilterChange(type, e.target.value)}
-                    >
-                      <MenuItem key={'all'} value={'all'}>
-                        Todas
-                      </MenuItem>
-                      {options
-                        .filter((group, index) => index === filterTypes.indexOf(type))
-                        .map(optionGroup =>
-                          optionGroup.map(option => (
-                            <MenuItem key={option.key} value={option.key}>
-                              {option.label}
-                            </MenuItem>
-                          ))
-                        )}
-                    </Select>
-                  </Fragment>
-                </FormControl>
-              </Grid>
-            ))}
-            <Grid item xs={12} sm={2}>
-              <Button
-                variant='outlined'
-                onClick={handleClearFilters}
-                sx={{ width: '100%', display: { xs: 'block', sm: 'none' } }}
-              >
-                Limpiar filtros
-              </Button>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item xs={12} sm={2}>
-          {/* This button will be hidden on small screens */}
-          <Button
-            variant='outlined'
-            onClick={handleClearFilters}
-            sx={{ width: '100%', display: { xs: 'none', sm: 'block' } }}
-          >
-            Limpiar filtros
-          </Button>
-        </Grid>
-      </Grid>
-      <TabContext value={value}>
+      <FilterComponent
+        authUser={authUser}
+        filterConfig={filterConfig}
+        activeFilters={values}
+        handleFilterChange={handleFilterChange}
+        handleClearFilters={setValues} // Usar setValues para limpiar los filtros
+      />
+      <TabContext value={tabValue}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList onChange={handleChange} aria-label='lab API tabs example'>
+          <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
             {tabContent.map((element, index) => (
               <Tab
                 label={
