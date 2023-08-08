@@ -1,20 +1,12 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebaseAuth'
 
 // ** MUI Imports
-import Button from '@mui/material/Button'
-import Select from '@mui/material/Select'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
 import TabContext from '@mui/lab/TabContext'
@@ -42,11 +34,13 @@ const DataGrid = () => {
     return week % 2 == 0
   }
 
+  let isAShift = Boolean(authUser.shift === 'A')
+
   // Objeto de configuración de filtros
   const [filterConfig, setFilterConfig] = useState({
     all: {
       label: 'Todas las solicitudes',
-      canSee: [1, 2, 3, 4, 5],
+      canSee: [],
       type: 'General', // Ejemplo de números permitidos para ver este filtro
       filterFunction: doc => true // Mostrar todos los documentos
     },
@@ -126,7 +120,7 @@ const DataGrid = () => {
       label: 'Aprobadas por Procure en mi semana',
       type: 'General',
       canSee: [1, 7],
-      filterFunction: doc => otherWeek(doc.start.seconds)
+      filterFunction: isAShift ? doc => otherWeek(doc.start.seconds) : doc => !otherWeek(doc.start.seconds)
     }
   })
 
@@ -180,7 +174,7 @@ const DataGrid = () => {
     role()
   }, [])
 
- // Adds data-based filters
+  // Adds data-based filters
   const filterByLabel = (label, translation) => {
     const allOptions = [...new Set(data.flatMap(obj => obj[label]))]
 

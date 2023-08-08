@@ -26,27 +26,25 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
     return result
   }
 
-
   useEffect(() => {
     const initializeValues = () => {
       const newValues = options.reduce((values, optionGroup) => {
-        const optionGroupName = Object.keys(optionGroup)[0];
-        values[optionGroupName] = '';
+        const optionGroupName = Object.keys(optionGroup)[0]
+        values[optionGroupName] = ''
 
-        return values;
-      }, {});
-      setInitialValues(newValues);
-    };
-    initializeValues();
+        return values
+      }, {})
+      setInitialValues(newValues)
+    }
+    initializeValues()
     handleClearFilters(initialValues)
-  }, [options]);
+  }, [options])
 
   useEffect(() => {
     const types = [...new Set(Object.values(filterConfig).map(item => item.type))]
     const options = types.map(type => getFilterOptionsByType(type))
     setOptions(options)
-  }, [filterConfig, authUser]);
-
+  }, [filterConfig, authUser])
 
   return (
     <Grid container spacing={2} sx={{ m: 3 }}>
@@ -54,8 +52,8 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
         const optionGroupName = Object.keys(optionGroup)[0]
         const optionGroupData = optionGroup[optionGroupName]
 
-        if (optionGroupName === 'General' && optionGroupData.length === 1 && optionGroupData[0].key === 'all') {
-          return null;
+        if (optionGroupName === 'General' && optionGroupData.length === 0) {
+          return null
         }
 
         return (
@@ -83,7 +81,14 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
       })}
 
       <Grid item xs={12} sm={2}>
-        <Button variant='outlined' onClick={() => { handleClearFilters(initialValues); console.log(initialValues) }} sx={{ width: '100%' }}>
+        <Button
+          variant='outlined'
+          onClick={() => {
+            handleClearFilters(initialValues)
+            console.log(initialValues)
+          }}
+          sx={{ width: '100%' }}
+        >
           Limpiar filtros
         </Button>
       </Grid>
