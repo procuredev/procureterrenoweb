@@ -51,6 +51,11 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
       const optionGroupName = Object.keys(optionGroup)[0]
       const optionGroupData = optionGroup[optionGroupName]
 
+      // Avoid rendering "General" selector if it's the only visible option
+      if (optionGroupName === 'General' && optionGroupData.length === 1 && optionGroupData[0].key === 'all') {
+        return null;
+      }
+
         return (
           <Grid item xs={6} sm={4} md={3} key={optionGroupName}>
             <FormControl sx={{ width: '100%' }}>
