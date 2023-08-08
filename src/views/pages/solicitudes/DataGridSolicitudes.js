@@ -136,6 +136,8 @@ const DataGrid = () => {
 
   // Function to handle changes when a filter is selected from Autocomplete or Select
   const handleFilterChange = (key, value) => {
+    console.log(key)
+    console.log(value)
     setValues(prevValues => ({
       ...prevValues,
       [key]: value
@@ -209,7 +211,7 @@ const DataGrid = () => {
     }))
   }, [data])
 
-  // Function to apply filters to the data rows
+  // Function to app filters to the data rows
   const applyFilters = (data, activeFilters) => {
     return data.filter(row => {
       return Object.entries(activeFilters).every(([key, value]) => {

@@ -27,34 +27,39 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
     return result
   }
 
+
   useEffect(() => {
     const initializeValues = () => {
-      let newValues = {}
-      filterTypes.forEach(key => {
-        newValues[key] = ''
-      })
-      setInitialValues(newValues)
-    }
-    initializeValues()
-  }, [])
+      const newValues = options.reduce((values, optionGroup) => {
+        const optionGroupName = Object.keys(optionGroup)[0];
+        values[optionGroupName] = '';
+
+        return values;
+      }, {});
+      setInitialValues(newValues);
+    };
+    initializeValues();
+    handleClearFilters(initialValues)
+  }, [options]);
 
   useEffect(() => {
     const types = [...new Set(Object.values(filterConfig).map(item => item.type))]
     const options = types.map(type => getFilterOptionsByType(type))
-    console.log(options)
     setOptions(options)
-  }, [filterConfig])
+  }, [filterConfig, authUser]);
+
 
   return (
     <Grid container spacing={2} sx={{ m: 3 }}>
-     {options.map(optionGroup => {
-      const optionGroupName = Object.keys(optionGroup)[0]
-      const optionGroupData = optionGroup[optionGroupName]
+      {options.map(optionGroup => {
+        const optionGroupName = Object.keys(optionGroup)[0]
+        const optionGroupData = optionGroup[optionGroupName]
 
-      // Avoid rendering "General" selector if it's the only visible option
-      if (optionGroupName === 'General' && optionGroupData.length === 1 && optionGroupData[0].key === 'all') {
-        return null;
-      }
+        if (optionGroupName === 'General' && optionGroupData.length === 1 && optionGroupData[0].key === 'all') {
+          return null;
+        }
+
+        console.log(options)
 
         return (
           <Grid item xs={6} sm={4} md={3} key={optionGroupName}>
@@ -66,8 +71,8 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
                 value={activeFilters[optionGroupName]}
                 onChange={e => handleFilterChange(optionGroupName, e.target.value)}
               >
-                <MenuItem key={'all'} value={'all'}>
-                {optionGroupName}
+                <MenuItem key={`all-${optionGroupName}`} value={''}>
+                  {optionGroupName}
                 </MenuItem>
                 {optionGroupData.map(option => (
                   <MenuItem key={option.key} value={option.key}>
@@ -81,7 +86,7 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
       })}
 
       <Grid item xs={12} sm={2}>
-        <Button variant='outlined' onClick={() => handleClearFilters(initialValues)} sx={{ width: '100%' }}>
+        <Button variant='outlined' onClick={() => { handleClearFilters(initialValues); console.log(initialValues) }} sx={{ width: '100%' }}>
           Limpiar filtros
         </Button>
       </Grid>
