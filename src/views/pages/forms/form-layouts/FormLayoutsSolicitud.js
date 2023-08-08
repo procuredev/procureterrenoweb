@@ -164,6 +164,19 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'petitioner' && authUser.role !== 2) {
           getPetitionerOpShift(newValue)
         }
+        if (prop === 'objective'){
+          const isAnalysisGPRSelected = newValue === 'Análisis GPR';
+          const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
+          const currentWeek = moment().isoWeeks()
+          const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 10).startOf("week").format('LL')
+
+          if (isAnalysisGPRSelected && weeksDifference < 10) {
+            setErrors(prevErrors => ({
+              ...prevErrors,
+              objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
+            }));
+          }
+        }
         if (prop === 'plant') {
           findAreas(newValue)
         }
@@ -213,25 +226,26 @@ const FormLayoutsSolicitud = () => {
     if (resultSap.exist) {
       if (resultSap.sapWithOt) {
         console.log(resultSap.sapWithOt)
+        setAlertMessage(resultSap.msj)
+
       }
       console.log(resultSap.sap)
+      setAlertMessage(resultSap.msj)
+
     } else {
       setValues({
         ...values,
         sap: e.target.value
       })
     }
-    setAlertMessage(resultSap.msj)
+
+    // setAlertMessage(resultSap.msj)
 
     return resultSap
   }
 
-  const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('https://')
+  // const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('https://')
 
- /*  const onBlurUrlVideo = e => {
-
-    setValidUrlVideo({ url: validateUrlVideo.tempUrl, tempUrl: validateUrlVideo.url })
-  } */
 
   const validationRegex = {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
@@ -250,6 +264,18 @@ const FormLayoutsSolicitud = () => {
       if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo') {
         if ((values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0))) {
           newErrors[key] = 'Por favor, especifica una opción válida'
+        }
+      }
+
+      if (key === 'objective'){
+        const isAnalysisGPRSelected = values[key] === 'Análisis GPR';
+        const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
+        const currentWeek = moment().isoWeeks()
+        const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 10).startOf("week").format('LL')
+
+        if (isAnalysisGPRSelected && weeksDifference <= 10) {
+          newErrors[key] = `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
+
         }
       }
 
@@ -432,15 +458,29 @@ const FormLayoutsSolicitud = () => {
 
   const onSubmit = async event => {
     event.preventDefault()
-    if (values.urlvideo !== undefined) {
+
+    /* if (values.urlvideo !== undefined) {
       setValidUrlVideo({ url: validateUrlVideo.tempUrl, tempUrl: validateUrlVideo.url })
-    }
+    } */
+
+      /*   const isAnalysisGPRSelected = values.objective === 'Análisis GPR';
+      const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
+
+    if (isAnalysisGPRSelected && weeksDifference <= 10) {
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        objective: 'El tipo de levantamiento "Análisis GPR" solo está disponible si la fecha es superior a 10 semanas a partir de hoy.'
+      }));
+    }*/
+
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isBlocked = await consultBlockDayInDB(values.start.toDate())
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     console.log(formErrors)
+
+
     if (Object.keys(formErrors).length === 0 && areFieldsValid === true && isBlocked.blocked === false && invalidFiles.length === 0) {
       try {
         setIsUploading(true) // Se activa el Spinner
@@ -1044,7 +1084,7 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
              {/* VideoUrl */}
-             <Grid item xs={12}>
+             {/* <Grid item xs={12}>
               <Box display='flex' alignItems='center'>
                 <TextField
                   InputLabelProps={{ required: false }}
@@ -1064,7 +1104,7 @@ const FormLayoutsSolicitud = () => {
                   <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>
-            </Grid>
+            </Grid> */}
 
             {/* Dropzone archivos */}
             <Grid item xs={12}>

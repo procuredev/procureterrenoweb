@@ -167,6 +167,7 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
   const onsubmit = (id) => {
     if (draftmen.length > 0) {
       reviewDocs(id, draftmen);
+      setDraftmen([])
       handleClose();
     }
   }
@@ -190,12 +191,18 @@ export const DialogAssignProject = ({open, doc, proyectistas, handleClose}) => {
       scroll='body'
       onClose={() => handleClose()}
       TransitionComponent={Transition}
-      onBackdropClick={() => handleClose()}
+      onBackdropClick={() => {
+        setDraftmen([])
+        handleClose()
+      }}
     >
       <DialogContent sx={{ px: { xs: 8, sm: 15 }, py: { xs: 8, sm: 12.5 }, position: 'relative' }}>
         <IconButton
           size='small'
-          onClick={() => handleClose()}
+          onClick={() => {
+            setDraftmen([])
+            handleClose()
+          }}
           sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
         >
           <Icon icon='mdi:close' />

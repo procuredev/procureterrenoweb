@@ -695,9 +695,7 @@ const FirebaseContextProvider = props => {
             case 7:
               q = query(
                 collection(db, 'solicitudes'),
-                where('state', '>=', 6),
-                orderBy('state'),
-                orderBy('date', 'desc')
+                where('state', '>=', 6)
               )
               break
             default:
@@ -722,7 +720,10 @@ const FirebaseContextProvider = props => {
 
             await Promise.all(promises)
 
-            setData(allDocs)
+          // Ordena manualmente las solicitudes por 'date' en orden descendente
+          const sortedDocs = allDocs.sort((a, b) => b.date.seconds - a.date.seconds);
+
+            setData(sortedDocs)
           } catch (error) {
             console.error('Error al obtener los documentos de Firestore: ', error)
 
