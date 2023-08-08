@@ -18,17 +18,14 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
       .filter(([key, value]) => value.type === type && value.canSee.includes(authUser.role))
       .map(([key, value]) => ({
         key,
-        label: value.label,
-      }));
+        label: value.label
+      }))
 
-    const result = {};
-    result[type] = optionsByType;
+    const result = {}
+    result[type] = optionsByType
 
-    return result;
-  };
-
-
-
+    return result
+  }
 
   useEffect(() => {
     const initializeValues = () => {
@@ -50,52 +47,41 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
 
   return (
     <Grid container spacing={2} sx={{ m: 3 }}>
-      {options.map(optionGroup => (
-  <Grid item xs={6} sm={4} md={3} key={Object.keys(optionGroup)[0]}> {/* Usamos Object.keys() para obtener el nombre */}
-    <FormControl sx={{ width: '100%' }}>
-      <InputLabel id={`select-label-${Object.keys(optionGroup)[0]}`}>{Object.keys(optionGroup)[0]}</InputLabel>
-      <Select
-        labelId={`select-label-${Object.keys(optionGroup)[0]}`}
-        label={`${Object.keys(optionGroup)[0]}`}
-        value={activeFilters[Object.keys(optionGroup)[0]]}
-        onChange={e => handleFilterChange(Object.keys(optionGroup)[0], e.target.value)}
-      >
-        <MenuItem key={'all'} value={'all'}>
-          Todas
-        </MenuItem>
-        {optionGroup[Object.keys(optionGroup)[0]].map(option => (
-          <MenuItem key={option.key} value={option.key}>
-            {option.label}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </Grid>
-))}
+     {options.map(optionGroup => {
+      const optionGroupName = Object.keys(optionGroup)[0]
+      const optionGroupData = optionGroup[optionGroupName]
+
+        return (
+          <Grid item xs={6} sm={4} md={3} key={optionGroupName}>
+            <FormControl sx={{ width: '100%' }}>
+              <InputLabel id={`select-label-${optionGroupName}`}>{optionGroupName}</InputLabel>
+              <Select
+                labelId={`select-label-${optionGroupName}`}
+                label={optionGroupName}
+                value={activeFilters[optionGroupName]}
+                onChange={e => handleFilterChange(optionGroupName, e.target.value)}
+              >
+                <MenuItem key={'all'} value={'all'}>
+                {optionGroupName}
+                </MenuItem>
+                {optionGroupData.map(option => (
+                  <MenuItem key={option.key} value={option.key}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        )
+      })}
 
       <Grid item xs={12} sm={2}>
-        <Button
-          variant='outlined'
-          onClick={() => handleClearFilters(initialValues)}
-          sx={{ width: '100%', display: { xs: 'block', sm: 'none' } }}
-        >
-          Limpiar filtros
-        </Button>
-      </Grid>
-      <Grid item xs={12} sm={2}>
-        <Button
-          variant='outlined'
-          onClick={() => handleClearFilters(initialValues)}
-          sx={{ width: '100%', display: { xs: 'none', sm: 'block' } }}
-        >
+        <Button variant='outlined' onClick={() => handleClearFilters(initialValues)} sx={{ width: '100%' }}>
           Limpiar filtros
         </Button>
       </Grid>
     </Grid>
   )
-
-
-
 }
 
 export default FilterComponent
