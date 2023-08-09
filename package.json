@@ -47,7 +47,7 @@
     "cleave.js": "1.6.0",
     "clipboard-copy": "4.0.1",
     "clsx": "1.2.1",
-    "date-fns": "^2.29.3",
+    "date-fns": "^2.30.0",
     "dayjs": "^1.11.9",
     "draft-js": "0.11.7",
     "firebase": "9.13.0",
@@ -63,7 +63,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
-    "next": "13.0.0",
+    "next": "13.4.13",
     "nprogress": "0.2.0",
     "payment": "2.4.6",
     "prismjs": "1.29.0",
@@ -84,7 +84,7 @@
     "react-perfect-scrollbar": "1.5.8",
     "react-popper": "^2.3.0",
     "react-redux": "^8.1.2",
-    "recharts": "2.1.16",
+    "recharts": "2.7.3",
     "redux": "^4.2.1",
     "stylis": "4.1.3",
     "stylis-plugin-rtl": "2.1.1",
@@ -93,7 +93,7 @@
     "yup": "0.32.11"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.3",
+    "@babel/core": "^7.22.10",
     "@babel/preset-env": "^7.20.2",
     "@iconify/iconify": "3.0.0",
     "@iconify/json": "2.1.131",
@@ -109,7 +109,7 @@
     "eslint-plugin-import": "2.26.0",
     "next-transpile-modules": "9.1.0",
     "prettier": "2.7.1",
-    "webpack": "^5.76.1"
+    "webpack": "^5.88.2"
   },
   "resolutions": {
     "minipass": "3.3.5",
