@@ -1,4 +1,13 @@
-const generateFilterConfig = (authUser, otherWeek) => {
+const moment = require('moment')
+
+const generateFilterConfig = authUser => {
+  const otherWeek = date => {
+    let dateFormatted = new Date(date * 1000)
+    let week = moment(dateFormatted).isoWeek()
+
+    return week % 2 == 0
+  }
+
   return {
     all: {
       label: 'Todas las solicitudes',
@@ -82,7 +91,9 @@ const generateFilterConfig = (authUser, otherWeek) => {
       label: 'Aprobadas por Procure en mi semana',
       type: 'General',
       canSee: [1, 7],
-      filterFunction: Boolean(authUser.shift === 'A') ? doc => otherWeek(doc.start.seconds) : doc => !otherWeek(doc.start.seconds)
+      filterFunction: Boolean(authUser.shift === 'A')
+        ? doc => otherWeek(doc.start.seconds)
+        : doc => !otherWeek(doc.start.seconds)
     }
   }
 }

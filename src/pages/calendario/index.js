@@ -84,16 +84,9 @@ const AppCalendar = () => {
     setDoc(initialEvent)
   }
 
-  const otherWeek = date => {
-    let dateFormatted = new Date(date * 1000)
-    let week = moment(dateFormatted).isoWeek()
-
-    return week % 2 == 0
-  }
-
   // Objeto de configuración de filtros
   useEffect(() => {
-    setFilterConfig(generateFilterConfig(authUser, otherWeek))
+    setFilterConfig(generateFilterConfig(authUser))
   }, [authUser])
 
   useEffect(() => {

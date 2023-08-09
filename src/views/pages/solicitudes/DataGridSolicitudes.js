@@ -26,18 +26,10 @@ const DataGrid = () => {
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const { useSnapshot, authUser, getRoleData } = useFirebase()
   const data = useSnapshot(true)
-  const moment = require('moment')
-
-  const otherWeek = date => {
-    let dateFormatted = new Date(date * 1000)
-    let week = moment(dateFormatted).isoWeek()
-
-    return week % 2 == 0
-  }
 
   // Objeto de configuración de filtros
   useEffect(() => {
-    setFilterConfig(generateFilterConfig(authUser, otherWeek));
+    setFilterConfig(generateFilterConfig(authUser));
   }, [authUser]);
 
   const handleTabChange = (event, newValue) => {
