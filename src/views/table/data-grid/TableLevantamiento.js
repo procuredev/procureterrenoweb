@@ -46,6 +46,9 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
   const { reviewDocs, authUser, getUserProyectistas } = useFirebase()
+  const [draftmen, setDraftmen] = useState([])
+
+  const defaultSortingModel = [{ field: 'date', sort: 'desc' }];
 
   const handleClickOpen = doc => {
     console.log(doc)
@@ -361,6 +364,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             actions: roleData.canApprove
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+          sortingModel={defaultSortingModel}
         />
         <AlertDialog
           open={openAlert}
