@@ -16,12 +16,13 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
     display: 'flex',
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
+    '& .fc-scroller-liquid-absolute': {
+      height: 'inherit !important',
+      overflow: 'hidden !important'
+    },
     '& .fc-day-today': {
       background: `${theme.palette.background.default} !important`,
-      backgroundColor: `${theme.palette.action.hover} !important`,
-      borderColor: `${theme.palette.background.default} !important`,
-      borderWidth: '5px !important',
-      borderStyle: 'solid !important'
+      backgroundColor: `${theme.palette.action.disabled} !important`
     },
     '& .week': {
       background: `${theme.palette.background.default} !important`,
@@ -152,6 +153,7 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
       '& tbody td, & thead th': {
         borderColor: theme.palette.divider,
         '&.fc-col-header-cell': {
+          backgroundColor: theme.palette.background.paper,
           borderLeft: 0,
           borderRight: 0
         },
@@ -328,7 +330,8 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
         }
       },
       '& .fc-daygrid-body-unbalanced .fc-daygrid-day-events': {
-        minHeight: '5.5em' /* in addition to being a min-height during natural height, equalizes the heights a little bit */
+        minHeight:
+          '5.5em' /* in addition to being a min-height during natural height, equalizes the heights a little bit */
       },
 
       // ** All Views Event

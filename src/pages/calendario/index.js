@@ -240,6 +240,8 @@ const AppCalendar = () => {
       month: 'mes',
       list: 'lista'
     },
+    height: 'auto',
+    contentHeight: 'auto',
     eventDisplay: 'block',
     firstDay: 1,
     dayCellClassNames: function (date) {
