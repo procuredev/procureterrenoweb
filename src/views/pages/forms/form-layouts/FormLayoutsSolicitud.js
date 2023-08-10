@@ -545,6 +545,26 @@ const FormLayoutsSolicitud = () => {
     }
   }, [values.plant])
 
+  useEffect(() => {
+    if (values.objective === 'Análisis GPR'){
+      const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
+      const currentWeek = moment().isoWeeks()
+      const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 10).startOf("week").format('LL')
+
+      if (weeksDifference < 10) {
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
+        }));
+      }else {
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          objective: '' // Limpia el error si la fecha es superior a 10 semanas
+        }));
+      }
+    }
+  }, [values.start])
+
   return (
     <Card>
       <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
