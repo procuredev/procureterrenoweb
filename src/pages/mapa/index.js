@@ -7,7 +7,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormGroup from '@mui/material/FormGroup'
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 
 const apiKey = 'AIzaSyC1XlvMbqs2CN_BWXFtk4BPwYWwD29cVww' // process.env.REACT_APP_GOOGLE_MAP_KEY
 
@@ -907,18 +907,23 @@ class Map extends Component {
   }
 
   addLocationButton(map) {
-    const locationButtonDiv = document.createElement('div')
-    ReactDOM.render(
+    const locationButtonDiv = document.createElement('div');
+
+    // Crear una raíz para el componente usando createRoot
+    const root = ReactDOM.createRoot(locationButtonDiv);
+
+    // Renderizar el componente en la raíz creada
+    root.render(
       <LocationButton
         onClick={() => {
           if (this.state.userLocation) {
-            this.setState({ position: this.state.userLocation })
+            this.setState({ position: this.state.userLocation });
           }
         }}
-      />,
-      locationButtonDiv
-    )
-    map.controls[window.google.maps.ControlPosition.LEFT_BOTTOM].push(locationButtonDiv)
+      />
+    );
+
+    map.controls[window.google.maps.ControlPosition.LEFT_BOTTOM].push(locationButtonDiv);
   }
 
   render() {
