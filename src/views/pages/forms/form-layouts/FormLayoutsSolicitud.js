@@ -168,9 +168,9 @@ const FormLayoutsSolicitud = () => {
           const isAnalysisGPRSelected = newValue === 'Análisis GPR';
           const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
           const currentWeek = moment().isoWeeks()
-          const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 10).startOf("week").format('LL')
+          const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 11).startOf("week").format('LL')
 
-          if (isAnalysisGPRSelected && weeksDifference < 10) {
+          if (isAnalysisGPRSelected && weeksDifference < 11) {
             setErrors(prevErrors => ({
               ...prevErrors,
               objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
@@ -271,9 +271,9 @@ const FormLayoutsSolicitud = () => {
         const isAnalysisGPRSelected = values[key] === 'Análisis GPR';
         const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
         const currentWeek = moment().isoWeeks()
-        const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 10).startOf("week").format('LL')
+        const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 11).startOf("week").format('LL')
 
-        if (isAnalysisGPRSelected && weeksDifference <= 10) {
+        if (isAnalysisGPRSelected && weeksDifference < 11) {
           newErrors[key] = `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
 
         }
@@ -549,9 +549,9 @@ const FormLayoutsSolicitud = () => {
     if (values.objective === 'Análisis GPR'){
       const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
       const currentWeek = moment().isoWeeks()
-      const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 10).startOf("week").format('LL')
+      const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 11).startOf("week").format('LL')
 
-      if (weeksDifference < 10) {
+      if (weeksDifference < 11) {
         setErrors(prevErrors => ({
           ...prevErrors,
           objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
@@ -980,7 +980,7 @@ const FormLayoutsSolicitud = () => {
                   type='text'
                   label='Número SAP'
                   id='sap-input'
-                  onBlur={onBlur}
+                  onBlur={values.sap.length > 0 && onBlur}
                   value={values.sap}
                   onChange={handleChange('sap')}
                   error={errors.sap ? true : false}

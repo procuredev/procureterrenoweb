@@ -338,9 +338,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       defaultValue={ot}
                       size='small'
                       sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                      InputProps={{
-                        readOnly: true, // Esto hará que el campo no sea editable
-                      }}
+                      disabled={true}
                     />
                   </FormControl>
                 </Box>
