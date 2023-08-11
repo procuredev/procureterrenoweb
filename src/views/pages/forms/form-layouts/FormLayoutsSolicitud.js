@@ -458,21 +458,6 @@ const FormLayoutsSolicitud = () => {
 
   const onSubmit = async event => {
     event.preventDefault()
-
-    /* if (values.urlvideo !== undefined) {
-      setValidUrlVideo({ url: validateUrlVideo.tempUrl, tempUrl: validateUrlVideo.url })
-    } */
-
-      /*   const isAnalysisGPRSelected = values.objective === 'Análisis GPR';
-      const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
-
-    if (isAnalysisGPRSelected && weeksDifference <= 10) {
-      setErrors(prevErrors => ({
-        ...prevErrors,
-        objective: 'El tipo de levantamiento "Análisis GPR" solo está disponible si la fecha es superior a 10 semanas a partir de hoy.'
-      }));
-    }*/
-
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
@@ -481,7 +466,7 @@ const FormLayoutsSolicitud = () => {
     console.log(formErrors)
 
 
-    if (Object.keys(formErrors).length === 0 && areFieldsValid === true && isBlocked.blocked === false && invalidFiles.length === 0) {
+    if (Object.keys(formErrors).length === 0 && areFieldsValid === true && invalidFiles.length === 0) {
       try {
         setIsUploading(true) // Se activa el Spinner
 
@@ -501,9 +486,6 @@ const FormLayoutsSolicitud = () => {
         setIsUploading(false) // Se cierra el spinner en caso de error
       }
     } else {
-      if(isBlocked.blocked){
-        setAlertMessage(isBlocked.msj)
-      }
       setIsUploading(false)
       setErrors(formErrors)
     }
