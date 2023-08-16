@@ -560,11 +560,37 @@ const FirebaseContextProvider = props => {
           await updateDoc(ref, { supervisorShift })
         }
         newState = docSnapshot.state
-      } else {
+      } else if (!docSnapshot.ot){
+        const counterRef = doc(db, 'counters', 'otCounter');
+
+        const newOTValue = await runTransaction(db, async transaction => {
+          const counterSnapshot = await transaction.get(counterRef);
+
+          let newCounter;
+
+          if (!counterSnapshot.exists) {
+            newCounter = 1;
+          } else {
+            newCounter = counterSnapshot.data().counter + 1;
+          }
+
+          transaction.set(counterRef, { counter: newCounter });
+
+          return newCounter;
+        });
+
+        // Ahora, actualiza el documento actual con el nuevo valor de 'ot'
+        await updateDoc(ref, { ot: newOTValue });
+
+
+        newState = authUser.role // Avanza
+        changedFields.state = newState;
+      } /* else {
         // Si planificador cambia de fecha, solictud cambia state a 5
         newState = authUser.role // Avanza
         changedFields.state = newState
-      }
+      } */
+
     } else if (isAdmCon && eventDocs.length > 0) {
       // Desestructurar el evento más reciente y extraer la propiedad 'data'
 
@@ -695,9 +721,7 @@ const FirebaseContextProvider = props => {
             case 7:
               q = query(
                 collection(db, 'solicitudes'),
-                where('state', '>=', 6),
-                orderBy('state'),
-                orderBy('date', 'desc')
+                where('state', '>=', 6)
               )
               break
             default:
@@ -722,7 +746,10 @@ const FirebaseContextProvider = props => {
 
             await Promise.all(promises)
 
-            setData(allDocs)
+          // Ordena manualmente las solicitudes por 'date' en orden descendente
+          const sortedDocs = allDocs.sort((a, b) => b.date.seconds - a.date.seconds);
+
+            setData(sortedDocs)
           } catch (error) {
             console.error('Error al obtener los documentos de Firestore: ', error)
 

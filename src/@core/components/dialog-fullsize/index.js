@@ -107,7 +107,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
     if (roleData.id === '5') {
       // Agrega end/ot
-      if ((!end && hasChanges.end) || (!ot && hasChanges.ot)) {
+      if (!end && hasChanges.end) {
         setOpenAlert(true)
 
         // Ya viene con end u ot
@@ -117,7 +117,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           .catch(error => alert(error))
 
         //No trae ni agrega end/ot
-      } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
+      } else if (!end && !hasChanges.end) {
         setMessage('Debes ingresar OT y fecha de término')
       } else {
         setOpenAlert(true)
@@ -338,6 +338,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       defaultValue={ot}
                       size='small'
                       sx={{ mb: 5, mr: 2, flex: 'auto' }}
+                      InputProps={{
+                        readOnly: true, // Esto hará que el campo no sea editable
+                      }}
                     />
                   </FormControl>
                 </Box>
