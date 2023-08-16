@@ -7,9 +7,9 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormGroup from '@mui/material/FormGroup'
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 
-const apiKey = process.env.REACT_APP_GOOGLE_MAP_KEY //'AIzaSyCGcA3qkE7-0FPXVgvc1cNxraGpc__D0Fs'
+const apiKey = 'AIzaSyC1XlvMbqs2CN_BWXFtk4BPwYWwD29cVww' // process.env.REACT_APP_GOOGLE_MAP_KEY
 
 const UserLocationIcon = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none" class="css-i6dzq1">
@@ -907,18 +907,23 @@ class Map extends Component {
   }
 
   addLocationButton(map) {
-    const locationButtonDiv = document.createElement('div')
-    ReactDOM.render(
+    const locationButtonDiv = document.createElement('div');
+
+    // Crear una raíz para el componente usando createRoot
+    const root = ReactDOM.createRoot(locationButtonDiv);
+
+    // Renderizar el componente en la raíz creada
+    root.render(
       <LocationButton
         onClick={() => {
           if (this.state.userLocation) {
-            this.setState({ position: this.state.userLocation })
+            this.setState({ position: this.state.userLocation });
           }
         }}
-      />,
-      locationButtonDiv
-    )
-    map.controls[window.google.maps.ControlPosition.LEFT_BOTTOM].push(locationButtonDiv)
+      />
+    );
+
+    map.controls[window.google.maps.ControlPosition.LEFT_BOTTOM].push(locationButtonDiv);
   }
 
   render() {

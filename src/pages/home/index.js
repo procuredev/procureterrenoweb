@@ -150,13 +150,13 @@ const Home = () => {
               />
       </Grid> */}
 
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={12} sm={6} md={6}>
         <ObjetivesByDay />
       </Grid>
 
 
 
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={12} sm={6} md={6} >
         <ObjetivesByMonth />
       </Grid>
 
@@ -171,11 +171,11 @@ const Home = () => {
         <ChartBarsDocsByPlants />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} sm={6} md={6}>
         <ChartBarsObjetivesByPlants />
       </Grid>
 
-      <Grid item xs={12} md={12}>
+      <Grid item xs={12} sm={12} md={12}>
         <Top10UsersWihitMostDocs />
       </Grid>
 
