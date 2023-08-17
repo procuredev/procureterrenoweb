@@ -24,7 +24,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Context
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -80,20 +80,20 @@ const UserDropdown = props => {
     signOut(auth)
       .then(() => {
         setTimeout(() => {
-          handleDropdownClose('/login');
-        }, 500); // Retraso de 500 milisegundos antes de redireccionar
+          handleDropdownClose('/login')
+        }, 500) // Retraso de 500 milisegundos antes de redireccionar
       })
       .catch(error => {
-        console.log(error);
-      });
-  };
+        console.log(error)
+      })
+  }
 
   // Se inicializan las variables que serán usadas en el menú desplegable
   let userEmail // variable que almacena el e-mail del usuario conectado
   let userRole // variable que almacena el rol del usuario conectado
 
   // Si no hay un usuario conectado
-  if (!authUser){
+  if (!authUser) {
     // Las variables serán definidas como 'not logged' para evitar problemas de renderizado
     userEmail = 'not logged'
     userRole = 'not Logged'
@@ -105,51 +105,47 @@ const UserDropdown = props => {
     // Condicional que renderizará en rol como un string según el rol del usuario conectado
     if (authUser.role == 1) {
       userRole = 'Admin'
-    } else if (authUser.role == 2){
+    } else if (authUser.role == 2) {
       userRole = 'Solicitante'
-    } else if (authUser.role == 3){
+    } else if (authUser.role == 3) {
       userRole = 'Contract Operator'
-    } else if (authUser.role == 4){
+    } else if (authUser.role == 4) {
       userRole = 'Contract Owner'
-    } else if (authUser.role == 5){
+    } else if (authUser.role == 5) {
       userRole = 'Planificador'
-    } else if (authUser.role == 6){
+    } else if (authUser.role == 6) {
       userRole = 'Administrador de Contrato'
-    } else if (authUser.role == 7){
+    } else if (authUser.role == 7) {
       userRole = 'Supervisor'
-    } else if (authUser.role == 8){
+    } else if (authUser.role == 8) {
       userRole = 'Proyectista'
-    } else if (authUser.role == 9){
+    } else if (authUser.role == 9) {
       userRole = 'Control Documental'
-    } else if (authUser.role == 10){
+    } else if (authUser.role == 10) {
       userRole = 'Gerencia'
     }
   }
 
   useEffect(() => {
-    if (authUser.displayName === 'No definido'){
+    if (authUser.displayName === 'No definido') {
       setUserName('Por definir')
-    } else if (!authUser.displayName){
+    } else if (!authUser.displayName) {
       setUserName('Por definir')
-    } else if (authUser.displayName && authUser.displayName !== ''){
+    } else if (authUser.displayName && authUser.displayName !== '') {
       setUserName(authUser.displayName)
     } else {
       setUserName('Por definir')
     }
   }, [authUser])
 
-
-
-
   const renderUserAvatar = () => {
-
     let avatarContent
     let name
     if (!authUser || !authUser.displayName) {
       name = 'Por definir'
     }
 
-    if ( authUser && authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
+    if (authUser && authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
       avatarContent = (
         <Avatar
           src={authUser.urlFoto}
@@ -159,18 +155,19 @@ const UserDropdown = props => {
             height: 40,
             borderRadius: '50%',
             objectFit: 'contain',
-            fontSize: '15px', // Tamaño de la fuente ajustado
+            fontSize: '15px' // Tamaño de la fuente ajustado
           }}
         />
-      );
+      )
     } else {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
       const currentName = authUser.displayName ?? name
 
-      const initials = currentName.toUpperCase()
+      const initials = currentName
+        .toUpperCase()
         .split(' ')
-        .map((word) => word.charAt(0))
-        .join('');
+        .map(word => word.charAt(0))
+        .join('')
 
       avatarContent = (
         <Avatar
@@ -180,18 +177,16 @@ const UserDropdown = props => {
             borderRadius: '50%',
             objectFit: 'contain',
             bgcolor: 'primary.main',
-            fontSize: '15px', // Tamaño de la fuente ajustado
+            fontSize: '15px' // Tamaño de la fuente ajustado
           }}
         >
           {initials}
         </Avatar>
-      );
+      )
     }
 
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 40 }}>
-        {avatarContent}
-      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 40 }}>{avatarContent}</Box>
     )
   }
 

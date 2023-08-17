@@ -8,7 +8,7 @@ import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
-import 'moment/locale/es';
+import 'moment/locale/es'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -22,28 +22,26 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const ObjetivesByMonth = () => {
   // ** Hook
-  const {
-    consultObjetivesLastSixMonths
-  } = useFirebase()
+  const { consultObjetivesLastSixMonths } = useFirebase()
   const theme = useTheme()
 
-  const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0,0,0,0,0,0])
-  const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene','Feb','Mar','Abr','May','Jun'])
+  const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
+  const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
 
   useEffect(() => {
-      const fetchData = async () => {
-        const result = await consultObjetivesLastSixMonths();
-        const monthArray = result.map(item => item.month);
-        const cantArray = result.map(item => item.cant);
-        setObjetivesOfLastSixMonths(cantArray);
-        setMonthssOfLastSixMonths(monthArray);
-      };
+    const fetchData = async () => {
+      const result = await consultObjetivesLastSixMonths()
+      const monthArray = result.map(item => item.month)
+      const cantArray = result.map(item => item.cant)
+      setObjetivesOfLastSixMonths(cantArray)
+      setMonthssOfLastSixMonths(monthArray)
+    }
 
-    fetchData();
+    fetchData()
   }, [])
 
   const options = {
@@ -98,8 +96,7 @@ const ObjetivesByMonth = () => {
     }
   }
 
-
-  const totalDocuments = objetivesOfLastSixMonths.reduce((total, count) => total + count, 0);
+  const totalDocuments = objetivesOfLastSixMonths.reduce((total, count) => total + count, 0)
   const totalSemestral = `Total Semestral: ${totalDocuments}`
 
   return (
@@ -111,7 +108,12 @@ const ObjetivesByMonth = () => {
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts type='bar' height={120} options={options} series={[{ name:'Levantamientos', data: objetivesOfLastSixMonths }]} />
+        <ReactApexcharts
+          type='bar'
+          height={120}
+          options={options}
+          series={[{ name: 'Levantamientos', data: objetivesOfLastSixMonths }]}
+        />
       </CardContent>
     </Card>
   )

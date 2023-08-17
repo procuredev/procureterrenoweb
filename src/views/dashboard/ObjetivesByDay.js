@@ -21,33 +21,37 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const ObjetivesByDay = () => {
-   // ** Hooks
-   const {
-    consultObjetivesOfActualWeek
-  } = useFirebase()
+  // ** Hooks
+  const { consultObjetivesOfActualWeek } = useFirebase()
   const theme = useTheme()
 
-  const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0,0,0,0,0,0,0])
+  const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0])
 
   useEffect(() => {
-      const fetchData = async () => {
-        const objOfActualWeek = await consultObjetivesOfActualWeek();
-        setObjetivesOfActualWeek(objOfActualWeek);
-      };
+    const fetchData = async () => {
+      const objOfActualWeek = await consultObjetivesOfActualWeek()
+      setObjetivesOfActualWeek(objOfActualWeek)
+    }
 
-    fetchData();
+    fetchData()
   }, [])
-
 
   const options = {
     tooltip: {
       x: {
-        formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-         //const value = series[seriesIndex][dataPointIndex];
-          const plants = ['Los Colorados', 'Laguna Seca 1', 'Laguna Seca 2', 'Chancado y Correas', 'Puerto Coloso', 'Instalacones Cátodo']
+        formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
+          //const value = series[seriesIndex][dataPointIndex];
+          const plants = [
+            'Los Colorados',
+            'Laguna Seca 1',
+            'Laguna Seca 2',
+            'Chancado y Correas',
+            'Puerto Coloso',
+            'Instalacones Cátodo'
+          ]
 
           return plants[dataPointIndex]
         }
@@ -104,10 +108,8 @@ const ObjetivesByDay = () => {
     }
   }
 
-  const totalDocuments = objetivesOfActualWeek.reduce((total, count) => total + count, 0);
+  const totalDocuments = objetivesOfActualWeek.reduce((total, count) => total + count, 0)
   const totalSemanal = `Total semanal: ${totalDocuments}`
-
-
 
   return (
     <Card>
@@ -118,7 +120,12 @@ const ObjetivesByDay = () => {
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts type='bar' height={120} options={options} series={[{ name:'Levantamientos', data: objetivesOfActualWeek }]} />
+        <ReactApexcharts
+          type='bar'
+          height={120}
+          options={options}
+          series={[{ name: 'Levantamientos', data: objetivesOfActualWeek }]}
+        />
       </CardContent>
     </Card>
   )

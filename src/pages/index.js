@@ -8,8 +8,7 @@ import { useRouter } from 'next/router'
 import Spinner from 'src/@core/components/spinner'
 
 // ** Hook Imports
-import { useFirebase } from 'src/context/useFirebaseAuth'
-
+import { useFirebase } from 'src/context/useFirebase'
 
 const Home = () => {
   // return <Spinner sx={{ height: '100%' }} />

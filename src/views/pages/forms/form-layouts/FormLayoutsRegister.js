@@ -3,7 +3,7 @@ import * as React from 'react'
 import { useState, useEffect } from 'react'
 
 // ** Hooks Imports
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
 import Autocomplete from '@mui/material/Autocomplete'

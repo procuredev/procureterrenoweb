@@ -21,38 +21,49 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const ChartBarsObjetivesByPlants = () => {
   // ** Hook
-  const {
-    consultAllObjetivesByPlants
-  } = useFirebase()
+  const { consultAllObjetivesByPlants } = useFirebase()
   const theme = useTheme()
 
-  const [objByPlants, setObjByPlants] = useState([0,0,0,0,0,0])
+  const [objByPlants, setObjByPlants] = useState([0, 0, 0, 0, 0, 0])
 
-  const plants = ['Los Colorados', 'Laguna Seca 1', 'Laguna Seca 2', 'Chancado y Correas', 'Puerto Coloso', 'Instalacones Cátodo']
-  const resObjByPlants2 = objByPlants.map((el,index) => ({x: plants[index], y: el}));
-        console.log(resObjByPlants2)
+  const plants = [
+    'Los Colorados',
+    'Laguna Seca 1',
+    'Laguna Seca 2',
+    'Chancado y Correas',
+    'Puerto Coloso',
+    'Instalacones Cátodo'
+  ]
+  const resObjByPlants2 = objByPlants.map((el, index) => ({ x: plants[index], y: el }))
+  console.log(resObjByPlants2)
 
   useEffect(() => {
-      const fetchData = async () => {
-        const resObjByPlants = await consultAllObjetivesByPlants();
+    const fetchData = async () => {
+      const resObjByPlants = await consultAllObjetivesByPlants()
 
-        setObjByPlants(resObjByPlants);
-      };
+      setObjByPlants(resObjByPlants)
+    }
 
-    fetchData();
+    fetchData()
   }, [])
-
 
   const options = {
     tooltip: {
       x: {
-        formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-         //const value = series[seriesIndex][dataPointIndex];
-          const plants = ['Los Colorados', 'Laguna Seca 1', 'Laguna Seca 2', 'Chancado y Correas', 'Puerto Coloso', 'Instalacones Cátodo']
+        formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
+          //const value = series[seriesIndex][dataPointIndex];
+          const plants = [
+            'Los Colorados',
+            'Laguna Seca 1',
+            'Laguna Seca 2',
+            'Chancado y Correas',
+            'Puerto Coloso',
+            'Instalacones Cátodo'
+          ]
 
           return plants[dataPointIndex]
         }
@@ -90,9 +101,11 @@ const ChartBarsObjetivesByPlants = () => {
         filter: { type: 'none' }
       }
     },
-    series: [{
-      data: resObjByPlants2,
-  }],
+    series: [
+      {
+        data: resObjByPlants2
+      }
+    ],
     xaxis: {
       axisTicks: { show: false },
       axisBorder: { show: false },
@@ -101,7 +114,7 @@ const ChartBarsObjetivesByPlants = () => {
         style: {
           colors: theme.palette.text.disabled
         }
-      },
+      }
     },
     yaxis: { show: false },
     grid: {
@@ -118,13 +131,17 @@ const ChartBarsObjetivesByPlants = () => {
     <Card>
       <CardHeader
         title='Levantamientos por Planta'
-
         //subheader='Total semanal: 20'
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts type='bar' height={120} options={options} series={[{ name:'Levantamientos', data: objByPlants }]} />
+        <ReactApexcharts
+          type='bar'
+          height={120}
+          options={options}
+          series={[{ name: 'Levantamientos', data: objByPlants }]}
+        />
       </CardContent>
     </Card>
   )

@@ -8,7 +8,7 @@ import Grid from '@mui/material/Grid'
 import { styled, useTheme } from '@mui/material/styles'
 import { Height } from '@mui/icons-material'
 import { useRouter } from 'next/router'
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 import dictionary from 'src/@core/components/dictionary/index'
 
 // Styled Grid component
@@ -27,21 +27,26 @@ const ProfileCard = () => {
   const { authUser } = useFirebase()
 
   return (
-    <Card sx={{ position: 'relative',height:'auto'}}>
+    <Card sx={{ position: 'relative', height: 'auto' }}>
       <CardContent>
-          <Grid item>
-            <Typography variant='h5' sx={{ mb: 6 }}>
-             Hola,{' '}
-              <Box component='span' sx={{ fontWeight: 'bold', mb:4.5 }}>
-              {authUser && (authUser.displayName || typeof authUser.role === 'number' ? (dictionary[authUser.role] && dictionary[authUser.role].name) : 'No definido')}
-              </Box>
-              ! 👋
-            </Typography>
-            <Typography variant='body2' sx={{ mb: 7 }}>
-              Explora las distintas vistas o revisa la actividad reciente aquí.
-            </Typography>
-            <Button onClick={()=>router.replace('/solicitudes/')} variant='contained'>Ver Solicitudes</Button>
-          </Grid>
+        <Grid item>
+          <Typography variant='h5' sx={{ mb: 6 }}>
+            Hola,{' '}
+            <Box component='span' sx={{ fontWeight: 'bold', mb: 4.5 }}>
+              {authUser &&
+                (authUser.displayName || typeof authUser.role === 'number'
+                  ? dictionary[authUser.role] && dictionary[authUser.role].name
+                  : 'No definido')}
+            </Box>
+            ! 👋
+          </Typography>
+          <Typography variant='body2' sx={{ mb: 7 }}>
+            Explora las distintas vistas o revisa la actividad reciente aquí.
+          </Typography>
+          <Button onClick={() => router.replace('/solicitudes/')} variant='contained'>
+            Ver Solicitudes
+          </Button>
+        </Grid>
       </CardContent>
     </Card>
   )

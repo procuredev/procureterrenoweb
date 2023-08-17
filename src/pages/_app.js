@@ -1,4 +1,4 @@
-import FirebaseContextProvider from 'src/context/useFirebaseAuth'
+import FirebaseContextProvider from 'src/context/useFirebase'
 
 // ** Next Imports
 import Head from 'next/head'
@@ -13,7 +13,6 @@ import { CacheProvider } from '@emotion/react'
 // ** Config Imports
 import themeConfig from 'src/configs/themeConfig'
 import { defaultACLObj } from 'src/configs/acl'
-
 
 // ** Third Party Import
 import { Toaster } from 'react-hot-toast'
@@ -78,7 +77,6 @@ const Guard = ({ children, authGuard, guestGuard }) => {
   }
 }
 
-
 // ** Configure JSS & ClassName
 const App = props => {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
@@ -86,22 +84,19 @@ const App = props => {
   // Variables
   const contentHeightFixed = Component.contentHeightFixed ?? false
 
-  const getLayout = Component.getLayout ?? (page => <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>)
+  const getLayout =
+    Component.getLayout ?? (page => <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>)
   const setConfig = Component.setConfig ?? undefined
   const authGuard = Component.authGuard ?? true
   const guestGuard = Component.guestGuard ?? false
   const aclAbilities = Component.acl ?? defaultACLObj
-
 
   return (
     <FirebaseContextProvider>
       <CacheProvider value={emotionCache}>
         <Head>
           <title>{`${themeConfig.templateName} `}</title>
-          <meta
-            name='description'
-            content={`${themeConfig.templateName}]`}
-          />
+          <meta name='description' content={`${themeConfig.templateName}]`} />
           <meta name='keywords' content='Material Design, MUI, Admin Template, React Admin Template' />
           <meta name='viewport' content='initial-scale=1, width=device-width' />
         </Head>
@@ -128,7 +123,6 @@ const App = props => {
         </SettingsProvider>
       </CacheProvider>
     </FirebaseContextProvider>
-
   )
 }
 

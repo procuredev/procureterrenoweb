@@ -15,7 +15,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import Avatar from 'src/@core/components/mui/avatar'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 import { useRouter } from 'next/router'
 import { number } from 'yup'
 
@@ -32,7 +32,7 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
     shortDescription = description.substring(0, 150)
   }
 
-  let avatarContent;
+  let avatarContent
   if (Array.isArray(photo) && photo.length === 0) {
     // `photo` es un array vacío, proporcionar un valor predeterminado
     avatarContent = (
@@ -42,10 +42,10 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
           height: 180,
           borderRadius: '50%',
           objectFit: 'contain',
-          bgcolor: 'primary.main',
+          bgcolor: 'primary.main'
         }}
       />
-    );
+    )
   } else if (photo && typeof photo === 'string') {
     // `photo` es una imagen válida
     avatarContent = (
@@ -56,16 +56,16 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
           width: 180,
           height: 180,
           borderRadius: '50%',
-          objectFit: 'contain',
+          objectFit: 'contain'
         }}
       />
-    );
+    )
   } else {
     // No hay `photo` proporcionada, usar avatar con iniciales del nombre
     const initials = name
       .split(' ')
-      .map((word) => word.charAt(0))
-      .join('');
+      .map(word => word.charAt(0))
+      .join('')
     avatarContent = (
       <Avatar
         sx={{
@@ -74,35 +74,31 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
           borderRadius: '50%',
           objectFit: 'contain',
           bgcolor: 'primary.main',
-          fontSize: '72px', // Tamaño de la fuente ajustado
+          fontSize: '72px' // Tamaño de la fuente ajustado
         }}
       >
         {initials.toUpperCase()}
       </Avatar>
-    );
+    )
   }
-
-
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ position: 'relative' }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-          <Box sx={{ position: 'absolute'}}>
-            {avatarContent}
-          </Box>
-            {photo && typeof photo === 'string' && (
-              <CardMedia
-                component='img'
-                sx={{
-                  width: 180,
-                  height: 180,
-                  borderRadius: '50%',
-                  objectFit: 'contain'
-                }}
-                image={photo}
-              />
-            )}
+          <Box sx={{ position: 'absolute' }}>{avatarContent}</Box>
+          {photo && typeof photo === 'string' && (
+            <CardMedia
+              component='img'
+              sx={{
+                width: 180,
+                height: 180,
+                borderRadius: '50%',
+                objectFit: 'contain'
+              }}
+              image={photo}
+            />
+          )}
         </Box>
         <CardContent sx={{ flexGrow: 1 }}>
           <Typography variant='h6' sx={{ mb: 1 }}>
@@ -142,11 +138,9 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
   )
 }
 
-
-
 const NuestroEquipo = () => {
   // ** Hooks
-  const { authUser, getAllProcureUsers} = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
+  const { authUser, getAllProcureUsers } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
   const router = useRouter() // Importación de router... no sé que utlidad le daré
 
   // ** States
@@ -156,15 +150,15 @@ const NuestroEquipo = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const users = await getAllProcureUsers();
-        setProcureUsers(users);
+        const users = await getAllProcureUsers()
+        setProcureUsers(users)
       } catch (error) {
-        console.error('Error al obtener los usuarios de Procure:', error);
+        console.error('Error al obtener los usuarios de Procure:', error)
       }
-    };
+    }
 
-    fetchUsers();
-  }, []);
+    fetchUsers()
+  }, [])
 
   // Declaración de varibles: array usuarios, prioridad (orden en que serán mostrados), jon (cargo)
   let users = [] // array que almacenará los usuarios que cumplen con las condiciones
@@ -175,7 +169,7 @@ const NuestroEquipo = () => {
   procureUsers.forEach(object => {
     // Se almacenarán todos los usuarios Procure que tienen roles 5, 6, 7 u 8
     if (object.role == 5 || object.role == 6 || object.role == 7 || object.role == 8) {
-      if(object.role == 6){
+      if (object.role == 6) {
         priority = 1
         job = 'Administrador de Contrato'
       } else if (object.role == 7) {
@@ -188,12 +182,19 @@ const NuestroEquipo = () => {
         priority = 4
         job = 'Proyectista de Terreno'
       }
-      users.push({name: object.name, priority: priority, job: job, photo: object.urlFoto, description: object.description, linkedin: object.linkedin})
+      users.push({
+        name: object.name,
+        priority: priority,
+        job: job,
+        photo: object.urlFoto,
+        description: object.description,
+        linkedin: object.linkedin
+      })
     }
   })
 
   // Se ordena el array users para que se muestre de mayor prioridad a menor prioridad
-  users.sort((a, b) => a.priority-b.priority)
+  users.sort((a, b) => a.priority - b.priority)
 
   return (
     <Grid container spacing={2}>

@@ -36,7 +36,7 @@ import {
 import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
-import { useFirebase, getData } from 'src/context/useFirebaseAuth'
+import { useFirebase, getData } from 'src/context/useFirebase'
 import localDate from 'src/@core/utils/handle-date-offset'
 
 // ** Date Library

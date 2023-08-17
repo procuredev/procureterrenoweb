@@ -24,10 +24,8 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import DialogContent from '@mui/material/DialogContent'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
-import EngineeringIcon from '@mui/icons-material/Engineering';
+import EngineeringIcon from '@mui/icons-material/Engineering'
 import TableSpanning from 'src/views/table/mui/TableSpanning'
-
-
 
 import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
@@ -40,28 +38,22 @@ import themeConfig from 'src/configs/themeConfig'
 
 // ** Hooks Imports
 import { useSettings } from 'src/@core/hooks/useSettings'
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-
-
-
-
-export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { //falta evaluar la foto del proyectista
-
+export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
+  //falta evaluar la foto del proyectista
 
   // ** States
   const [show, setShow] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
   const [draftmen, setDraftmen] = useState([])
 
-  const [horasLevantamiento, setHorasLevantamiento] = useState('');
-  const [error, setError] = useState('');
-
-
+  const [horasLevantamiento, setHorasLevantamiento] = useState('')
+  const [error, setError] = useState('')
 
   // ** Hooks
   const { settings } = useSettings()
@@ -77,55 +69,53 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
-    const updatedDraftmen = draftmen.filter((draftman) => draftman.name !== name);
+    const updatedDraftmen = draftmen.filter(draftman => draftman.name !== name)
 
     // Actualizamos el estado con el nuevo array actualizado
-    setDraftmen(updatedDraftmen);
+    setDraftmen(updatedDraftmen)
   }
 
-/*   const handleClose = () => {
+  /*   const handleClose = () => {
     setAnchorEl(null)
   } */
 
-  const handleInputChange = (e) => {
-    const inputValue = e.target.value;
+  const handleInputChange = e => {
+    const inputValue = e.target.value
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
     if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHorasLevantamiento(inputValue);
-      setError(''); // Limpia el mensaje de error si existe
+      setHorasLevantamiento(inputValue)
+      setError('') // Limpia el mensaje de error si existe
     } else {
-      setHorasLevantamiento('');
-      setError('Por favor, ingrese un número mayor a 1.');
+      setHorasLevantamiento('')
+      setError('Por favor, ingrese un número mayor a 1.')
     }
   }
 
-  const handleListItemClick = (option) => {
+  const handleListItemClick = option => {
     // Verificamos si el option ya existe en el array draftmen
-    if (!draftmen.some((draftman) => draftman.name === option.name)) {
+    if (!draftmen.some(draftman => draftman.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen((prevDraftmen) => [...prevDraftmen, option]);
-      document.getElementById('add-members').blur(); // Oculta el componente al hacer clic en el ListItem
+      setDraftmen(prevDraftmen => [...prevDraftmen, option])
+      document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
 
- const onsubmit = (id) => {
+  const onsubmit = id => {
     if (horasLevantamiento !== '') {
       reviewDocs(id, horasLevantamiento)
 
-
       // Aquí puedes actualizar el documento 'doc' en la base de datos con el campo 'horas levantamiento'
       // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase
-      handleClose();
+      handleClose()
     } else {
-      setError('Por favor, ingrese un número mayor a 0.');
+      setError('Por favor, ingrese un número mayor a 0.')
     }
   }
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
   return (
-
     <Dialog
       fullWidth
       open={open}
@@ -150,17 +140,16 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
           <Typography variant='body2'>Establece el total de horas</Typography>
         </Box>
 
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-        <TextField
-          id='outlined-basic'
-          label='Horas del Levantamiento'
-          value={horasLevantamiento}
-          onChange={handleInputChange}
-          error={error !== ''}
-          helperText={error}
-        />
-      </Box>
-
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <TextField
+            id='outlined-basic'
+            label='Horas del Levantamiento'
+            value={horasLevantamiento}
+            onChange={handleInputChange}
+            error={error !== ''}
+            helperText={error}
+          />
+        </Box>
 
         <List dense sx={{ py: 4 }}>
           {draftmen.map(draftman => {
@@ -175,11 +164,11 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
                 }}
               >
                 <ListItemAvatar>
-                  {draftman.avatar?
-                    <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} /> :
-                    <CustomAvatar skin='light' >
-                      {getInitials(draftman.name ? draftman.name : 'John Doe')}
-                    </CustomAvatar> }
+                  {draftman.avatar ? (
+                    <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} />
+                  ) : (
+                    <CustomAvatar skin='light'>{getInitials(draftman.name ? draftman.name : 'John Doe')}</CustomAvatar>
+                  )}
                 </ListItemAvatar>
                 <ListItemText
                   primary={draftman.name}
@@ -187,14 +176,14 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
                   sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
                 />
                 <ListItemSecondaryAction sx={{ right: 0 }}>
-                <IconButton
-                      size='small'
-                      aria-haspopup='true'
-                      onClick={() => handleClickDelete(draftman.name)}
-                      aria-controls='modal-share-examples'
-                    >
-                      <Icon icon='mdi:delete-circle-outline' fontSize={20} color= '#f44336' />
-                    </IconButton>
+                  <IconButton
+                    size='small'
+                    aria-haspopup='true'
+                    onClick={() => handleClickDelete(draftman.name)}
+                    aria-controls='modal-share-examples'
+                  >
+                    <Icon icon='mdi:delete-circle-outline' fontSize={20} color='#f44336' />
+                  </IconButton>
                 </ListItemSecondaryAction>
               </ListItem>
             )
@@ -206,7 +195,6 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
             Guardar
           </Button>
         </Box>
-
       </DialogContent>
     </Dialog>
   )

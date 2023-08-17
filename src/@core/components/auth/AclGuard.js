@@ -15,7 +15,7 @@ import NotAuthorized from 'src/pages/401'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const AclGuard = props => {
   // ** Props
@@ -27,7 +27,13 @@ const AclGuard = props => {
   const router = useRouter()
 
   // If guestGuard is true and user is not logged in or its an error page, render the page without checking access
-  if (guestGuard || router.route === '/404' || router.route === '/500' || router.route === '/' || router.route === '/nuevo-usuario' ) {
+  if (
+    guestGuard ||
+    router.route === '/404' ||
+    router.route === '/500' ||
+    router.route === '/' ||
+    router.route === '/nuevo-usuario'
+  ) {
     return <>{children}</>
   }
 

@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 // ** Hooks Import
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const GuestGuard = props => {
   const { children, fallback } = props
@@ -20,7 +20,7 @@ const GuestGuard = props => {
     const thisRoute = router.asPath
 
     // Si no hay alguien logueado
-    if (!authUser){
+    if (!authUser) {
       // Y si la ruta a la cual se pretende ingresar es login o forgot password
       if (thisRoute == '/login/' || thisRoute == '/forgot-password/') {
         // Se permite el ingreso a la ruta
@@ -44,7 +44,7 @@ const GuestGuard = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.route, authUser])
 
-  if (loading || (!loading && authUser )) {
+  if (loading || (!loading && authUser)) {
     return fallback
   }
 

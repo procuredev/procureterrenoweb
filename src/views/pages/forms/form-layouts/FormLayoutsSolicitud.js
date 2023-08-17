@@ -2,7 +2,7 @@
 import { Fragment, useState, useEffect } from 'react'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 import { useRouter } from 'next/router'
 
 // ** Date Library
@@ -46,7 +46,7 @@ import Tooltip, { tooltipClasses } from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
 import CircularProgress from '@mui/material/CircularProgress'
 import Paper from '@mui/material/Paper'
-import  DialogErrorFile  from 'src/@core/components/dialog-errorFile'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -78,21 +78,21 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 }))
 
 //Styled tooltip-popover
-const StyledTooltip = styled(({ className, ...props }) => (
-  <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.palette.grey[700],
-    color: 'white',
-    boxShadow: theme.shadows[1],
-    fontSize: '1.0em', // Aquí es donde especificas el tamaño del texto
-    padding: theme.spacing(4, 4)
-  },
-}));
+const StyledTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
+  ({ theme }) => ({
+    [`& .${tooltipClasses.tooltip}`]: {
+      backgroundColor: theme.palette.grey[700],
+      color: 'white',
+      boxShadow: theme.shadows[1],
+      fontSize: '1.0em', // Aquí es donde especificas el tamaño del texto
+      padding: theme.spacing(4, 4)
+    }
+  })
+)
 
 const StyledInfoIcon = styled(InfoIcon)(({ theme }) => ({
-  marginLeft: theme.spacing(4), // Añade un margen a la izquierda del InfoIcon
-}));
+  marginLeft: theme.spacing(4) // Añade un margen a la izquierda del InfoIcon
+}))
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -111,8 +111,7 @@ const FormLayoutsSolicitud = () => {
     deliverable: [],
     receiver: [],
     description: '',
-    tag: '',
-
+    tag: ''
   }
 
   // ** Hooks
@@ -164,17 +163,21 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'petitioner' && authUser.role !== 2) {
           getPetitionerOpShift(newValue)
         }
-        if (prop === 'objective'){
-          const isAnalysisGPRSelected = newValue === 'Análisis GPR';
-          const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
+        if (prop === 'objective') {
+          const isAnalysisGPRSelected = newValue === 'Análisis GPR'
+          const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
           const currentWeek = moment().isoWeeks()
-          const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 11).startOf("week").format('LL')
+          const inTenWeeks = moment()
+            .locale('es')
+            .isoWeeks(currentWeek + 11)
+            .startOf('week')
+            .format('LL')
 
           if (isAnalysisGPRSelected && weeksDifference < 11) {
             setErrors(prevErrors => ({
               ...prevErrors,
               objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
-            }));
+            }))
           }
         }
         if (prop === 'plant') {
@@ -191,7 +194,7 @@ const FormLayoutsSolicitud = () => {
         let startDate = event
         setValues({
           ...values,
-          start: moment.tz(startDate, 'America/Santiago').startOf('day'),
+          start: moment.tz(startDate, 'America/Santiago').startOf('day')
         })
 
         const resultDate = await consultBlockDayInDB(startDate.toDate())
@@ -227,11 +230,9 @@ const FormLayoutsSolicitud = () => {
       if (resultSap.sapWithOt) {
         console.log(resultSap.sapWithOt)
         setAlertMessage(resultSap.msj)
-
       }
       console.log(resultSap.sap)
       setAlertMessage(resultSap.msj)
-
     } else {
       setValues({
         ...values,
@@ -245,7 +246,6 @@ const FormLayoutsSolicitud = () => {
   }
 
   // const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('https://')
-
 
   const validationRegex = {
     title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
@@ -262,23 +262,25 @@ const FormLayoutsSolicitud = () => {
     for (const key in values) {
       // Error campos vacíos
       if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo') {
-        if ((values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0))) {
+        if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
       }
 
-      if (key === 'objective'){
-        const isAnalysisGPRSelected = values[key] === 'Análisis GPR';
-        const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
+      if (key === 'objective') {
+        const isAnalysisGPRSelected = values[key] === 'Análisis GPR'
+        const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
         const currentWeek = moment().isoWeeks()
-        const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 11).startOf("week").format('LL')
+        const inTenWeeks = moment()
+          .locale('es')
+          .isoWeeks(currentWeek + 11)
+          .startOf('week')
+          .format('LL')
 
         if (isAnalysisGPRSelected && weeksDifference < 11) {
           newErrors[key] = `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
-
         }
       }
-
 
       // Validaciones solo para claves de tipo string
       if (textFieldValues.includes(values[key])) {
@@ -346,7 +348,7 @@ const FormLayoutsSolicitud = () => {
     return validationResults
   }
 
-   const handleOpenErrorDialog = msj => {
+  const handleOpenErrorDialog = msj => {
     console.log(msj)
 
     setErrorFileMsj(msj)
@@ -364,7 +366,7 @@ const FormLayoutsSolicitud = () => {
         console.log(validateFiles(invalidFiles))
 
         const res = validateFiles(invalidFiles)
-        console.log(res[0].msj, "res.msj")
+        console.log(res[0].msj, 'res.msj')
         const msj = res[0].msj
         handleOpenErrorDialog(msj)
 
@@ -400,8 +402,8 @@ const FormLayoutsSolicitud = () => {
         ) : (
           <Icon icon='mdi:file-document-outline' fontSize={50} />
         )}
-        <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml:'10px' }}>
-          {`... ${file.name.slice(file.name.length-15, file.name.length)}`}
+        <Typography variant='body2' sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}>
+          {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
         </Typography>
       </Paper>
     )
@@ -420,7 +422,7 @@ const FormLayoutsSolicitud = () => {
               border: `4px solid ${theme.palette.primary.main}`,
               borderRadius: '4px',
               width: '220px',
-              position: 'relative', // Agregamos esta propiedad para posicionar el icono correctamente
+              position: 'relative' // Agregamos esta propiedad para posicionar el icono correctamente
             }}
           >
             {file.type.startsWith('image') ? (
@@ -428,15 +430,18 @@ const FormLayoutsSolicitud = () => {
             ) : (
               <Icon icon='mdi:file-document-outline' fontSize={50} />
             )}
-            <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml:'10px' }}>
-              {`... ${file.name.slice(file.name.length-15, file.name.length)}`}
+            <Typography
+              variant='body2'
+              sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
+            >
+              {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
             </Typography>
             <IconButton
               onClick={() => handleRemoveFile(file)}
               sx={{
                 position: 'absolute', // Posicionamos el icono en relación al Paper
                 top: '0px', // Ajusta el valor según la posición vertical deseada
-                right: '0px', // Ajusta el valor según la posición horizontal deseada
+                right: '0px' // Ajusta el valor según la posición horizontal deseada
               }}
             >
               <Icon icon='mdi:close' fontSize={20} />
@@ -464,7 +469,6 @@ const FormLayoutsSolicitud = () => {
     const isBlocked = await consultBlockDayInDB(values.start.toDate())
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     console.log(formErrors)
-
 
     if (Object.keys(formErrors).length === 0 && areFieldsValid === true && invalidFiles.length === 0) {
       try {
@@ -528,21 +532,25 @@ const FormLayoutsSolicitud = () => {
   }, [values.plant])
 
   useEffect(() => {
-    if (values.objective === 'Análisis GPR'){
-      const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks();
+    if (values.objective === 'Análisis GPR') {
+      const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
       const currentWeek = moment().isoWeeks()
-      const inTenWeeks = moment().locale('es').isoWeeks(currentWeek + 11).startOf("week").format('LL')
+      const inTenWeeks = moment()
+        .locale('es')
+        .isoWeeks(currentWeek + 11)
+        .startOf('week')
+        .format('LL')
 
       if (weeksDifference < 11) {
         setErrors(prevErrors => ({
           ...prevErrors,
           objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
-        }));
-      }else {
+        }))
+      } else {
         setErrors(prevErrors => ({
           ...prevErrors,
           objective: '' // Limpia el error si la fecha es superior a 10 semanas
-        }));
+        }))
       }
     }
   }, [values.start])
@@ -587,7 +595,7 @@ const FormLayoutsSolicitud = () => {
                   inputProps={{ maxLength: 100 }}
                 />
                 <StyledTooltip title='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'>
-                  <StyledInfoIcon color='action'/>
+                  <StyledInfoIcon color='action' />
                 </StyledTooltip>
               </Box>
             </Grid>
@@ -759,15 +767,15 @@ const FormLayoutsSolicitud = () => {
                       <MenuItem key={authUser.displayName} value={authUser.displayName}>
                         {authUser.displayName}
                       </MenuItem>
-                      ) : (
+                    ) : (
                       contOpOptions.map(contop => {
                         return (
                           <MenuItem key={contop.name} value={contop.name}>
                             {contop.name}
                           </MenuItem>
                         )
-                      }))
-                    }
+                      })
+                    )}
                   </Select>
                   <StyledTooltip title='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'>
                     <StyledInfoIcon color='action' />
@@ -885,7 +893,7 @@ const FormLayoutsSolicitud = () => {
                     ) : (
                       <MenuItem value={authUser.opshift}>{authUser.opshift}</MenuItem>
                     )}
-                     <MenuItem value={'No Aplica'}>{'No Aplica'}</MenuItem>
+                    <MenuItem value={'No Aplica'}>{'No Aplica'}</MenuItem>
                   </Select>
                   <StyledTooltip title='Corresponde a la persona que trabaja en el turno de la semana siguiente del solicitante.'>
                     <StyledInfoIcon color='action' />
@@ -1014,7 +1022,14 @@ const FormLayoutsSolicitud = () => {
                   <Autocomplete
                     multiple
                     fullWidth
-                    options={['Sketch', 'Plano de Fabricación', 'Plano de Diseño', 'Memoria de Cálculo', 'Informe', 'Nube de Puntos']}
+                    options={[
+                      'Sketch',
+                      'Plano de Fabricación',
+                      'Plano de Diseño',
+                      'Memoria de Cálculo',
+                      'Informe',
+                      'Nube de Puntos'
+                    ]}
                     value={values.deliverable}
                     onChange={handleChange('deliverable')}
                     renderInput={params => (
@@ -1085,8 +1100,8 @@ const FormLayoutsSolicitud = () => {
               </Box>
             </Grid>
 
-             {/* VideoUrl */}
-             {/* <Grid item xs={12}>
+            {/* VideoUrl */}
+            {/* <Grid item xs={12}>
               <Box display='flex' alignItems='center'>
                 <TextField
                   InputLabelProps={{ required: false }}
@@ -1162,26 +1177,30 @@ const FormLayoutsSolicitud = () => {
                 <Button type='submit' variant='contained' size='large'>
                   Enviar Solicitud
                 </Button>
-                {isUploading && <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={isUploading} closeAfterTransition={true} maxWidth={false}>
-                  <DialogTitle sx={{ mt: 2, textAlign: 'center' }} id='spinner-dialog-title'>
-                    Enviando solicitud
-                  </DialogTitle>
-                  <DialogContent sx={{ textAlign: 'center' }}>
-                    <CircularProgress
-                    size={40} // Ajusta el tamaño del CircularProgress según tus preferencias
-                  />
-                  </DialogContent>
-                </Dialog>
-                }
+                {isUploading && (
+                  <Dialog
+                    sx={{ '.MuiDialog-paper': { minWidth: '20%' } }}
+                    open={isUploading}
+                    closeAfterTransition={true}
+                    maxWidth={false}
+                  >
+                    <DialogTitle sx={{ mt: 2, textAlign: 'center' }} id='spinner-dialog-title'>
+                      Enviando solicitud
+                    </DialogTitle>
+                    <DialogContent sx={{ textAlign: 'center' }}>
+                      <CircularProgress
+                        size={40} // Ajusta el tamaño del CircularProgress según tus preferencias
+                      />
+                    </DialogContent>
+                  </Dialog>
+                )}
               </Box>
             </Grid>
           </Grid>
         </form>
-
       </CardContent>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
     </Card>
-
   )
 }
 

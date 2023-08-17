@@ -28,26 +28,25 @@ import InputAdornment from '@mui/material/InputAdornment'
 import Button from '@mui/material/Button'
 import Avatar from 'src/@core/components/mui/avatar'
 
-
 // ** Icon Imports
-import Icon from 'src/@core/components/icon';
+import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
-import { useFirebase } from 'src/context/useFirebaseAuth';
+import { useFirebase } from 'src/context/useFirebase'
 
 const ImgStyled = styled('img')(({ theme }) => ({
   width: 120,
   height: 120,
   marginRight: theme.spacing(5),
-  borderRadius: theme.shape.borderRadius,
-}));
+  borderRadius: theme.shape.borderRadius
+}))
 
 const ButtonStyled = styled(Button)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     width: '100%',
-    textAlign: 'center',
-  },
-}));
+    textAlign: 'center'
+  }
+}))
 
 const ResetButtonStyled = styled(Button)(({ theme }) => ({
   marginLeft: theme.spacing(0),
@@ -55,17 +54,21 @@ const ResetButtonStyled = styled(Button)(({ theme }) => ({
     width: '100%',
     marginLeft: 0,
     textAlign: 'center',
-    marginTop: theme.spacing(4),
-  },
-}));
+    marginTop: theme.spacing(4)
+  }
+}))
 
 const TabAccount = () => {
   // ** Hooks
-  const { authUser, updateUserProfile, updateUserPhone } = useFirebase();
+  const { authUser, updateUserProfile, updateUserPhone } = useFirebase()
 
   // ** State
   const [inputValue, setInputValue] = useState('')
-  const [formData, setFormData] = useState(authUser.phone === 'No definido' ? '' : `${authUser.phone[0] || ''} ${authUser.phone.slice(1, 5) || ''} ${authUser.phone.slice(5, 9) || ''}`)
+  const [formData, setFormData] = useState(
+    authUser.phone === 'No definido'
+      ? ''
+      : `${authUser.phone[0] || ''} ${authUser.phone.slice(1, 5) || ''} ${authUser.phone.slice(5, 9) || ''}`
+  )
   const [imgSrc, setImgSrc] = useState('')
   const [alertMessage, setAlertMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -73,38 +76,45 @@ const TabAccount = () => {
 
   useEffect(() => {
     if (authUser.urlFoto && authUser.urlFoto !== '') {
-      setImgSrc(authUser.urlFoto);
+      setImgSrc(authUser.urlFoto)
     } else {
       setImgSrc('')
     }
   }, [])
 
-  const handleInputImageChange = (archivo) => {
-
+  const handleInputImageChange = archivo => {
     setImgChange(true)
 
-    const file = archivo.target.files[0];
-    const reader = new FileReader();
+    const file = archivo.target.files[0]
+    const reader = new FileReader()
 
     const readImage = new Promise((resolve, reject) => {
       reader.onloadend = () => {
         if (reader.result !== null) {
-          resolve(reader.result);
+          resolve(reader.result)
         } else {
           reject('Error al leer la imagen')
         }
-      };
+      }
 
-      reader.readAsDataURL(file);
-    });
+      reader.readAsDataURL(file)
+    })
 
     readImage
-      .then(async (result) => {
+      .then(async result => {
         // Extraer el tipo MIME de la cadena de datos URL
         const mimeType = result.split(';')[0].split(':')[1]
 
         const validatePhoto = () => {
-          if (mimeType.includes('image/jpeg') || mimeType.includes('image/jpg') || mimeType.includes('image/png') || mimeType.includes('image/webp') || mimeType.includes('image/bmp') || mimeType.includes('image/tiff') || mimeType.includes('image/svg')) {
+          if (
+            mimeType.includes('image/jpeg') ||
+            mimeType.includes('image/jpg') ||
+            mimeType.includes('image/png') ||
+            mimeType.includes('image/webp') ||
+            mimeType.includes('image/bmp') ||
+            mimeType.includes('image/tiff') ||
+            mimeType.includes('image/svg')
+          ) {
             return true
           } else {
             return false
@@ -115,15 +125,15 @@ const TabAccount = () => {
           setImgSrc(result)
           setInputValue(result)
         } else {
-          setAlertMessage('Solo puede seleccionar archivos de imágen permitidos: jpeg, jpg, png, webp, bmp, tiff o svg.')
+          setAlertMessage(
+            'Solo puede seleccionar archivos de imágen permitidos: jpeg, jpg, png, webp, bmp, tiff o svg.'
+          )
         }
-
-
       })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
+      .catch(error => {
+        console.error(error)
+      })
+  }
 
   const handleInputImageReset = () => {
     setInputValue('')
@@ -134,7 +144,7 @@ const TabAccount = () => {
   const handleRemoveImage = async () => {
     setImgChange(true)
     setInputValue('')
-    if (imgSrc){
+    if (imgSrc) {
       setImgSrc('')
     }
   }
@@ -156,18 +166,19 @@ const TabAccount = () => {
             height: 180,
             borderRadius: '10%',
             objectFit: 'contain',
-            fontSize: '72px', // Tamaño de la fuente ajustado
+            fontSize: '72px' // Tamaño de la fuente ajustado
           }}
         />
-      );
+      )
     } else {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
       const currentName = authUser.displayName ?? name
 
-      const initials = currentName.toUpperCase()
+      const initials = currentName
+        .toUpperCase()
         .split(' ')
-        .map((word) => word.charAt(0))
-        .join('');
+        .map(word => word.charAt(0))
+        .join('')
 
       avatarContent = (
         <Avatar
@@ -177,25 +188,21 @@ const TabAccount = () => {
             borderRadius: '10%',
             objectFit: 'contain',
             bgcolor: 'primary.main',
-            fontSize: '65px', // Tamaño de la fuente ajustado
+            fontSize: '65px' // Tamaño de la fuente ajustado
           }}
         >
           {initials}
         </Avatar>
-      );
+      )
     }
 
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-        {avatarContent}
-      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>{avatarContent}</Box>
     )
-
-  };
-
+  }
 
   // Función que se encarga de visualizar de forma correcta el teléfono que se ingrese
-  const handleFormChange = (event) => {
+  const handleFormChange = event => {
     const { name, value } = event.target
 
     let newValue = value
@@ -214,8 +221,6 @@ const TabAccount = () => {
     setFormData(newValue)
   }
 
-
-
   // Función que maneja lo que pasa al hacer click en 'GUARDAR CAMBIOS'
   const handleSubmit = async () => {
     const trimmedPhone = formData.replace(/\s/g, '')
@@ -223,7 +228,7 @@ const TabAccount = () => {
     // Antes de iniciar las comprobaciones de validación
     setErrorMessage('')
 
-    const phoneValidator = async() => {
+    const phoneValidator = async () => {
       if (trimmedPhone.length !== 9) {
         if (trimmedPhone.length == 0) {
           setErrorMessage('Debe ingresar un número de teléfono.')
@@ -240,27 +245,23 @@ const TabAccount = () => {
     }
 
     // Si validator retorna true, significa que no existe un error al ingresar el teléfono
-    if (await phoneValidator() && trimmedPhone !== authUser.phone && !imgChange) {
+    if ((await phoneValidator()) && trimmedPhone !== authUser.phone && !imgChange) {
       await updateUserPhone(authUser.uid, trimmedPhone)
       setAlertMessage('Número de teléfono actualizado con éxito')
-    } else if (await phoneValidator() && trimmedPhone == authUser.phone && imgChange) {
+    } else if ((await phoneValidator()) && trimmedPhone == authUser.phone && imgChange) {
       await updateUserProfile(inputValue)
       setAlertMessage('Foto de perfil actualizada con con éxito')
-    } else if (await phoneValidator() && trimmedPhone !== authUser.phone && imgChange) {
+    } else if ((await phoneValidator()) && trimmedPhone !== authUser.phone && imgChange) {
       await updateUserPhone(authUser.uid, trimmedPhone)
       await updateUserProfile(inputValue)
       setAlertMessage('Foto de perfil y teléfono actualizados con éxito')
     }
-  };
+  }
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <Dialog
-          sx={{ '.MuiDialog-paper': { minWidth: '20%' } }}
-          open={alertMessage !== ''}
-          maxWidth={false}
-        >
+        <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={alertMessage !== ''} maxWidth={false}>
           <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
             Atención
           </DialogTitle>
@@ -277,32 +278,42 @@ const TabAccount = () => {
         </Dialog>
         <Card>
           <form>
-          <CardContent sx={{ pt: 4 }}>
-            <Grid container spacing={6}>
-              <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <CardHeader title={authUser.displayName ?? 'Por definir'} />
-                <AvatarFromName/>
+            <CardContent sx={{ pt: 4 }}>
+              <Grid container spacing={6}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <CardHeader title={authUser.displayName ?? 'Por definir'} />
+                  <AvatarFromName />
+                </Grid>
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: { xs: 0, sm: 2, md: 2, lg: 2 },
+                    mt: { xs: 2, sm: 26, md: 26, lg: 26 }
+                  }}
+                >
+                  <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
+                    Subir nueva foto
+                    <input
+                      hidden
+                      type='file'
+                      accept='image/jpeg, image/jpg, image/png, image/webp, image/gif, image/bmp, image/tiff, image/svg'
+                      onChange={handleInputImageChange}
+                      id='account-settings-upload-image'
+                    />
+                  </ButtonStyled>
+                  <ResetButtonStyled color='primary' variant='outlined' onClick={handleInputImageReset}>
+                    Restablecer
+                  </ResetButtonStyled>
+                  <ResetButtonStyled color='primary' variant='outlined' onClick={handleRemoveImage}>
+                    Borrar foto
+                  </ResetButtonStyled>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6} sx={{ display: 'flex', flexDirection: 'column', gap: {xs: 0, sm: 2, md: 2, lg: 2}, mt: {xs: 2, sm: 26, md: 26, lg: 26} }}>
-                <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
-                  Subir nueva foto
-                  <input
-                    hidden
-                    type='file'
-                    accept='image/jpeg, image/jpg, image/png, image/webp, image/gif, image/bmp, image/tiff, image/svg'
-                    onChange={handleInputImageChange}
-                    id='account-settings-upload-image'
-                  />
-                </ButtonStyled>
-                <ResetButtonStyled color='primary' variant='outlined' onClick={handleInputImageReset}>
-                  Restablecer
-                </ResetButtonStyled>
-                <ResetButtonStyled color='primary' variant='outlined' onClick={handleRemoveImage}>
-                  Borrar foto
-                </ResetButtonStyled>
-              </Grid>
-            </Grid>
-          </CardContent>
+            </CardContent>
             <Divider />
             <CardContent>
               <Grid container spacing={6}>
@@ -359,11 +370,11 @@ const TabAccount = () => {
         </Card>
       </Grid>
     </Grid>
-  );
-};
+  )
+}
 
 TabAccount.acl = {
-  subject: 'user-profile',
-};
+  subject: 'user-profile'
+}
 
-export default TabAccount;
+export default TabAccount
