@@ -180,12 +180,55 @@ const LoginPage = () => {
           }}
         >
           <BoxWrapper>
-            <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Box
+            <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+              {/* <Box
                 component='img'
-                sx={{ width: '60%', m: 3 }}
+                sx={{ width: '60%', m: 3,}}
                 src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png'
-              />
+              /> */}
+              <Box sx={{ width: '100%', m: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <svg width='222' height='75' viewBox="0 0 222 75" xmlns='http://www.w3.org/2000/svg'>
+                  <defs>
+                    <mask id='maskO'>
+                      <rect x='0' y='0' width='100%' height='100%' fill={theme.palette.primary.contrastText} />
+                      <text x='65' y='59' fontSize='36' fontFamily='Arial' fill={theme.palette.text}>
+                        O
+                      </text>
+                    </mask>
+                  </defs>
+                  <rect x='0' y='0' width='100%' height='100%' fill={theme.palette.background.paper} />
+                  <text x='0' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
+                    P
+                  </text>
+                  <text x='35' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
+                    R
+                  </text>
+                  <rect x='64' y='0' width='30' height='60' fill='rgb(146, 193, 61)' mask='url(#maskO)' />
+                  <text x='95' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
+                    C
+                  </text>
+                  <text x='130' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
+                    U
+                  </text>
+                  <text x='165' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
+                    R
+                  </text>
+                  <text x='200' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
+                    E
+                  </text>
+                  <text
+                    x='0'
+                    y='75'
+                    fontSize='11'
+                    fontFamily='Arial'
+                    textLength='222'
+                    lengthAdjust='spacingAndGlyphs'
+                    fill={theme.palette.text.primary}
+                  >
+                    S E R V I C I O S&#xA0;&#xA0;&#xA0;D E&#xA0;&#xA0;&#xA0;I N G E N I E R Í A
+                  </text>
+                </svg>
+              </Box>
               <TypographyStyled
                 variant='h7'
                 sx={{ m: 2 }}
