@@ -5,8 +5,8 @@ import { doc, setDoc } from 'firebase/firestore'
 import { deleteUser } from 'firebase/auth'
 
 // ** Trae funcion que valida los campos del registro
-import { registerValidator } from './helperRegisterValidator'
-import { getData } from './firestoreFunctions'
+import { registerValidator } from '../form-validation/helperRegisterValidator'
+import { getData } from './firestoreQuerys'
 
 // ** Genera contraseña unica y aleatoria
 const generatorPassword = require('generate-password')

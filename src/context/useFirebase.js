@@ -16,7 +16,7 @@ import {
   createUser,
   signAdminBack,
   signAdminFailure
-} from 'src/context/firebaseFunctions'
+} from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
   newDoc,
@@ -24,6 +24,10 @@ import {
   updateDocs,
   updateUserPhone,
   addNewContact,
+  blockDayInDatabase
+} from 'src/context/firebase-functions/firestoreFunctions'
+
+import {
   useEvents,
   useSnapshot,
   getData,
@@ -33,7 +37,6 @@ import {
   getReceiverUsers,
   getAllPlantUsers,
   getAllProcureUsers,
-  blockDayInDatabase,
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,
@@ -47,9 +50,9 @@ import {
   consultAllObjetivesByState,
   getUsersWithSolicitudes,
   getUserProyectistas
-} from 'src/context/firestoreFunctions'
+} from 'src/context/firebase-functions/firestoreQuerys'
 
-import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/storageFunctions'
+import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
@@ -59,6 +62,19 @@ const FirebaseContextProvider = props => {
   // ** Variables
   const auth = getAuth(app)
 
+  // ** Observador para cambios de estado - Define el estado authUser
+  const authStateChanged = async authState => {
+    if (!authState) {
+      setAuthUser(null)
+      setLoading(false)
+    } else {
+      setLoading(true)
+      const formattedUser = await formatAuthUser(authState)
+      setAuthUser(formattedUser)
+      setLoading(false)
+    }
+  }
+
   // ** Observador cambios de estado de Firebase
   useEffect(() => {
     setAuthUser(null)
@@ -66,19 +82,6 @@ const FirebaseContextProvider = props => {
 
     return () => unsubscribe()
   }, [])
-
-// ** Observador para cambios de estado - Define el estado authUser
-const authStateChanged = async authState => {
-  if (!authState) {
-    setAuthUser(null)
-    setLoading(false)
-  } else {
-    setLoading(true)
-    const formattedUser = await formatAuthUser(authState)
-    setAuthUser(formattedUser)
-    setLoading(false)
-  }
-}
 
   const value = {
     authUser,
