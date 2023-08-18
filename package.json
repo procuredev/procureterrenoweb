@@ -50,7 +50,7 @@
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.9",
     "draft-js": "0.11.7",
-    "firebase": "9.13.0",
+    "firebase": "10.2.0",
     "firebase-admin": "^11.7.0",
     "generate-password": "^1.7.0",
     "google-maps": "^4.3.3",
