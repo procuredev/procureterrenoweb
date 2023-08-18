@@ -53,7 +53,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   }
 
   const writeCallback = () => {
-    reviewDocs(doc.id, approve)
+    reviewDocs(doc.id, approve, authUser)
     setOpenAlert(false)
   }
 

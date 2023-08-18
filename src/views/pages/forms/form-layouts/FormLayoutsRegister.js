@@ -57,6 +57,8 @@ const FormLayoutsBasic = () => {
   const [alertMessage, setAlertMessage] = useState('')
   const [contOptions, setContOptions] = useState([])
   const [opShiftOptions, setOpShiftOptions] = useState([])
+  const [oldEmail, setOldEmail] = useState('')
+  const [newUID, setNewUID] = useState('')
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUsers, consultUserEmailInDB, authUser } = useFirebase()
@@ -228,7 +230,7 @@ const FormLayoutsBasic = () => {
       Array.isArray(values.plant) ? (plant = values.plant) : (plant = values.plant.split(','))
 
       try {
-        await createUser({ ...values, plant })
+        await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)
         setDialog(true)
         setErrors({})
       } catch (error) {
@@ -244,7 +246,7 @@ const FormLayoutsBasic = () => {
     const maxAttempts = 2 // Número máximo de intentos permitidos
 
     try {
-      const message = await signAdminBack(values, password)
+      const message = await signAdminBack(values, password, oldEmail, newUID)
       setValues(initialValues)
       setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
       setDialog(true)

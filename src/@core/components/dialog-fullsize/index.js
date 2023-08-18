@@ -69,7 +69,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     shift: false,
     description: false
   })
-  const { updateDocs, useEvents, reviewDocs } = useFirebase()
+  const { updateDocs, useEvents, reviewDocs, authUser } = useFirebase()
 
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
@@ -78,7 +78,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   // Verifica estado
   state = typeof state === 'number' ? state : 100
 
-  const eventArray = useEvents(id)
+  const eventArray = useEvents(id, authUser)
 
   const initialValues = {
     title,
@@ -112,7 +112,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         // Ya viene con end u ot
       } else if (end && ot && state === 4) {
-        await reviewDocs(id, true)
+        await reviewDocs(id, true, authUser)
           .then(handleClose())
           .catch(error => alert(error))
 
@@ -145,7 +145,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
 
     if (Object.keys(newData).length > 0) {
-      updateDocs(id, newData)
+      updateDocs(id, newData, authUser)
     } else {
       console.log('No se escribió ningún documento')
     }

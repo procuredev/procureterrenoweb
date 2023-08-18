@@ -58,7 +58,7 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
   // ** Hooks
   const { settings } = useSettings()
   const hidden = useMediaQuery(theme => theme.breakpoints.down('sm'))
-  const { updateDocs, useEvents, reviewDocs } = useFirebase()
+  const { updateDocs, useEvents, reviewDocs, authUser } = useFirebase()
 
   // ** Var
   const { direction } = settings
@@ -103,7 +103,7 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
 
   const onsubmit = id => {
     if (horasLevantamiento !== '') {
-      reviewDocs(id, horasLevantamiento)
+      reviewDocs(id, horasLevantamiento, authUser)
 
       // Aquí puedes actualizar el documento 'doc' en la base de datos con el campo 'horas levantamiento'
       // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase

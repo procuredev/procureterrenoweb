@@ -474,7 +474,7 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: values.start.toDate() })
+        const solicitud = await newDoc({ ...values, start: values.start.toDate() }, authUser)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
@@ -527,7 +527,7 @@ const FormLayoutsSolicitud = () => {
         setContOpOptions(value)
       })
       getReceiverUsers(values.plant).then(value => setAllUsers(value))
-      getPetitioner(values.plant).then(value => setPetitioners(value))
+      getPetitioner(values.plant, authUser).then(value => setPetitioners(value))
     }
   }, [values.plant])
 
