@@ -40,10 +40,8 @@ import {
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,
-  consultAllDocsInDB,
+  consultDocs,
   consultObjetives,
-  consultAllDocsByPlants,
-  consultAllDocsByState,
   getUsersWithSolicitudes,
   getUserProyectistas
 } from 'src/context/firebase-functions/firestoreQuerys'
@@ -110,10 +108,8 @@ const FirebaseContextProvider = props => {
     consultBlockDayInDB,
     consultSAP,
     consultUserEmailInDB,
-    consultAllDocsInDB,
+    consultDocs,
     consultObjetives,
-    consultAllDocsByPlants,
-    consultAllDocsByState,
     getUsersWithSolicitudes,
     getUserProyectistas
   }

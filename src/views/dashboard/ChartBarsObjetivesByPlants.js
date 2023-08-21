@@ -43,14 +43,9 @@ const ChartBarsObjetivesByPlants = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const objectivesByPlants = await consultObjetives('byPlants', { plants: [
-        { plant: 'Planta Concentradora Los Colorados' },
-        { plant: 'Planta Concentradora Laguna Seca | Línea 1' },
-        { plant: 'Planta Concentradora Laguna Seca | Línea 2' },
-        { plant: 'Chancado y Correas' },
-        { plant: 'Puerto Coloso' },
-        { plant: 'Instalaciones Cátodo' }
-      ] });
+      const objectivesByPlants = await consultObjetives('byPlants', { plants: ['Planta Concentradora Los Colorados',
+      'Planta Concentradora Laguna Seca | Línea 1', 'Planta Concentradora Laguna Seca | Línea 2', 'Chancado y Correas',
+      'Puerto Coloso', 'Instalaciones Cátodo'] });
 
       setObjByPlants(objectivesByPlants)
     }

@@ -426,47 +426,38 @@ const consultUserEmailInDB = async email => {
   }
 }
 
-const consultAllDocsInDB = async () => {
-  const coll = collection(db, 'solicitudes')
-  const snapshot = await getCountFromServer(coll)
+const consultDocs = async (type, options = {}) => {
+  const coll = collection(db, 'solicitudes');
+  let queries = [];
 
-  return snapshot.data().count
-}
+  switch (type) {
+    case 'all':
+      queries.push(getCountFromServer(coll));
+      break;
 
-const consultAllDocsByPlants = async () => {
-  const coll = collection(db, 'solicitudes')
-  const q1 = query(coll, where('plant', '==', 'Planta Concentradora Los Colorados'))
-  const q2 = query(coll, where('plant', '==', 'Planta Concentradora Laguna Seca | Línea 1'))
-  const q3 = query(coll, where('plant', '==', 'Planta Concentradora Laguna Seca | Línea 2'))
-  const q4 = query(coll, where('plant', '==', 'Chancado y Correas'))
-  const q5 = query(coll, where('plant', '==', 'Puerto Coloso'))
-  const q6 = query(coll, where('plant', '==', 'Instalaciones Cátodo'))
+    case 'byPlants':
+      const plantQueries = options.plants.map(plant =>
+        query(coll, where('plant', '==', plant))
+      );
+      queries = plantQueries.map(getCountFromServer);
+      break;
 
-  const queryAllPlants = [q1, q2, q3, q4, q5, q6]
+    case 'byState':
+      const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6));
+      const q2 = query(coll, where('state', '>=', 6), where('state', '<', 10));
+      const q3 = query(coll, where('state', '==', 10));
+      queries = [q1, q2, q3].map(getCountFromServer);
+      break;
 
-  const promises = queryAllPlants.map(query => getCountFromServer(query))
-  const snapshots = await Promise.all(promises)
+    default:
+      throw new Error(`Invalid type: ${type}`);
+  }
 
-  const documentsByPlants = snapshots.map(snapshot => snapshot.data().count)
+  const snapshots = await Promise.all(queries);
+  const counts = snapshots.map(snapshot => snapshot.data().count);
 
-  return documentsByPlants
-}
-
-const consultAllDocsByState = async () => {
-  const coll = collection(db, 'solicitudes')
-  const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6))
-  const q2 = query(coll, where('state', '>=', 6), where('state', '<', 10))
-  const q3 = query(coll, where('state', '==', 10))
-
-  const queryAllStates = [q1, q2, q3]
-
-  const promises = queryAllStates.map(query => getCountFromServer(query))
-  const snapshots = await Promise.all(promises)
-
-  const documentsByState = snapshots.map(snapshot => snapshot.data().count)
-
-  return documentsByState
-}
+return counts;
+};
 
 
 const consultObjetives = async (type, options = {}) => {
@@ -663,18 +654,8 @@ export {
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,
-  consultAllDocsInDB,
+  consultDocs,
   consultObjetives,
-
-  //consultAllObjetivesInDB,
-  //consultObjetivesOfActualWeek,
-  //consultObjetivesLastSixMonths,
-  consultAllDocsByPlants,
-
-  //consultAllObjetivesByPlants,
-  consultAllDocsByState,
-
-  //consultAllObjetivesByState,
   getUsersWithSolicitudes,
   getUserProyectistas
 

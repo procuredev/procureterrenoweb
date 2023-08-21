@@ -35,16 +35,16 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const Home = () => {
   // ** Hooks
-  const { consultAllDocsInDB, consultObjetives } = useFirebase()
+  const { consultDocs, consultObjetives } = useFirebase()
 
   const [allDocs, setAllDocs] = useState(0)
   const [allObj, setAllObj] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
-      const docsCount = await consultAllDocsInDB()
+      const allDocsCount = await consultDocs('all');
       const allObjetivesCount = await consultObjetives('all');
-      setAllDocs(docsCount)
+      setAllDocs(allDocsCount)
       setAllObj(allObjetivesCount)
     }
 

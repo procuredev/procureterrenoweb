@@ -25,15 +25,17 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ChartBarsDocsByPlants = () => {
   // ** Hook
-  const { consultAllDocsByPlants } = useFirebase()
+  const { consultDocs } = useFirebase()
   const theme = useTheme()
 
   const [docsByPlants, setDocsByPlants] = useState([0, 0, 0, 0, 0, 0])
 
   useEffect(() => {
     const fetchData = async () => {
-      const resDocsByPlants = await consultAllDocsByPlants()
-      setDocsByPlants(resDocsByPlants)
+      const docsByPlants = await consultDocs('byPlants', { plants: ['Planta Concentradora Los Colorados',
+      'Planta Concentradora Laguna Seca | Línea 1', 'Planta Concentradora Laguna Seca | Línea 2', 'Chancado y Correas',
+      'Puerto Coloso', 'Instalaciones Cátodo'] });
+      setDocsByPlants(docsByPlants)
     }
 
     fetchData()
@@ -112,6 +114,7 @@ const ChartBarsDocsByPlants = () => {
     <Card>
       <CardHeader
         title='Solicitudes por Plantas'
+
         //subheader='Total semanal: 20'
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
