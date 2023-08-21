@@ -1,15 +1,7 @@
 // ** Firebase Imports
-import { Firebase, db} from 'src/configs/firebase'
-import {
-  collection,
-  doc,
-  addDoc,
-  query,
-  getDoc,
-  getDocs,
-  updateDoc,
-  where
-} from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
+import { collection, doc, addDoc, query, getDoc, getDocs, updateDoc, where } from 'firebase/firestore'
+import { getEmailTemplate } from './emailTemplate'
 
 // Importación de los datos del usuario según el id indicado
 
@@ -57,123 +49,23 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
   if (user !== null) {
     // Primer caso: enviar email cuando se genera una nueva solicitud.
 
-    if (user.role == 2) {
-      // Si el usuario tiene rol de Solicitante
+    let userContOp
+    let lastMessage
+    let arrayCC = []
 
-      const userContOp = values.contop // Se usa el nombre del C.Operator indicado en la solicitud
+    // Si el usuario tiene rol de Solicitante
+    if (user.role == 2) {
+      userContOp = values.contop // Se usa el nombre del C.Operator indicado en la solicitud
+
       const contOpUid = await searchbyColletionAndField('users', 'name', userContOp) // Se usa la función searchbyColletion() para buscar dentro de Firestore el usuario que se llame igual al Contract Operator del usuario
       const dataContOp = await getData(contOpUid) // Para este C.Operator se obtiene su datos de Firestore
       const cOperatorEmail = dataContOp.email // Se selecciona el email del C.Operator
 
-      // 1ro: Email para el solicitante
-      try {
-        const newDoc = {} // Se genera un elemento vacío
-        const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
-        const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
+      arrayCC = [cOperatorEmail]
 
-        const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
-
-        const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
-
-        // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
-        updateDoc(docRef, {
-          to: user.email,
-          cc: cOperatorEmail,
-          date: fechaCompleta,
-          req: reqId,
-          emailType: 'NewRequest',
-          message: {
-            subject: `Solicitud de levantamiento: N°${reqNumber} - ${values.title}`,
-            html: `
-              <h2>Estimad@ ${user.displayName}:</h2>
-              <p>Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}. A continuación puede encontrar el detalle de la solicitud:</p>
-              <table style="width:100%;">
-                <tr>
-                  <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
-                  <td style="text-align:left; width:80%;">${reqNumber}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
-                  <td>${values.title}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
-                  <td>${user.engineering ? 'Si' : 'No'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
-                  <td>${'Por definir'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
-                  <td>${'Por definir'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
-                  <td>${values.start.toLocaleDateString()}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
-                  <td>${'Por definir'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
-                  <td>${values.plant}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
-                  <td>${values.area}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
-                  <td>${values.fnlocation}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
-                  <td>${values.contop}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
-                  <td>${values.petitioner}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
-                  <td>${values.sap}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
-                  <td>${values.type}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
-                  <td>${values.objective}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
-                  <td>${values.deliverable.join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
-                  <td>${values.receiver.map(receiver => receiver.email).join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
-                  <td>${values.description}</td>
-                </tr>
-              </table
-              <p>Ahora deberá esperar la aprobación de ${userContOp}.</p>
-              <p>Para mayor información revise la solicitud en nuestra página web</p>
-              <p>Saludos,<br>Procure Terreno Web</p>
-              `
-          }
-        })
-        console.log('E-mail a Solicitante de nueva solicitud enviado con éxito.')
-      } catch (error) {
-        console.error('Error al enviar email:', error)
-        throw error
-      }
-    } else if (user.role == 3) {
-      // Si el usuario tiene rol de Contract Operator
+      lastMessage = `Ahora deberá esperar la aprobación de su Contract Operator ${userContOp}.`
+    } else {
+      userContOp = user.displayName
 
       const cOwnerUid = await searchbyColletionAndField('users', 'role', 4) // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del C.Owner
       const dataContOwner = await getData(cOwnerUid) // Para el C.Owner se obtiene su datos de Firestore
@@ -188,115 +80,63 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const dataPlanner = await getData(plannerUid) // Para el C.Owner se obtiene su datos de Firestore
       const plannerEmail = dataPlanner.email // Se selecciona el email del C.Owner
 
-      // 1ro: Email para el usuario que generó la solicitud (en este caso es el C.Operator)
-      try {
-        const newDoc = {} // Se genera un elemento vacío
-        const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
-        const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
+      arrayCC = [cOwnerEmail, petitionerEmail, plannerEmail]
 
-        const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
+      lastMessage = `Ahora deberá esperar la aprobación de Procure.`
+    }
 
-        const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
+    // Try Catch
+    try {
+      const newDoc = {} // Se genera un elemento vacío
+      const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
+      const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
 
-        // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
-        updateDoc(docRef, {
-          to: user.email,
-          cc: [petitionerEmail, cOwnerEmail, plannerEmail],
-          date: fechaCompleta,
-          req: reqId,
-          emailType: 'NewRequest',
-          message: {
-            subject: `Solicitud de levantamiento: N°${reqNumber} - ${values.title}`,
-            html: `
-              <h2>Estimad@ ${user.displayName}:</h2>
-              <p>Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}. A continuación puede encontrar el detalle de la solicitud:</p>
-              <table style="width:100%;">
-                <tr>
-                  <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
-                  <td style="text-align:left; width:80%;">${reqNumber}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
-                  <td>${values.title}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
-                  <td>${user.engineering ? 'Si' : 'No'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
-                  <td>${'Por definir'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
-                  <td>${'Por definir'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
-                  <td>${values.start.toLocaleDateString()}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
-                  <td>${'Por definir'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
-                  <td>${values.plant}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
-                  <td>${values.area}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
-                  <td>${values.fnlocation}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
-                  <td>${values.contop}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
-                  <td>${values.petitioner}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
-                  <td>${values.sap}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
-                  <td>${values.type}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
-                  <td>${values.objective}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
-                  <td>${values.deliverable.join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
-                  <td>${values.receiver.map(receiver => receiver.email).join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
-                  <td>${values.description}</td>
-                </tr>
-              </table
-              <p>Ahora deberá esperar la aprobación de Procure.</p>
-              <p>Para mayor información revise la solicitud en nuestra página web</p>
-              <p>Saludos,<br>Procure Terreno Web</p>
-              `
-          }
-        })
-        console.log('E-mail a C.Operator de nueva solicitud enviado con éxito.')
-      } catch (error) {
-        console.error('Error al enviar email:', error)
-        throw error
-      }
-    } else {
-      // Si el usuario tiene rol de admin
+      const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
+
+      const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
+
+      // Se almacenan las constantes a usar en el email
+      const userName = user.displayName
+      const mainMessage = `Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}`
+      const requestNumber = reqNumber
+      const title = values.title
+      const engineering = user.engineering ? 'Si' : 'No'
+      const otProcure = values.ot ? values.ot : 'Por definir'
+      const supervisor = values.supervisor ? values.supervisor : 'Por definir'
+      const start = values.start ? values.start.toLocaleDateString() : 'Por definir'
+      const end = 'Por definir'
+      const plant = values.plant
+      const area = values.area ? values.area : 'No indicado'
+      const functionalLocation = values.fnlocation ? values.fnlocation : 'No indicado'
+      const contractOperator = userContOp
+      const petitioner = values.petitioner ? values.petitioner : 'No indicado'
+      const sapNumber = values.sap ? values.sap : 'No indicado'
+      const operationalType = values.type ? values.type : 'No indicado'
+      const machineDetention = values.detention ? values.detention : 'No indicado'
+      const jobType = values.objective
+      const deliverable = values.deliverable.join(', ')
+      const receiver = values.receiver.map(receiver => receiver.email).join(', ')
+      const description = values.description
+
+      // Llamada al html del email con las constantes previamente indicadads
+      const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+
+      // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
+      updateDoc(docRef, {
+        to: user.email,
+        cc: arrayCC,
+        date: fechaCompleta,
+        req: reqId,
+        emailType: 'NewRequest',
+        message: {
+          subject: `Solicitud de levantamiento: N°${requestNumber} - ${values.title}`,
+          html: emailHtml
+        }
+      })
+      console.log('E-mail a Solicitante de nueva solicitud enviado con éxito.')
+    } catch (error) {
+      console.error('Error al enviar email:', error)
+      throw error
     }
   }
 }
