@@ -41,13 +41,9 @@ import {
   consultSAP,
   consultUserEmailInDB,
   consultAllDocsInDB,
-  consultAllObjetivesInDB,
-  consultObjetivesOfActualWeek,
-  consultObjetivesLastSixMonths,
+  consultObjetives,
   consultAllDocsByPlants,
-  consultAllObjetivesByPlants,
   consultAllDocsByState,
-  consultAllObjetivesByState,
   getUsersWithSolicitudes,
   getUserProyectistas
 } from 'src/context/firebase-functions/firestoreQuerys'
@@ -115,13 +111,9 @@ const FirebaseContextProvider = props => {
     consultSAP,
     consultUserEmailInDB,
     consultAllDocsInDB,
-    consultAllObjetivesInDB,
-    consultObjetivesOfActualWeek,
-    consultObjetivesLastSixMonths,
+    consultObjetives,
     consultAllDocsByPlants,
-    consultAllObjetivesByPlants,
     consultAllDocsByState,
-    consultAllObjetivesByState,
     getUsersWithSolicitudes,
     getUserProyectistas
   }

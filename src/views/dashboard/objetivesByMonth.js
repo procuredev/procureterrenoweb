@@ -26,7 +26,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ObjetivesByMonth = () => {
   // ** Hook
-  const { consultObjetivesLastSixMonths } = useFirebase()
+  const { consultObjetives } = useFirebase()
   const theme = useTheme()
 
   const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
@@ -34,9 +34,9 @@ const ObjetivesByMonth = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await consultObjetivesLastSixMonths()
-      const monthArray = result.map(item => item.month)
-      const cantArray = result.map(item => item.cant)
+      const lastSixMonthsObjetives = await consultObjetives('lastSixMonths');
+      const monthArray = lastSixMonthsObjetives.map(item => item.month)
+      const cantArray = lastSixMonthsObjetives.map(item => item.cant)
       setObjetivesOfLastSixMonths(cantArray)
       setMonthssOfLastSixMonths(monthArray)
     }

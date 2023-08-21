@@ -25,15 +25,15 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ObjetivesByDay = () => {
   // ** Hooks
-  const { consultObjetivesOfActualWeek } = useFirebase()
+  const { consultObjetives } = useFirebase()
   const theme = useTheme()
 
   const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0])
 
   useEffect(() => {
     const fetchData = async () => {
-      const objOfActualWeek = await consultObjetivesOfActualWeek()
-      setObjetivesOfActualWeek(objOfActualWeek)
+      const weeklyObjetives = await consultObjetives('week');
+      setObjetivesOfActualWeek(weeklyObjetives)
     }
 
     fetchData()

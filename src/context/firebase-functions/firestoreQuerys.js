@@ -433,63 +433,6 @@ const consultAllDocsInDB = async () => {
   return snapshot.data().count
 }
 
-const consultAllObjetivesInDB = async () => {
-  const coll = collection(db, 'solicitudes')
-  const q = query(coll, where('state', '>=', 6))
-  const snapshot = await getCountFromServer(q)
-
-  return snapshot.data().count
-}
-
-const consultObjetivesOfActualWeek = async () => {
-  const startDate = moment().startOf('isoWeek').toDate()
-  const endDate = moment().endOf('isoWeek').toDate()
-  const documentsByDay = Array(7).fill(0)
-  const coll = collection(db, 'solicitudes')
-  const q = query(coll, where('state', '>=', 6))
-  const snapshot = await getDocs(q)
-
-  snapshot.forEach(doc => {
-    const start = doc.data().start.toDate() // Convierte el campo 'start' a una fecha
-    const dayOfWeek = moment(start).isoWeekday() // Obtiene el día de la semana (1: lunes, 2: martes, etc.)
-    if (moment(start).isSameOrAfter(startDate) && moment(start).isSameOrBefore(endDate)) {
-      documentsByDay[dayOfWeek - 1]++ // Incrementa el contador correspondiente en el array
-    }
-  })
-
-  return documentsByDay
-}
-
-const consultObjetivesLastSixMonths = async () => {
-  const currentDate = moment()
-  const monthsData = []
-
-  const coll = collection(db, 'solicitudes')
-  const queries = []
-
-  for (let i = 0; i < 6; i++) {
-    const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate()
-    const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate()
-
-    const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate))
-    queries.push(getDocs(q))
-  }
-
-  const snapshots = await Promise.all(queries)
-
-  snapshots.forEach((snapshot, index) => {
-    const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6)
-    const cant = filteredDocs.length
-
-    const monthStartDate = currentDate.clone().subtract(index, 'months').startOf('month')
-    const month = capitalize(monthStartDate.locale('es').format('MMM'))
-
-    monthsData.unshift({ month, cant })
-  })
-
-  return monthsData
-}
-
 const consultAllDocsByPlants = async () => {
   const coll = collection(db, 'solicitudes')
   const q1 = query(coll, where('plant', '==', 'Planta Concentradora Los Colorados'))
@@ -509,30 +452,6 @@ const consultAllDocsByPlants = async () => {
   return documentsByPlants
 }
 
-const consultAllObjetivesByPlants = async () => {
-  const coll = collection(db, 'solicitudes')
-
-  const queries = [
-    { plant: 'Planta Concentradora Los Colorados' },
-    { plant: 'Planta Concentradora Laguna Seca | Línea 1' },
-    { plant: 'Planta Concentradora Laguna Seca | Línea 2' },
-    { plant: 'Chancado y Correas' },
-    { plant: 'Puerto Coloso' },
-    { plant: 'Instalaciones Cátodo' }
-  ]
-
-  const promises = queries.map(async item => {
-    const q = query(coll, where('plant', '==', item.plant), where('state', '>=', 6))
-    const snapshot = await getDocs(q)
-
-    return snapshot.size
-  })
-
-  const results = await Promise.all(promises)
-
-  return results
-}
-
 const consultAllDocsByState = async () => {
   const coll = collection(db, 'solicitudes')
   const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6))
@@ -549,21 +468,106 @@ const consultAllDocsByState = async () => {
   return documentsByState
 }
 
-const consultAllObjetivesByState = async () => {
-  const coll = collection(db, 'solicitudes')
-  const q1 = query(coll, where('state', '==', 6))
-  const q2 = query(coll, where('state', '==', 7))
-  const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10))
 
-  const queryAllStates = [q1, q2, q3]
+const consultObjetives = async (type, options = {}) => {
+  const coll = collection(db, 'solicitudes');
+  let queryFunc;
 
-  const promises = queryAllStates.map(query => getCountFromServer(query))
-  const snapshots = await Promise.all(promises)
+  switch (type) {
+    case 'all':
+      queryFunc = async () => {
+        const q = query(coll, where('state', '>=', 6));
+        const snapshot = await getCountFromServer(q);
 
-  const documentsByState = snapshots.map(snapshot => snapshot.data().count)
+return snapshot.data().count;
+      };
+      break;
 
-  return documentsByState
-}
+    case 'week':
+      queryFunc = async () => {
+        const startDate = moment().startOf('isoWeek').toDate();
+        const endDate = moment().endOf('isoWeek').toDate();
+        const documentsByDay = Array(7).fill(0);
+        const q = query(coll, where('state', '>=', 6));
+        const snapshot = await getDocs(q);
+
+        snapshot.forEach(doc => {
+          const start = doc.data().start.toDate();
+          const dayOfWeek = moment(start).isoWeekday();
+          if (moment(start).isSameOrAfter(startDate) && moment(start).isSameOrBefore(endDate)) {
+            documentsByDay[dayOfWeek - 1]++;
+          }
+        });
+
+        return documentsByDay;
+      };
+      break;
+
+    case 'lastSixMonths':
+      queryFunc = async () => {
+        const currentDate = moment();
+        const monthsData = [];
+        const queries = [];
+
+        for (let i = 0; i < 6; i++) {
+          const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate();
+          const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate();
+
+          const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate));
+          queries.push(getDocs(q));
+        }
+
+        const snapshots = await Promise.all(queries);
+
+        snapshots.forEach((snapshot, index) => {
+          const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6);
+          const cant = filteredDocs.length;
+          const monthStartDate = currentDate.clone().subtract(index, 'months').startOf('month');
+          const month = capitalize(monthStartDate.locale('es').format('MMM'));
+          monthsData.unshift({ month, cant });
+        });
+
+        return monthsData;
+      };
+      break;
+
+    case 'byPlants':
+      queryFunc = async () => {
+        const queries = options.plants.map(async plant => {
+          const q = query(coll, where('plant', '==', plant), where('state', '>=', 6));
+          const snapshot = await getDocs(q);
+
+return snapshot.size;
+        });
+
+        const results = await Promise.all(queries);
+
+return results;
+      };
+      break;
+
+    case 'byState':
+      queryFunc = async () => {
+        const q1 = query(coll, where('state', '==', 6));
+        const q2 = query(coll, where('state', '==', 7));
+        const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10));
+        const queryAllStates = [q1, q2, q3];
+
+        const promises = queryAllStates.map(query => getCountFromServer(query));
+        const snapshots = await Promise.all(promises);
+        const documentsByState = snapshots.map(snapshot => snapshot.data().count);
+
+return documentsByState;
+      };
+      break;
+
+    default:
+      throw new Error(`Invalid type: ${type}`);
+  }
+
+  return queryFunc();
+};
+
 
 const getUsersWithSolicitudes = async () => {
   const collSolicitudes = collection(db, 'solicitudes')
@@ -660,13 +664,18 @@ export {
   consultSAP,
   consultUserEmailInDB,
   consultAllDocsInDB,
-  consultAllObjetivesInDB,
-  consultObjetivesOfActualWeek,
-  consultObjetivesLastSixMonths,
+  consultObjetives,
+
+  //consultAllObjetivesInDB,
+  //consultObjetivesOfActualWeek,
+  //consultObjetivesLastSixMonths,
   consultAllDocsByPlants,
-  consultAllObjetivesByPlants,
+
+  //consultAllObjetivesByPlants,
   consultAllDocsByState,
-  consultAllObjetivesByState,
+
+  //consultAllObjetivesByState,
   getUsersWithSolicitudes,
   getUserProyectistas
+
 }

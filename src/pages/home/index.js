@@ -35,7 +35,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const Home = () => {
   // ** Hooks
-  const { consultAllDocsInDB, consultAllObjetivesInDB } = useFirebase()
+  const { consultAllDocsInDB, consultObjetives } = useFirebase()
 
   const [allDocs, setAllDocs] = useState(0)
   const [allObj, setAllObj] = useState(0)
@@ -43,9 +43,9 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       const docsCount = await consultAllDocsInDB()
-      const objetivesCount = await consultAllObjetivesInDB()
+      const allObjetivesCount = await consultObjetives('all');
       setAllDocs(docsCount)
-      setAllObj(objetivesCount)
+      setAllObj(allObjetivesCount)
     }
 
     fetchData()
