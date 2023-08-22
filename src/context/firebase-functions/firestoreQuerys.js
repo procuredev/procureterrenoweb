@@ -179,18 +179,13 @@ const getUserData = async (type, plant, options = {shift: ''}) => {
   const allDocs = [];
 
   querySnapshot.forEach(doc => {
-    const userObj = type === 'getAllProcureUsers' ? {
-      id: doc.id,
-      name: doc.data().name,
-      email: doc.data().email,
-      phone: doc.data().phone,
-      avatarSrc: doc.data().urlFoto,
-    } : {
+    const userObj = {
       ...doc.data(),
       id: doc.id
     };
     allDocs.push(userObj);
   });
+  console.log(allDocs)
 
   return allDocs;
 };
@@ -646,5 +641,5 @@ export {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
-  getUserProyectistas
+  getUserProyectistas,
 }

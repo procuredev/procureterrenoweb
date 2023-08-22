@@ -159,6 +159,7 @@ const NuestroEquipo = () => {
 
     fetchUsers()
   }, [])
+  console.log(procureUsers, "procureUsers")
 
   // Declaración de varibles: array usuarios, prioridad (orden en que serán mostrados), jon (cargo)
   let users = [] // array que almacenará los usuarios que cumplen con las condiciones
@@ -198,11 +199,15 @@ const NuestroEquipo = () => {
 
   return (
     <Grid container spacing={2}>
-      {users.map((user, index) => (
-        <Grid item xs={12} sm={6} md={3} key={index}>
-          <AppCard {...user} />
-        </Grid>
-      ))}
+     {procureUsers.length > 0 ? (
+        users.map((user, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <AppCard {...user} />
+          </Grid>
+        ))
+      ) : (
+        <Typography variant="body1">Cargando usuarios...</Typography>
+      )}
     </Grid>
   )
 }
