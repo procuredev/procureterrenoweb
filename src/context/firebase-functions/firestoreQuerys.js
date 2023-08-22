@@ -631,10 +631,6 @@ export {
   getRoleData,
   getPetitioner,
   getReceiverUsers,
-
-  //getUsers,
-  //getAllPlantUsers,
-  //getAllProcureUsers,
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,
