@@ -122,17 +122,6 @@ const useSnapshot = (datagrid = false, userParam) => {
   return data
 }
 
-const getData = async id => {
-  const docRef = doc(db, 'users', id)
-  const docSnap = await getDoc(docRef)
-
-  if (docSnap.exists()) {
-    return docSnap.data()
-  } else {
-    return undefined
-  }
-}
-
 // Obtener los datos de un rol
 const getRoleData = async role => {
   console.log(role)
@@ -144,68 +133,94 @@ const getRoleData = async role => {
   return data
 }
 
-// trae los usuarios con el rol 3 que pertenecen a una planta
-// trae los usuarios con el rol 2 que pertenece a una planta con turno opuesto al pasado por parametro
+const getData = async id => {
+  const docRef = doc(db, 'users', id)
+  const docSnap = await getDoc(docRef)
 
-// Obtener los usuarios con un rol y planta específicos (utilizado para contOp y solicitante)
-const getUsers = async (plant, shift = '') => {
-  // Consultar la colección 'users' con los filtros de planta, turno y rol
-  const q =
-    shift !== ''
-      ? query(
-          collection(db, 'users'),
-          where('plant', 'array-contains-any', plant),
-          where('shift', '!=', shift),
-          where('role', '==', 2)
-        )
-      : query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 3))
-
-  const querySnapshot = await getDocs(q)
-  let allDocs = []
-  console.log(allDocs, 'allDocs')
-  querySnapshot.forEach(doc => {
-    // Obtener los datos de cada usuario y agregarlos al array 'allDocs'
-    allDocs.push({ ...doc.data(), id: doc.id })
-  })
-
-  return allDocs
+  if (docSnap.exists()) {
+    return docSnap.data()
+  } else {
+    return undefined
+  }
 }
 
-// trae los usuarios con el rol 2 que pertenece a una planta
-// Obtener los solicitantes de una planta específica
-const getPetitioner = async (plant, userParam) => {
-  let allDocs = []
-  if (userParam.plant === 'allPlants') {
-    // Consultar la colección 'users' con los filtros de planta y rol
-    const q = query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 2))
+// const users = await getUserData('getUsers', 'Plant1', { shift: 'ShiftA' });
+// const allPlantUsers = await getUserData('getAllPlantUsers', 'Plant3');
+// const allProcureUsers = await getUserData('getAllProcureUsers');
 
-    const querySnapshot = await getDocs(q)
+const getUserData = async (type, plant, options = {shift: ''}) => {
+  const coll = collection(db, 'users');
+  let path;
 
-    querySnapshot.forEach(doc => {
-      // Obtener los datos de cada solicitante y agregarlos al array 'allDocs'
-      allDocs.push({ ...doc.data(), id: doc.id })
-      console.log(allDocs)
-    })
-  } else if (userParam.role === 3) {
-    // Consultar la colección 'users' con el filtro de planta
-    const q = query(collection(db, 'users'), where('plant', 'array-contains', plant))
+  switch (type) {
+    case 'getUsers':
+      path = options.shift !== ''
+        ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', options.shift), where('role', '==', 2))
+        : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3));
+      break;
 
-    const querySnapshot = await getDocs(q)
+    case 'getAllPlantUsers':
+      if (plant) {
+        path = query(coll, where('plant', '==', plant));
+      } else {
+        return [];
+      }
+      break;
 
-    querySnapshot.forEach(doc => {
-      // Obtener los datos de cada solicitante y agregarlos al array 'allDocs'
-      allDocs.push({ ...doc.data(), id: doc.id })
-      console.log(allDocs)
-    })
-  } else {
-    // Consultar el documento del usuario autenticado y obtener sus datos
-    const q = onSnapshot(doc(db, 'users', userParam.uid), doc => {
-      allDocs.push(doc.data())
-    })
+    case 'getAllProcureUsers':
+      path = query(coll, where('company', '==', 'Procure'));
+      break;
+
+    default:
+      throw new Error(`Invalid type: ${type}`);
   }
 
-  return allDocs
-}
+  const querySnapshot = await getDocs(path);
+  const allDocs = [];
+
+  querySnapshot.forEach(doc => {
+    const userObj = type === 'getAllProcureUsers' ? {
+      id: doc.id,
+      name: doc.data().name,
+      email: doc.data().email,
+      phone: doc.data().phone,
+      avatarSrc: doc.data().urlFoto,
+    } : {
+      ...doc.data(),
+      id: doc.id
+    };
+    allDocs.push(userObj);
+  });
+
+  return allDocs;
+};
+
+const getPetitioner = async (plant, userParam) => {
+  const q = query(collection(db, 'users'), where('plant', 'array-contains', plant));
+
+  const querySnapshot = await getDocs(q);
+
+  const allDocs = querySnapshot.docs.map(doc => ({
+    ...doc.data(),
+    id: doc.id
+  }));
+
+  if (userParam.plant === 'allPlants') {
+    return allDocs.filter(doc => doc.role === 2);
+  } else if (userParam.role === 3) {
+    return allDocs;
+  } else {
+    const docRef = doc(db, 'users', userParam.uid);
+    const docSnapshot = await getDoc(docRef);
+
+    if (docSnapshot.exists()) {
+      allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id });
+    }
+
+    return allDocs;
+  }
+};
+
 
 // Obtener los usuarios receptores de una planta específica
 const getReceiverUsers = async plant => {
@@ -234,34 +249,6 @@ const getReceiverUsers = async plant => {
   return allDocs
 }
 
-// Obtener todos los usuarios de una planta específica
-const getAllPlantUsers = async plant => {
-  const allDocs = []
-  if (plant) {
-    // Consultar la colección 'users' con el filtro de planta
-    const q = query(collection(db, 'users'), where('plant', '==', plant))
-    const querySnapshot = await getDocs(q)
-
-    querySnapshot.forEach(doc => {
-      // Obtener los datos de cada usuario y agregarlos al array 'allDocs'
-      allDocs.push({ ...doc.data(), id: doc.id })
-    })
-  }
-
-  return allDocs
-}
-
-const getAllProcureUsers = async () => {
-  const q = query(collection(db, 'users'), where('company', '==', 'Procure'))
-  const querySnapshot = await getDocs(q)
-  const allDocs = []
-
-  querySnapshot.forEach(doc => {
-    allDocs.push({ ...doc.data(), id: doc.id })
-  })
-
-  return allDocs
-}
 
 // Consultar si existen solicitudes para una fecha específica
 const dateWithDocs = async date => {
@@ -645,12 +632,14 @@ export {
   useEvents,
   useSnapshot,
   getData,
+  getUserData,
   getRoleData,
-  getUsers,
   getPetitioner,
   getReceiverUsers,
-  getAllPlantUsers,
-  getAllProcureUsers,
+
+  //getUsers,
+  //getAllPlantUsers,
+  //getAllProcureUsers,
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,
@@ -658,5 +647,4 @@ export {
   consultObjetives,
   getUsersWithSolicitudes,
   getUserProyectistas
-
 }

@@ -61,7 +61,7 @@ const FormLayoutsBasic = () => {
   const [newUID, setNewUID] = useState('')
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUsers, consultUserEmailInDB, authUser } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser } = useFirebase()
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -298,7 +298,7 @@ const FormLayoutsBasic = () => {
   const getOptions = async (plant, shift = '') => {
     if (plant.length > 0) {
       console.log(plant.length)
-      let options = await getUsers(plant, shift)
+      let options = await getUserData('getUsers', plant, {shift})
       options.push({ name: 'No Aplica' })
       console.log(options)
       if (shift) {

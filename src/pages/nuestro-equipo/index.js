@@ -140,7 +140,7 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
 
 const NuestroEquipo = () => {
   // ** Hooks
-  const { authUser, getAllProcureUsers } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
+  const { authUser, getUserData } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
   const router = useRouter() // Importación de router... no sé que utlidad le daré
 
   // ** States
@@ -150,7 +150,7 @@ const NuestroEquipo = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const users = await getAllProcureUsers()
+        const users = await getUserData('getAllProcureUsers')
         setProcureUsers(users)
       } catch (error) {
         console.error('Error al obtener los usuarios de Procure:', error)

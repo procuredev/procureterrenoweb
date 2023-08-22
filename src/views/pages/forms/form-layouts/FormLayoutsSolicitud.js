@@ -124,6 +124,7 @@ const FormLayoutsSolicitud = () => {
     getAllPlantUsers,
     consultBlockDayInDB,
     consultSAP,
+    getUserData,
     getUsers
   } = useFirebase()
   const router = useRouter()
@@ -167,6 +168,7 @@ const FormLayoutsSolicitud = () => {
           const isAnalysisGPRSelected = newValue === 'Análisis GPR'
           const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
           const currentWeek = moment().isoWeeks()
+
           const inTenWeeks = moment()
             .locale('es')
             .isoWeeks(currentWeek + 11)
@@ -271,6 +273,7 @@ const FormLayoutsSolicitud = () => {
         const isAnalysisGPRSelected = values[key] === 'Análisis GPR'
         const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
         const currentWeek = moment().isoWeeks()
+
         const inTenWeeks = moment()
           .locale('es')
           .isoWeeks(currentWeek + 11)
@@ -523,11 +526,11 @@ const FormLayoutsSolicitud = () => {
   //Establece opciones de contract operator
   useEffect(() => {
     if (values.plant) {
-      getUsers(values.plant).then(value => {
+      getUserData('getUsers', values.plant).then(value => {
         setContOpOptions(value)
       })
       getReceiverUsers(values.plant).then(value => setAllUsers(value))
-      getPetitioner(values.plant, authUser).then(value => setPetitioners(value))
+      getPetitioner( values.plant, authUser).then(value => setPetitioners(value))
     }
   }, [values.plant])
 
@@ -535,6 +538,7 @@ const FormLayoutsSolicitud = () => {
     if (values.objective === 'Análisis GPR') {
       const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
       const currentWeek = moment().isoWeeks()
+
       const inTenWeeks = moment()
         .locale('es')
         .isoWeeks(currentWeek + 11)
