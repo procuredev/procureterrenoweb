@@ -1,15 +1,7 @@
 // ** Firebase Imports
-import { Firebase, db} from 'src/configs/firebase'
-import {
-  collection,
-  doc,
-  addDoc,
-  query,
-  getDoc,
-  getDocs,
-  updateDoc,
-  where
-} from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
+import { collection, doc, addDoc, query, getDoc, getDocs, updateDoc, where } from 'firebase/firestore'
+import { getEmailTemplate } from './emailTemplate'
 
 // Importación de los datos del usuario según el id indicado
 const getData = async id => {
@@ -75,6 +67,7 @@ const searchbyColletionAndField = async (col, field, value) => {
   }
 }
 
+
 // Función que retorna los usuarios que deben ir en copia y el mensaje respectivo
 const getUsersOnCopyAndMessage = (
   user,
@@ -91,497 +84,393 @@ const getUsersOnCopyAndMessage = (
   var arrayCC = [] // Se inicializa un array vacío
   var message = '' // Se inicializa un string vacío
 
-  // Si el rol de quien hizo la solicitud es "Solicitante"
-  if (requesterRole == 2) {
-    // && prevState es 2 && newState es 4 -> Solicitud aceptada por C.Operator
-    if (prevState == 2 && newState == 4) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
-      message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+  const stateChange = `${prevState}-${newState}`
 
-    // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
-    else if (prevState == 4 && newState == 5) {
-      arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
-      message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
-    }
+  switch (requesterRole) {
+    // Si el rol de quien hizo la solicitud es "Solicitante"
+    case 2:
+      switch (stateChange) {
+        // && prevState es 2 && newState es 4 -> Solicitud aceptada por C.Operator
+        case '2-4':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
+          message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
-    else if (prevState == 5 && newState == 6) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
-      message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
+        case '4-5':
+          arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
+          message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 2 && newState es 1 -> Solicitud modificada por C.Operator
-    else if (prevState == 2 && newState == 0) {
-      arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
-      message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
+        case '5-6':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 1 && newState es 4 -> Modificación hecha por C.Operator fue aceptada por Solicitante
-    else if (prevState == 0 && newState == 4) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, Planificador y Adm.Contrato
-      message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 2 && newState es 1 -> Solicitud modificada por C.Operator
+        case '2-0':
+          arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
-    else if (prevState == 0 && newState == 2) {
-      arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
-      message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 1 && newState es 4 -> Modificación hecha por C.Operator fue aceptada por Solicitante
+        case '0-4':
+          arrayCC = [ ] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, Planificador y Adm.Contrato
+          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
-    else if (prevState == 5 && newState == 0) {
-      arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
-      message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
+        case '0-2':
+          arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
-    else if (prevState == 0 && newState == 6) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
-      message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
+        case '5-0':
+          arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
+          message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 2 && newState es 10 -> Solicitud rechazada por C.Operator
-    else if (prevState == 2 && newState == 10) {
-      arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
-      message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
+        case '0-6':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 5 && newState es 10 -> Solicitud rechazada por Adm.Contrato
-    else if (prevState == 5 && newState == 10) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
-      message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 2 && newState es 10 -> Solicitud rechazada por C.Operator
+        case '2-10':
+          arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
-    else if (prevState == 6 && newState == 7) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
-      message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 5 && newState es 10 -> Solicitud rechazada por Adm.Contrato
+        case '5-10':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+          message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 7 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
-    else if (prevState == 7 && newState == 8) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
-      message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
-    }
-  }
+        // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+        case '6-7':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
+          break
 
-  // Si el rol de quien hizo la solicitud es "Contract Operator"
-  else if (requesterRole == 3) {
-    // && prevState es 3 && newState es 4
-    if (prevState == 2 && newState == 4) {
-      arrayCC = [cOwnerEmail, plannerEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator y Planificador
-      message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 7 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+        case '7-8':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+          message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
+          break
+      }
+      break
 
-    // && prevState es 4 && newState es 5 -> Soliciutud aceptada por Planificador
-    else if (prevState == 4 && newState == 5) {
-      arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
-      message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
-    }
+    // Si el rol de quien hizo la solicitud es "Contract Operator"
+    case 3:
+      switch(stateChange) {
+        // && prevState es 3 && newState es 4
+        case '2-4':
+          arrayCC = [cOwnerEmail, plannerEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator y Planificador
+          message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
-    else if (prevState == 5 && newState == 6) {
-      arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
-      message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 4 && newState es 5 -> Soliciutud aceptada por Planificador
+        case '4-5':
+          arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+          message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 5 && newState es 2 -> Modificación hecha por Procure
-    else if (prevState == 5 && newState == 1) {
-      arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
-      message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
+        case '5-6':
+          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 2 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
-    else if (prevState == 2 && newState == 6) {
-      arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
-      message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 5 && newState es 2 -> Modificación hecha por Procure
+        case '5-1':
+          arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+          message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 5 && newState es 10 -> Solicitud rechazada por Procure
-    else if (prevState == 5 && newState == 10) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
-      message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 2 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
+        case '2-6':
+          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
-    else if (prevState == 6 && newState == 7) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
-      message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
-    }
+        // && prevState es 5 && newState es 10 -> Solicitud rechazada por Procure
+        case '5-10':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+          message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
 
-    // && prevState es 7 && newState es 7 -> Supervisor termina el levantamiento
-    else if (prevState == 7 && newState == 8) {
-      arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
-      message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
-    }
-  }
+        // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+        case '6-7':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
+          break
 
-  // Cualquier otro caso
-  else {
+        // && prevState es 7 && newState es 7 -> Supervisor termina el levantamiento
+        case '7-8':
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
+          break
+      }
+      break
+
+    default:
+      break
   }
 
   return { arrayCC: arrayCC, message: message }
 }
 
-  export const sendEmailWhenReviewDocs = async (user, prevState, newState, requesterId, requirementId) => {
 
-    const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
+// Función que retorna los usuarios que deben ir en copia y el mensaje respectivo
+// const getUsersOnCopyAndMessage = (
+//   user,
+//   requesterRole,
+//   prevState,
+//   newState,
+//   cOperatorEmail,
+//   cOwnerEmail,
+//   plannerEmail,
+//   admContEmail,
+//   supervisorEmail,
+//   petitionerFieldEmail
+// ) => {
+//   var arrayCC = [] // Se inicializa un array vacío
+//   var message = '' // Se inicializa un string vacío
 
-    // Se rescatan los datos globales de la solicitud:
-    const requirementRef = doc(db, 'solicitudes', requirementId)
-    const requirementSnapshot = await getDoc(requirementRef)
-    const requirementData = requirementSnapshot.data()
+//   // Si el rol de quien hizo la solicitud es "Solicitante"
+//   if (requesterRole == 2) {
+//     // && prevState es 2 && newState es 4 -> Solicitud aceptada por C.Operator
+//     if (prevState == 2 && newState == 4) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
+//       message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    // Se rescatan los datos de quien hizo la solicitud que puede tener rol 2 o 3
-    const requesterData = await getData(requesterId)
-    const requesterRole = requesterData.role
-    const requesterEmail = requesterData.email
+//     // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
+//     else if (prevState == 4 && newState == 5) {
+//       arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
+//       message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    // Se rescatan los datos del "Contract Owner"
-    const cOwnerUid = await searchbyColletionAndField('users', 'role', 4) // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del C.Owner
-    const cOwnerData = await getData(cOwnerUid)
-    const cOwnerEmail = cOwnerData.email
+//     // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
+//     else if (prevState == 5 && newState == 6) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+//       message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    // Se rescatan los datos del "Planificador"
-    const plannerUid = await searchbyColletionAndField('users', 'role', 5) // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del Planificador
-    const plannerData = await getData(plannerUid)
-    const plannerEmail = plannerData.email
+//     // && prevState es 2 && newState es 1 -> Solicitud modificada por C.Operator
+//     else if (prevState == 2 && newState == 0) {
+//       arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+//       message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    // Se rescatan los datos del "Administrador de Contrato"
-    const admContUid = await searchbyColletionAndField('users', 'role', 6) // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del Administrador de Contrato
-    const admContData = await getData(admContUid)
-    const admContEmail = admContData.email
+//     // && prevState es 1 && newState es 4 -> Modificación hecha por C.Operator fue aceptada por Solicitante
+//     else if (prevState == 0 && newState == 4) {
+//       arrayCC = [ ] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, Planificador y Adm.Contrato
+//       message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    // Se rescatan los datos de quien se indicó como "solicitante" en ese campo al generar la solicitud
-    const petitionerName = requirementData.petitioner // Se rescata el nombre del campo "Solicitiante" en Nueva Solicitud
-    const petitionerUid = await searchbyColletionAndField('users', 'name', petitionerName) // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del solicitante indicado en el campo "Solicitante"
-    const petitionerData = await getData(petitionerUid) // Para el solicitante indicado en el campo "Solicitante" se obtiene su datos de Firestore
-    const petitionerEmail = petitionerData.email // Se selecciona el email del solicitante indicado en el campo "Solicitante"
+//     // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
+//     else if (prevState == 0 && newState == 2) {
+//       arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+//       message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    // Se rescatan los datos de quien será el Supervisor una vez que la solicitud alcanza el estado 6
-    // Variable que almacena el Supervisor que estará a cargo del levantamiento
-    var supervisorEmail = ''
-    var supervisorName = ''
+//     // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
+//     else if (prevState == 5 && newState == 0) {
+//       arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
+//       message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    // Si el campo existe dentro del documento
-    if (requirementData.supervisorShift) {
-      // Se actualiza supervisorName con el dato existente
-      const supervisorShift = requirementData.supervisorShift // Se rescata el nombre del campo "supervisorShift" en la base de datos
-      const supervisorData = await getSupervisorData(supervisorShift) // Para el supervisor indicado se obtiene su datos de Firestore
-      supervisorEmail = supervisorData.email // Se selecciona el email del supervisor
-      supervisorName = supervisorData.name // Se selecciona el email del supervisor
-    } else {
-      // Si el campo no existe dentro del documento
-      supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
-    }
+//     // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
+//     else if (prevState == 0 && newState == 6) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+//       message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
+//     }
 
-    if (requesterRole == 2) {
-      // Si el rol de quien hizo la solicitud es 2
+//     // && prevState es 2 && newState es 10 -> Solicitud rechazada por C.Operator
+//     else if (prevState == 2 && newState == 10) {
+//       arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+//       message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-      //Se rescatan los datos del C.Operator
-      const cOperatorName = requirementData.contop // Se usa el nombre del C.Operator de la solicitud hecha
-      const cOperatorUid = await searchbyColletionAndField('users', 'name', cOperatorName) // Se usa la función searchbyColletion() para buscar dentro de Firestore el usuario que se llame igual al Contract Operator del usuario
-      const cOperatorData = await getData(cOperatorUid) // Para este C.Operator se obtiene su datos de Firestore
-      const cOperatorEmail = cOperatorData.email // Se selecciona el email del C.Operator
+//     // && prevState es 5 && newState es 10 -> Solicitud rechazada por Adm.Contrato
+//     else if (prevState == 5 && newState == 10) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+//       message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-      const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
-        user,
-        requesterRole,
-        prevState,
-        newState,
-        cOperatorEmail,
-        cOwnerEmail,
-        plannerEmail,
-        admContEmail,
-        supervisorEmail,
-        petitionerEmail
-      )
+//     // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+//     else if (prevState == 6 && newState == 7) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+//       message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
+//     }
 
-      const onCC = usersOnCopyAndMessage.arrayCC
-      const message = usersOnCopyAndMessage.message
+//     // && prevState es 7 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+//     else if (prevState == 7 && newState == 8) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+//       message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
+//     }
+//   }
 
-      // Email dirigido a quien hizo la solicitud, con copia a quien corresponda
-      try {
-        const newDoc = {} // Se genera un elemento vacío
-        const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
-        const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
+//   // Si el rol de quien hizo la solicitud es "Contract Operator"
+//   else if (requesterRole == 3) {
+//     // && prevState es 3 && newState es 4
+//     if (prevState == 2 && newState == 4) {
+//       arrayCC = [cOwnerEmail, plannerEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator y Planificador
+//       message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-        const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
+//     // && prevState es 4 && newState es 5 -> Soliciutud aceptada por Planificador
+//     else if (prevState == 4 && newState == 5) {
+//       arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+//       message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
+//     }
 
-        const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
+//     // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
+//     else if (prevState == 5 && newState == 6) {
+//       arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+//       message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
+//     }
 
-        const startDate = requirementData.start.toDate().toLocaleDateString() // Constante que almacena la fecha de inicio del levantamiento
+//     // && prevState es 5 && newState es 2 -> Modificación hecha por Procure
+//     else if (prevState == 5 && newState == 1) {
+//       arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+//       message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
+//     }
 
-        // Variable que almacena la fecha de término del levantamiento
-        var endDate = null // Se inicializa como null
-        // Si el campo existe dentro del documento
-        if (requirementData.end) {
-          endDate = requirementData.end.toDate().toLocaleDateString() // Se actualiza endDate con el dato existente
-        } else {
-          // Si el campo no existe dentro del documento
-          endDate = 'Por definir' // La variable endDate queda 'Por definir'
-        }
+//     // && prevState es 2 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
+//     else if (prevState == 2 && newState == 6) {
+//       arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+//       message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
+//     }
 
-        // Variable que almacena el número de OT del levantamiento
-        var otNumber = null // Se inicializa como null
-        // Si el campo existe dentro del documento
-        if (requirementData.ot) {
-          otNumber = requirementData.ot // Se actualiza otNumber con el dato existente
-        } else {
-          // Si el campo no existe dentro del documento
-          otNumber = 'Por definir' // La variable otNumber queda 'Por definir'
-        }
+//     // && prevState es 5 && newState es 10 -> Solicitud rechazada por Procure
+//     else if (prevState == 5 && newState == 10) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+//       message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+//     }
 
-        // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
-        updateDoc(docRef, {
-          to: requesterEmail,
-          cc: onCC,
-          date: fechaCompleta,
-          req: requirementId,
-          emailType: 'reviewDocs',
-          message: {
-            subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
-            html: `
-              <h2>Estimad@ ${requesterData.name}:</h2>
-              <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}. A continuación puede encontrar el detalle de la solicitud:</p>
-              <table style="width:100%;">
-                <tr>
-                  <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
-                  <td style="text-align:left; width:80%;">${requirementData.n_request}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
-                  <td>${requirementData.title}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
-                  <td>${requirementData.engineering ? 'Si' : 'No'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
-                  <td>${otNumber}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
-                  <td>${supervisorName}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
-                  <td>${startDate}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
-                  <td>${endDate}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
-                  <td>${requirementData.plant}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
-                  <td>${requirementData.area}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
-                  <td>${requirementData.fnlocation}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
-                  <td>${requirementData.contop}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
-                  <td>${requirementData.petitioner}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
-                  <td>${requirementData.sap}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
-                  <td>${requirementData.type}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
-                  <td>${requirementData.objective}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
-                  <td>${requirementData.deliverable.join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
-                  <td>${requirementData.receiver.map(receiver => receiver.email).join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
-                  <td>${requirementData.description}</td>
-                </tr>
-              </table
-              <p>Para mayor información revise la solicitud en nuestra página web</p>
-              <p>Saludos,<br>Procure Terreno Web</p>
-              `
-          }
-        })
-        console.log('E-mail de actualizacion enviado con éxito.')
-      } catch (error) {
-        console.error('Error al enviar email:', error)
-        throw error
+//     // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+//     else if (prevState == 6 && newState == 7) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+//       message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
+//     }
+
+//     // && prevState es 7 && newState es 7 -> Supervisor termina el levantamiento
+//     else if (prevState == 7 && newState == 8) {
+//       arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+//       message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
+//     }
+//   }
+
+//   // Cualquier otro caso
+//   else {
+//   }
+
+//   return { arrayCC: arrayCC, message: message }
+// }
+
+export const sendEmailWhenReviewDocs = async (user, prevState, newState, requesterId, requirementId) => {
+
+  const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
+
+  // Se rescatan los datos globales de la solicitud:
+  const requirementRef = doc(db, 'solicitudes', requirementId)
+  const requirementSnapshot = await getDoc(requirementRef)
+  const requirementData = requirementSnapshot.data()
+
+  const [requesterData, cOwnerData, plannerData, admContData, petitionerData, supervisorData, cOperatorData] = await Promise.all([
+    getData(requesterId),
+    getData(await searchbyColletionAndField('users', 'role', 4)),
+    getData(await searchbyColletionAndField('users', 'role', 5)),
+    getData(await searchbyColletionAndField('users', 'role', 6)),
+    getData(await searchbyColletionAndField('users', 'name', requirementData.petitioner)),
+    requirementData.supervisorShift ? getSupervisorData(requirementData.supervisorShift) : '',
+    getData(await searchbyColletionAndField('users', 'name', requirementData.contop))
+  ])
+
+  const requesterEmail = requesterData.email
+  const requesterRole = requesterData.role
+  const cOwnerEmail = cOwnerData.email
+  const plannerEmail = plannerData.email
+  const admContEmail = admContData.email
+  const petitionerEmail = petitionerData.email
+  const supervisorEmail = supervisorData ? supervisorData.email : ''
+  const cOperatorEmail = cOperatorData.email
+
+
+  const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
+    user,
+    requesterRole,
+    prevState,
+    newState,
+    cOperatorEmail,
+    cOwnerEmail,
+    plannerEmail,
+    admContEmail,
+    supervisorEmail,
+    petitionerEmail
+  )
+
+  const onCC = usersOnCopyAndMessage.arrayCC
+  const message = usersOnCopyAndMessage.message
+
+  // Email dirigido a quien hizo la solicitud, con copia a quien corresponda
+  try {
+    const newDoc = {} // Se genera un elemento vacío
+    const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
+    const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
+
+    const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
+
+    const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
+
+    // Se almacenan las constantes a usar en el email
+    const userName = requirementData.user
+    const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}`
+    const requestNumber = requirementData.n_request
+    const title = requirementData.title
+    const engineering = requirementData.engineering ? 'Si' : 'No'
+    const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
+    const supervisor = requirementData.supervisor ? requirementData.supervisor : 'Por definir'
+    const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
+    const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
+    const plant = requirementData.plant
+    const area = requirementData.area ? requirementData.area : 'No indicado'
+    const functionalLocation = (requirementData.fnlocation && requirementData.fnlocation !== '') ? requirementData.fnlocation : 'No indicado'
+    const contractOperator = requirementData.contop
+    const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
+    const sapNumber = (requirementData.sap && requirementData.sap !== '') ? requirementData.sap : 'No indicado'
+    const operationalType = requirementData.type ? requirementData.type : 'No indicado'
+    const machineDetention = requirementData.detention ? requirementData.detention : 'No indicado'
+    const jobType = requirementData.objective
+    const deliverable = requirementData.deliverable.join(', ')
+    const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
+    const description = requirementData.description
+    const lastMessage = ''
+
+    // Llamada al html del email con las constantes previamente indicadads
+    const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+
+    // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
+    updateDoc(docRef, {
+      to: requesterEmail,
+      cc: onCC,
+      date: fechaCompleta,
+      req: requirementId,
+      emailType: 'reviewDocs',
+      message: {
+        subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+        html: emailHtml
       }
-    } else if (requesterRole == 3) {
-      // Si el rol de quien hizo la solicitud es 3
-
-      //Se rescatan los datos del C.Operator
-      const cOperatorEmail = '' // Se selecciona el email del C.Operator
-
-
-
-      const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
-        user,
-        requesterRole,
-        prevState,
-        newState,
-        cOperatorEmail,
-        cOwnerEmail,
-        plannerEmail,
-        admContEmail,
-        supervisorEmail,
-        petitionerEmail
-      )
-
-      const onCC = usersOnCopyAndMessage.arrayCC
-      const message = usersOnCopyAndMessage.message
-
-      // Email dirigido a quien hizo la solicitud, con copia a quien corresponda
-      try {
-        const newDoc = {} // Se genera un elemento vacío
-        const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
-        const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
-
-        const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
-
-        const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
-
-        const startDate = requirementData.start.toDate().toLocaleDateString() // Constante que almacena la fecha de inicio del levantamiento
-
-        // Variable que almacena la fecha de término del levantamiento
-        var endDate = null // Se inicializa como null
-        // Si el campo existe dentro del documento
-        if (requirementData.end) {
-          endDate = requirementData.end.toDate().toLocaleDateString() // Se actualiza endDate con el dato existente
-        } else {
-          // Si el campo no existe dentro del documento
-          endDate = 'Por definir' // La variable endDate queda 'Por definir'
-        }
-
-        // Variable que almacena el número de OT del levantamiento
-        var otNumber = null // Se inicializa como null
-        // Si el campo existe dentro del documento
-        if (requirementData.ot) {
-          otNumber = requirementData.ot // Se actualiza otNumber con el dato existente
-        } else {
-          // Si el campo no existe dentro del documento
-          otNumber = 'Por definir' // La variable otNumber queda 'Por definir'
-        }
-
-        // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
-        updateDoc(docRef, {
-          to: requesterEmail,
-          cc: onCC,
-          date: fechaCompleta,
-          req: requirementId,
-          emailType: 'reviewDocs',
-          message: {
-            subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
-            html: `
-              <h2>Estimad@ ${requesterData.name}:</h2>
-              <p>Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}. A continuación puede encontrar el detalle de la solicitud:</p>
-              <table style="width:100%;">
-                <tr>
-                  <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
-                  <td style="text-align:left; width:80%;">${requirementData.n_request}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
-                  <td>${requirementData.title}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
-                  <td>${requirementData.engineering ? 'Si' : 'No'}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
-                  <td>${otNumber}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
-                  <td>${supervisorName}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
-                  <td>${startDate}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
-                  <td>${endDate}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
-                  <td>${requirementData.plant}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
-                  <td>${requirementData.area}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
-                  <td>${requirementData.fnlocation}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
-                  <td>${requirementData.contop}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
-                  <td>${requirementData.petitioner}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
-                  <td>${requirementData.sap}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
-                  <td>${requirementData.type}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
-                  <td>${requirementData.objective}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
-                  <td>${requirementData.deliverable.join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
-                  <td>${requirementData.receiver.map(receiver => receiver.email).join(', ')}</td>
-                </tr>
-                <tr>
-                  <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
-                  <td>${requirementData.description}</td>
-                </tr>
-              </table
-              <p>Para mayor información revise la solicitud en nuestra página web</p>
-              <p>Saludos,<br>Procure Terreno Web</p>
-              `
-          }
-        })
-        console.log('E-mail de actualizacion enviado con éxito.')
-      } catch (error) {
-        console.error('Error al enviar email:', error)
-        throw error
-      }
-    } else {
-      // Si el rol de quien hizo la solicitud es cualquier otro
-    }
+    })
+    console.log('E-mail de actualizacion enviado con éxito.')
+  } catch (error) {
+    console.error('Error al enviar email:', error)
+    throw error
   }
+}

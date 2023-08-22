@@ -20,7 +20,7 @@ export const getEmailTemplate = (userName, mainMessage, requestNumber, title, en
           <td>${otProcure}</td>
         </tr>
         <tr>
-          <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
+          <td style="text-align:left; padding-left:15px;"><strong>Supervisor Procure a cargo:</strong></td>
           <td>${supervisor}</td>
         </tr>
         <tr>
