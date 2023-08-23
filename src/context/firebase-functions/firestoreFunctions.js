@@ -1,5 +1,5 @@
 // ** Firebase Imports
-import { Firebase, app, db } from 'src/configs/firebase'
+import { Firebase, db } from 'src/configs/firebase'
 import {
   collection,
   doc,
@@ -184,7 +184,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, newEvent
   }
 }
 
-function getNextState(role, approves, latestEvent) {
+function getNextState(role, approves, latestEvent, userRole) {
   const state = {
     returnedPetitioner: 0,
     returnedContOp: 1,
@@ -203,8 +203,7 @@ function getNextState(role, approves, latestEvent) {
   const approvedByPlanner = latestEvent.prevState === state.planner
   const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
   const returnedContOp = latestEvent.newState === state.returnedContOp
-  const devolutionState = state.returnedPetitioner
-
+  const devolutionState = userRole === 2 ? state.returnedPetitioner : state.returnedContOp
 
   const rules = new Map([
     [
@@ -305,20 +304,21 @@ function getNextState(role, approves, latestEvent) {
 const updateDocs = async (id, approves, userParam) => {
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
-  const { start: docStartDate, ot: hasOT } = docSnapshot
+  const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
   const latestEvent = await getLatestEvent(id)
   const rejected = 10
 
   const { role, email, displayName } = userParam
-  let newState = approves ? getNextState(role, approves, latestEvent) : rejected
-  let processedFields = { incomingFields: {}, changedFields: {} };
+  let newState = approves ? getNextState(role, approves, latestEvent, userRole) : rejected
+  let processedFields = { incomingFields: {}, changedFields: {} }
 
   const addOT = role === 5 && approves && hasOT
   const OT = addOT ? await increaseAndGetNewOTValue() : null
-  const addShift = (role === 2 && docSnapshot.state >= 6) || (role === 3 && docSnapshot.state === 6) || (role === 6 && newState === 6)
+
+  const addShift =
+    (role === 2 && docSnapshot.state >= 6) || (role === 3 && docSnapshot.state === 6) || (role === 6 && newState === 6)
   const supervisorShift = addShift ? await setSupervisorShift(moment(docStartDate.toDate()).isoWeek()) : null
 
-  // Falta manejar el caso de que procesedFields no pueda desestructurarse
   if (hasFieldModifications) {
     processedFields = processFieldChanges(approves, docSnapshot)
   }
@@ -326,24 +326,24 @@ const updateDocs = async (id, approves, userParam) => {
   const prevDoc = { ...incomingFields }
 
   if (approves) {
-  changedFields = {
-    ...(addOT && OT ? { OT } : {}),
-    ...(addShift && supervisorShift ? { supervisorShift } : {}),
-    ...(approves === true ? {} : { [Array.isArray(approves) ? 'draftmen' : 'hours']: approves }),
-    ...changedFields
-  }}
-
-  let newEvent = {
-    prevDoc,
-    prevState: docSnapshot.state,
-    newState,
-    user: email,
-    userName: displayName,
-    date: Timestamp.fromDate(new Date())
+    changedFields = {
+      ...(addOT && OT ? { OT } : {}),
+      ...(addShift && supervisorShift ? { supervisorShift } : {}),
+      ...(approves === true ? {} : { [Array.isArray(approves) ? 'draftmen' : 'hours']: approves }),
+      ...changedFields
+    }
   }
 
   changedFields.state = newState
-  console.log(changedFields)
+
+  let newEvent = {
+    prevState,
+    newState,
+    user: email,
+    userName: displayName,
+    date: Timestamp.fromDate(new Date()),
+    ...(prevDoc ? { prevDoc } : {})
+  }
 
   updateDocumentAndAddEvent(ref, changedFields, userParam, newEvent, docSnapshot.uid, id)
 }
@@ -354,11 +354,6 @@ const updateUserPhone = async (id, obj) => {
   const querySnapshot = await getDoc(ref)
 
   await updateDoc(ref, { phone: obj.replace(/\s/g, '') })
-}
-
-// ** Guarda datos contraturno u otros contactos no registrados
-const addNewContact = async values => {
-  await setDoc(doc(db, 'contacts', 'test'), values)
 }
 
 // ** Bloquear o desbloquear un día en la base de datos
@@ -416,15 +411,8 @@ const dateWithDocs = async date => {
 
 export {
   newDoc,
-  getDocumentAndUser,
-  getLatestEvent,
-  setSupervisorShift,
-  processFieldChanges,
-  updateDocumentAndAddEvent,
-  getNextState,
   updateDocs,
   updateUserPhone,
-  addNewContact,
   blockDayInDatabase,
   dateWithDocs
 }
