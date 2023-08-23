@@ -148,70 +148,92 @@ const getData = async id => {
 // const allPlantUsers = await getUserData('getAllPlantUsers', 'Plant3');
 // const allProcureUsers = await getUserData('getAllProcureUsers');
 
-const getUserData = async (type, plant, options = {shift: ''}) => {
+const getUserData = async (type, plant, options = { shift: '' }) => {
+  // Crear una referencia a la colección 'users' en la base de datos
   const coll = collection(db, 'users');
-  let path;
+  let paths = [];  // Crear un arreglo para almacenar las consultas o caminos a las colecciones
 
+  // Verificar diferentes casos basados en el tipo de operación
   switch (type) {
     case 'getUsers':
-      path = options.shift !== ''
+      // Agregar una consulta al arreglo 'paths' dependiendo del valor de 'options.shift'
+      paths.push(options.shift !== ''
         ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', options.shift), where('role', '==', 2))
-        : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3));
+        : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)));
       break;
 
     case 'getAllPlantUsers':
+       // Agregar una consulta al arreglo 'paths' para obtener todos los usuarios de una planta específica
       if (plant) {
-        path = query(coll, where('plant', '==', plant));
+        paths.push(query(coll, where('plant', '==', plant)));
       } else {
-        return [];
+        return null; // Si no se proporciona la planta, retornar nulo
       }
       break;
 
     case 'getAllProcureUsers':
-      path = query(coll, where('company', '==', 'Procure'));
+      // Agregar una consulta al arreglo 'paths' para obtener todos los usuarios de la empresa 'Procure'
+      paths.push(query(coll, where('company', '==', 'Procure')));
       break;
 
     default:
-      throw new Error(`Invalid type: ${type}`);
+      throw new Error(`Invalid type: ${type}`); // Lanzar un error en caso de tipo no válido
   }
 
-  const querySnapshot = await getDocs(path);
-  const allDocs = [];
+  try {
+    // Realizar todas las consultas de forma paralela y obtener los snapshots de los resultados
+    const querySnapshots = await Promise.all(paths.map(path => getDocs(path)));
+    const allDocs = []; // Crear un arreglo para almacenar todos los documentos con datos extendidos
 
-  querySnapshot.forEach(doc => {
-    const userObj = {
-      ...doc.data(),
-      id: doc.id
-    };
-    allDocs.push(userObj);
-  });
-  console.log(allDocs)
+    // Iterar a través de los snapshots y los documentos para crear el arreglo 'allDocs'
+    querySnapshots.forEach(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        allDocs.push({
+          ...doc.data(),
+          id: doc.id
+        });
+      });
+    });
 
-  return allDocs;
+    return allDocs; // Retornar el arreglo con los datos extendidos de los usuarios
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+
+    return null; // En caso de error, retornar nulo
+  }
 };
 
 const getPetitioner = async (plant, userParam) => {
+  // Crear una consulta para obtener los usuarios con la planta especificada
   const q = query(collection(db, 'users'), where('plant', 'array-contains', plant));
 
-  const querySnapshot = await getDocs(q);
+  const querySnapshot = await getDocs(q); // Obtener los documentos que coinciden con la consulta
 
+  // Crear un arreglo para almacenar todos los documentos con datos extendidos
   const allDocs = querySnapshot.docs.map(doc => ({
     ...doc.data(),
     id: doc.id
   }));
 
+  // Verificar diferentes casos basados en los parámetros de usuario
   if (userParam.plant === 'allPlants') {
+    // Si la planta es 'allPlants', retornar los usuarios con rol 2 (solicitantes)
     return allDocs.filter(doc => doc.role === 2);
   } else if (userParam.role === 3) {
+    // Si el rol del usuario es 3, retornar todos los usuarios
     return allDocs;
   } else {
+    // Si no se cumple ninguna de las condiciones anteriores
+    // Obtener el documento del usuario actual
     const docRef = doc(db, 'users', userParam.uid);
     const docSnapshot = await getDoc(docRef);
 
+    // Si el documento del usuario actual existe, agregarlo al arreglo
     if (docSnapshot.exists()) {
       allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id });
     }
 
+    // Retornar el arreglo de usuarios con el usuario actual agregado (si existe)
     return allDocs;
   }
 };
@@ -365,16 +387,16 @@ const consultSAP = async sap => {
           messages
       }
     } else {
-      // Si no hay documentos con el número SAP, retornar un objeto indicando que es un nuevo número SAP
       return {
         exist: true,
         sap,
         msj:
-          `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas:\n\n` +
-          messages
+        `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas:\n\n` +
+        messages
       }
     }
   } else {
+    // Si no hay documentos con el número SAP, retornar un objeto indicando que es un nuevo número SAP
     return { exist: false, msj: 'Nuevo número SAP registrado' }
   }
 }
@@ -409,14 +431,17 @@ const consultUserEmailInDB = async email => {
 }
 
 const consultDocs = async (type, options = {}) => {
-  const coll = collection(db, 'solicitudes');
-  let queries = [];
+  const coll = collection(db, 'solicitudes'); // Obtener referencia a la colección 'solicitudes'
+  let queries = [];  // Inicializar un arreglo para almacenar las consultas
 
+  // Determinar el tipo de consulta a realizar
   switch (type) {
+      // Agregar la consulta de obtener todos los documentos a las consultas
     case 'all':
       queries.push(getCountFromServer(coll));
       break;
 
+      // Crear consultas por planta y agregarlas al arreglo de consultas
     case 'byPlants':
       const plantQueries = options.plants.map(plant =>
         query(coll, where('plant', '==', plant))
@@ -424,6 +449,7 @@ const consultDocs = async (type, options = {}) => {
       queries = plantQueries.map(getCountFromServer);
       break;
 
+      // Crear consultas por estado y agregarlas al arreglo de consultas
     case 'byState':
       const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6));
       const q2 = query(coll, where('state', '>=', 6), where('state', '<', 10));
@@ -432,13 +458,20 @@ const consultDocs = async (type, options = {}) => {
       break;
 
     default:
+      // Si el tipo de consulta no es válido, lanzar un error
       throw new Error(`Invalid type: ${type}`);
   }
 
-  const snapshots = await Promise.all(queries);
-  const counts = snapshots.map(snapshot => snapshot.data().count);
+  try {
+    const snapshots = await Promise.all(queries); // Ejecutar todas las consultas en paralelo y obtener los snapshots
+    const counts = snapshots.map(snapshot => snapshot.data().count); // Mapear los snapshots para obtener el conteo de cada consulta
 
-return counts;
+    return counts; // Retornar el arreglo de conteos
+  } catch (error) {
+    console.error('Error fetching document counts:', error); // En caso de error, imprimir un mensaje de error y retornar null
+
+    return null;
+  }
 };
 
 
@@ -448,15 +481,17 @@ const consultObjetives = async (type, options = {}) => {
 
   switch (type) {
     case 'all':
+      // Consulta para obtener el total de documentos con estado mayor o igual a 6
       queryFunc = async () => {
         const q = query(coll, where('state', '>=', 6));
         const snapshot = await getCountFromServer(q);
 
-return snapshot.data().count;
+        return snapshot.data().count;
       };
       break;
 
     case 'week':
+      // Consulta para obtener el número de documentos por día de la semana en la semana actual
       queryFunc = async () => {
         const startDate = moment().startOf('isoWeek').toDate();
         const endDate = moment().endOf('isoWeek').toDate();
@@ -477,6 +512,7 @@ return snapshot.data().count;
       break;
 
     case 'lastSixMonths':
+      // Consulta para obtener el número de documentos en los últimos seis meses
       queryFunc = async () => {
         const currentDate = moment();
         const monthsData = [];
@@ -505,36 +541,38 @@ return snapshot.data().count;
       break;
 
     case 'byPlants':
+      // Consulta para obtener el número de documentos por planta
       queryFunc = async () => {
         const queries = options.plants.map(async plant => {
           const q = query(coll, where('plant', '==', plant), where('state', '>=', 6));
           const snapshot = await getDocs(q);
 
-return snapshot.size;
+          return snapshot.size;
         });
 
         const results = await Promise.all(queries);
 
-return results;
+        return results;
       };
       break;
 
     case 'byState':
+      // Consulta para obtener el número de documentos por estado
       queryFunc = async () => {
         const q1 = query(coll, where('state', '==', 6));
         const q2 = query(coll, where('state', '==', 7));
         const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10));
         const queryAllStates = [q1, q2, q3];
 
-        const promises = queryAllStates.map(query => getCountFromServer(query));
-        const snapshots = await Promise.all(promises);
+        const snapshots = await Promise.all(queryAllStates.map(getCountFromServer));
         const documentsByState = snapshots.map(snapshot => snapshot.data().count);
 
-return documentsByState;
+        return documentsByState;
       };
       break;
 
     default:
+      // Lanzar un error si el tipo no es válido
       throw new Error(`Invalid type: ${type}`);
   }
 
@@ -543,18 +581,21 @@ return documentsByState;
 
 
 const getUsersWithSolicitudes = async () => {
-  const collSolicitudes = collection(db, 'solicitudes')
-  const qSolicitudes = query(collSolicitudes)
-  const solicitudesSnapshot = await getDocs(qSolicitudes)
+  const collSolicitudes = collection(db, 'solicitudes') // Obtener referencia a la colección 'solicitudes'
+  const qSolicitudes = query(collSolicitudes) // Consulta para obtener todas las solicitudes
+  const solicitudesSnapshot = await getDocs(qSolicitudes) // Obtener los documentos de las solicitudes
 
-  const solicitudesByUser = {}
+  const solicitudesByUser = {} // Objeto para almacenar el número de solicitudes por usuario
 
+  // Recorrer los documentos de las solicitudes
   solicitudesSnapshot.forEach(doc => {
     const { uid } = doc.data()
     if (uid) {
+      // Si el usuario ya tiene solicitudes, incrementar el contador
       if (solicitudesByUser[uid]) {
         solicitudesByUser[uid].docs++
       } else {
+        // Si es la primera solicitud del usuario, inicializar el contador
         solicitudesByUser[uid] = {
           id: uid,
           docs: 1
@@ -563,15 +604,17 @@ const getUsersWithSolicitudes = async () => {
     }
   })
 
-  const sortedUsers = Object.values(solicitudesByUser).sort((a, b) => b.docs - a.docs)
-  const limitedUsers = sortedUsers.slice(0, 10)
+  const sortedUsers = Object.values(solicitudesByUser).sort((a, b) => b.docs - a.docs) // Ordenar los usuarios por cantidad de solicitudes (de mayor a menor)
+  const limitedUsers = sortedUsers.slice(0, 10) // Limitar la cantidad de usuarios a 10
 
   // Consulta adicional a la colección 'users'
-  const collUsers = collection(db, 'users')
-  const usersSnapshot = await getDocs(collUsers)
+  const collUsers = collection(db, 'users') // Obtener referencia a la colección 'users'
+  const usersSnapshot = await getDocs(collUsers) // Obtener los documentos de la colección 'users'
 
+  // Mapear los usuarios limitados con sus propiedades
   const usersWithProperties = limitedUsers.map(user => {
-    const userSnapshot = usersSnapshot.docs.find(doc => doc.id === user.id)
+    const userSnapshot = usersSnapshot.docs.find(doc => doc.id === user.id) // Encontrar el documento del usuario en el snapshot
+    // Si se encontró el usuario en la colección 'users'
     if (userSnapshot) {
       const userData = userSnapshot.data()
 
@@ -590,6 +633,7 @@ const getUsersWithSolicitudes = async () => {
         }
       }
     } else {
+      // Si no se encontró el usuario en la colección 'users', retornar el objeto original
       return user
     }
   })

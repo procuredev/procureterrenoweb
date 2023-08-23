@@ -32,14 +32,31 @@ const ChartBarsDocsByPlants = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const docsByPlants = await consultDocs('byPlants', { plants: ['Planta Concentradora Los Colorados',
-      'Planta Concentradora Laguna Seca | Línea 1', 'Planta Concentradora Laguna Seca | Línea 2', 'Chancado y Correas',
-      'Puerto Coloso', 'Instalaciones Cátodo'] });
-      setDocsByPlants(docsByPlants)
-    }
+      const plants = [
+        'Planta Concentradora Los Colorados',
+        'Planta Concentradora Laguna Seca | Línea 1',
+        'Planta Concentradora Laguna Seca | Línea 2',
+        'Chancado y Correas',
+        'Puerto Coloso',
+        'Instalaciones Cátodo'
+      ];
 
-    fetchData()
-  }, [])
+      const promises = plants.map(plant => consultDocs('byPlants', { plants: [plant] }));
+      const results = await Promise.all(promises);
+
+      const combinedCounts = results.reduce((acc, counts) => {
+        counts.forEach((count, index) => {
+          acc[index] += count;
+        });
+
+        return acc;
+      }, Array(6).fill(0));
+
+      setDocsByPlants(combinedCounts);
+    };
+
+    fetchData();
+  }, []);
 
   const options = {
     tooltip: {
