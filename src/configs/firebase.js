@@ -8,7 +8,7 @@ import { getFirestore } from 'firebase/firestore'
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+const firebaseConfigProduction = {
   apiKey: "AIzaSyC1XlvMbqs2CN_BWXFtk4BPwYWwD29cVww",
   authDomain: "procureterrenoweb.firebaseapp.com",
   databaseURL: "https://procureterrenoweb-default-rtdb.firebaseio.com",
@@ -19,12 +19,33 @@ const firebaseConfig = {
   measurementId: "G-TVJHPX0SLM"
 };
 
+const firebaseConfigDevelopment = {
+  apiKey: "AIzaSyCdXvApB-Q-J5kfdcCzE7xDYJhH6KGLd9s",
+  authDomain: "pruebasprocureterrenoweb.firebaseapp.com",
+  projectId: "pruebasprocureterrenoweb",
+  storageBucket: "pruebasprocureterrenoweb.appspot.com",
+  messagingSenderId: "83406272260",
+  appId: "1:83406272260:web:adcdb4fa5bb69a804c4251"
+};
+
 // Initialize Firebase
+
+let firebaseConfig
+
+if (typeof window !== 'undefined') {
+  //console.log(window.location.hostname)
+  if (window.location.hostname === 'localhost') {
+    firebaseConfig = firebaseConfigDevelopment
+  } else {
+    firebaseConfig = firebaseConfigProduction
+  }
+} else {
+  // Aquí puedes definir un valor predeterminado o manejarlo como prefieras
+  firebaseConfig = firebaseConfigProduction
+}
 
 const app = Firebase.initializeApp(firebaseConfig)
 
-
-
 const db = getFirestore(app);
 
-export { Firebase, db, app}
+export { Firebase, db, app }

@@ -1,7 +1,7 @@
 // ** Firebase Imports
 import { db } from 'src/configs/firebase'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
-import { ref, getDownloadURL, uploadBytes, getStorage } from 'firebase/storage'
+import { ref, getDownloadURL, uploadBytes, getStorage, uploadString } from 'firebase/storage'
 
 const uploadFilesToFirebaseStorage = async (files, idSolicitud) => {
   const storage = getStorage()
@@ -46,6 +46,7 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud) => {
 
 // ** Actualiza Perfil de usuario
 const updateUserProfile = async (inputValue, userParam) => {
+  const storage = getStorage()
   try {
     const user = userParam.uid
     const newPhoto = inputValue
