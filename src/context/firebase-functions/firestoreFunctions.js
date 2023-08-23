@@ -1,7 +1,5 @@
-import { getUnixTime } from 'date-fns'
-
 // ** Firebase Imports
-import { Firebase, db } from 'src/configs/firebase'
+import { Firebase, app, db } from 'src/configs/firebase'
 import {
   collection,
   doc,
@@ -18,14 +16,12 @@ import {
   runTransaction
 } from 'firebase/firestore'
 
-// ** Trae funcion que valida los campos del registro
+// ** Imports Propios
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
-
-// ** Importación de función que envía email cuando se genera una nueva solicitud
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
-
-// ** Importación de función que envía email cuando se actualiza una nueva solicitud
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
+import { getUnixTime } from 'date-fns'
+import { de } from 'date-fns/locale'
 
 // ** Librería para manejar fechas
 const moment = require('moment')
@@ -129,13 +125,34 @@ const setSupervisorShift = async week => {
   return supervisorShift
 }
 
-//** Falta esta
+async function increaseAndGetNewOTValue() {
+  const counterRef = doc(db, 'counters', 'otCounter')
+
+  try {
+    const newOTValue = await runTransaction(db, async transaction => {
+      const counterSnapshot = await transaction.get(counterRef)
+
+      const newCounter = counterSnapshot.exists ? counterSnapshot.data().counter + 1 : 1
+
+      transaction.set(counterRef, { counter: newCounter })
+
+      return newCounter
+    })
+
+    return newOTValue
+  } catch (error) {
+    console.error('Error:', error)
+    throw error
+  }
+}
+
+//** Revisar
 const processFieldChanges = (incomingFields, currentDoc) => {
-  const changedFields = {};
+  const changedFields = {}
 
   for (const key in incomingFields) {
-    let value = incomingFields[key];
-    let currentFieldValue = currentDoc[key];
+    let value = incomingFields[key]
+    let currentFieldValue = currentDoc[key]
 
     console.log(value)
     console.log(currentFieldValue)
@@ -152,11 +169,11 @@ const processFieldChanges = (incomingFields, currentDoc) => {
         currentFieldValue = currentFieldValue && Timestamp.fromDate(moment(currentFieldValue).toDate())
       }
       changedFields[key] = value
-      incomingFields[key] = currentFieldValue || 'none';
+      incomingFields[key] = currentFieldValue || 'none'
     }
   }
 
-  return { changedFields, incomingFields };
+  return { changedFields, incomingFields }
 }
 
 //** Revisar
@@ -174,6 +191,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, newEvent
 function getNextState(role, approves, latestEvent) {
   const state = {
     returnedPetitioner: 0,
+    returnedContOp: 1,
     contOwner: 4,
     planner: 5,
     contAdmin: 6,
@@ -182,118 +200,165 @@ function getNextState(role, approves, latestEvent) {
     rejected: 10
   }
 
-  const changeDate = latestEvent && 'prevDoc' in latestEvent && 'start' in latestEvent.prevDoc
+  // Cambiar la función para que reciba el docSnapshot y compare la fecha original de start con la que estoy modificándolo ahora
+  // Si quiero cambiarla por la fecha original, no se devolverá al autor, sino que se va por el caso x default.
+  const dateHasChanged = latestEvent && 'prevDoc' in latestEvent && 'start' in latestEvent.prevDoc
+  const approveWithChanges = typeof approves === 'object' || typeof approves === 'string'
   const approvedByPlanner = latestEvent.prevState === state.planner
   const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
+  const returnedContOp = latestEvent.newState === state.returnedContOp
+  const devolutionState = state.returnedPetitioner
+
 
   const rules = new Map([
     [
       2,
       [
-        // Si es devuelta al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato)
+        // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 0 --> 6)
+        // No se usó dateHasChanged porque el cambio podría haber pasado en el penúltimo evento
         {
           condition: approves && approvedByPlanner && returnedPetitioner,
           newState: state.contAdmin,
-          log: 'Devuelta al solicitante'
+          log: 'Devuelto por Adm Contrato Procure'
         },
 
-        // Si se aprueba y no ha sido devuelta, pasa al planificador (revisada por contract owner)
+        // Si es devuelta al solicitante por cambio de fecha x Cont Operator, pasa a planificador (2/3 --> 0 --> 4)
         {
-          condition: approves && latestEvent.newState !== state.returnedPetitioner,
+          condition: approves && dateHasChanged && returnedPetitioner,
           newState: state.contOwner,
-          log: 'Aprobada'
+          log: 'Devuelto por Cont Operator/Cont Owner MEL'
         }
       ]
     ],
     [
       3,
       [
-        // Si tiene eventos y aprueba y viene con estado 5 lo pasa a 6
+        // Si aprueba y viene con estado 5 lo pasa a 6 (5 --> 1 --> 6)
         {
-          condition: approves && latestEvent && approvedByPlanner,
+          condition: approves && approvedByPlanner && returnedContOp,
           newState: state.contAdmin,
-          log: 'Aprobada con estado 5'
+          log: 'Devuelto por Adm Contrato Procure'
         },
 
-        // Si aprueba y viene con otro estado, pasa al planificador (revisada por contract owner)
-        { condition: approves && !approvedByPlanner, newState: state.contOwner, log: 'Aprobada otro estado' }
+        // Si aprueba y viene con otro estado, pasa al planificador (revisada por contract owner) (3 --> 1 --> 4)
+        {
+          condition: approves && !approvedByPlanner && returnedContOp,
+          newState: state.contOwner,
+          log: 'Devuelto por Cont Owner MEL'
+        }
+      ]
+    ],
+    [
+      4,
+      [
+        // Si modifica, se le devuelve al autor (3 --> 0/1)
+        {
+          condition: approveWithChanges,
+          newState: devolutionState,
+          log: 'Aprobado por Planificador'
+        }
       ]
     ],
     [
       6,
       [
-        // Si tiene eventos y aprueba, y tiene cambio de fecha, lo pasa a planificador (revisada por contract owner)
-        { condition: approves && changeDate, newState: state.contOwner, log: 'Aprobada con cambio de fecha' }
+        // Planificador modifica, Adm Contrato no modifica
+        {
+          condition: approves && !approveWithChanges && dateHasChanged,
+          newState: devolutionState,
+          log: 'Aprobada con cambio de fecha'
+        },
+
+        // Planificador no modifica, Adm Contrato sí
+        {
+          condition: approves && approveWithChanges && !dateHasChanged,
+          newState: devolutionState,
+          log: 'Modificado por adm contrato'
+        },
+
+        // Planificador modifica, Adm Contrato sí modifica
+        {
+          condition: approves && approveWithChanges && dateHasChanged,
+          newState: devolutionState,
+          log: 'Modificado por adm contrato y planificador'
+        }
       ]
     ],
     [
       7,
       [
-        // Si los recibe son horas (string) y estas horas se escriben en db y lo pasa a 8
-        { condition: typeof approves === 'string', newState: state.draftsman, log: 'Recibido con horas' }
+        // Supervisor devuelve solicitud (6 --> 0/1)
+        { condition: typeof approves === 'string', newState: devolutionState, log: 'Devuelto por Supervisor' }
       ]
     ]
   ])
 
   const roleRules = rules.get(role)
 
-  // Caso por defecto
-  if (!roleRules) {
-    return role
-  }
-
   for (const rule of roleRules) {
     if (rule.condition) {
+      console.log(rule.log)
+
       return rule.newState
     }
   }
+
+  return role
 }
 
 // ** Modifica documentos
 const updateDocs = async (id, approves, userParam) => {
-  const { ref, docSnapshot, previousRole } = await getDocumentAndUser(id)
+  const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
+  const { ref, docSnapshot } = await getDocumentAndUser(id)
+  const { start: docStartDate, ot: hasOT } = docSnapshot
   const latestEvent = await getLatestEvent(id)
   const rejected = 10
-  let newState
-  let prevDoc
-  let processedFields
 
-  // Flujo de aprobación
-  if (approves) {
-    // Si approves es objeto, se procesan los cambios en los campos
-    processedFields = approves === true ? false : processFieldChanges(approves, docSnapshot)
-    newState = getNextState(userParam.role, approves, latestEvent)
-  } else {
-    newState = rejected
+  const { role, email, displayName } = userParam
+  let newState = approves ? getNextState(role, approves, latestEvent) : rejected
+  let processedFields = {}
+
+  if (hasFieldModifications) {
+    processedFields = processFieldChanges(approves, docSnapshot)
   }
 
-  // Asigna turno
   const addShift =
-    (userParam.role === 2 && docSnapshot.state >= 6) ||
-    (userParam.role === 3 && docSnapshot.state === 6) ||
-    (userParam.role === 6 && newState === 6)
+    (role === 2 && docSnapshot.state >= 6) || (role === 3 && docSnapshot.state === 6) || (role === 6 && newState === 6)
 
-  prevDoc = addShift
-    ? { ...processedFields.incomingFields}
-    : {
-        ...processedFields.incomingFields,
-        supervisorShift: await setSupervisorShift(moment(docSnapshot.start.toDate()).isoWeek())
-      }
+  const addOT = role === 5 && approves && hasOT
+
+  let { incomingFields, changedFields } = processedFields
+
+  // Falta manejar el caso de que procesedFields no pueda desestructurarse
+
+  const prevDoc = { ...incomingFields }
+
+  const OT = addOT ? await increaseAndGetNewOTValue() : null
+  const supervisorShift = addShift ? await setSupervisorShift(moment(docStartDate.toDate()).isoWeek()) : null
+
+  changedFields = {
+    ...(addOT && OT ? { OT } : {}),
+    ...(addShift && supervisorShift ? { supervisorShift } : {}),
+
+    //Solucionar hours=true, no debiese pasar NADA si recibe true
+
+    ...(hasFieldModifications && typeof approves !== 'boolean' ? {} : { [Array.isArray(approves) ? 'draftmen' : 'hours']: approves }),
+    ...changedFields
+  }
 
   let newEvent = {
     prevDoc,
     prevState: docSnapshot.state,
     newState,
-    user: userParam.email,
-    userName: userParam.displayName,
+    user: email,
+    userName: displayName,
     date: Timestamp.fromDate(new Date())
   }
 
-  processedFields.changedFields.state = newState
-  console.log(processedFields)
+  changedFields.state = newState
+  console.log(changedFields)
 
-  // Escribir y mandar mail
-  updateDocumentAndAddEvent(ref, processedFields.changedFields, userParam, newEvent, docSnapshot.uid, id)
+  updateDocumentAndAddEvent(ref, changedFields, userParam, newEvent, docSnapshot.uid, id)
 }
 
 // ** Modifica otros campos Usuarios
