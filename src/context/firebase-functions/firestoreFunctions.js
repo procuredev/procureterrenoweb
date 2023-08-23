@@ -21,7 +21,6 @@ import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 import { getUnixTime } from 'date-fns'
-import { de } from 'date-fns/locale'
 
 // ** Librería para manejar fechas
 const moment = require('moment')
@@ -312,35 +311,27 @@ const updateDocs = async (id, approves, userParam) => {
 
   const { role, email, displayName } = userParam
   let newState = approves ? getNextState(role, approves, latestEvent) : rejected
-  let processedFields = {}
+  let processedFields = { incomingFields: {}, changedFields: {} };
 
+  const addOT = role === 5 && approves && hasOT
+  const OT = addOT ? await increaseAndGetNewOTValue() : null
+  const addShift = (role === 2 && docSnapshot.state >= 6) || (role === 3 && docSnapshot.state === 6) || (role === 6 && newState === 6)
+  const supervisorShift = addShift ? await setSupervisorShift(moment(docStartDate.toDate()).isoWeek()) : null
+
+  // Falta manejar el caso de que procesedFields no pueda desestructurarse
   if (hasFieldModifications) {
     processedFields = processFieldChanges(approves, docSnapshot)
   }
-
-  const addShift =
-    (role === 2 && docSnapshot.state >= 6) || (role === 3 && docSnapshot.state === 6) || (role === 6 && newState === 6)
-
-  const addOT = role === 5 && approves && hasOT
-
   let { incomingFields, changedFields } = processedFields
-
-  // Falta manejar el caso de que procesedFields no pueda desestructurarse
-
   const prevDoc = { ...incomingFields }
 
-  const OT = addOT ? await increaseAndGetNewOTValue() : null
-  const supervisorShift = addShift ? await setSupervisorShift(moment(docStartDate.toDate()).isoWeek()) : null
-
+  if (approves) {
   changedFields = {
     ...(addOT && OT ? { OT } : {}),
     ...(addShift && supervisorShift ? { supervisorShift } : {}),
-
-    //Solucionar hours=true, no debiese pasar NADA si recibe true
-
-    ...(hasFieldModifications && typeof approves !== 'boolean' ? {} : { [Array.isArray(approves) ? 'draftmen' : 'hours']: approves }),
+    ...(approves === true ? {} : { [Array.isArray(approves) ? 'draftmen' : 'hours']: approves }),
     ...changedFields
-  }
+  }}
 
   let newEvent = {
     prevDoc,
