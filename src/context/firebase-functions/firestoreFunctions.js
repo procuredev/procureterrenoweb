@@ -146,7 +146,6 @@ async function increaseAndGetNewOTValue() {
   }
 }
 
-//** Revisar
 const processFieldChanges = (incomingFields, currentDoc) => {
   const changedFields = {}
 
@@ -176,7 +175,6 @@ const processFieldChanges = (incomingFields, currentDoc) => {
   return { changedFields, incomingFields }
 }
 
-//** Revisar
 const updateDocumentAndAddEvent = async (ref, changedFields, userParam, newEvent, requesterId, id) => {
   if (Object.keys(changedFields).length > 0) {
     await updateDoc(ref, changedFields)
@@ -187,7 +185,6 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, newEvent
   }
 }
 
-//** Falta esta
 function getNextState(role, approves, latestEvent) {
   const state = {
     returnedPetitioner: 0,
@@ -306,7 +303,6 @@ function getNextState(role, approves, latestEvent) {
   return role
 }
 
-// ** Modifica documentos
 const updateDocs = async (id, approves, userParam) => {
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
