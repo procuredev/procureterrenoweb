@@ -1,4 +1,3 @@
-
 import { getUnixTime } from 'date-fns'
 
 // ** Firebase Imports
@@ -16,7 +15,8 @@ import {
   where,
   orderBy,
   limit,
-  runTransaction} from 'firebase/firestore'
+  runTransaction
+} from 'firebase/firestore'
 
 // ** Trae funcion que valida los campos del registro
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
@@ -104,252 +104,196 @@ const newDoc = async (values, userParam) => {
   }
 }
 
-// ** Modifica estado documentos
-const reviewDocs = async (id, approves, userParam) => {
+const getDocumentAndUser = async id => {
   const ref = doc(db, 'solicitudes', id)
   const querySnapshot = await getDoc(ref)
   const docSnapshot = querySnapshot.data()
-  const userRef = doc(db, 'users', docSnapshot.uid)
-  const userQuerySnapshot = await getDoc(userRef)
-  const previousRole = userQuerySnapshot.data().role - 2
-
-  /*  if (userQuerySnapshot.exists()) {
-    const previousRole = userQuerySnapshot.data().role - 1;
-
-    // Resto del código que usa previousRole
-  } else {
-    console.log('El documento del usuario no existe o no contiene datos válidos.');
-
-    // Manejo del caso en que el documento no existe o está vacío
-  } */
-
-  const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
-  const eventQuerySnapshot = await getDocs(eventQuery)
-  const eventDocs = eventQuerySnapshot.docs
-
-  const prevState = querySnapshot.data().state // 'estado anterior'
-  let newState
-  let supervisorShift
-  if (userParam.role === 2) {
-    newState = approves ? (eventDocs[0].data().prevState === 5 && eventDocs[0].data().newState === 0 ? 6 : 4) : 10
-
-    if (newState === 6) {
-      let week = moment(docSnapshot.start.toDate()).isoWeek()
-      supervisorShift = week % 2 === 0 ? 'A' : 'B'
-      await updateDoc(ref, { supervisorShift })
-    }
-  } else if (userParam.role === 3) {
-    if (eventDocs.length > 0) {
-      newState = approves ? (eventDocs[0].data().prevState === 5 ? 6 : userParam.role + 1) : 10
-    } else {
-      newState = approves ? userParam.role + 1 : 10
-    }
-
-    if (newState === 6) {
-      let week = moment(docSnapshot.start.toDate()).isoWeek()
-      week % 2 == 0 ? (supervisorShift = 'A') : (supervisorShift = 'B')
-      await updateDoc(ref, { supervisorShift })
-    }
-  } else if (userParam.role === 6) {
-    console.log(eventDocs)
-    if (eventDocs.length > 0) {
-      const lastEvent = eventDocs[0].data()
-      console.log(lastEvent)
-      newState = approves
-        ? eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
-          ? previousRole
-          : userParam.role
-        : 10
-    } else {
-      console.log('No se encontraron eventos')
-      newState = approves ? userParam.role : 10
-    }
-
-    if (newState === 6) {
-      let week = moment(docSnapshot.start.toDate()).isoWeek()
-      supervisorShift = week % 2 === 0 ? 'A' : 'B'
-      await updateDoc(ref, { supervisorShift })
-    }
-  } else if (userParam.role === 7) {
-    if (Array.isArray(approves)) {
-      newState = 7
-      const draftmen = approves
-
-      await updateDoc(ref, { draftmen })
-    } else {
-      newState = 8
-      const horasLevantamiento = approves
-      await updateDoc(ref, { horasLevantamiento })
-    }
-  } else {
-    newState = approves ? userParam.role : 10
-  }
-
-  console.log('reviewdocs')
-
-  // Guarda estado anterior, autor y fecha modificación
-  const newEvent = {
-    prevState,
-    newState,
-    user: userParam.email,
-    userName: userParam.displayName,
-    date: Timestamp.fromDate(new Date())
-  }
-
-  await updateDoc(ref, {
-    state: newState
-  })
-  await addDoc(collection(db, `solicitudes/${id}/events`), newEvent)
-
-  // Se envía e-mail al prevState y al newState
-  await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
-}
-
-// ** Modifica otros campos documentos
-const updateDocs = async (id, obj, userParam) => {
-  const ref = doc(db, 'solicitudes', id)
-  const querySnapshot = await getDoc(ref)
-  const docSnapshot = querySnapshot.data()
-  const prevState = docSnapshot.state
   const userRef = doc(db, 'users', docSnapshot.uid)
   const userQuerySnapshot = await getDoc(userRef)
   const previousRole = userQuerySnapshot.data().role - 1
-  const isSolicitante = userParam.role === 2
-  const isContop = userParam.role === 3
-  const isPlanner = userParam.role === 5
-  const isAdmCon = userParam.role === 6
-  const isUnchanged = Object.keys(obj).length === 0
-  let changedFields = {}
-  let prevDoc = {}
-  let newState
-  let newEvent = {}
-  const devolutionState = userQuerySnapshot.data().role - 1
+
+  return { ref, docSnapshot, previousRole }
+}
+
+const getLatestEvent = async id => {
   const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
   const eventQuerySnapshot = await getDocs(eventQuery)
-  const eventDocs = eventQuerySnapshot.docs
+  const latestEvent = eventQuerySnapshot.docs.length > 0 ? eventQuerySnapshot.docs[0].data() : false
 
-  for (const key in obj) {
-    let value = obj[key]
-    if (key === 'start') {
-      // Asegura que value sea un objeto de fecha válido de Moment.js
-      value = moment(value.toDate()).toDate()
-    } else if (key === 'end') {
-      value = moment(value.toDate()).toDate()
+  return latestEvent
+}
+
+const setSupervisorShift = async week => {
+  const supervisorShift = week % 2 === 0 ? 'A' : 'B'
+
+  return supervisorShift
+}
+
+//** Falta esta
+const processFieldChanges = (incomingFields, currentDoc) => {
+  const changedFields = {};
+
+  for (const key in incomingFields) {
+    let value = incomingFields[key];
+    let currentFieldValue = currentDoc[key];
+
+    console.log(value)
+    console.log(currentFieldValue)
+
+    if (key === 'start' || key === 'end') {
+      value = moment(value.toDate()).toDate().getTime()
+      currentFieldValue = currentFieldValue && currentFieldValue.toDate().getTime()
     }
 
-    // Verifica si el valor ha cambiado y lo guarda, si es fecha lo formatea
-    if (key === 'start') {
-      if (value && value.getTime() !== docSnapshot[key].toDate().getTime()) {
-        changedFields[key] = value
-        prevDoc[key] = docSnapshot[key].toDate()
+    if (!currentFieldValue || value !== currentFieldValue) {
+      // Verifica si el valor ha cambiado o es nuevo y lo guarda
+      if (key === 'start' || key === 'end') {
+        value = value && Timestamp.fromDate(moment(value).toDate())
+        currentFieldValue = currentFieldValue && Timestamp.fromDate(moment(currentFieldValue).toDate())
       }
-    } else {
-      if (value && value !== docSnapshot[key]) {
-        changedFields[key] = value
-        prevDoc[key] = docSnapshot[key]
-      }
-    }
-
-    // Registra si no existía start o end, si es fecha formatea el nuevo
-    if (!docSnapshot[key]) {
       changedFields[key] = value
-      prevDoc[key] = 'none'
+      incomingFields[key] = currentFieldValue || 'none';
     }
   }
 
-  // ** Flujo estados
-  // ** Contract operator
-  if (isContop && obj.start.toDate().getTime() !== docSnapshot.start.toDate().getTime()) {
-    const isMyRequest = docSnapshot.uid === userParam.uid
-    newState = isMyRequest ? userParam.role + 1 : previousRole - 1
-    changedFields.state = newState
-  } else if (isPlanner && !isUnchanged) {
-    // ** Planificador
-    // Si planificador cambia de fecha luego de ser aprobada la solicitud, reasigna al supervisor
-    if (docSnapshot.state >= 6) {
-      if (obj.start.toDate().getTime() !== docSnapshot.start.toDate().getTime()) {
-        let week = moment(docSnapshot.start.toDate()).isoWeek()
-        supervisorShift = week % 2 === 0 ? 'A' : 'B'
-        await updateDoc(ref, { supervisorShift })
-      }
-      newState = docSnapshot.state
-    } else if (!docSnapshot.ot) {
-      const counterRef = doc(db, 'counters', 'otCounter')
+  return { changedFields, incomingFields };
+}
 
-      const newOTValue = await runTransaction(db, async transaction => {
-        const counterSnapshot = await transaction.get(counterRef)
-
-        let newCounter
-
-        if (!counterSnapshot.exists) {
-          newCounter = 1
-        } else {
-          newCounter = counterSnapshot.data().counter + 1
-        }
-
-        transaction.set(counterRef, { counter: newCounter })
-
-        return newCounter
-      })
-
-      // Ahora, actualiza el documento actual con el nuevo valor de 'ot'
-      await updateDoc(ref, { ot: newOTValue })
-
-      newState = userParam.role // Avanza
-      changedFields.state = newState
-    } /* else {
-      // Si planificador cambia de fecha, solictud cambia state a 5
-      newState =  userParam.role // Avanza
-      changedFields.state = newState
-    } */
-  } else if (isAdmCon && eventDocs.length > 0) {
-    // Desestructurar el evento más reciente y extraer la propiedad 'data'
-
-    const prevDocExists = eventDocs[0].data().prevDoc && eventDocs[0].data().prevDoc.start
-
-    // Verificar si prevDoc existe y si su propiedad 'start' es igual a la que estaba antes
-    const changeDateBack =
-      prevDocExists && eventDocs[0].data().prevDoc.start.toDate().getTime() === obj.start.toDate().getTime()
-
-    if (changeDateBack) {
-      // Caso: prevDoc existe y su propiedad 'start' es igual a 'start' del form
-      newState = userParam.role // Avanza
-    } else if (prevDocExists) {
-      // Caso: prevDoc existe pero su propiedad 'start' es diferente a obj.start
-      newState = devolutionState - 1 // Devuelto a 2 menos el rol del autor (solicitante 0 y contop 1)
-    } else if (obj.start.toDate().getTime() !== docSnapshot.start.toDate().getTime()) {
-      // Caso: no han habido cambios, pero 'start' del form es diferente al start actual
-      newState = devolutionState - 1 // Devuelto a 2 menos el rol del autor (solicitante 0 y contop 1)
-    } else {
-      // Caso: no han habido cambios, y 'start' del form es igual al start actual
-      newState = userParam.role // Avanza
-    }
-
-    changedFields.state = newState
+//** Revisar
+const updateDocumentAndAddEvent = async (ref, changedFields, userParam, newEvent, requesterId, id) => {
+  if (Object.keys(changedFields).length > 0) {
+    await updateDoc(ref, changedFields)
+    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
   } else {
-    // ** Default
-    newState = userParam.role
-    changedFields.state = newState
+    console.log('No se escribió ningún documento')
+  }
+}
+
+//** Falta esta
+function getNextState(role, approves, latestEvent) {
+  const state = {
+    returnedPetitioner: 0,
+    contOwner: 4,
+    planner: 5,
+    contAdmin: 6,
+    supervisor: 7,
+    draftsman: 8,
+    rejected: 10
   }
 
-  newEvent = {
+  const changeDate = latestEvent && 'prevDoc' in latestEvent && 'start' in latestEvent.prevDoc
+  const approvedByPlanner = latestEvent.prevState === state.planner
+  const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
+
+  const rules = new Map([
+    [
+      2,
+      [
+        // Si es devuelta al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato)
+        {
+          condition: approves && approvedByPlanner && returnedPetitioner,
+          newState: state.contAdmin,
+          log: 'Devuelta al solicitante'
+        },
+
+        // Si se aprueba y no ha sido devuelta, pasa al planificador (revisada por contract owner)
+        {
+          condition: approves && latestEvent.newState !== state.returnedPetitioner,
+          newState: state.contOwner,
+          log: 'Aprobada'
+        }
+      ]
+    ],
+    [
+      3,
+      [
+        // Si tiene eventos y aprueba y viene con estado 5 lo pasa a 6
+        {
+          condition: approves && latestEvent && approvedByPlanner,
+          newState: state.contAdmin,
+          log: 'Aprobada con estado 5'
+        },
+
+        // Si aprueba y viene con otro estado, pasa al planificador (revisada por contract owner)
+        { condition: approves && !approvedByPlanner, newState: state.contOwner, log: 'Aprobada otro estado' }
+      ]
+    ],
+    [
+      6,
+      [
+        // Si tiene eventos y aprueba, y tiene cambio de fecha, lo pasa a planificador (revisada por contract owner)
+        { condition: approves && changeDate, newState: state.contOwner, log: 'Aprobada con cambio de fecha' }
+      ]
+    ],
+    [
+      7,
+      [
+        // Si los recibe son horas (string) y estas horas se escriben en db y lo pasa a 8
+        { condition: typeof approves === 'string', newState: state.draftsman, log: 'Recibido con horas' }
+      ]
+    ]
+  ])
+
+  const roleRules = rules.get(role)
+
+  // Caso por defecto
+  if (!roleRules) {
+    return role
+  }
+
+  for (const rule of roleRules) {
+    if (rule.condition) {
+      return rule.newState
+    }
+  }
+}
+
+// ** Modifica documentos
+const updateDocs = async (id, approves, userParam) => {
+  const { ref, docSnapshot, previousRole } = await getDocumentAndUser(id)
+  const latestEvent = await getLatestEvent(id)
+  const rejected = 10
+  let newState
+  let prevDoc
+  let processedFields
+
+  // Flujo de aprobación
+  if (approves) {
+    // Si approves es objeto, se procesan los cambios en los campos
+    processedFields = approves === true ? false : processFieldChanges(approves, docSnapshot)
+    newState = getNextState(userParam.role, approves, latestEvent)
+  } else {
+    newState = rejected
+  }
+
+  // Asigna turno
+  const addShift =
+    (userParam.role === 2 && docSnapshot.state >= 6) ||
+    (userParam.role === 3 && docSnapshot.state === 6) ||
+    (userParam.role === 6 && newState === 6)
+
+  prevDoc = addShift
+    ? { ...processedFields.incomingFields}
+    : {
+        ...processedFields.incomingFields,
+        supervisorShift: await setSupervisorShift(moment(docSnapshot.start.toDate()).isoWeek())
+      }
+
+  let newEvent = {
     prevDoc,
-    prevState,
+    prevState: docSnapshot.state,
     newState,
     user: userParam.email,
     userName: userParam.displayName,
     date: Timestamp.fromDate(new Date())
   }
 
-  if (Object.keys(prevDoc).length === 0 || Object.keys(changedFields).length <= 0) {
-    console.log('No se escribió ningún documento')
-  } else {
-    await updateDoc(ref, changedFields)
-    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+  processedFields.changedFields.state = newState
+  console.log(processedFields)
 
-    // Se envía e-mail al prevState y al newState
-    await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, docSnapshot.uid, id)
-  }
+  // Escribir y mandar mail
+  updateDocumentAndAddEvent(ref, processedFields.changedFields, userParam, newEvent, docSnapshot.uid, id)
 }
 
 // ** Modifica otros campos Usuarios
@@ -418,4 +362,17 @@ const dateWithDocs = async date => {
   }
 }
 
-export { newDoc, reviewDocs, updateDocs, updateUserPhone, addNewContact, blockDayInDatabase, dateWithDocs }
+export {
+  newDoc,
+  getDocumentAndUser,
+  getLatestEvent,
+  setSupervisorShift,
+  processFieldChanges,
+  updateDocumentAndAddEvent,
+  getNextState,
+  updateDocs,
+  updateUserPhone,
+  addNewContact,
+  blockDayInDatabase,
+  dateWithDocs
+}

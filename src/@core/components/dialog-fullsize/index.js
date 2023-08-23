@@ -69,7 +69,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     shift: false,
     description: false
   })
-  const { updateDocs, useEvents, reviewDocs, authUser } = useFirebase()
+  const { updateDocs, useEvents, authUser } = useFirebase()
 
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
@@ -112,13 +112,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         // Ya viene con end u ot
       } else if (end && ot && state === 4) {
-        await reviewDocs(id, true, authUser)
+        await updateDocs(id, true, authUser)
           .then(handleClose())
-          .catch(error => alert(error))
+          .catch(error => {alert(error), console.log(error)})
 
         //No trae ni agrega end/ot
       } else if (!end && !hasChanges.end) {
-        setMessage('Debes ingresar OT y fecha de término')
+        setMessage('Debes ingresar fecha de término')
       } else {
         setOpenAlert(true)
       }

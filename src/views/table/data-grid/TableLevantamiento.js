@@ -45,7 +45,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { reviewDocs, authUser, getUserProyectistas } = useFirebase()
+  const { updateDocs, authUser, getUserProyectistas } = useFirebase()
   const [draftmen, setDraftmen] = useState([])
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
@@ -90,7 +90,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   }
 
   const writeCallback = () => {
-    reviewDocs(doc.id, approve, authUser)
+    updateDocs(doc.id, approve, authUser)
     setOpenAlert(false)
   }
 
