@@ -9,7 +9,6 @@ export const FirebaseContext = createContext()
 
 import {
   formatAuthUser,
-  resetUser,
   resetPassword,
   updatePassword,
   signInWithEmailAndPassword,
@@ -20,7 +19,6 @@ import {
 
 import {
   newDoc,
-  reviewDocs,
   updateDocs,
   updateUserPhone,
   blockDayInDatabase
