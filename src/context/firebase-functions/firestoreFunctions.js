@@ -351,9 +351,11 @@ const updateDocs = async (id, approves, userParam) => {
   const addOT = role === 5 && approves && hasOT
   const OT = addOT ? await increaseAndGetNewOTValue() : null
 
-  const addShift =
-    (role === 2 && docSnapshot.state >= 6) || (role === 3 && docSnapshot.state === 6) || (role === 6 && newState === 6)
+  const addShift = newState === 6
   const supervisorShift = addShift ? await setSupervisorShift(moment(docStartDate.toDate()).isoWeek()) : null
+
+  console.log('addShift: ' + addShift)
+  console.log('supervisorShift: ' + supervisorShift)
 
   if (hasFieldModifications) {
     processedFields = processFieldChanges(approves, docSnapshot)
