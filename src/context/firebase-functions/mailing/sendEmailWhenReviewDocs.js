@@ -2,6 +2,7 @@
 import { db } from 'src/configs/firebase'
 import { collection, doc, addDoc, query, getDoc, getDocs, updateDoc, where } from 'firebase/firestore'
 import { getEmailTemplate } from './emailTemplate'
+import { exists } from 'i18next'
 
 // Importación de los datos del usuario según el id indicado
 const getData = async id => {
@@ -167,14 +168,9 @@ const getUsersOnCopyAndMessage = (
     // Si el rol de quien hizo la solicitud es "Contract Operator"
     case 3:
       switch(stateChange) {
-        // && prevState es 3 && newState es 4
-        case '2-4':
-          arrayCC = [cOwnerEmail, plannerEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator y Planificador
-          message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
-          break
 
         // && prevState es 4 && newState es 5 -> Soliciutud aceptada por Planificador
-        case '4-5':
+        case '3-5':
           arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
           message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
           break
@@ -191,8 +187,8 @@ const getUsersOnCopyAndMessage = (
           message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 2 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
-        case '2-6':
+        // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
+        case '1-6':
           arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
           break
@@ -239,7 +235,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     getData(await searchbyColletionAndField('users', 'role', 5)),
     getData(await searchbyColletionAndField('users', 'role', 6)),
     getData(await searchbyColletionAndField('users', 'name', requirementData.petitioner)),
-    requirementData.supervisorShift ? getSupervisorData(requirementData.supervisorShift) : '',
+    requirementData.supervisorShift ? await getSupervisorData(requirementData.supervisorShift) : '',
     getData(await searchbyColletionAndField('users', 'name', requirementData.contop))
   ])
 
@@ -251,7 +247,6 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
   const petitionerEmail = petitionerData.email
   const supervisorEmail = supervisorData ? supervisorData.email : ''
   const cOperatorEmail = cOperatorData.email
-
 
   const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
     user,
@@ -286,7 +281,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     const title = requirementData.title
     const engineering = requirementData.engineering ? 'Si' : 'No'
     const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-    const supervisor = requirementData.supervisor ? supervisorData.name : 'Por definir'
+    const supervisor = requirementData.supervisorShift ? supervisorData.name : 'Por definir'
     const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
     const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
     const plant = requirementData.plant
