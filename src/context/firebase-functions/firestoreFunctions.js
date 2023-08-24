@@ -25,77 +25,78 @@ import { getUnixTime } from 'date-fns'
 // ** Librería para manejar fechas
 const moment = require('moment')
 
-// ** Escribe documentos en Firestore Database
+const requestCounter = async () => {
+  const counterRef = doc(db, 'counters', 'requestCounter')
+
+  try {
+    const requestNumber = await runTransaction(db, async transaction => {
+      const counterSnapshot = await transaction.get(counterRef)
+
+      let newCounter
+
+      if (!counterSnapshot.exists) {
+        newCounter = 1
+      } else {
+        newCounter = counterSnapshot.data().counter + 1
+      }
+
+      transaction.set(counterRef, { counter: newCounter })
+
+      return newCounter
+    })
+
+    return requestNumber
+  } catch (error) {
+    console.error('Error al obtener el número de solicitud:', error)
+    throw new Error('Error al obtener el número de solicitud')
+  }
+}
+
 const newDoc = async (values, userParam) => {
-  solicitudValidator(values)
-  const user = Firebase.auth().currentUser
-  if (user !== null) {
-    try {
-      // Aquí 'counters' es una colección y 'requestCounter' es un documento específico en esa colección
-      const counterRef = doc(db, 'counters', 'requestCounter')
+  try {
+    solicitudValidator(values)
+    const requestNumber = await requestCounter()
 
-      // requestNumber hará una 'Transaccion' para asegurarse de que no existe otro 'n_request' igual. Para ello existirá un contador en 'counters/requestCounter'
-      const requestNumber = await runTransaction(db, async transaction => {
-        // Se hace la transacción con el documento 'requestCounter'
-        const counterSnapshot = await transaction.get(counterRef)
+    const docRef = await addDoc(collection(db, 'solicitudes'), {
+      title: values.title,
+      start: values.start,
+      plant: values.plant,
+      area: values.area,
+      contop: values.contop,
+      fnlocation: values.fnlocation,
+      petitioner: values.petitioner,
+      opshift: values.opshift,
+      type: values.type,
+      detention: values.detention,
+      sap: values.sap,
+      objective: values.objective,
+      deliverable: values.deliverable,
+      receiver: values.receiver,
+      description: values.description,
+      uid: user.uid,
+      user: user.displayName,
+      userEmail: user.email,
+      userRole: userParam.role,
+      date: Timestamp.fromDate(new Date()),
+      n_request: requestNumber,
+      engineering: userParam.engineering
+    })
 
-        // Se inicializa la variable newCounter, que será tipo number, que será el contador de solicitudes almacenado en 'counters/requestCounter'
-        let newCounter
+    // Establecemos los campos adicionales de la solicitud
+    await updateDoc(docRef, {
+      ...newDoc,
+      state: userParam.role || 'No definido'
+    })
 
-        // Si el documento 'requestCounter' no existe, se inicializa en 1, de lo contrario se incrementa en 1
-        if (!counterSnapshot.exists) {
-          newCounter = 1
-        } else {
-          newCounter = counterSnapshot.data().counter + 1
-        }
+    // Se envía email a quienes corresponda
+    await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
 
-        // Se almacena en 'counters/requestCounter' el número actual del contador
-        transaction.set(counterRef, { counter: newCounter })
+    console.log('Nueva solicitud creada con éxito.')
 
-        return newCounter
-      })
-
-      const docRef = await addDoc(collection(db, 'solicitudes'), {
-        title: values.title,
-        start: values.start,
-        plant: values.plant,
-        area: values.area,
-        contop: values.contop,
-        fnlocation: values.fnlocation,
-        petitioner: values.petitioner,
-        opshift: values.opshift,
-        type: values.type,
-        detention: values.detention,
-        sap: values.sap,
-        objective: values.objective,
-        deliverable: values.deliverable,
-        receiver: values.receiver,
-        description: values.description,
-        uid: user.uid,
-        user: user.displayName,
-        userEmail: user.email,
-        userRole: userParam.role,
-        date: Timestamp.fromDate(new Date()),
-        n_request: requestNumber,
-        engineering: userParam.engineering
-      })
-
-      // Establecemos los campos adicionales de la solicitud
-      await updateDoc(docRef, {
-        ...newDoc,
-        state: userParam.role || 'no definido'
-      })
-
-      // Se envia email a quienes corresponda
-      await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
-
-      console.log('Nueva solicitud creada con éxito.')
-
-      return docRef
-    } catch (error) {
-      console.error('Error al crear la nueva solicitud:', error)
-      throw error
-    }
+    return docRef
+  } catch (error) {
+    console.error('Error al crear la nueva solicitud:', error)
+    throw new Error('Error al crear la nueva solicitud')
   }
 }
 
@@ -215,6 +216,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
   const returnedContOp = latestEvent.newState === state.returnedContOp
   const devolutionState = userRole === 2 ? state.returnedPetitioner : state.returnedContOp
+  const changingStartDate = typeof approves === 'object' && 'start' in approves
 
   const rules = new Map([
     [
@@ -266,6 +268,17 @@ function getNextState(role, approves, latestEvent, userRole) {
       ]
     ],
     [
+      5,
+      [
+        // Planificador modifica sin cambios de fecha (any --> any)
+        {
+          condition: approves && !changingStartDate && !dateHasChanged,
+          newState: latestEvent.newState,
+          log: 'Modificado sin cambio de fecha por Planificador'
+        },
+    ],
+    ],
+    [
       6,
       [
         // Planificador modifica, Adm Contrato no modifica
@@ -300,6 +313,12 @@ function getNextState(role, approves, latestEvent, userRole) {
   ])
 
   const roleRules = rules.get(role)
+
+  if (!roleRules) {
+    console.log('No se encontraron reglas para el rol')
+
+    return role
+  }
 
   for (const rule of roleRules) {
     if (rule.condition) {
@@ -357,45 +376,52 @@ const updateUserPhone = async (id, obj) => {
 
 // ** Bloquear o desbloquear un día en la base de datos
 const blockDayInDatabase = async (date, cause = '') => {
-  const convertDate = moment(date).startOf().toDate()
-  const dateUnix = getUnixTime(convertDate)
-  const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
+  try {
+    const convertDate = moment(date).startOf().toDate()
+    const dateUnix = getUnixTime(convertDate)
+    const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
 
-  const docSnap = await getDoc(docRef)
-  const isBlocked = docSnap.exists() ? docSnap.data().blocked : false
+    const docSnap = await getDoc(docRef)
+    const isBlocked = docSnap.exists() ? docSnap.data().blocked : false
 
-  if (isBlocked) {
+    if (isBlocked) {
       await setDoc(docRef, { blocked: false })
       console.log('Día desbloqueado')
-  } else if (cause.length > 0) {
-    await setDoc(docRef, { blocked: true, cause })
-    console.log('Día bloqueado')
-  } else {
-    console.log('Para bloquear la fecha debes proporcionar un motivo')
+    } else if (cause.length > 0) {
+      await setDoc(docRef, { blocked: true, cause })
+      console.log('Día bloqueado')
+    } else {
+      console.log('Para bloquear la fecha debes proporcionar un motivo')
+    }
+  } catch (error) {
+    console.error('Error al bloquear/desbloquear el día:', error)
+    throw new Error('Error al bloquear/desbloquear el día')
   }
 }
 
 // ** Consultar si existen solicitudes para una fecha específica
 const dateWithDocs = async date => {
-  if (!date || !date.seconds) {
-    return
-  }
+  try {
+    if (!date || !date.seconds) {
+      return
+    }
+    const allDocs = []
+    const q = query(collection(db, 'solicitudes'), where('start', '==', date))
+    const querySnapshot = await getDocs(q)
 
-  const allDocs = []
+    querySnapshot.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      allDocs.push({ ...doc.data(), id: doc.id })
+    })
 
-  //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
-  const q = query(collection(db, 'solicitudes'), where('start', '==', date))
-  const querySnapshot = await getDocs(q)
-
-  querySnapshot.forEach(doc => {
-    // doc.data() is never undefined for query doc snapshots
-    allDocs.push({ ...doc.data(), id: doc.id })
-  })
-
-  if (allDocs.length > 0) {
-    return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día`
-  } else {
-    return 'Fecha Disponible'
+    if (allDocs.length > 0) {
+      return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día`
+    } else {
+      return 'Fecha Disponible'
+    }
+  } catch (error) {
+    console.error('Error al consultar la disponibilidad de la fecha:', error)
+    throw new Error('Error al consultar la disponibilidad de la fecha')
   }
 }
 
