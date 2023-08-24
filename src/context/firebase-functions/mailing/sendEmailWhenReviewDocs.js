@@ -91,13 +91,13 @@ const getUsersOnCopyAndMessage = (
     // Si el rol de quien hizo la solicitud es "Solicitante"
     case 2:
       switch (stateChange) {
-        // && prevState es 2 && newState es 4 -> Solicitud aceptada por C.Operator
+        // && prevState es 2 && newState es 3 -> Solicitud aceptada por C.Operator
         case '2-3':
           arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
           message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
+        // && prevState es 3 && newState es 5 -> Solicitud aceptada por Planificador
         case '3-5':
           arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
           message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
@@ -109,7 +109,7 @@ const getUsersOnCopyAndMessage = (
           message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 2 && newState es 1 -> Solicitud modificada por C.Operator
+        // && prevState es 2 && newState es 0 -> Solicitud modificada por C.Operator
         case '2-0':
           arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
@@ -169,7 +169,7 @@ const getUsersOnCopyAndMessage = (
     case 3:
       switch(stateChange) {
 
-        // && prevState es 4 && newState es 5 -> Soliciutud aceptada por Planificador
+        // && prevState es 3 && newState es 5 -> Soliciutud aceptada por Planificador
         case '3-5':
           arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
           message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
@@ -181,7 +181,7 @@ const getUsersOnCopyAndMessage = (
           message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 5 && newState es 2 -> Modificación hecha por Procure
+        // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
         case '5-1':
           arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
           message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
