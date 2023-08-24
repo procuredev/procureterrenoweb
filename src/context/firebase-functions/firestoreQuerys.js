@@ -144,34 +144,63 @@ const getData = async id => {
   }
 }
 
-// const users = await getUserData('getUsers', 'Plant1', { shift: 'ShiftA' });
-// const allPlantUsers = await getUserData('getAllPlantUsers', 'Plant3');
-// const allProcureUsers = await getUserData('getAllProcureUsers');
+// getUserData agrupa funciones relacionadas con la colección 'users'
+// identifica que funcion debe ejecutar de acuerdo al parametro 'type' que se le proporcione
+// recibe el parametro (userParam = {shift : ''}) para establecer el valor por defecto en caso de recibir sólo los parametros type y plant.
+const getUserData = async (type, plant, userParam = {shift : ''}) => {
+  const coll = collection(db, 'users'); // Crear una referencia a la colección 'users' en la base de datos
+  let allDocs = []; // Arreglo para almacenar los documentos extendidos
 
-const getUserData = async (type, plant, shift = '') => {
-  const coll = collection(db, 'users');
-  let paths = [];
-  let allDocs = [];
-
+  // Mapa de consultas según el tipo
   const queryMap = {
-    'getUsers': () => shift !== ''
-      ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', shift), where('role', '==', 2))
+    // Si se proporciona el turno, obtener usuarios solicitantes con el turno opuesto, de lo contrario, obtener usuarios Contrac Operator
+    'getUsers': () => userParam.shift !== ''
+      ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', userParam.shift), where('role', '==', 2))
       : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
     'getAllPlantUsers': () => plant ? query(coll, where('plant', '==', plant)) : null,
     'getAllProcureUsers': () => query(coll, where('company', '==', 'Procure')),
-    'getUserProyectistas': () => query(coll, where('role', '==', 8), where('shift', '==', shift))
+    'getUserProyectistas': () => query(coll, where('role', '==', 8), where('shift', '==', userParam.shift)),
+    'getPetitioner': async () => {
+      const q = query(coll, where('plant', 'array-contains', plant));
+      const querySnapshot = await getDocs(q);
+
+      // Construir arreglo de solicitantes extendidos según los parámetros
+      const allDocs = querySnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      }));
+
+      // Verificar el tipo de usuario actual y agregarlo al arreglo si corresponde
+      if (userParam.plant === 'allPlants') {
+        return allDocs.filter(doc => doc.role === 2);
+      } else if (userParam.role === 3) {
+        return allDocs;
+      } else {
+        const docRef = doc(db, 'users', userParam.uid);
+        const docSnapshot = await getDoc(docRef);
+
+        if (docSnapshot.exists()) {
+          allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id });
+        }
+
+        return allDocs;
+      }
+    }
   };
-  console.log(shift, "shift")
-  const queryFunc = queryMap[type];
+
+  const queryFunc = queryMap[type]; // Obtener la función de consulta según el tipo
 
   if (!queryFunc) {
     throw new Error(`Invalid type: ${type}`);
   }
 
   try {
+    // Obtener los documentos según la función de consulta y realizar la consulta
     const querySnapshot = await getDocs(queryFunc());
 
+    // Iterar a través de los resultados de la consulta y construir el arreglo de usuarios extendidos
     querySnapshot.forEach(doc => {
+      // Construir el objeto de usuario según el tipo y sus datos
       const userObj = type === 'getUserProyectistas' ? doc.data().urlFoto ? {
         userId: doc.id,
         name: doc.data().name,
@@ -183,49 +212,14 @@ const getUserData = async (type, plant, shift = '') => {
         ...doc.data(),
         id: doc.id
       };
-      allDocs.push(userObj);
+      allDocs.push(userObj); // Agregar el objeto de usuario al arreglo
     });
 
-    return allDocs;
+    return allDocs; // Retornar el arreglo de usuarios extendidos
   } catch (error) {
     console.error('Error fetching documents:', error);
 
-    return null;
-  }
-};
-
-const getPetitioner = async (plant, userParam) => {
-  // Crear una consulta para obtener los usuarios con la planta especificada
-  const q = query(collection(db, 'users'), where('plant', 'array-contains', plant));
-
-  const querySnapshot = await getDocs(q); // Obtener los documentos que coinciden con la consulta
-
-  // Crear un arreglo para almacenar todos los documentos con datos extendidos
-  const allDocs = querySnapshot.docs.map(doc => ({
-    ...doc.data(),
-    id: doc.id
-  }));
-
-  // Verificar diferentes casos basados en los parámetros de usuario
-  if (userParam.plant === 'allPlants') {
-    // Si la planta es 'allPlants', retornar los usuarios con rol 2 (solicitantes)
-    return allDocs.filter(doc => doc.role === 2);
-  } else if (userParam.role === 3) {
-    // Si el rol del usuario es 3, retornar todos los usuarios
-    return allDocs;
-  } else {
-    // Si no se cumple ninguna de las condiciones anteriores
-    // Obtener el documento del usuario actual
-    const docRef = doc(db, 'users', userParam.uid);
-    const docSnapshot = await getDoc(docRef);
-
-    // Si el documento del usuario actual existe, agregarlo al arreglo
-    if (docSnapshot.exists()) {
-      allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id });
-    }
-
-    // Retornar el arreglo de usuarios con el usuario actual agregado (si existe)
-    return allDocs;
+    return null; // En caso de error, retornar nulo
   }
 };
 
@@ -632,39 +626,12 @@ const getUsersWithSolicitudes = async () => {
   return usersWithProperties
 }
 
-/* // Obtener usuarios con rol 8 según su turno
-const getUserProyectistas = async shift => {
-  // Definir la consulta con una condición de igualdad en el campo 'shift'
-  const q = query(collection(db, 'users'), where('role', '==', 8), where('shift', '==', shift))
-
-  // Obtener los documentos que coinciden con la consulta
-  const proyectistasQuerySnapshot = await getDocs(q)
-
-  // Obtener la lista de documentos
-  const proyectistasDocs = proyectistasQuerySnapshot.docs
-
-  // Crear un arreglo para almacenar todos los documentos
-  let allDocs = []
-
-  // Recorrer cada documento y agregarlo al arreglo 'allDocs'
-  proyectistasDocs.forEach(doc => {
-    if (doc.data().urlFoto) {
-      allDocs.push({ userId: doc.id, name: doc.data().name, avatar: doc.data().urlFoto })
-    } else {
-      allDocs.push({ userId: doc.id, name: doc.data().name }) //, unit: doc.data().unit
-    }
-  })
-
-  return allDocs
-} */
-
 export {
   useEvents,
   useSnapshot,
   getData,
   getUserData,
   getRoleData,
-  getPetitioner,
   getReceiverUsers,
   consultBlockDayInDB,
   consultSAP,
@@ -672,5 +639,4 @@ export {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
-  //getUserProyectistas
 }

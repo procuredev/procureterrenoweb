@@ -530,7 +530,7 @@ const FormLayoutsSolicitud = () => {
         setContOpOptions(value)
       })
       getReceiverUsers(values.plant).then(value => setAllUsers(value))
-      getPetitioner( values.plant, authUser).then(value => setPetitioners(value))
+      getUserData('getPetitioner', values.plant, authUser).then(value => setPetitioners(value))
     }
   }, [values.plant])
 

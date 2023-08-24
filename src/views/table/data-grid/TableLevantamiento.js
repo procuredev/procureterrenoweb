@@ -117,9 +117,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
 
   useEffect(() => {
     const fetchProyectistas = async () => {
-      const shift = authUser.shift
-      //const resProyectistas = await getUserProyectistas( shift)
-      const resProyectistas = await getUserData('getUserProyectistas', null, shift)
+      const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
       setProyectistas(resProyectistas)
       setLoadingProyectistas(false)
     }
