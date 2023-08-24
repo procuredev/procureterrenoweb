@@ -241,6 +241,13 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       3,
       [
+        // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 0)
+        {
+          condition: approves && approveWithChanges,
+          newState: state.returnedPetitioner,
+          log: 'Devuelto por Contract Operator hacia Solcitante'
+        },
+
         // Si aprueba y viene con estado 5 lo pasa a 6 (5 --> 1 --> 6)
         {
           condition: approves && approvedByPlanner && returnedContOp,
