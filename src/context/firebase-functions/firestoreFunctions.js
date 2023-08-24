@@ -174,8 +174,19 @@ const processFieldChanges = (incomingFields, currentDoc) => {
   return { changedFields, incomingFields }
 }
 
-const updateDocumentAndAddEvent = async (ref, changedFields, userParam, newEvent, requesterId, id) => {
+const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc, requesterId, id, prevState) => {
   if (Object.keys(changedFields).length > 0) {
+    const { email, displayName } = userParam
+
+    let newEvent = {
+      prevState,
+      newState: changedFields.state,
+      user: email,
+      userName: displayName,
+      date: Timestamp.fromDate(new Date()),
+      ...(prevDoc ? { prevDoc } : {})
+    }
+
     await updateDoc(ref, changedFields)
     await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
@@ -307,8 +318,7 @@ const updateDocs = async (id, approves, userParam) => {
   const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
   const latestEvent = await getLatestEvent(id)
   const rejected = 10
-
-  const { role, email, displayName } = userParam
+  const role = userParam.role
   let newState = approves ? getNextState(role, approves, latestEvent, userRole) : rejected
   let processedFields = { incomingFields: {}, changedFields: {} }
 
@@ -336,23 +346,12 @@ const updateDocs = async (id, approves, userParam) => {
 
   changedFields.state = newState
 
-  let newEvent = {
-    prevState,
-    newState,
-    user: email,
-    userName: displayName,
-    date: Timestamp.fromDate(new Date()),
-    ...(prevDoc ? { prevDoc } : {})
-  }
-
-  updateDocumentAndAddEvent(ref, changedFields, userParam, newEvent, docSnapshot.uid, id)
+  updateDocumentAndAddEvent(ref, changedFields, userParam, prevDoc, docSnapshot.uid, id, prevState)
 }
 
 // ** Modifica otros campos Usuarios
 const updateUserPhone = async (id, obj) => {
   const ref = doc(db, 'users', id)
-  const querySnapshot = await getDoc(ref)
-
   await updateDoc(ref, { phone: obj.replace(/\s/g, '') })
 }
 
