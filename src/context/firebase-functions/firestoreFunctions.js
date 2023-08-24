@@ -358,29 +358,20 @@ const updateUserPhone = async (id, obj) => {
 // ** Bloquear o desbloquear un día en la base de datos
 const blockDayInDatabase = async (date, cause = '') => {
   const convertDate = moment(date).startOf().toDate()
-  const dateUnix = getUnixTime(convertDate) // Convierte la fecha a segundos Unix
+  const dateUnix = getUnixTime(convertDate)
   const docRef = doc(collection(db, 'diasBloqueados'), dateUnix.toString())
 
   const docSnap = await getDoc(docRef)
-  if (docSnap.exists()) {
-    const data = docSnap.data()
-    if (data.blocked === true) {
-      // Si el día ya está bloqueado, lo desbloquea en el documento
+  const isBlocked = docSnap.exists() ? docSnap.data().blocked : false
+
+  if (isBlocked) {
       await setDoc(docRef, { blocked: false })
       console.log('Día desbloqueado')
-    } else if (cause.length > 0) {
-      // Si existe pero no está bloqueado, actualiza el campo blocked a true
-      await setDoc(docRef, { blocked: true, cause })
-      console.log('Día bloqueado')
-    } else {
-      alert('para bloquear la fecha debe proporcionar un motivo')
-    }
   } else if (cause.length > 0) {
-    // Si no existe el día, crea el documento con blocked = true
     await setDoc(docRef, { blocked: true, cause })
     console.log('Día bloqueado')
   } else {
-    alert('para bloquear la fecha debe proporcionar un motivo')
+    console.log('Para bloquear la fecha debes proporcionar un motivo')
   }
 }
 
@@ -408,10 +399,4 @@ const dateWithDocs = async date => {
   }
 }
 
-export {
-  newDoc,
-  updateDocs,
-  updateUserPhone,
-  blockDayInDatabase,
-  dateWithDocs
-}
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, dateWithDocs }
