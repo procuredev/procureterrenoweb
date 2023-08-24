@@ -230,9 +230,9 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'Devuelto por Adm Contrato Procure'
         },
 
-        // Si es devuelta al solicitante por cambio de fecha x Cont Operator, pasa a planificador (2/3 --> 0 --> 4)
+        // Si es devuelta al solicitante y solicitante acepta (2/3 --> 0 --> 4)
         {
-          condition: approves && dateHasChanged && returnedPetitioner,
+          condition: approves && dateHasChanged && returnedPetitioner && !approveWithChanges,
           newState: state.contOwner,
           log: 'Devuelto por Cont Operator/Cont Owner MEL'
         }
