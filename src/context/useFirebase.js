@@ -23,7 +23,6 @@ import {
   reviewDocs,
   updateDocs,
   updateUserPhone,
-  addNewContact,
   blockDayInDatabase
 } from 'src/context/firebase-functions/firestoreFunctions'
 
@@ -78,7 +77,6 @@ const FirebaseContextProvider = props => {
   const value = {
     authUser,
     auth,
-    addNewContact,
     loading,
     signOut,
     resetPassword,
