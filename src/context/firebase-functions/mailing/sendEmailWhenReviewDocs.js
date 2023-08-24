@@ -91,13 +91,13 @@ const getUsersOnCopyAndMessage = (
     case 2:
       switch (stateChange) {
         // && prevState es 2 && newState es 4 -> Solicitud aceptada por C.Operator
-        case '2-4':
+        case '2-3':
           arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
           message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
-        case '4-5':
+        case '3-5':
           arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
           message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
           break
@@ -120,19 +120,19 @@ const getUsersOnCopyAndMessage = (
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
+        // && prevState es 0 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
         case '0-2':
           arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
+        // && prevState es 5 && newState es 0 -> Modificación hecha por Procure
         case '5-0':
           arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
           message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
+        // && prevState es 0 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
         case '0-6':
           arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
