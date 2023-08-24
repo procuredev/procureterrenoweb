@@ -114,8 +114,8 @@ const getUsersOnCopyAndMessage = (
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 1 && newState es 4 -> Modificación hecha por C.Operator fue aceptada por Solicitante
-        case '0-4':
+        // && prevState es 0 && newState es 3 -> Modificación hecha por C.Operator fue aceptada por Solicitante
+        case '0-3':
           arrayCC = [ ] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, Planificador y Adm.Contrato
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
