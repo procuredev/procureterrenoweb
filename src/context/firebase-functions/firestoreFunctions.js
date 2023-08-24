@@ -73,9 +73,9 @@ const newDoc = async (values, userParam) => {
       deliverable: values.deliverable,
       receiver: values.receiver,
       description: values.description,
-      uid: user.uid,
-      user: user.displayName,
-      userEmail: user.email,
+      uid: userParam.uid,
+      user: userParam.displayName,
+      userEmail: userParam.email,
       userRole: userParam.role,
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
@@ -276,7 +276,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
-    ],
+      ],
     ],
     [
       6,
