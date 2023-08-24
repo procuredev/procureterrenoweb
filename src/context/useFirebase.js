@@ -85,7 +85,6 @@ const FirebaseContextProvider = props => {
     signAdminBack,
     newDoc,
     useEvents,
-    reviewDocs,
     updateDocs,
     updateUserPhone,
     useSnapshot,

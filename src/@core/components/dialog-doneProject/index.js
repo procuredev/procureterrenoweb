@@ -1,40 +1,29 @@
 // ** React Imports
-import { useState, forwardRef, Fragment, useEffect } from 'react'
+import { useState, forwardRef } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
 import List from '@mui/material/List'
-import Menu from '@mui/material/Menu'
 import Avatar from '@mui/material/Avatar'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
 import ListItem from '@mui/material/ListItem'
-import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
 import Fade from '@mui/material/Fade'
 import ListItemText from '@mui/material/ListItemText'
-import Autocomplete from '@mui/material/Autocomplete'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import DialogContent from '@mui/material/DialogContent'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import EngineeringIcon from '@mui/icons-material/Engineering'
-import TableSpanning from 'src/views/table/mui/TableSpanning'
 
-import Select from '@mui/material/Select'
-import FormControl from '@mui/material/FormControl'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Configs Imports
-import themeConfig from 'src/configs/themeConfig'
 
 // ** Hooks Imports
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -44,7 +33,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
+export const DialogDoneProject = ({ open, doc, handleClose }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
@@ -57,15 +46,7 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
 
   // ** Hooks
   const { settings } = useSettings()
-  const hidden = useMediaQuery(theme => theme.breakpoints.down('sm'))
-  const { updateDocs, useEvents, reviewDocs, authUser } = useFirebase()
-
-  // ** Var
-  const { direction } = settings
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
+  const { updateDocs, authUser } = useFirebase()
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -74,10 +55,6 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
     // Actualizamos el estado con el nuevo array actualizado
     setDraftmen(updatedDraftmen)
   }
-
-  /*   const handleClose = () => {
-    setAnchorEl(null)
-  } */
 
   const handleInputChange = e => {
     const inputValue = e.target.value
@@ -92,14 +69,6 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
     }
   }
 
-  const handleListItemClick = option => {
-    // Verificamos si el option ya existe en el array draftmen
-    if (!draftmen.some(draftman => draftman.name === option.name)) {
-      // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen(prevDraftmen => [...prevDraftmen, option])
-      document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
-    }
-  }
 
   const onsubmit = id => {
     if (horasLevantamiento !== '') {

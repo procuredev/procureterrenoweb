@@ -1,26 +1,20 @@
 // ** React Imports
-import { useState, forwardRef, Fragment, useEffect } from 'react'
+import { useState, forwardRef } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
 import List from '@mui/material/List'
-import Menu from '@mui/material/Menu'
 import Avatar from '@mui/material/Avatar'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
 import ListItem from '@mui/material/ListItem'
-import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
 import Fade from '@mui/material/Fade'
 import ListItemText from '@mui/material/ListItemText'
 import Autocomplete from '@mui/material/Autocomplete'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import DialogContent from '@mui/material/DialogContent'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
@@ -29,115 +23,25 @@ import EngineeringIcon from '@mui/icons-material/Engineering'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Configs Imports
-import themeConfig from 'src/configs/themeConfig'
-
 // ** Hooks Imports
-import { useSettings } from 'src/@core/hooks/useSettings'
 import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const data = [
-  {
-    avatar: '1.png',
-    id: 'Can Edit',
-    name: 'Lester Palmer',
-    email: 'pe@vogeiz.net'
-  },
-  {
-    avatar: '2.png',
-    value: 'owner',
-    name: 'Mittie Blair',
-    email: 'peromak@zukedohik.gov'
-  },
-  {
-    avatar: '3.png',
-    value: 'Can Comment',
-    name: 'Marvin Wheeler',
-    email: 'rumet@jujpejah.net'
-  },
-  {
-    avatar: '4.png',
-    value: 'Can View',
-    name: 'Nannie Ford',
-    email: 'negza@nuv.io'
-  },
-  {
-    avatar: '5.png',
-    value: 'Can Edit',
-    name: 'Julian Murphy',
-    email: 'lunebame@umdomgu.net'
-  },
-  {
-    avatar: '6.png',
-    value: 'Can View',
-    name: 'Sophie Gilbert',
-    email: 'ha@sugit.gov'
-  },
-  {
-    avatar: '7.png',
-    value: 'Can Comment',
-    name: 'Chris Watkins',
-    email: 'zokap@mak.org'
-  },
-  {
-    avatar: '8.png',
-    value: 'Can Edit',
-    name: 'Adelaide Nichols',
-    email: 'ujinomu@jigo.com'
-  }
-]
 
-const options = [
-  {
-    avatar: '1.png',
-    name: 'Chandler Bing'
-  },
-  {
-    avatar: '2.png',
-    name: 'Rachel Green'
-  },
-  {
-    avatar: '3.png',
-    name: 'Joey Tribbiani'
-  },
-  {
-    avatar: '4.png',
-    name: 'Pheobe Buffay'
-  },
-  {
-    avatar: '5.png',
-    name: 'Ross Geller'
-  },
-  {
-    avatar: '8.png',
-    name: 'Monica Geller'
-  }
-]
 
 export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
-  const [show, setShow] = useState(false)
-  const [anchorEl, setAnchorEl] = useState(null)
   const [draftmen, setDraftmen] = useState([])
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
 
   // ** Hooks
-  const { settings } = useSettings()
-  const hidden = useMediaQuery(theme => theme.breakpoints.down('sm'))
-  const { updateDocs, useEvents, reviewDocs, updateDraftmenAndAddEvent, authUser } = useFirebase()
+  const { updateDocs, authUser } = useFirebase()
 
-  // ** Var
-  const { direction } = settings
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -168,7 +72,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     }
   }
 
-  const filterOptions = (options, { inputValue }) => {
+  const filterOptions = (options) => {
     // Convierte las opciones seleccionadas en un array de nombres
     const selectedNames = draftmen.map(draftman => draftman.name)
 
