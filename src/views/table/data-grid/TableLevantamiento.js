@@ -45,7 +45,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserProyectistas } = useFirebase()
+  const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
   const [draftmen, setDraftmen] = useState([])
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
@@ -117,16 +117,16 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
 
   useEffect(() => {
     const fetchProyectistas = async () => {
-      const resProyectistas = await getUserProyectistas(authUser.shift)
+      const shift = authUser.shift
+      //const resProyectistas = await getUserProyectistas( shift)
+      const resProyectistas = await getUserData('getUserProyectistas', null, shift)
       setProyectistas(resProyectistas)
       setLoadingProyectistas(false)
     }
 
     fetchProyectistas()
-
-    /* const resProyectistas = getUserProyectistas(authUser.shift)
-    setProyectistas(resProyectistas) */
   }, [authUser.shift])
+
 
   const columns = [
     {

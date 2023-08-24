@@ -38,7 +38,7 @@ import {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
-  getUserProyectistas
+  //getUserProyectistas
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -102,7 +102,7 @@ const FirebaseContextProvider = props => {
     consultDocs,
     consultObjetives,
     getUsersWithSolicitudes,
-    getUserProyectistas
+    //getUserProyectistas
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

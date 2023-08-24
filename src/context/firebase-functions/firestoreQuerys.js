@@ -148,58 +148,49 @@ const getData = async id => {
 // const allPlantUsers = await getUserData('getAllPlantUsers', 'Plant3');
 // const allProcureUsers = await getUserData('getAllProcureUsers');
 
-const getUserData = async (type, plant, options = { shift: '' }) => {
-  // Crear una referencia a la colección 'users' en la base de datos
+const getUserData = async (type, plant, shift = '') => {
   const coll = collection(db, 'users');
-  let paths = [];  // Crear un arreglo para almacenar las consultas o caminos a las colecciones
+  let paths = [];
+  let allDocs = [];
 
-  // Verificar diferentes casos basados en el tipo de operación
-  switch (type) {
-    case 'getUsers':
-      // Agregar una consulta al arreglo 'paths' dependiendo del valor de 'options.shift'
-      paths.push(options.shift !== ''
-        ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', options.shift), where('role', '==', 2))
-        : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)));
-      break;
+  const queryMap = {
+    'getUsers': () => shift !== ''
+      ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', shift), where('role', '==', 2))
+      : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
+    'getAllPlantUsers': () => plant ? query(coll, where('plant', '==', plant)) : null,
+    'getAllProcureUsers': () => query(coll, where('company', '==', 'Procure')),
+    'getUserProyectistas': () => query(coll, where('role', '==', 8), where('shift', '==', shift))
+  };
+  console.log(shift, "shift")
+  const queryFunc = queryMap[type];
 
-    case 'getAllPlantUsers':
-       // Agregar una consulta al arreglo 'paths' para obtener todos los usuarios de una planta específica
-      if (plant) {
-        paths.push(query(coll, where('plant', '==', plant)));
-      } else {
-        return null; // Si no se proporciona la planta, retornar nulo
-      }
-      break;
-
-    case 'getAllProcureUsers':
-      // Agregar una consulta al arreglo 'paths' para obtener todos los usuarios de la empresa 'Procure'
-      paths.push(query(coll, where('company', '==', 'Procure')));
-      break;
-
-    default:
-      throw new Error(`Invalid type: ${type}`); // Lanzar un error en caso de tipo no válido
+  if (!queryFunc) {
+    throw new Error(`Invalid type: ${type}`);
   }
 
   try {
-    // Realizar todas las consultas de forma paralela y obtener los snapshots de los resultados
-    const querySnapshots = await Promise.all(paths.map(path => getDocs(path)));
-    const allDocs = []; // Crear un arreglo para almacenar todos los documentos con datos extendidos
+    const querySnapshot = await getDocs(queryFunc());
 
-    // Iterar a través de los snapshots y los documentos para crear el arreglo 'allDocs'
-    querySnapshots.forEach(querySnapshot => {
-      querySnapshot.forEach(doc => {
-        allDocs.push({
-          ...doc.data(),
-          id: doc.id
-        });
-      });
+    querySnapshot.forEach(doc => {
+      const userObj = type === 'getUserProyectistas' ? doc.data().urlFoto ? {
+        userId: doc.id,
+        name: doc.data().name,
+        avatar: doc.data().urlFoto,
+      } : {
+        userId: doc.id,
+        name: doc.data().name,
+      } : {
+        ...doc.data(),
+        id: doc.id
+      };
+      allDocs.push(userObj);
     });
 
-    return allDocs; // Retornar el arreglo con los datos extendidos de los usuarios
+    return allDocs;
   } catch (error) {
     console.error('Error fetching documents:', error);
 
-    return null; // En caso de error, retornar nulo
+    return null;
   }
 };
 
@@ -641,7 +632,7 @@ const getUsersWithSolicitudes = async () => {
   return usersWithProperties
 }
 
-// Obtener usuarios con rol 8 según su turno
+/* // Obtener usuarios con rol 8 según su turno
 const getUserProyectistas = async shift => {
   // Definir la consulta con una condición de igualdad en el campo 'shift'
   const q = query(collection(db, 'users'), where('role', '==', 8), where('shift', '==', shift))
@@ -665,7 +656,7 @@ const getUserProyectistas = async shift => {
   })
 
   return allDocs
-}
+} */
 
 export {
   useEvents,
@@ -681,5 +672,5 @@ export {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
-  getUserProyectistas,
+  //getUserProyectistas
 }
