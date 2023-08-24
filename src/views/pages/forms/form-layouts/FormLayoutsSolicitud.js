@@ -953,9 +953,9 @@ const FormLayoutsSolicitud = () => {
                     value={values.detention}
                     onChange={handleChange('detention')}
                   >
-                    <MenuItem value='yes'>Sí</MenuItem>
-                    <MenuItem value='no'>No</MenuItem>
-                    <MenuItem value='n/a'>No aplica</MenuItem>
+                    <MenuItem value='Sí'>Sí</MenuItem>
+                    <MenuItem value='No'>No</MenuItem>
+                    <MenuItem value='No aplica'>No aplica</MenuItem>
                   </Select>
                   <StyledTooltip title='Selecciona si la máquina estará detenida, no lo estará o no aplica el caso.'>
                     <StyledInfoIcon color='action' />
