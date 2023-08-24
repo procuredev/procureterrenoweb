@@ -104,7 +104,7 @@ const getUsersOnCopyAndMessage = (
 
         // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
         case '5-6':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
@@ -134,7 +134,7 @@ const getUsersOnCopyAndMessage = (
 
         // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
         case '0-6':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
@@ -156,7 +156,7 @@ const getUsersOnCopyAndMessage = (
           message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 7 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+        // && prevState es 7 && newState es 8 -> Supervisor selecciona Proyectistas para el Levantamiento
         case '7-8':
           arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
           message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
@@ -181,7 +181,7 @@ const getUsersOnCopyAndMessage = (
 
         // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
         case '5-6':
-          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
@@ -193,7 +193,7 @@ const getUsersOnCopyAndMessage = (
 
         // && prevState es 2 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
         case '2-6':
-          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
@@ -209,7 +209,7 @@ const getUsersOnCopyAndMessage = (
           message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 7 && newState es 7 -> Supervisor termina el levantamiento
+        // && prevState es 7 && newState es 8 -> Supervisor termina el levantamiento
         case '7-8':
           arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
@@ -286,7 +286,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     const title = requirementData.title
     const engineering = requirementData.engineering ? 'Si' : 'No'
     const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-    const supervisor = requirementData.supervisor ? requirementData.supervisor : 'Por definir'
+    const supervisor = requirementData.supervisor ? supervisorData.name : 'Por definir'
     const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
     const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
     const plant = requirementData.plant

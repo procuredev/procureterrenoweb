@@ -102,7 +102,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const title = values.title
       const engineering = user.engineering ? 'Si' : 'No'
       const otProcure = values.ot ? values.ot : 'Por definir'
-      const supervisor = values.supervisor ? values.supervisor : 'Por definir'
+      const supervisor = 'Por definir'
       const start = values.start ? values.start.toLocaleDateString() : 'Por definir'
       const end = 'Por definir'
       const plant = values.plant
