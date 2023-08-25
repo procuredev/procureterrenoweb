@@ -187,6 +187,12 @@ const getUsersOnCopyAndMessage = (
           message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
+        // && prevState es 1 && newState es 3 -> Modificación hecha por Procure fue modificada por C.Operator
+        case '1-3':
+          arrayCC = [cOwnerEmail, plannerEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner y Planificador
+          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
         // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
         case '1-6':
           arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
