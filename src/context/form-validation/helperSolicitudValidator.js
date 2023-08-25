@@ -91,7 +91,7 @@ export function solicitudValidator(values) {
 
   const valType = ['Normal', 'Outage', 'Shutdown']
 
-  const valDetention = ['Sí', 'No', 'N/A']
+  const valDetention = ['Sí', 'No', 'No aplica']
 
   const valTitle = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
   const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
