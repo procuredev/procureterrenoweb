@@ -314,8 +314,7 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       7,
       [
-        // Supervisor devuelve solicitud (6 --> 0/1)
-        { condition: typeof approves === 'string', newState: devolutionState, log: 'Devuelto por Supervisor' }
+        // Caso para cuando supervisor cambia fecha al momento de asignar proyectistas o antes (6 --> 1)
       ]
     ]
   ])
