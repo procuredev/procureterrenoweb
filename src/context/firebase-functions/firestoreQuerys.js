@@ -157,35 +157,10 @@ const getUserData = async (type, plant, userParam = {shift : ''}) => {
     'getUsers': () => userParam.shift !== ''
       ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', userParam.shift), where('role', '==', 2))
       : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
-    'getAllPlantUsers': () => plant ? query(coll, where('plant', '==', plant)) : null,
+    'getAllPlantUsers': () => query(coll, where('plant', '==', plant)),
     'getAllProcureUsers': () => query(coll, where('company', '==', 'Procure')),
     'getUserProyectistas': () => query(coll, where('role', '==', 8), where('shift', '==', userParam.shift)),
-    'getPetitioner': async () => {
-      const q = query(coll, where('plant', 'array-contains', plant));
-      const querySnapshot = await getDocs(q);
-
-      // Construir arreglo de solicitantes extendidos según los parámetros
-      const allDocs = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      }));
-
-      // Verificar el tipo de usuario actual y agregarlo al arreglo si corresponde
-      if (userParam.plant === 'allPlants') {
-        return allDocs.filter(doc => doc.role === 2);
-      } else if (userParam.role === 3) {
-        return allDocs;
-      } else {
-        const docRef = doc(db, 'users', userParam.uid);
-        const docSnapshot = await getDoc(docRef);
-
-        if (docSnapshot.exists()) {
-          allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id });
-        }
-
-        return allDocs;
-      }
-    }
+    'getPetitioner':  () => query(coll, where('plant', 'array-contains', plant))
   };
 
   const queryFunc = queryMap[type]; // Obtener la función de consulta según el tipo
@@ -214,6 +189,24 @@ const getUserData = async (type, plant, userParam = {shift : ''}) => {
       };
       allDocs.push(userObj); // Agregar el objeto de usuario al arreglo
     });
+
+    if (type === 'getPetitioner') {
+      // Verificar el tipo de usuario actual y agregarlo al arreglo si corresponde
+      if (userParam.plant === 'allPlants') {
+        return allDocs.filter(doc => doc.role === 2);
+      } else if (userParam.role === 3) {
+        return allDocs;
+      } else {
+        const docRef = doc(db, 'users', userParam.uid);
+        const docSnapshot = await getDoc(docRef);
+
+        if (docSnapshot.exists()) {
+          allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id });
+        }
+
+        return allDocs;
+      }
+    }
 
     return allDocs; // Retornar el arreglo de usuarios extendidos
   } catch (error) {

@@ -526,7 +526,7 @@ const FormLayoutsSolicitud = () => {
   //Establece opciones de contract operator
   useEffect(() => {
     if (values.plant) {
-      getUserData('getUsers', values.plant).then(value => {
+      getUserData('getUsers', values.plant,).then(value => {
         setContOpOptions(value)
       })
       getReceiverUsers(values.plant).then(value => setAllUsers(value))
@@ -558,6 +558,8 @@ const FormLayoutsSolicitud = () => {
       }
     }
   }, [values.start])
+
+  console.log(petitioners, "petitioners")
 
   return (
     <Card>
