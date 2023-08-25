@@ -314,6 +314,14 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       7,
       [
+        // Supervisor agrega horas pasando estado de la solicitud a 8
+        // Si horas cambia a objeto, en vez de checkear por string se deberá checkear que el objeto tenga {start, end y hours}
+        {
+          condition: approves && typeof approves === 'string',
+          newState: state.draftsman,
+          log: 'Horas agregadas por Supervisor'
+        },
+
         // Caso para cuando supervisor cambia fecha al momento de asignar proyectistas o antes (6 --> 1)
       ]
     ]
