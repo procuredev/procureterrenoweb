@@ -66,7 +66,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
 
   const onsubmit = id => {
     if (draftmen.length > 0) {
-      updateDocs(id, draftmen, authUser)
+      updateDocs(id, {draftmen}, authUser)
       setDraftmen([])
       handleClose()
     }

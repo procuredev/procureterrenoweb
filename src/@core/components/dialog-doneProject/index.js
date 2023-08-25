@@ -23,10 +23,7 @@ import EngineeringIcon from '@mui/icons-material/Engineering'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Configs Imports
-
 // ** Hooks Imports
-import { useSettings } from 'src/@core/hooks/useSettings'
 import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
@@ -37,15 +34,13 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
-  const [show, setShow] = useState(false)
-  const [anchorEl, setAnchorEl] = useState(null)
+
   const [draftmen, setDraftmen] = useState([])
 
-  const [horasLevantamiento, setHorasLevantamiento] = useState('')
+  const [hours, setHours] = useState('')
   const [error, setError] = useState('')
 
   // ** Hooks
-  const { settings } = useSettings()
   const { updateDocs, authUser } = useFirebase()
 
   const handleClickDelete = name => {
@@ -61,18 +56,18 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
     if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHorasLevantamiento(inputValue)
+      setHours(inputValue)
       setError('') // Limpia el mensaje de error si existe
     } else {
-      setHorasLevantamiento('')
+      setHours('')
       setError('Por favor, ingrese un número mayor a 1.')
     }
   }
 
 
   const onsubmit = id => {
-    if (horasLevantamiento !== '') {
-      updateDocs(id, horasLevantamiento, authUser)
+    if (hours !== '') {
+      updateDocs(id, {hours}, authUser)
 
       // Aquí puedes actualizar el documento 'doc' en la base de datos con el campo 'horas levantamiento'
       // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase
@@ -113,7 +108,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           <TextField
             id='outlined-basic'
             label='Horas del Levantamiento'
-            value={horasLevantamiento}
+            value={hours}
             onChange={handleInputChange}
             error={error !== ''}
             helperText={error}

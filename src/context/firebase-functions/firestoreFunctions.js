@@ -364,7 +364,6 @@ const updateDocs = async (id, approves, userParam) => {
     changedFields = {
       ...(addOT && OT ? { OT } : {}),
       ...(addShift && supervisorShift ? { supervisorShift } : {}),
-      ...(approves === true ? {} : { [Array.isArray(approves) ? 'draftmen' : 'hours']: approves }),
       ...changedFields
     }
   }
