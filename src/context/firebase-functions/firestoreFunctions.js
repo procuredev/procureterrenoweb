@@ -200,6 +200,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const state = {
     returnedPetitioner: 0,
     returnedContOp: 1,
+    contOperator: 3,
     contOwner: 4,
     planner: 5,
     contAdmin: 6,
@@ -230,10 +231,10 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'Devuelto por Adm Contrato Procure'
         },
 
-        // Si es devuelta al solicitante y solicitante acepta (2/3 --> 0 --> 4)
+        // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 0 --> 3)
         {
           condition: approves && dateHasChanged && returnedPetitioner && !approveWithChanges,
-          newState: state.contOwner,
+          newState: state.contOperator,
           log: 'Devuelto por Cont Operator/Cont Owner MEL'
         }
       ]
@@ -255,10 +256,10 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'Devuelto por Adm Contrato Procure'
         },
 
-        // Si aprueba y viene con otro estado, pasa al planificador (revisada por contract owner) (3 --> 1 --> 4)
+        // Si vuelve a modificar una devolución, pasa al planificador (revisada por contract owner) (3 --> 1 --> 3)
         {
           condition: approves && !approvedByPlanner && returnedContOp,
-          newState: state.contOwner,
+          newState: state.contOperator,
           log: 'Devuelto por Cont Owner MEL'
         }
       ]
