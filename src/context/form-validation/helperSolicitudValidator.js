@@ -91,7 +91,7 @@ export function solicitudValidator(values) {
 
   const valType = ['Normal', 'Outage', 'Shutdown']
 
-  const valDetention = ['yes', 'no', 'n/a']
+  const valDetention = ['Sí', 'No', 'N/A']
 
   const valTitle = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
   const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
@@ -214,7 +214,6 @@ export function solicitudValidator(values) {
     if (validations.hasOwnProperty(key)) {
       const { validate, message } = validations[key]
       if (!validate(values[key])) {
-        console.log('asdasdasdas aers')
         console.log(message)
         throw new Error(message)
       }

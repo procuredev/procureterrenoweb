@@ -35,17 +35,16 @@ let firebaseConfig
 
 if (typeof window !== 'undefined') {
   if (window.location.hostname === 'localhost') {
-    firebaseConfig = firebaseConfigProduction;
+    firebaseConfig = firebaseConfigDevelopment
   } else {
-    firebaseConfig = firebaseConfigProduction;
+    firebaseConfig = firebaseConfigProduction
   }
 } else {
-  // Aquí puedes definir un valor predeterminado o manejarlo como prefieras
-  firebaseConfig = firebaseConfigProduction; // o firebaseConfigDev
+  firebaseConfig = firebaseConfigProduction // o firebaseConfigDev
 }
 
 const app = Firebase.initializeApp(firebaseConfig)
 
-const db = getFirestore(app);
+const db = getFirestore(app)
 
 export { Firebase, db, app}
