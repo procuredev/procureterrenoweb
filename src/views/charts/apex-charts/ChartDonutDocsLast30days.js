@@ -39,6 +39,7 @@ const ChartDonutDocsLast30days = () => {
     fetchData()
   }, [loading])
 
+
   const totalDocuments = docsByState.reduce((total, count) => total + count, 0)
   const total = `Recibidas: ${totalDocuments}`
 

@@ -35,7 +35,7 @@ let firebaseConfig
 
 if (typeof window !== 'undefined') {
   if (window.location.hostname === 'localhost') {
-    firebaseConfig = firebaseConfigDevelopment
+    firebaseConfig = firebaseConfigDevelopment;
   } else {
     firebaseConfig = firebaseConfigProduction
   }

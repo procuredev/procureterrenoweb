@@ -41,8 +41,12 @@ const ChartBarsDocsByPlants = () => {
         'Instalaciones Cátodo'
       ];
 
-      const promises = plants.map(plant => consultDocs('byPlants', { plants: [plant] }));
-      const results = await Promise.all(promises);
+      const results = [];
+
+      for (const plant of plants) {
+        const result = await consultDocs('byPlants', { plants: [plant] });
+        results.push(result);
+      }
 
       const combinedCounts = results.reduce((acc, counts) => {
         counts.forEach((count, index) => {

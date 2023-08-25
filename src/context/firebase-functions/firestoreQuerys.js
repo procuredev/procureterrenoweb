@@ -157,10 +157,12 @@ const getUserData = async (type, plant, userParam = {shift : ''}) => {
     'getUsers': () => userParam.shift !== ''
       ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', userParam.shift), where('role', '==', 2))
       : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
-    'getAllPlantUsers': () => query(coll, where('plant', '==', plant)),
+    'getAllPlantUsers': () => query(coll, where('plant', 'array-contains', plant)),
     'getAllProcureUsers': () => query(coll, where('company', '==', 'Procure')),
     'getUserProyectistas': () => query(coll, where('role', '==', 8), where('shift', '==', userParam.shift)),
-    'getPetitioner':  () => query(coll, where('plant', 'array-contains', plant))
+    'getPetitioner':  () => query(coll, where('plant', 'array-contains', plant)),
+    'getReceiverUsers': () => query(coll,  where('plant', 'array-contains', plant), where('role', '==', 2)),
+    'getUsersByRole': () => query(coll,  where('role', '==', userParam.role)),
   };
 
   const queryFunc = queryMap[type]; // Obtener la función de consulta según el tipo
@@ -183,6 +185,11 @@ const getUserData = async (type, plant, userParam = {shift : ''}) => {
       } : {
         userId: doc.id,
         name: doc.data().name,
+      } : type === 'getReceiverUsers' ? {
+        id: doc.id,
+        name: doc.data().name,
+        email: doc.data().email,
+        phone: doc.data().phone,
       } : {
         ...doc.data(),
         id: doc.id
@@ -215,34 +222,6 @@ const getUserData = async (type, plant, userParam = {shift : ''}) => {
     return null; // En caso de error, retornar nulo
   }
 };
-
-
-// Obtener los usuarios receptores de una planta específica
-const getReceiverUsers = async plant => {
-  // Consultar la colección 'users' con los filtros de planta y rol
-  const q1 = query(collection(db, 'users'), where('plant', 'array-contains', plant), where('role', '==', 2))
-  const q2 = query(collection(db, 'users'), where('role', '==', 3))
-  const q3 = query(collection(db, 'users'), where('role', '==', 4))
-  const querySnapshot1 = await getDocs(q1)
-  const querySnapshot2 = await getDocs(q2)
-  const querySnapshot3 = await getDocs(q3)
-  const allDocs = []
-
-  querySnapshot1.forEach(doc => {
-    // Obtener los datos de cada usuario receptor y agregarlos al array 'allDocs'
-    allDocs.push({ name: doc.data().name, email: doc.data().email, phone: doc.data().phone, id: doc.id })
-  })
-  querySnapshot2.forEach(doc => {
-    // Obtener los datos de cada usuario receptor y agregarlos al array 'allDocs'
-    allDocs.push({ name: doc.data().name, email: doc.data().email, phone: doc.data().phone, id: doc.id })
-  })
-  querySnapshot3.forEach(doc => {
-    // Obtener los datos de cada usuario receptor y agregarlos al array 'allDocs'
-    allDocs.push({ name: doc.data().name, email: doc.data().email, phone: doc.data().phone, id: doc.id })
-  })
-
-  return allDocs
-}
 
 
 // Consultar si existen solicitudes para una fecha específica
@@ -625,7 +604,6 @@ export {
   getData,
   getUserData,
   getRoleData,
-  getReceiverUsers,
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,

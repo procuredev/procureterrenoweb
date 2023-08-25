@@ -507,8 +507,16 @@ const FormLayoutsSolicitud = () => {
   }
 
   useEffect(() => {
-    getReceiverUsers(values.plant).then(value => setAllUsers(value))
+    getUserData('getReceiverUsers', values.plant).then(value => setAllUsers(value))
   }, [])
+
+  useEffect(() => {
+    if(values.contop){
+      const contoOp = values.contop
+      getUserData('getUsersByRole', null, {role: 4}).then(value => setValues({...values, receiver:[value[0], {name : contoOp}]}))
+    }
+  }, [values.contop])
+
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -526,13 +534,32 @@ const FormLayoutsSolicitud = () => {
   //Establece opciones de contract operator
   useEffect(() => {
     if (values.plant) {
-      getUserData('getUsers', values.plant,).then(value => {
-        setContOpOptions(value)
-      })
-      getReceiverUsers(values.plant).then(value => setAllUsers(value))
-      getUserData('getPetitioner', values.plant, authUser).then(value => setPetitioners(value))
+      const fetchData = async () => {
+        const contOpOptions = await getUserData('getUsers', values.plant,)
+        setContOpOptions(contOpOptions)
+        const petitioners = await getUserData('getPetitioner', values.plant, authUser)
+        setPetitioners(petitioners)
+      }
+      fetchData()
     }
+
   }, [values.plant])
+
+  useEffect(() => {
+    if (values.contop) {
+      const fetchData = async () => {
+        const receivers = await getUserData('getReceiverUsers', values.plant)
+        const receiversContOp = await getUserData('getUsersByRole', null, {role: 3})
+        const receiverGroup = receivers.concat(receiversContOp)
+        const filterName = [values.contop, authUser.displayName]
+        const receiverFilter = receiverGroup.filter((el) => !filterName.includes(el.name) )
+        setAllUsers(receiverFilter)
+      }
+      fetchData()
+    }
+
+  }, [values.contop])
+
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
