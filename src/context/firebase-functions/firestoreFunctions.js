@@ -225,7 +225,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 0 --> 6)
         // No se usó dateHasChanged porque el cambio podría haber pasado en el penúltimo evento
         {
-          condition: approves && approvedByPlanner && returnedPetitioner,
+          condition: approves && approvedByPlanner && returnedPetitioner && !approveWithChanges,
           newState: state.contAdmin,
           log: 'Devuelto por Adm Contrato Procure'
         },
