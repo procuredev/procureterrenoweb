@@ -119,7 +119,9 @@ const getLatestEvent = async id => {
   return latestEvent
 }
 
-const setSupervisorShift = async week => {
+const setSupervisorShift = async date => {
+  const adjustedDate = moment(date.toDate()).subtract(1, 'day'); // Restar un día para iniciar la semana en martes
+  const week = moment(adjustedDate.toDate()).isoWeek()
   const supervisorShift = week % 2 === 0 ? 'A' : 'B'
 
   return supervisorShift
@@ -360,7 +362,7 @@ const updateDocs = async (id, approves, userParam) => {
   const OT = addOT ? await increaseAndGetNewOTValue() : null
 
   const addShift = newState === 6
-  const supervisorShift = addShift ? await setSupervisorShift(moment(docStartDate.toDate()).isoWeek()) : null
+  const supervisorShift = addShift ? await setSupervisorShift(docStartDate) : null
 
   if (hasFieldModifications) {
     processedFields = processFieldChanges(approves, docSnapshot)
