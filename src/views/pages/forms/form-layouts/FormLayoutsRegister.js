@@ -184,8 +184,8 @@ const FormLayoutsBasic = () => {
           case 'plant':
             if ((!Array.isArray(values.plant) && values.role !== 2) || values.plant.length === 0) {
               newErrors['plant'] = 'Por favor, introduce al menos un valor'
-            } else if (values.role === 2 && Array.isArray(values.plant) && ![0, 1].includes(values.plant.length)) {
-              newErrors['plant'] = 'Debes escoger sólo una planta'
+            // } else if (values.role === 2 && Array.isArray(values.plant) && ![0, 1].includes(values.plant.length)) {
+            //   newErrors['plant'] = 'Debes escoger sólo una planta'
             }
             break
           default:
@@ -425,7 +425,7 @@ const FormLayoutsBasic = () => {
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <Autocomplete
-                    multiple={values.role === 3}
+                    multiple={true} //{values.role === 3}
                     fullWidth
                     options={names}
                     value={values.plant}

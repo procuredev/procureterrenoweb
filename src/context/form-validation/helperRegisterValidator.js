@@ -60,7 +60,7 @@ export function registerValidator(values) {
 
         if (Array.isArray(value)) {
           if (values.role === 2) {
-            return value.length === 1 && value.every(item => valPlant.includes(item))
+            return value.length > 0 && value.every(item => valPlant.includes(item)) // value.length === 1 && value.every(item => valPlant.includes(item))
           } else {
             return value.length > 0 && value.every(item => valPlant.includes(item))
           }
