@@ -106,8 +106,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleOpenAlert = async () => {
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
     if (roleData.id === '5') {
-      // Agrega end/ot
-      if (!end && hasChanges.end) {
+      // Agrega end y ot
+      if (!end && hasChanges.end && !ot && hasChanges.ot) {
         setOpenAlert(true)
 
         // Ya viene con end u ot
@@ -117,8 +117,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           .catch(error => {alert(error), console.log(error)})
 
         //No trae ni agrega end/ot
-      } else if (!end && !hasChanges.end) {
-        setMessage('Debes ingresar fecha de término')
+      } else if (!end && !hasChanges.end || !ot && !hasChanges.ot) {
+        setMessage('Debes ingresar ot y fecha de término')
       } else {
         setOpenAlert(true)
       }
@@ -338,7 +338,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       defaultValue={ot}
                       size='small'
                       sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                      disabled={true}
+                      disabled={!isPlanner}
                     />
                   </FormControl>
                 </Box>

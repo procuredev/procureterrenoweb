@@ -358,8 +358,8 @@ const updateDocs = async (id, approves, userParam) => {
   let newState = approves ? getNextState(role, approves, latestEvent, userRole) : rejected
   let processedFields = { incomingFields: {}, changedFields: {} }
 
-  const addOT = role === 5 && approves && !hasOT
-  const ot = addOT ? await increaseAndGetNewOTValue() : null
+  // const addOT = role === 5 && approves && !hasOT
+  // const ot = addOT ? await increaseAndGetNewOTValue() : null
 
   const addShift = newState === 6
   const supervisorShift = addShift ? await setSupervisorShift(docStartDate) : null
@@ -372,7 +372,7 @@ const updateDocs = async (id, approves, userParam) => {
 
   if (approves) {
     changedFields = {
-      ...(addOT && ot ? { ot } : {}),
+    //  ...(addOT && ot ? { ot } : {}),
       ...(addShift && supervisorShift ? { supervisorShift } : {}),
       ...changedFields
     }
