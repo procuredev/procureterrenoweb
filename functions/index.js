@@ -55,9 +55,10 @@ const getSupervisorData = async (shift) => {
 }
 
 // * Función que revisa la base de datos cada 60 minutos
-exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 1 minutes').timeZone('Chile/Continental').onRun(async context => {
+exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes').timeZone('Chile/Continental').onRun(async context => {
+  const devolutionState = 0
   const requestsRef = admin.firestore().collection('solicitudes') // Se llama a la colección de datos 'solicitudes' en Firestore
-  const requestsSnapshot = await requestsRef.where('state', '==', 0).get() // Se llaman a los datos de la colección 'solicitudes' que están en estado 1 (en revisión por Solicitante)
+  const requestsSnapshot = await requestsRef.where('state', '==', devolutionState).get() // Se llaman a los datos de la colección 'solicitudes' que están en estado 1 (en revisión por Solicitante)
   const requestsDocs = requestsSnapshot.docs // Se almacena en una constante todos los documentos que cumplen con la condición anterior
 
   // Se revisa cada uno de los documentos existentes en 'solicitudes'
@@ -78,16 +79,16 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 1 minutes')
 
       const now = new Date() // Se almacena en una constante la fecha instantánea (ahora)
 
-      // Si prevState es 2 (el usuario anterior es C.Opetor) && newState es 1 (el usuario actual es solicitante)
-      if (eventRequestData.prevState === 2 && eventRequestData.newState === 0) {
+      // Si prevState es 2 (el usuario anterior es C.Opetor) && newState es 0 (el usuario actual es solicitante)
+      if (eventRequestData.prevState === 2 && eventRequestData.newState === devolutionState) {
         // Si ha pasado más de 24 horas desde la fecha del evento
-        if (now - eventCreationDate > 3 * 60 * 1000) {
+        if (now - eventCreationDate > 24 * 60 * 60 * 1000) {
 
           // Crea un nuevo evento con un UID automático
           const newEvent = {
             date: admin.firestore.Timestamp.fromDate(now), // Se almacena la fecha en que es revisado
             newState: 3, // El newState será 3 para que lo tenga que revisar el Planificador
-            prevState: 0, // El prevState es 0 porque debería haber sido revisado por el Solicitante
+            prevState: devolutionState, // El prevState es 0 porque debería haber sido revisado por el Solicitante
             user: 'admin.desarrollo@procure.cl', // Se usa el email del admin para que en el historial refleje que fue un cambio automatizado
             userName: 'admin' // Se usa "admin" para que en el historial refleje que fue un cambio automatizado
           }
@@ -106,9 +107,6 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 1 minutes')
             const mailId = newEmailRef.id // Se obtiene el id del elemento recién agregado
 
             const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
-
-            // const userSnapshot = await usersRef.doc(requirementData.uid).get() // Se llama a los datos del 'usuario' que creó la solicitud
-            // const userData = userSnapshot.data() // Se almacena dentro de una variable los datos del usuario que creó la solicitud
 
             const reqContractOperatorName = requirementData.contop // Se almacena el nombre del Contract Operator de la solicitud
             const reqContractOperatorSnapshot = await usersRef.where('name', '==', reqContractOperatorName).get() // Se llama sólo al que cumple con la condición de que su name es igual al del contop del usuario que generó la solicitud
@@ -182,7 +180,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 1 minutes')
 
 // * Función que revisa la base de datos todos los días a las 6AM
 exports.sendInfoToSupervisorAtSixAM = functions.pubsub
-  .schedule('every day 12:50')
+  .schedule('every day 06:00')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
