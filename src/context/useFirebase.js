@@ -1,8 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
 
 // ** Firebase Imports
-import { Firebase, app } from 'src/configs/firebase'
-import { getAuth, signOut } from 'firebase/auth'
+import { app } from 'src/configs/firebase'
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'
 
 // ** Crea contexto
 export const FirebaseContext = createContext()
@@ -48,26 +48,24 @@ const FirebaseContextProvider = props => {
   // ** Variables
   const auth = getAuth(app)
 
-  // ** Observador para cambios de estado - Define el estado authUser
-  const authStateChanged = async authState => {
-    if (!authState) {
-      setAuthUser(null)
-      setLoading(false)
-    } else {
-      setLoading(true)
-      const formattedUser = await formatAuthUser(authState)
-      setAuthUser(formattedUser)
-      setLoading(false)
-    }
-  }
-
-  // ** Observador cambios de estado de Firebase
   useEffect(() => {
-    setAuthUser(null)
-    const unsubscribe = Firebase.auth().onAuthStateChanged(authStateChanged)
+    const auth = getAuth(app);
 
-    return () => unsubscribe()
-  }, [])
+    const unsubscribe = onAuthStateChanged(auth, async (authState) => {
+      if (!authState) {
+        setAuthUser(null);
+        setLoading(false);
+      } else {
+        setLoading(true);
+        const formattedUser = await formatAuthUser(authState);
+        setAuthUser(formattedUser);
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
 
   const value = {
     authUser,
