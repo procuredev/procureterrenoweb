@@ -44,16 +44,17 @@ const ObjetivesByDay = () => {
       x: {
         formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
           //const value = series[seriesIndex][dataPointIndex];
-          const plants = [
-            'Los Colorados',
-            'Laguna Seca 1',
-            'Laguna Seca 2',
-            'Chancado y Correas',
-            'Puerto Coloso',
-            'Instalacones Cátodo'
+          const daysOfWeek = [
+            'Lunes',
+            'Martes',
+            'Miércoles',
+            'Jueves',
+            'Viernes',
+            'Sábado',
+            'Domingo'
           ]
 
-          return plants[dataPointIndex]
+          return daysOfWeek[dataPointIndex]
         }
       }
     },

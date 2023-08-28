@@ -45,7 +45,7 @@ const ChartDonutObjetivesLast30days = () => {
 
   const options = {
     stroke: { width: 0 },
-    labels: ['agendados', 'en ejecución', 'terminados'],
+    labels: ['Agendados', 'En Ejecución', 'Terminados'],
     colors: [donutColors.series3, donutColors.series1, donutColors.series2],
     dataLabels: {
       enabled: true,

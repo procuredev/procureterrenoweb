@@ -44,7 +44,10 @@ const ObjetivesByMonth = () => {
     fetchData()
   }, [])
 
+  //console.log(monthsOfLastSixMonths, "monthsOfLastSixMonths")
+
   const options = {
+
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }

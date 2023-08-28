@@ -39,7 +39,6 @@ const ChartBarsObjetivesByPlants = () => {
     'Instalacones Cátodo'
   ]
   const resObjByPlants2 = objByPlants.map((el, index) => ({ x: plants[index], y: el }))
-  console.log(resObjByPlants2)
 
   useEffect(() => {
     const fetchData = async () => {

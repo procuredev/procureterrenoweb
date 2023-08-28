@@ -45,7 +45,7 @@ const ChartDonutDocsLast30days = () => {
 
   const options = {
     stroke: { width: 0 },
-    labels: ['en proceso', 'aceptadas', 'rechazadas'],
+    labels: ['En Proceso', 'Aceptadas', 'Rechazadas'],
     colors: [donutColors.series1, donutColors.series2, donutColors.series5],
     dataLabels: {
       enabled: true,
