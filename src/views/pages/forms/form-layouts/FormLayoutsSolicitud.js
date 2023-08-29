@@ -538,7 +538,7 @@ const FormLayoutsSolicitud = () => {
       const fetchData = async () => {
         const contOpOptions = await getUserData('getUsers', values.plant,)
         setContOpOptions(contOpOptions)
-        const petitioners = await getUserData('getPetitioner', values.plant, authUser)
+        const petitioners = await getUserData('getPetitioner', values.plant, {role: authUser.role})
         setPetitioners(petitioners)
       }
       fetchData()
