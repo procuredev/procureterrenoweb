@@ -25,19 +25,42 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ChartBarsDocsByPlants = () => {
   // ** Hook
-  const { consultAllDocsByPlants } = useFirebase()
+  const { consultDocs } = useFirebase()
   const theme = useTheme()
 
   const [docsByPlants, setDocsByPlants] = useState([0, 0, 0, 0, 0, 0])
 
   useEffect(() => {
     const fetchData = async () => {
-      const resDocsByPlants = await consultAllDocsByPlants()
-      setDocsByPlants(resDocsByPlants)
-    }
+      const plants = [
+        'Planta Concentradora Los Colorados',
+        'Planta Concentradora Laguna Seca | Línea 1',
+        'Planta Concentradora Laguna Seca | Línea 2',
+        'Chancado y Correas',
+        'Puerto Coloso',
+        'Instalaciones Cátodo'
+      ];
 
-    fetchData()
-  }, [])
+      const results = [];
+
+      for (const plant of plants) {
+        const result = await consultDocs('byPlants', { plants: [plant] });
+        results.push(result);
+      }
+
+      const combinedCounts = results.reduce((acc, counts) => {
+        counts.forEach((count, index) => {
+          acc[index] += count;
+        });
+
+        return acc;
+      }, Array(6).fill(0));
+
+      setDocsByPlants(combinedCounts);
+    };
+
+    fetchData();
+  }, []);
 
   const options = {
     tooltip: {
@@ -112,6 +135,7 @@ const ChartBarsDocsByPlants = () => {
     <Card>
       <CardHeader
         title='Solicitudes por Plantas'
+
         //subheader='Total semanal: 20'
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}

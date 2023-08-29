@@ -23,7 +23,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ChartDonutDocsLast30days = () => {
   // ** Hook
-  const { consultAllDocsByState } = useFirebase()
+  const { consultDocs } = useFirebase()
   const theme = useTheme()
 
   const [docsByState, setDocsByState] = useState([0, 0, 0])
@@ -31,20 +31,21 @@ const ChartDonutDocsLast30days = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const resDocsByStates = await consultAllDocsByState()
-      setDocsByState(resDocsByStates)
+      const docsByState = await consultDocs('byState');
+      setDocsByState(docsByState)
       setLoading(false) // Cuando los datos se han cargado, actualizamos el estado a false
     }
 
     fetchData()
   }, [loading])
 
+
   const totalDocuments = docsByState.reduce((total, count) => total + count, 0)
   const total = `Recibidas: ${totalDocuments}`
 
   const options = {
     stroke: { width: 0 },
-    labels: ['en proceso', 'aceptadas', 'rechazadas'],
+    labels: ['En Proceso', 'Aceptadas', 'Rechazadas'],
     colors: [donutColors.series1, donutColors.series2, donutColors.series5],
     dataLabels: {
       enabled: true,
@@ -129,6 +130,7 @@ const ChartDonutDocsLast30days = () => {
     <Card>
       <CardHeader
         title='Solicitudes últimos 30 días'
+
         //subheader='Spending on various categories'
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       />

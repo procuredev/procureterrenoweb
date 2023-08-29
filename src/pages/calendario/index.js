@@ -58,7 +58,7 @@ const AppCalendar = () => {
   // ** Vars
   const { skin, direction } = settings
   const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
-  const data = useSnapshot()
+  const data = useSnapshot(false, authUser)
   const theme = useTheme()
 
   const [roleData, setRoleData] = useState({ name: 'admin' })

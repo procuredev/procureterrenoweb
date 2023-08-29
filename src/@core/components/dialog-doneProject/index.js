@@ -1,71 +1,57 @@
 // ** React Imports
-import { useState, forwardRef, Fragment, useEffect } from 'react'
+import { useState, forwardRef } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
 import List from '@mui/material/List'
-import Menu from '@mui/material/Menu'
 import Avatar from '@mui/material/Avatar'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
 import ListItem from '@mui/material/ListItem'
-import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
 import Fade from '@mui/material/Fade'
 import ListItemText from '@mui/material/ListItemText'
-import Autocomplete from '@mui/material/Autocomplete'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import DialogContent from '@mui/material/DialogContent'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import EngineeringIcon from '@mui/icons-material/Engineering'
-import TableSpanning from 'src/views/table/mui/TableSpanning'
-
-import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+
+// ** Date Library
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
+
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Configs Imports
-import themeConfig from 'src/configs/themeConfig'
-
 // ** Hooks Imports
-import { useSettings } from 'src/@core/hooks/useSettings'
 import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
+export const DialogDoneProject = ({ open, doc, handleClose }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
-  const [show, setShow] = useState(false)
-  const [anchorEl, setAnchorEl] = useState(null)
+
   const [draftmen, setDraftmen] = useState([])
 
-  const [horasLevantamiento, setHorasLevantamiento] = useState('')
+
+  const [hours, setHours] = useState({})
   const [error, setError] = useState('')
 
   // ** Hooks
-  const { settings } = useSettings()
-  const hidden = useMediaQuery(theme => theme.breakpoints.down('sm'))
-  const { updateDocs, useEvents, reviewDocs } = useFirebase()
-
-  // ** Var
-  const { direction } = settings
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
+  const { updateDocs, authUser } = useFirebase()
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -75,35 +61,23 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
     setDraftmen(updatedDraftmen)
   }
 
-  /*   const handleClose = () => {
-    setAnchorEl(null)
-  } */
-
   const handleInputChange = e => {
     const inputValue = e.target.value
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
     if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHorasLevantamiento(inputValue)
+      setHours(inputValue)
       setError('') // Limpia el mensaje de error si existe
     } else {
-      setHorasLevantamiento('')
+      setHours('')
       setError('Por favor, ingrese un número mayor a 1.')
     }
   }
 
-  const handleListItemClick = option => {
-    // Verificamos si el option ya existe en el array draftmen
-    if (!draftmen.some(draftman => draftman.name === option.name)) {
-      // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen(prevDraftmen => [...prevDraftmen, option])
-      document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
-    }
-  }
 
   const onsubmit = id => {
-    if (horasLevantamiento !== '') {
-      reviewDocs(id, horasLevantamiento)
+    if (hours !== '') {
+      updateDocs(id, {hours}, authUser)
 
       // Aquí puedes actualizar el documento 'doc' en la base de datos con el campo 'horas levantamiento'
       // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase
@@ -112,6 +86,25 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
       setError('Por favor, ingrese un número mayor a 0.')
     }
   }
+
+  const handleDateChangeWrapper = dateField => date => {
+    const handleDateChange = date => {
+      const fieldValue = moment(date.toDate());
+      const updatedHours = { ...hours };
+
+      if (dateField === 'start') {
+        updatedHours.start = fieldValue;
+      } else {
+        const hoursDifference = fieldValue.diff(updatedHours.start, 'hours');
+        updatedHours.end = fieldValue;
+        updatedHours.total = hoursDifference;
+      }
+
+      setHours(updatedHours);
+    };
+
+    handleDateChange(date);
+  };
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
@@ -141,11 +134,45 @@ export const DialogDoneProject = ({ open, doc, proyectistas, handleClose }) => {
         </Box>
 
         <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <Box display='flex' alignItems='center'>
+                  <DateTimePicker
+                    minDate={moment().subtract(1, 'year')}
+                    maxDate={moment().add(1, 'year')}
+                    label='Fecha de inicio'
+                    value={hours.start}
+                    onChange={handleDateChangeWrapper('start')}
+                    InputLabelProps={{ shrink: true, required: true }}
+                  />
+                </Box>
+              </LocalizationProvider>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <Box display='flex' alignItems='center'>
+                  <DateTimePicker
+                    minDate={moment().subtract(1, 'year')}
+                    maxDate={moment().add(1, 'year')}
+                    label='Fecha de término'
+                    value={hours.end}
+                    onChange={handleDateChangeWrapper('end')}
+                    InputLabelProps={{ shrink: true, required: true }}
+                  />
+                </Box>
+              </LocalizationProvider>
+            </FormControl>
+          </Box>
           <TextField
-            id='outlined-basic'
-            label='Horas del Levantamiento'
-            value={horasLevantamiento}
-            onChange={handleInputChange}
+            //id='outlined-basic'
+            //label='Horas del Levantamiento'
+            disabled={true}
+            justifyContent="center"
+            value={hours.total}
+            //onChange={handleInputChange}
             error={error !== ''}
             helperText={error}
           />

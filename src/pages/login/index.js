@@ -94,9 +94,9 @@ const schema = yup.object().shape({
     .required('Por favor, ingresa tu contraseña')
 })
 
-const defaultValues = {
-  email: 'admin@materialize.com'
-}
+// const defaultValues = {
+//   email: 'admin@materialize.com'
+// }
 
 const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('')
@@ -122,7 +122,7 @@ const LoginPage = () => {
     handleSubmit,
     formState: { errors }
   } = useForm({
-    defaultValues,
+    // defaultValues,
     mode: 'onBlur',
     resolver: yupResolver(schema)
   })
@@ -369,7 +369,7 @@ const LoginPage = () => {
                       onBlur={onBlur}
                       onChange={onChange}
                       error={Boolean(errors.email)}
-                      placeholder='admin@materialize.com'
+                      // placeholder='admin@materialize.com'
                     />
                   )}
                 />
@@ -377,7 +377,7 @@ const LoginPage = () => {
               </FormControl>
               <FormControl fullWidth>
                 <InputLabel htmlFor='auth-login-v2-password' error={Boolean(errors.password)}>
-                  Password
+                  Contraseña
                 </InputLabel>
                 <Controller
                   name='password'

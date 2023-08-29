@@ -25,7 +25,7 @@ const DataGrid = () => {
   const [filterConfig, setFilterConfig] = useState({})
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const { useSnapshot, authUser, getRoleData } = useFirebase()
-  const data = useSnapshot(true)
+  const data = useSnapshot(true, authUser)
 
   // Objeto de configuración de filtros
   useEffect(() => {

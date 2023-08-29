@@ -140,7 +140,7 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
 
 const NuestroEquipo = () => {
   // ** Hooks
-  const { authUser, getAllProcureUsers } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
+  const { authUser, getUserData } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
   const router = useRouter() // Importación de router... no sé que utlidad le daré
 
   // ** States
@@ -150,7 +150,7 @@ const NuestroEquipo = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const users = await getAllProcureUsers()
+        const users = await getUserData('getAllProcureUsers')
         setProcureUsers(users)
       } catch (error) {
         console.error('Error al obtener los usuarios de Procure:', error)
@@ -159,6 +159,7 @@ const NuestroEquipo = () => {
 
     fetchUsers()
   }, [])
+  console.log(procureUsers, "procureUsers")
 
   // Declaración de varibles: array usuarios, prioridad (orden en que serán mostrados), jon (cargo)
   let users = [] // array que almacenará los usuarios que cumplen con las condiciones
@@ -198,11 +199,15 @@ const NuestroEquipo = () => {
 
   return (
     <Grid container spacing={2}>
-      {users.map((user, index) => (
-        <Grid item xs={12} sm={6} md={3} key={index}>
-          <AppCard {...user} />
-        </Grid>
-      ))}
+     {procureUsers.length > 0 ? (
+        users.map((user, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <AppCard {...user} />
+          </Grid>
+        ))
+      ) : (
+        <Typography variant="body1">Cargando usuarios...</Typography>
+      )}
     </Grid>
   )
 }

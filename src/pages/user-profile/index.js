@@ -64,6 +64,7 @@ const TabAccount = () => {
 
   // ** State
   const [inputValue, setInputValue] = useState('')
+
   const [formData, setFormData] = useState(
     authUser.phone === 'No definido'
       ? ''
@@ -249,11 +250,11 @@ const TabAccount = () => {
       await updateUserPhone(authUser.uid, trimmedPhone)
       setAlertMessage('Número de teléfono actualizado con éxito')
     } else if ((await phoneValidator()) && trimmedPhone == authUser.phone && imgChange) {
-      await updateUserProfile(inputValue)
+      await updateUserProfile(inputValue, authUser)
       setAlertMessage('Foto de perfil actualizada con con éxito')
     } else if ((await phoneValidator()) && trimmedPhone !== authUser.phone && imgChange) {
       await updateUserPhone(authUser.uid, trimmedPhone)
-      await updateUserProfile(inputValue)
+      await updateUserProfile(inputValue, authUser)
       setAlertMessage('Foto de perfil y teléfono actualizados con éxito')
     }
   }

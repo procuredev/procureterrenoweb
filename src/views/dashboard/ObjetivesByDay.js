@@ -25,15 +25,15 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ObjetivesByDay = () => {
   // ** Hooks
-  const { consultObjetivesOfActualWeek } = useFirebase()
+  const { consultObjetives } = useFirebase()
   const theme = useTheme()
 
   const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0])
 
   useEffect(() => {
     const fetchData = async () => {
-      const objOfActualWeek = await consultObjetivesOfActualWeek()
-      setObjetivesOfActualWeek(objOfActualWeek)
+      const weeklyObjetives = await consultObjetives('week');
+      setObjetivesOfActualWeek(weeklyObjetives)
     }
 
     fetchData()
@@ -44,16 +44,17 @@ const ObjetivesByDay = () => {
       x: {
         formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
           //const value = series[seriesIndex][dataPointIndex];
-          const plants = [
-            'Los Colorados',
-            'Laguna Seca 1',
-            'Laguna Seca 2',
-            'Chancado y Correas',
-            'Puerto Coloso',
-            'Instalacones Cátodo'
+          const daysOfWeek = [
+            'Lunes',
+            'Martes',
+            'Miércoles',
+            'Jueves',
+            'Viernes',
+            'Sábado',
+            'Domingo'
           ]
 
-          return plants[dataPointIndex]
+          return daysOfWeek[dataPointIndex]
         }
       }
     },

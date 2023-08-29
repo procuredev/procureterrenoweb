@@ -23,7 +23,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ChartDonutObjetivesLast30days = () => {
   // ** Hook
-  const { consultAllObjetivesByState } = useFirebase()
+  const { consultObjetives } = useFirebase()
   const theme = useTheme()
 
   const [objByState, setObjByState] = useState([0, 0, 0])
@@ -31,8 +31,9 @@ const ChartDonutObjetivesLast30days = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const resObjByStates = await consultAllObjetivesByState()
-      setObjByState(resObjByStates)
+      const objectivesByState = await consultObjetives('byState');
+
+      setObjByState(objectivesByState)
       setLoading(false) // Cuando los datos se han cargado, actualizamos el estado a false
     }
 
@@ -44,7 +45,7 @@ const ChartDonutObjetivesLast30days = () => {
 
   const options = {
     stroke: { width: 0 },
-    labels: ['agendados', 'en ejecución', 'terminados'],
+    labels: ['Agendados', 'En Ejecución', 'Terminados'],
     colors: [donutColors.series3, donutColors.series1, donutColors.series2],
     dataLabels: {
       enabled: true,
@@ -130,6 +131,7 @@ const ChartDonutObjetivesLast30days = () => {
     <Card>
       <CardHeader
         title='Levantamientos últimos 30 días'
+
         //subheader='Spending on various categories'
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       />

@@ -124,6 +124,7 @@ const FormLayoutsSolicitud = () => {
     getAllPlantUsers,
     consultBlockDayInDB,
     consultSAP,
+    getUserData,
     getUsers
   } = useFirebase()
   const router = useRouter()
@@ -167,6 +168,7 @@ const FormLayoutsSolicitud = () => {
           const isAnalysisGPRSelected = newValue === 'Análisis GPR'
           const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
           const currentWeek = moment().isoWeeks()
+
           const inTenWeeks = moment()
             .locale('es')
             .isoWeeks(currentWeek + 11)
@@ -271,6 +273,7 @@ const FormLayoutsSolicitud = () => {
         const isAnalysisGPRSelected = values[key] === 'Análisis GPR'
         const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
         const currentWeek = moment().isoWeeks()
+
         const inTenWeeks = moment()
           .locale('es')
           .isoWeeks(currentWeek + 11)
@@ -474,7 +477,7 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: values.start.toDate() })
+        const solicitud = await newDoc({ ...values, start: values.start.toDate() }, authUser)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
@@ -504,8 +507,16 @@ const FormLayoutsSolicitud = () => {
   }
 
   useEffect(() => {
-    getReceiverUsers(values.plant).then(value => setAllUsers(value))
+    getUserData('getReceiverUsers', values.plant).then(value => setAllUsers(value))
   }, [])
+
+  useEffect(() => {
+    if(values.contop){
+      const contoOp = values.contop
+      getUserData('getUsersByRole', null, {role: 4}).then(value => setValues({...values, receiver:[value[0], {name : contoOp}]}))
+    }
+  }, [values.contop])
+
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -523,18 +534,38 @@ const FormLayoutsSolicitud = () => {
   //Establece opciones de contract operator
   useEffect(() => {
     if (values.plant) {
-      getUsers(values.plant).then(value => {
-        setContOpOptions(value)
-      })
-      getReceiverUsers(values.plant).then(value => setAllUsers(value))
-      getPetitioner(values.plant).then(value => setPetitioners(value))
+      const fetchData = async () => {
+        const contOpOptions = await getUserData('getUsers', values.plant,)
+        setContOpOptions(contOpOptions)
+        const petitioners = await getUserData('getPetitioner', values.plant, authUser)
+        setPetitioners(petitioners)
+      }
+      fetchData()
     }
+
   }, [values.plant])
+
+  useEffect(() => {
+    if (values.contop) {
+      const fetchData = async () => {
+        const receivers = await getUserData('getReceiverUsers', values.plant)
+        const receiversContOp = await getUserData('getUsersByRole', null, {role: 3})
+        const receiverGroup = receivers.concat(receiversContOp)
+        const filterName = [values.contop, authUser.displayName]
+        const receiverFilter = receiverGroup.filter((el) => !filterName.includes(el.name) )
+        setAllUsers(receiverFilter)
+      }
+      fetchData()
+    }
+
+  }, [values.contop])
+
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
       const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
       const currentWeek = moment().isoWeeks()
+
       const inTenWeeks = moment()
         .locale('es')
         .isoWeeks(currentWeek + 11)
@@ -554,6 +585,8 @@ const FormLayoutsSolicitud = () => {
       }
     }
   }, [values.start])
+
+  console.log(petitioners, "petitioners")
 
   return (
     <Card>
@@ -949,9 +982,9 @@ const FormLayoutsSolicitud = () => {
                     value={values.detention}
                     onChange={handleChange('detention')}
                   >
-                    <MenuItem value='yes'>Sí</MenuItem>
-                    <MenuItem value='no'>No</MenuItem>
-                    <MenuItem value='n/a'>No aplica</MenuItem>
+                    <MenuItem value='Sí'>Sí</MenuItem>
+                    <MenuItem value='No'>No</MenuItem>
+                    <MenuItem value='No aplica'>No aplica</MenuItem>
                   </Select>
                   <StyledTooltip title='Selecciona si la máquina estará detenida, no lo estará o no aplica el caso.'>
                     <StyledInfoIcon color='action' />

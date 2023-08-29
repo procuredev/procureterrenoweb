@@ -25,7 +25,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const ChartBarsObjetivesByPlants = () => {
   // ** Hook
-  const { consultAllObjetivesByPlants } = useFirebase()
+  const { consultObjetives } = useFirebase()
   const theme = useTheme()
 
   const [objByPlants, setObjByPlants] = useState([0, 0, 0, 0, 0, 0])
@@ -39,13 +39,14 @@ const ChartBarsObjetivesByPlants = () => {
     'Instalacones Cátodo'
   ]
   const resObjByPlants2 = objByPlants.map((el, index) => ({ x: plants[index], y: el }))
-  console.log(resObjByPlants2)
 
   useEffect(() => {
     const fetchData = async () => {
-      const resObjByPlants = await consultAllObjetivesByPlants()
+      const objectivesByPlants = await consultObjetives('byPlants', { plants: ['Planta Concentradora Los Colorados',
+      'Planta Concentradora Laguna Seca | Línea 1', 'Planta Concentradora Laguna Seca | Línea 2', 'Chancado y Correas',
+      'Puerto Coloso', 'Instalaciones Cátodo'] });
 
-      setObjByPlants(resObjByPlants)
+      setObjByPlants(objectivesByPlants)
     }
 
     fetchData()
@@ -131,6 +132,7 @@ const ChartBarsObjetivesByPlants = () => {
     <Card>
       <CardHeader
         title='Levantamientos por Planta'
+
         //subheader='Total semanal: 20'
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
