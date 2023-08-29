@@ -15,7 +15,7 @@
     "@babel/eslint-parser": "7.19.1",
     "@casl/ability": "6.3.2",
     "@casl/react": "3.1.0",
-    "@emotion/cache": "11.10.5",
+    "@emotion/cache": "11.11.0",
     "@emotion/react": "11.10.5",
     "@emotion/server": "11.10.0",
     "@emotion/styled": "11.10.5",
