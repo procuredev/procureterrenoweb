@@ -34,14 +34,13 @@ const firebaseConfigDevelopment = {
 let firebaseConfig
 
 if (typeof window !== 'undefined') {
-  if (window.location.hostname === 'localhost') {
-    firebaseConfig = firebaseConfigDevelopment;
-  } else {
+  if (window.location.hostname === 'procureterrenoweb.vercel.app') {
     firebaseConfig = firebaseConfigProduction;
+  } else {
+    firebaseConfig = firebaseConfigDevelopment
   }
 } else {
-  // Aquí puedes definir un valor predeterminado o manejarlo como prefieras
-  firebaseConfig = firebaseConfigProduction; // o firebaseConfigDev
+  firebaseConfig = firebaseConfigDevelopment // o firebaseConfigDev
 }
 
 const app = Firebase.initializeApp(firebaseConfig)

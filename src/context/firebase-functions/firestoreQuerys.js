@@ -160,9 +160,7 @@ const getUserData = async (type, plant, userParam = {shift : '', name : ''}) => 
     'getAllPlantUsers': () => query(coll, where('plant', 'array-contains', plant)),
     'getAllProcureUsers': () => query(coll, where('company', '==', 'Procure')),
     'getUserProyectistas': () => query(coll, where('role', '==', 8), where('shift', '==', userParam.shift)),
-    'getPetitioner':  () => userParam.name !== ''
-      ? doc(coll, userParam.name)
-      : query(coll, where('plant', 'array-contains', plant)),
+    'getPetitioner':  () => query(coll, where('plant', 'array-contains', plant)),
     'getReceiverUsers': () => query(coll,  where('plant', 'array-contains', plant), where('role', '==', 2)),
     'getUsersByRole': () => query(coll,  where('role', '==', userParam.role)),
   };
