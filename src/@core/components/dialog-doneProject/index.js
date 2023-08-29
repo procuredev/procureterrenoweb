@@ -18,6 +18,15 @@ import DialogContent from '@mui/material/DialogContent'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import EngineeringIcon from '@mui/icons-material/Engineering'
+import FormControl from '@mui/material/FormControl'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+
+// ** Date Library
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
 
 
 // ** Icon Imports
@@ -37,7 +46,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
   const [draftmen, setDraftmen] = useState([])
 
-  const [hours, setHours] = useState('')
+
+  const [hours, setHours] = useState({})
   const [error, setError] = useState('')
 
   // ** Hooks
@@ -77,6 +87,18 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     }
   }
 
+  const handleDateChange = dateField => date => {
+    const fieldValue = moment(date.toDate())
+    if (dateField === 'start'){
+      setHours({ ...hours, start: fieldValue })
+    } else {
+      const hoursDifference = fieldValue.diff(hours.start, 'hours');
+      setHours({ ...hours, end: fieldValue, total: hoursDifference });
+    }
+
+    //setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
+  }
+
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
   return (
@@ -105,10 +127,42 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         </Box>
 
         <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <Box display='flex' alignItems='center'>
+                  <DateTimePicker
+                    minDate={moment().subtract(1, 'year')}
+                    maxDate={moment().add(1, 'year')}
+                    label='Fecha de inicio'
+                    value={hours.start}
+                    onChange={handleDateChange('end')}
+                    InputLabelProps={{ shrink: true, required: true }}
+                  />
+                </Box>
+              </LocalizationProvider>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <Box display='flex' alignItems='center'>
+                  <DateTimePicker
+                    minDate={moment().subtract(1, 'year')}
+                    maxDate={moment().add(1, 'year')}
+                    label='Fecha de término'
+                    value={hours.end}
+                    onChange={handleDateChange('end')}
+                    InputLabelProps={{ shrink: true, required: true }}
+                  />
+                </Box>
+              </LocalizationProvider>
+            </FormControl>
+          </Box>
           <TextField
             id='outlined-basic'
             label='Horas del Levantamiento'
-            value={hours}
+            value={hours.total}
             onChange={handleInputChange}
             error={error !== ''}
             helperText={error}
