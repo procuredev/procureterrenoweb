@@ -20,3 +20,4 @@ En `src\hooks\useFirebaseAuth.js` se encuentran todas las demás funciones de Fi
 ## Deployment
 
 Como esta plantilla usa Next.js, es posible hacer el deploy en Vercel automáticamente cada vez que se hace un cambio en el repo, vía Github Actions.
+test

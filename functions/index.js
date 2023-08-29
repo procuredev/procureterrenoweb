@@ -22,6 +22,9 @@
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 
+// Llamada a template de e-mail:
+const getEmailTemplate = require('./emailTemplate').getEmailTemplate
+
 // Se inicializa el SDK admin de Firebase
 admin.initializeApp()
 
@@ -52,9 +55,10 @@ const getSupervisorData = async (shift) => {
 }
 
 // * Función que revisa la base de datos cada 60 minutos
-exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes').onRun(async context => {
+exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes').timeZone('Chile/Continental').onRun(async context => {
+  const devolutionState = 0
   const requestsRef = admin.firestore().collection('solicitudes') // Se llama a la colección de datos 'solicitudes' en Firestore
-  const requestsSnapshot = await requestsRef.where('state', '==', 1).get() // Se llaman a los datos de la colección 'solicitudes' que están en estado 1 (en revisión por Solicitante)
+  const requestsSnapshot = await requestsRef.where('state', '==', devolutionState).get() // Se llaman a los datos de la colección 'solicitudes' que están en estado 1 (en revisión por Solicitante)
   const requestsDocs = requestsSnapshot.docs // Se almacena en una constante todos los documentos que cumplen con la condición anterior
 
   // Se revisa cada uno de los documentos existentes en 'solicitudes'
@@ -75,15 +79,16 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
 
       const now = new Date() // Se almacena en una constante la fecha instantánea (ahora)
 
-      // Si prevState es 2 (el usuario anterior es C.Opetor) && newState es 1 (el usuario actual es solicitante)
-      if (eventRequestData.prevState === 2 && eventRequestData.newState === 1) {
+      // Si prevState es 2 (el usuario anterior es C.Opetor) && newState es 0 (el usuario actual es solicitante)
+      if (eventRequestData.prevState === 2 && eventRequestData.newState === devolutionState) {
         // Si ha pasado más de 24 horas desde la fecha del evento
-        if (now - eventCreationDate > 24* 60 * 60 * 1000) {
+        if (now - eventCreationDate > 24 * 60 * 60 * 1000) {
+
           // Crea un nuevo evento con un UID automático
           const newEvent = {
             date: admin.firestore.Timestamp.fromDate(now), // Se almacena la fecha en que es revisado
-            newState: 4, // El newState será 4 para que lo tenga que revisar el Planificador
-            prevState: 1, // El prevState es 1 porque debería haber sido revisado por el Solicitante
+            newState: 3, // El newState será 3 para que lo tenga que revisar el Planificador
+            prevState: devolutionState, // El prevState es 0 porque debería haber sido revisado por el Solicitante
             user: 'admin.desarrollo@procure.cl', // Se usa el email del admin para que en el historial refleje que fue un cambio automatizado
             userName: 'admin' // Se usa "admin" para que en el historial refleje que fue un cambio automatizado
           }
@@ -94,7 +99,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
 
           // Se escribre en colección 'mail' el nuevo e-mail eviado de forma automática
           try {
-            const requestData = requestDoc.data() // Se almacenan todos los datos de la solicitud
+            const requirementData = requestDoc.data() // Se almacenan todos los datos de la solicitud
 
             const newDoc = {} // Se genera un elemento vacío
             const emailsRef = admin.firestore().collection('mail') // Se llama a la colección de datos 'mail' en Firestore
@@ -103,10 +108,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
 
             const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
 
-            const userSnapshot = await usersRef.doc(requestData.uid).get() // Se llama a los datos del 'usuario' que creó la solicitud
-            const userData = userSnapshot.data() // Se almacena dentro de una variable los datos del usuario que creó la solicitud
-
-            const reqContractOperatorName = requestData.contop // Se almacena el nombre del Contract Operator de la solicitud
+            const reqContractOperatorName = requirementData.contop // Se almacena el nombre del Contract Operator de la solicitud
             const reqContractOperatorSnapshot = await usersRef.where('name', '==', reqContractOperatorName).get() // Se llama sólo al que cumple con la condición de que su name es igual al del contop del usuario que generó la solicitud
             const reqContractOperatorData = reqContractOperatorSnapshot.docs[0].data() // Se almacena en una constante los datos del Contract Operator
             const reqContractOperatorEmail = reqContractOperatorData.email // Se almacena el e-mail del Contract Operator
@@ -125,134 +127,42 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
 
             const fechaCompleta = now // Constante que almacena la fecha instantánea
 
-            const startDate = requestData.start.toDate().toLocaleDateString('es-CL') // Constante que almacena la fecha de inicio del levantamiento
+            // Se almacenan las constantes a usar en el email
+            const userName = requirementData.user
+            const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString('es-CL', {timeZone: "America/Santiago"})} a las ${fechaCompleta.toLocaleTimeString('es-CL', {timeZone: "America/Santiago"})}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${requirementData.contop} modificó la fecha del levantamiento`
+            const requestNumber = requirementData.n_request
+            const title = requirementData.title
+            const engineering = requirementData.engineering ? 'Si' : 'No'
+            const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
+            const supervisor = 'Por definir'
+            const start = requirementData.start.toDate().toLocaleDateString('es-CL')
+            const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString('es-CL') : 'Por definir'
+            const plant = requirementData.plant
+            const area = requirementData.area ? requirementData.area : 'No indicado'
+            const functionalLocation = (requirementData.fnlocation && requirementData.fnlocation !== '') ? requirementData.fnlocation : 'No indicado'
+            const contractOperator = requirementData.contop
+            const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
+            const sapNumber = (requirementData.sap && requirementData.sap !== '') ? requirementData.sap : 'No indicado'
+            const operationalType = requirementData.type ? requirementData.type : 'No indicado'
+            const machineDetention = requirementData.detention ? requirementData.detention : 'No indicado'
+            const jobType = requirementData.objective
+            const deliverable = requirementData.deliverable.join(', ')
+            const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
+            const description = requirementData.description
+            const lastMessage = ''
 
-            // Variable que almacena la fecha de término del levantamiento
-            var endDate = null // Se inicializa como null
-            // Si el campo existe dentro del documento
-            if (requestData.end) {
-              endDate = requestData.end.toDate().toLocaleDateString('es-CL') // Se actualiza endDate con el dato existente
-            } else {
-              // Si el campo no existe dentro del documento
-              endDate = 'Por definir' // La variable endDate queda 'Por definir'
-            }
+            // Llamada al html del email con las constantes previamente indicadads
+            const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
 
-            // Variable que almacena el número de OT del levantamiento
-            var otNumber = null // Se inicializa como null
-            // Si el campo existe dentro del documento
-            if (requestData.ot) {
-              otNumber = requestData.ot // Se actualiza otNumber con el dato existente
-            } else {
-              // Si el campo no existe dentro del documento
-              otNumber = 'Por definir' // La variable otNumber queda 'Por definir'
-            }
-
-            // Se rescatan los datos de quien será el Supervisor una vez que la solicitud alcanza el estado 6
-            // Variable que almacena el Supervisor que estará a cargo del levantamiento
-            var supervisorEmail = ''
-            var supervisorName = ''
-
-            // Si el campo existe dentro del documento
-            if (requestData.supervisorShift) {
-              // Se actualiza supervisorName con el dato existente
-              const supervisorShift = requestData.supervisorShift // Se rescata el nombre del campo "supervisorShift" en la base de datos
-              const supervisorData = await getSupervisorData(supervisorShift) // Para el supervisor indicado se obtiene su datos de Firestore
-              supervisorEmail = supervisorData.email // Se selecciona el email del supervisor
-              supervisorName = supervisorData.name // Se selecciona el email del supervisor
-            } else {
-              // Si el campo no existe dentro del documento
-              supervisorName = 'Por definir' // La variable supervisorName queda 'Por definir'
-            }
-
-            // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
             await emailsRef.doc(mailId).update({
-              to: requestData.userEmail,
+              to: requirementData.userEmail,
               cc: [reqContractOperatorEmail, contractOwnerEmail, plannerEmail, admContratoEmail],
               date: fechaCompleta,
               req: requestUid,
               emailType: 'Over24h',
               message: {
-                subject: `Solicitud de levantamiento: N°${requestData.n_request} - ${requestData.title}`,
-                html: `
-                  <h2>Estimad@ ${requestData.user}:</h2>
-                  <p>Con fecha ${fechaCompleta.toLocaleDateString('es-CL')} a las ${fechaCompleta.toLocaleTimeString('es-CL')}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${reqContractOperatorName} modificó la fecha del levantamiento. A continuación puede encontrar el detalle de la solicitud:</p>
-                  <table style="width:100%;">
-                    <tr>
-                      <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
-                      <td style="text-align:left; width:80%;">${requestData.n_request}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
-                      <td>${requestData.title}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Ingeniería integrada:</strong></td>
-                      <td>${requestData.engineering ? 'Si' : 'No'}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>N° OT Procure:</strong></td>
-                      <td>${otNumber}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Supervisor a cargo del levantamiento:</strong></td>
-                      <td>${supervisorName}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Fecha de inicio de levantamiento:</strong></td>
-                      <td>${startDate}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Fecha de término de levantamiento:</strong></td>
-                      <td>${endDate}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Planta:</strong></td>
-                      <td>${requestData.plant}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
-                      <td>${requestData.area}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
-                      <td>${requestData.fnlocation}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Contract Operator:</strong></td>
-                      <td>${requestData.contop}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Solicitante:</strong></td>
-                      <td>${requestData.petitioner}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>N° SAP:</strong></td>
-                      <td>${requestData.sap}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Tipo de trabajo:</strong></td>
-                      <td>${requestData.type}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Tipo de levantamiento:</strong></td>
-                      <td>${requestData.objective}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Entregables esperados:</strong></td>
-                      <td>${requestData.deliverable.join(', ')}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Destinatarios:</strong></td>
-                      <td>${requestData.receiver.map(receiver => receiver.email).join(', ')}</td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
-                      <td>${requestData.description}</td>
-                    </tr>
-                  </table
-                <p>Para mayor información revise la solicitud en nuestra página web</p>
-                <p>Saludos,<br>Procure Terreno Web</p>
-                `
+                subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+                html: emailHtml
               }
             })
             console.log('E-mail de actualizacion enviado con éxito.')
@@ -339,17 +249,14 @@ exports.sendInfoToSupervisorAtSixAM = functions.pubsub
         const supervisorData = supervisorSnapshot.docs[0].data() // Se almacena en una constante los datos del Supervisor
         const supervisorEmail = supervisorData.email // Se almacena el e-mail del Supervisor
         const supervisorName = supervisorData.name // Se almacena el e-mail del Supervisor
-        console.log('supervisor email: ' + supervisorEmail)
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
         const plannerData = plannerSnapshot.docs[0].data() // Se almacena en una constante los datos del Planificador
         const plannerEmail = plannerData.email // Se almacena el e-mail del Planificador
-        console.log('planificador email: ' + plannerEmail)
 
         const admContratoSnapshot = await usersRef.where('role', '==', 6).get() // Se llama sólo al que cumple con la condición de que su rol es 6 (Administrador de Contrato)
         const admContratoData = admContratoSnapshot.docs[0].data() // Se almacena en una constante los datos del Administrador de Contrato
         const admContratoEmail = admContratoData.email // Se almacena el e-mail del Administrador de Contrato
-        console.log('admCont email: ' + admContratoEmail)
 
         // Si hay mas de 1 levantamiento se escribirá 'levantamientos agendados'
         let youHaveTasks = 'levantamiento agendado'

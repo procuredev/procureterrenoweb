@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
@@ -15,11 +14,13 @@ import TextField from '@mui/material/TextField'
 import Edit from '@mui/icons-material/Edit'
 import FormControl from '@mui/material/FormControl'
 import Chip from '@mui/material/Chip'
-import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Slide from '@mui/material/Slide'
 import Skeleton from '@mui/material/Skeleton'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import { Download } from '@mui/icons-material'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -36,11 +37,8 @@ import {
 import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
-import { useFirebase, getData } from 'src/context/useFirebaseAuth'
-import localDate from 'src/@core/utils/handle-date-offset'
+import { useFirebase } from 'src/context/useFirebase'
 
-// ** Date Library
-//import moment from 'moment'
 import moment from 'moment-timezone'
 import 'moment/locale/es'
 
@@ -48,16 +46,157 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
+const StyledFormControl = props => (
+  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
+)
+
+function CustomListItem({
+  editable,
+  label,
+  id,
+  value,
+  onChange,
+  disabled = false,
+  required = false,
+  multiline = false,
+  initialValue
+}) {
+  return (
+    <>
+      {editable ? (
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+            <TextField
+              onChange={onChange}
+              label={label}
+              id={`${id}-input`}
+              defaultValue={initialValue}
+              disabled={disabled}
+              required={required}
+              value={value}
+              size='small'
+              variant='standard'
+              fullWidth={true}
+              multiline={multiline}
+            />
+          </StyledFormControl>
+        </ListItem>
+      ) : (
+        initialValue && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
+      )}
+    </>
+  )
+}
+
+function DateListItem({ editable, label, value, onChange, initialValue }) {
+  return (
+    <>
+      {editable ? (
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+              <DatePicker
+                minDate={moment().subtract(1, 'year')}
+                maxDate={moment().add(1, 'year')}
+                label={label}
+                value={value}
+                onChange={onChange}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    required: true,
+                    variant: 'standard',
+                    fullWidth: true
+                  }
+                }}
+              />
+            </LocalizationProvider>
+          </StyledFormControl>
+        </ListItem>
+      ) : (
+        initialValue &&
+        initialValue.seconds && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue && unixToDate(initialValue.seconds)[0]}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
+      )}
+    </>
+  )
+}
+
+const PhotoItem = ({ photoUrl }) => (
+  <Box sx={{ position: 'relative', height: '-webkit-fill-available', p:2 }}>
+    <Box component='img' src={photoUrl} alt="Photo" style={{ height: 'inherit'}} />
+    <IconButton
+    href={photoUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+      sx={{
+        position: 'absolute',
+        bottom: '10px',
+        right: '10px',
+        backgroundColor: 'rgba(220, 220, 220, 0.1)',
+      }}
+    >
+      <Download />
+    </IconButton>
+  </Box>
+);
+
+const PhotoGallery = ({ photos }) => (
+  <Box sx={{ ml:3, display: 'flex', height:'140px', width:'70%', justifyContent:'space-around' }}>
+    {photos.map((fotoUrl, index) => (
+      <PhotoItem key={index} photoUrl={fotoUrl} />
+    ))}
+  </Box>
+);
+
+
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
-  // Nueva variable para definir el valor inicial de 'editable'
   let isPlanner = roleData && roleData.id === '5'
 
-  let { title, state, description, start, user, date, plant, area, id, ot, end, shift, userRole } = doc
+  let {
+    title,
+    state,
+    description,
+    start,
+    user,
+    date,
+    plant,
+    area,
+    id,
+    ot,
+    end,
+    supervisorShift,
+    userRole,
+    petitioner,
+    fotos
+  } = doc
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
   const [editable, setEditable] = useState(isPlanner)
   const [openAlert, setOpenAlert] = useState(false)
   const [eventData, setEventData] = useState(undefined)
+  const [petitionerContact, setPetitionerContact] = useState({})
 
   const [hasChanges, setHasChanges] = useState({
     title: false,
@@ -66,30 +205,56 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     start: false,
     end: false,
     ot: false,
-    shift: false,
-    description: false
+    supervisorShift: false,
+    description: false,
+    fotos: false
   })
-  const { updateDocs, useEvents, reviewDocs } = useFirebase()
 
   const theme = useTheme()
+  const { updateDocs, useEvents, authUser, getUserData } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
-  let display = fullScreen ? 'auto' : 'none'
 
   // Verifica estado
   state = typeof state === 'number' ? state : 100
 
-  const eventArray = useEvents(id)
+  const eventArray = useEvents(id, authUser)
+
+  const PetitionerContactComponent = () => (
+    <>
+      {petitioner && <Typography>{petitioner}</Typography>}
+      {petitionerContact && (
+        <>
+          <Typography>{petitionerContact.email}</Typography>
+          <Typography>{petitionerContact.phone}</Typography>
+        </>
+      )}
+    </>
+  )
 
   const initialValues = {
     title,
+    description,
+    petitioner,
     plant,
     area,
+    date: moment(date.toDate()),
     start: start && moment(start.toDate()),
     ...(ot && { ot }),
     ...(end && { end: moment(end.toDate()) }),
-    ...(shift && { shift }),
-    description
+    ...(supervisorShift && { supervisorShift }),
+    ...(fotos && { fotos })
   }
+
+  // Establece los contactos del Solicitante
+  useEffect(() => {
+    const fetchData = async () => {
+      const petitionerName = values.petitioner
+      const petitionerData = await getUserData('getPetitioner', null, { name: petitionerName })
+      setPetitionerContact(petitionerData)
+    }
+
+    fetchData()
+  }, [values.petitioner])
 
   // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
@@ -106,19 +271,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleOpenAlert = async () => {
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
     if (roleData.id === '5') {
-      // Agrega end/ot
-      if (!end && hasChanges.end) {
+      // Agrega end y ot
+      if (!end && hasChanges.end && !ot && hasChanges.ot) {
         setOpenAlert(true)
 
         // Ya viene con end u ot
       } else if (end && ot && state === 4) {
-        await reviewDocs(id, true)
+        await updateDocs(id, true, authUser)
           .then(handleClose())
-          .catch(error => alert(error))
+          .catch(error => {
+            alert(error), console.log(error)
+          })
 
         //No trae ni agrega end/ot
-      } else if (!end && !hasChanges.end) {
-        setMessage('Debes ingresar OT y fecha de término')
+      } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
+        setMessage('Debes ingresar ot y fecha de término')
       } else {
         setOpenAlert(true)
       }
@@ -145,7 +312,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
 
     if (Object.keys(newData).length > 0) {
-      updateDocs(id, newData)
+      updateDocs(id, newData, authUser)
     } else {
       console.log('No se escribió ningún documento')
     }
@@ -195,10 +362,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
-                  label={state || state === 0 ? dictionary[state].title : 'Cargando...'}
+                  label={state || state === 0 ? dictionary[state].details : 'Cargando...'}
                   color={state || state === 0 ? dictionary[state].color : 'primary'}
-                  size='small'
-                  sx={{ width: 180 }}
+                  sx={{ width: 'auto' }}
                 />
                 <Box>
                   {/*Botón para editar*/}
@@ -211,179 +377,103 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     >
                       <Edit />
                     </IconButton>
-                  ) : (
-                    <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
-                      {''}
-                    </Typography>
-                  )}
+                  ) : null}
                   <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
                     {/*este botón debería cerrar y setEditable false*/}
                     <Close />
                   </IconButton>
                 </Box>
               </Box>
-              {/*Título */}
-              {editable && roleData && roleData.canEditValues ? (
-                <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                  <TextField
-                    onChange={handleInputChange('title')}
-                    label='Título'
-                    id='title-input'
-                    defaultValue={title}
-                    size='small'
-                    sx={{ mt: 5, mb: 5, mr: 2 }}
-                  />
-                </FormControl>
-              ) : (
-                <Typography variant='h5' sx={{ mb: 2.5 }} component='div'>
-                  Título: {title}
-                </Typography>
-              )}
-              <Typography sx={{ mb: 4 }} color='textSecondary'>
-                Estado: {state ? dictionary[state].details : ''}
+
+              <List>
+                <CustomListItem
+                  editable={editable && roleData && roleData.canEditValues}
+                  label='Título'
+                  id='title'
+                  initialValue={title}
+                  value={values.title}
+                  onChange={handleInputChange('title')}
+                  required={true}
+                />
+                <CustomListItem
+                  editable={editable && roleData && roleData.canEditValues}
+                  label='Descripción'
+                  id='desc'
+                  initialValue={description}
+                  value={values.description}
+                  onChange={handleInputChange('description')}
+                  multiline={true}
+                />
+                <CustomListItem
+                  editable={editable && roleData && roleData.canEditValues}
+                  label='Planta'
+                  id='plant'
+                  initialValue={plant}
+                  value={values.plant}
+                  onChange={handleInputChange('plant')}
+                />
+                <CustomListItem
+                  editable={editable && roleData && roleData.canEditValues}
+                  label='Área'
+                  id='area'
+                  initialValue={area}
+                  value={values.area}
+                  onChange={handleInputChange('area')}
+                />
+                <CustomListItem
+                  editable={false}
+                  label='Solicitante'
+                  id='petitioner'
+                  initialValue={<PetitionerContactComponent />}
+                />
+                <DateListItem
+                  editable={editable && roleData && roleData.canEditStart}
+                  label='Inicio'
+                  id='start'
+                  value={values.start}
+                  onChange={handleDateChange('start')}
+                  initialValue={start}
+                />
+                <DateListItem
+                  editable={editable && roleData && roleData.canEditEnd}
+                  label='Término'
+                  id='end'
+                  value={values.end}
+                  onChange={handleDateChange('end')}
+                  initialValue={end}
+                />
+                <CustomListItem
+                  editable={editable && roleData && roleData.canEditValues}
+                  label='OT'
+                  id='ot'
+                  initialValue={ot}
+                  value={values.ot}
+                  onChange={handleInputChange('ot')}
+                  disabled={!isPlanner}
+                  required={isPlanner}
+                />
+                <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
+              <ListItem>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                Archivos adjuntos
               </Typography>
-              {/*Planta*/}
-              {editable && roleData && roleData.canEditValues ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <TextField
-                      onChange={handleInputChange('plant')}
-                      label='Planta'
-                      id='plant-input'
-                      defaultValue={plant}
-                      size='small'
-                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                    />
-                  </FormControl>
-                </Box>
-              ) : (
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Planta: {plant}
-                </Typography>
-              )}
-              {/*Área*/}
-              {editable && roleData && roleData.canEditValues ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <TextField
-                      onChange={handleInputChange('area')}
-                      label='Área'
-                      id='area-input'
-                      defaultValue={area}
-                      size='small'
-                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                    />
-                  </FormControl>
-                </Box>
-              ) : (
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Área: {area}
-                </Typography>
-              )}
-              {/*Fecha de inicio*/}
-              {editable && roleData && roleData.canEditStart ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-                      <Box display='flex' alignItems='center'>
-                        <DatePicker
-                          minDate={moment().subtract(1, 'year')}
-                          maxDate={moment().add(1, 'year')}
-                          label='Fecha de inicio'
-                          value={values.start}
-                          onChange={handleDateChange('start')}
-                          InputLabelProps={{ shrink: true, required: true }}
-                        />
-                      </Box>
-                    </LocalizationProvider>
-                  </FormControl>
-                </Box>
-              ) : (
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Fecha de inicio: {start && unixToDate(start.seconds)[0]}
-                </Typography>
-              )}
-              {/*Asigna término */}
-              {editable && roleData && roleData.canEditEnd ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-                      <Box display='flex' alignItems='center'>
-                        <DatePicker
-                          minDate={moment().subtract(1, 'year')}
-                          maxDate={moment().add(1, 'year')}
-                          label='Fecha de término'
-                          value={values.end}
-                          onChange={handleDateChange('end')}
-                          InputLabelProps={{ shrink: true, required: true }}
-                        />
-                      </Box>
-                    </LocalizationProvider>
-                  </FormControl>
-                </Box>
-              ) : (
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Fecha de término: {end && unixToDate(end.seconds)[0]}
-                </Typography>
-              )}
-              {/*Asigna OT */}
-              {editable && roleData && roleData.canEditValues ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <TextField
-                      required={isPlanner}
-                      onChange={handleInputChange('ot')}
-                      label='OT'
-                      id='OT-input'
-                      defaultValue={ot}
-                      size='small'
-                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                      InputProps={{
-                        readOnly: true, // Esto hará que el campo no sea editable
-                      }}
-                    />
-                  </FormControl>
-                </Box>
-              ) : (
-                ot && (
-                  <Typography sx={{ mb: 4 }} color='textSecondary'>
-                    OT Procure: {ot}
-                  </Typography>
-                )
-              )}
-              {/* Turno */}
-              {shift && (
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Turno: {shift}
-                </Typography>
-              )}
-              {/*Descripción */}
-              {editable && roleData && roleData.canEditValues ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <TextField
-                      onChange={handleInputChange('description')}
-                      label='Descripción'
-                      id='desc-input'
-                      defaultValue={description}
-                      size='small'
-                      sx={{ mb: 5, mr: 2, flex: 'auto' }}
-                    />
-                  </FormControl>
-                </Box>
-              ) : (
-                <Typography sx={{ mb: 4 }} color='textSecondary'>
-                  Descripción: {description}
-                </Typography>
-              )}
+              {values.fotos && <PhotoGallery photos={fotos} />}
+            </Box>
+
+              </ListItem>
+              </List>
+
+
 
               {editable ? (
                 <Button
-                  disabled={isPlanner ? false : !Object.values(hasChanges).some(hasChange => hasChange)}
+                  sx={{ mt: 3, mb: 5 }}
+                  disabled={!Object.values(hasChanges).some(hasChange => hasChange)}
                   onClick={() => handleOpenAlert()}
                   variant='contained'
                 >
-                  {isPlanner ? 'Aprobar y guardar' : 'Guardar'}
+                  {isPlanner && state <= 4 ? 'Aprobar y guardar' : 'Guardar'}
                 </Button>
               ) : null}
 
@@ -396,9 +486,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   return (
                     <div key={element.date}>
                       <TimelineItem>
-                        <TimelineOppositeContent color='textSecondary'>
-                          {unixToDate(element.date.seconds)}
-                        </TimelineOppositeContent>
+                        <TimelineOppositeContent>{unixToDate(element.date.seconds)}</TimelineOppositeContent>
                         <TimelineSeparator>
                           <TimelineDot />
                           <TimelineConnector />
@@ -414,9 +502,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   )
                 })}
               <TimelineItem sx={{ mt: 1 }}>
-                <TimelineOppositeContent color='textSecondary'>
-                  {date && unixToDate(date.seconds)}
-                </TimelineOppositeContent>
+                <TimelineOppositeContent>{date && unixToDate(date.seconds)}</TimelineOppositeContent>
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector />

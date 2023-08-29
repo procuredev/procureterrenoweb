@@ -21,34 +21,60 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const ChartBarsDocsByPlants = () => {
   // ** Hook
-  const {
-    consultAllDocsByPlants
-  } = useFirebase()
+  const { consultDocs } = useFirebase()
   const theme = useTheme()
 
-  const [docsByPlants, setDocsByPlants] = useState([0,0,0,0,0,0])
+  const [docsByPlants, setDocsByPlants] = useState([0, 0, 0, 0, 0, 0])
 
   useEffect(() => {
-      const fetchData = async () => {
-        const resDocsByPlants = await consultAllDocsByPlants();
-        setDocsByPlants(resDocsByPlants);
-      };
+    const fetchData = async () => {
+      const plants = [
+        'Planta Concentradora Los Colorados',
+        'Planta Concentradora Laguna Seca | Línea 1',
+        'Planta Concentradora Laguna Seca | Línea 2',
+        'Chancado y Correas',
+        'Puerto Coloso',
+        'Instalaciones Cátodo'
+      ];
+
+      const results = [];
+
+      for (const plant of plants) {
+        const result = await consultDocs('byPlants', { plants: [plant] });
+        results.push(result);
+      }
+
+      const combinedCounts = results.reduce((acc, counts) => {
+        counts.forEach((count, index) => {
+          acc[index] += count;
+        });
+
+        return acc;
+      }, Array(6).fill(0));
+
+      setDocsByPlants(combinedCounts);
+    };
 
     fetchData();
-  }, [])
-
-
+  }, []);
 
   const options = {
     tooltip: {
       x: {
-        formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-         //const value = series[seriesIndex][dataPointIndex];
-          const plants = ['Los Colorados', 'Laguna Seca 1', 'Laguna Seca 2', 'Chancado y Correas', 'Puerto Coloso', 'Instalacones Cátodo']
+        formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
+          //const value = series[seriesIndex][dataPointIndex];
+          const plants = [
+            'Los Colorados',
+            'Laguna Seca 1',
+            'Laguna Seca 2',
+            'Chancado y Correas',
+            'Puerto Coloso',
+            'Instalacones Cátodo'
+          ]
 
           return plants[dataPointIndex]
         }
@@ -115,7 +141,12 @@ const ChartBarsDocsByPlants = () => {
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts type='bar' height={120} options={options} series={[{ name:'Solicitudes', data: docsByPlants }]} />
+        <ReactApexcharts
+          type='bar'
+          height={120}
+          options={options}
+          series={[{ name: 'Solicitudes', data: docsByPlants }]}
+        />
       </CardContent>
     </Card>
   )

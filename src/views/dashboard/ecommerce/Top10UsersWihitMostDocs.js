@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import {Card, CardHeader, CardContent} from '@mui/material'
+import { Card, CardHeader, CardContent } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import { DataGrid } from '@mui/x-data-grid'
 
@@ -18,7 +18,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const rows = [
   {
@@ -33,7 +33,7 @@ const rows = [
     docs: 25,
     plant: 'Puerto Coloso',
     name: 'Robert Crawford',
-    avatarSrc: '/images/avatars/3.png',
+    avatarSrc: '/images/avatars/3.png'
   },
   {
     id: 3,
@@ -61,7 +61,7 @@ const rows = [
     docs: 4,
     plant: 'Puerto Coloso',
     name: 'Francis Frank',
-    avatarSrc: '/images/avatars/7.png',
+    avatarSrc: '/images/avatars/7.png'
   },
   {
     id: 7,
@@ -82,7 +82,7 @@ const rows = [
     docs: 18,
     plant: 'Puerto Coloso',
     name: 'Alvaro Jimenez',
-    avatarSrc: '/images/avatars/7.png',
+    avatarSrc: '/images/avatars/7.png'
   },
   {
     id: 10,
@@ -97,15 +97,21 @@ const renderUserAvatar = row => {
   if (row.avatarSrc) {
     return <CustomAvatar src={row.avatarSrc} sx={{ mr: 3, width: 34, height: 34 }} />
   } else {
-
-
     return (
-
-
-      <CustomAvatar skin='light' sx={{ mr: 3, width: 34, height: 34, objectFit: 'contain', bgcolor: 'primary.main', color: 'white', fontSize: '.8rem' }}>
+      <CustomAvatar
+        skin='light'
+        sx={{
+          mr: 3,
+          width: 34,
+          height: 34,
+          objectFit: 'contain',
+          bgcolor: 'primary.main',
+          color: 'white',
+          fontSize: '.8rem'
+        }}
+      >
         {getInitials(row.name ? row.name : 'John Doe')}
       </CustomAvatar>
-
     )
   }
 }
@@ -136,7 +142,9 @@ const columns = [
     headerName: 'Planta',
     renderCell: ({ row }) => (
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Typography sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>{Array.isArray(row.plant) ? row.plant.join(", ") : row.plant}</Typography>
+        <Typography sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+          {Array.isArray(row.plant) ? row.plant.join(', ') : row.plant}
+        </Typography>
       </Box>
     )
   },
@@ -154,37 +162,30 @@ const columns = [
 ]
 
 const Top10UsersWihitMostDocs = () => {
-
   // ** Hook
-  const {
-    getUsersWithSolicitudes
-  } = useFirebase()
+  const { getUsersWithSolicitudes } = useFirebase()
 
   const [top10, setTop10] = useState([])
 
   useEffect(() => {
-      const fetchData = async () => {
-        const resTop10 = await getUsersWithSolicitudes();
-        setTop10(resTop10);
-      };
+    const fetchData = async () => {
+      const resTop10 = await getUsersWithSolicitudes()
+      setTop10(resTop10)
+    }
 
-    fetchData();
+    fetchData()
   }, [])
 
-
   return (
-
     <Card>
       <CardHeader
-      sx={{ pb: 3.25 }}
-      title='Top 10 usuarios con más solicitudes'
-      titleTypographyProps={{ variant: 'h6' }}>
-
-      </CardHeader>
+        sx={{ pb: 3.25 }}
+        title='Top 10 usuarios con más solicitudes'
+        titleTypographyProps={{ variant: 'h6' }}
+      ></CardHeader>
       <CardContent>
-      <DataGrid autoHeight hideFooter rows={top10} columns={columns} disableSelectionOnClick pagination={undefined} />
+        <DataGrid autoHeight hideFooter rows={top10} columns={columns} disableSelectionOnClick pagination={undefined} />
       </CardContent>
-
     </Card>
   )
 }

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
 import Tooltip from '@mui/material/Tooltip'
@@ -25,12 +25,12 @@ const DataGrid = () => {
   const [filterConfig, setFilterConfig] = useState({})
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const { useSnapshot, authUser, getRoleData } = useFirebase()
-  const data = useSnapshot(true)
+  const data = useSnapshot(true, authUser)
 
   // Objeto de configuración de filtros
   useEffect(() => {
-    setFilterConfig(generateFilterConfig(authUser));
-  }, [authUser]);
+    setFilterConfig(generateFilterConfig(authUser))
+  }, [authUser])
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)

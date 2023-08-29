@@ -153,12 +153,12 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
       '& tbody td, & thead th': {
         borderColor: theme.palette.divider,
         '&.fc-col-header-cell': {
-          backgroundColor: theme.palette.background.paper,
           borderLeft: 0,
           borderRight: 0
         },
         '&[role="presentation"]': {
-          borderRightWidth: 0
+          borderRightWidth: 0,
+          background: 'transparent'
         }
       },
 

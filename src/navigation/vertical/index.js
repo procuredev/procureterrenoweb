@@ -1,13 +1,11 @@
-import {useContext} from 'react';
+import { useContext } from 'react'
 
 // ** Hooks Import
-import { FirebaseContext } from 'src/context/useFirebaseAuth'
-
+import { FirebaseContext } from 'src/context/useFirebase'
 
 const Navigation = () => {
-
   // ** Hooks
-  const firebase = useContext(FirebaseContext);
+  const firebase = useContext(FirebaseContext)
   const role = firebase.authUser ? firebase.authUser.role : 'none'
 
   // Array que contiene las características del menú navegador
@@ -62,7 +60,7 @@ const Navigation = () => {
           title: 'Nuevo Usuario',
           path: '/nuevo-usuario',
           subject: 'nuevo-usuario'
-        },
+        }
       ],
       authorizedRoles: [1]
     },
@@ -73,8 +71,8 @@ const Navigation = () => {
         {
           path: '/levantamientos',
           title: 'Levantamientos',
-          subject: 'levantamientos',
-        },
+          subject: 'levantamientos'
+        }
       ],
 
       authorizedRoles: [1, 7]
@@ -84,11 +82,10 @@ const Navigation = () => {
   // Función para filtrar los enlaces del menú según el rol del usuario
   const filteredMenuItems = menuItems.filter(item => {
     // Si los roles autorizados incluyen el rol del usuario actual, se mostrará para ese rol
-    return item.authorizedRoles.includes(role);
-  });
+    return item.authorizedRoles.includes(role)
+  })
 
-  return filteredMenuItems;
-
+  return filteredMenuItems
 }
 
 export default Navigation

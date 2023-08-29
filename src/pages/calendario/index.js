@@ -16,7 +16,7 @@ const moment = require('moment')
 
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 import { useTheme } from '@mui/material/styles'
 
 // ** FullCalendar & App Components Imports
@@ -58,7 +58,7 @@ const AppCalendar = () => {
   // ** Vars
   const { skin, direction } = settings
   const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
-  const data = useSnapshot()
+  const data = useSnapshot(false, authUser)
   const theme = useTheme()
 
   const [roleData, setRoleData] = useState({ name: 'admin' })

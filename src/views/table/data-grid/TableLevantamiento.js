@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
@@ -45,10 +45,10 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { reviewDocs, authUser, getUserProyectistas } = useFirebase()
+  const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
   const [draftmen, setDraftmen] = useState([])
 
-  const defaultSortingModel = [{ field: 'date', sort: 'desc' }];
+  const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
   const handleClickOpen = doc => {
     console.log(doc)
@@ -90,7 +90,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   }
 
   const writeCallback = () => {
-    reviewDocs(doc.id, approve)
+    updateDocs(doc.id, approve, authUser)
     setOpenAlert(false)
   }
 
@@ -117,16 +117,14 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
 
   useEffect(() => {
     const fetchProyectistas = async () => {
-      const resProyectistas = await getUserProyectistas(authUser.shift)
+      const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
       setProyectistas(resProyectistas)
       setLoadingProyectistas(false)
     }
 
     fetchProyectistas()
-
-    /* const resProyectistas = getUserProyectistas(authUser.shift)
-    setProyectistas(resProyectistas) */
   }, [authUser.shift])
+
 
   const columns = [
     {

@@ -11,7 +11,6 @@ import Icon from 'src/@core/components/icon'
 import Link from '@mui/material/Link'
 import Box from '@mui/material/Box'
 
-
 // ** Custom Component Import
 import CardStatisticsVertical from 'src/@core/components/card-statistics/card-stats-vertical'
 import ProfileCard from 'src/views/dashboard/ProfileCard'
@@ -25,45 +24,35 @@ import PageHeader from 'src/@core/components/page-header'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 
-
 // ** Demo Components Imports
 import ChartDonutObjetivesLast30days from 'src/views/charts/apex-charts/ChartDonutObjetivesLast30days'
 import ChartDonutDocsLast30days from 'src/views/charts/apex-charts/ChartDonutDocsLast30days'
 import Top10UsersWihitMostDocs from 'src/views/dashboard/ecommerce/Top10UsersWihitMostDocs'
 import TopPositionCharts from 'src/views/dashboard/ecommerce/TopPositionCharts'
 
-
-
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
-
-
-
+import { useFirebase } from 'src/context/useFirebase'
 
 const Home = () => {
   // ** Hooks
-  const {
-    consultAllDocsInDB,
-    consultAllObjetivesInDB,
-  } = useFirebase()
+  const { consultDocs, consultObjetives } = useFirebase()
 
   const [allDocs, setAllDocs] = useState(0)
   const [allObj, setAllObj] = useState(0)
 
   useEffect(() => {
-      const fetchData = async () => {
-        const docsCount = await consultAllDocsInDB();
-        const objetivesCount = await consultAllObjetivesInDB();
-        setAllDocs(docsCount);
-        setAllObj(objetivesCount);
-      };
+    const fetchData = async () => {
+      const allDocsCount = await consultDocs('all');
+      const allObjetivesCount = await consultObjetives('all');
+      setAllDocs(allDocsCount)
+      setAllObj(allObjetivesCount)
+    }
 
-    fetchData();
+    fetchData()
   }, [])
 
-
   return (
-    <Grid container spacing={6} alignItems="stretch" className='match-height' sx={{display:'flex'}}>
+    <Grid container spacing={6} alignItems='stretch' className='match-height' sx={{ display: 'flex' }}>
       {/* <PageHeader
             title={
               <Typography variant='h5'>
@@ -76,13 +65,7 @@ const Home = () => {
           /> */}
       <Grid item xs={12} md={12}>
         <Card>
-          <CardHeader
-            sx={{ pb: 3.25 }}
-            title='Resumen Estadístico'
-            titleTypographyProps={{ variant: 'h6' }}
-
-
-          />
+          <CardHeader sx={{ pb: 3.25 }} title='Resumen Estadístico' titleTypographyProps={{ variant: 'h6' }} />
           <CardContent>
             <Grid container spacing={6}>
               <Grid item xs={12} sm={4}>
@@ -92,7 +75,7 @@ const Home = () => {
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                    {allDocs}
+                      {allDocs}
                     </Typography>
                     <Typography variant='caption'>Solicitudes</Typography>
                   </Box>
@@ -105,7 +88,7 @@ const Home = () => {
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                    {allObj}
+                      {allObj}
                     </Typography>
                     <Typography variant='caption'>Levantamientos</Typography>
                   </Box>
@@ -118,7 +101,7 @@ const Home = () => {
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                    8.458
+                      8.458
                     </Typography>
                     <Typography variant='caption'> Trabajos de Gabinete</Typography>
                   </Box>
@@ -129,7 +112,7 @@ const Home = () => {
         </Card>
       </Grid>
 
-     {/*  <Grid item height='auto' xs={12} sm={4}>
+      {/*  <Grid item height='auto' xs={12} sm={4}>
         <ProfileCard />
       </Grid>
       <Grid item xs={12} sm={4}>
@@ -154,9 +137,7 @@ const Home = () => {
         <ObjetivesByDay />
       </Grid>
 
-
-
-      <Grid item xs={12} sm={6} md={6} >
+      <Grid item xs={12} sm={6} md={6}>
         <ObjetivesByMonth />
       </Grid>
 
@@ -178,8 +159,6 @@ const Home = () => {
       <Grid item xs={12} sm={12} md={12}>
         <Top10UsersWihitMostDocs />
       </Grid>
-
-
     </Grid>
   )
 }

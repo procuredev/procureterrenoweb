@@ -1,131 +1,114 @@
 // ** React Imports
-import { useState, forwardRef, Fragment, useEffect } from 'react'
+import { useState, forwardRef } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
 import List from '@mui/material/List'
-import Menu from '@mui/material/Menu'
 import Avatar from '@mui/material/Avatar'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
 import ListItem from '@mui/material/ListItem'
-import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
 import Fade from '@mui/material/Fade'
 import ListItemText from '@mui/material/ListItemText'
-import Autocomplete from '@mui/material/Autocomplete'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import DialogContent from '@mui/material/DialogContent'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import TableSpanning from 'src/views/table/mui/TableSpanning'
-
-
-
-import Select from '@mui/material/Select'
+import EngineeringIcon from '@mui/icons-material/Engineering'
 import FormControl from '@mui/material/FormControl'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+
+// ** Date Library
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
+
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Configs Imports
-import themeConfig from 'src/configs/themeConfig'
-
 // ** Hooks Imports
-import { useSettings } from 'src/@core/hooks/useSettings'
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-
-
-
-
-export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { //falta evaluar la foto del proyectista
-
+export const DialogDoneProject = ({ open, doc, handleClose }) => {
+  //falta evaluar la foto del proyectista
 
   // ** States
-  const [show, setShow] = useState(false)
-  const [anchorEl, setAnchorEl] = useState(null)
+
   const [draftmen, setDraftmen] = useState([])
 
-  const [horasLevantamiento, setHorasLevantamiento] = useState('');
-  const [error, setError] = useState('');
 
-
+  const [hours, setHours] = useState({})
+  const [error, setError] = useState('')
 
   // ** Hooks
-  const { settings } = useSettings()
-  const hidden = useMediaQuery(theme => theme.breakpoints.down('sm'))
-  const { updateDocs, useEvents, reviewDocs } = useFirebase()
-
-  // ** Var
-  const { direction } = settings
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
+  const { updateDocs, authUser } = useFirebase()
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
-    const updatedDraftmen = draftmen.filter((draftman) => draftman.name !== name);
+    const updatedDraftmen = draftmen.filter(draftman => draftman.name !== name)
 
     // Actualizamos el estado con el nuevo array actualizado
-    setDraftmen(updatedDraftmen);
+    setDraftmen(updatedDraftmen)
   }
 
-/*   const handleClose = () => {
-    setAnchorEl(null)
-  } */
-
-  const handleInputChange = (e) => {
-    const inputValue = e.target.value;
+  const handleInputChange = e => {
+    const inputValue = e.target.value
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
     if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHorasLevantamiento(inputValue);
-      setError(''); // Limpia el mensaje de error si existe
+      setHours(inputValue)
+      setError('') // Limpia el mensaje de error si existe
     } else {
-      setHorasLevantamiento('');
-      setError('Por favor, ingrese un número mayor a 1.');
+      setHours('')
+      setError('Por favor, ingrese un número mayor a 1.')
     }
   }
 
-  const handleListItemClick = (option) => {
-    // Verificamos si el option ya existe en el array draftmen
-    if (!draftmen.some((draftman) => draftman.name === option.name)) {
-      // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen((prevDraftmen) => [...prevDraftmen, option]);
-      document.getElementById('add-members').blur(); // Oculta el componente al hacer clic en el ListItem
-    }
-  }
 
- const onsubmit = (id) => {
-    if (horasLevantamiento !== '') {
-      reviewDocs(id, horasLevantamiento)
-
+  const onsubmit = id => {
+    if (hours !== '') {
+      updateDocs(id, {hours}, authUser)
 
       // Aquí puedes actualizar el documento 'doc' en la base de datos con el campo 'horas levantamiento'
       // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase
-      handleClose();
+      handleClose()
     } else {
-      setError('Por favor, ingrese un número mayor a 0.');
+      setError('Por favor, ingrese un número mayor a 0.')
     }
   }
+
+  const handleDateChangeWrapper = dateField => date => {
+    const handleDateChange = date => {
+      const fieldValue = moment(date.toDate());
+      const updatedHours = { ...hours };
+
+      if (dateField === 'start') {
+        updatedHours.start = fieldValue;
+      } else {
+        const hoursDifference = fieldValue.diff(updatedHours.start, 'hours');
+        updatedHours.end = fieldValue;
+        updatedHours.total = hoursDifference;
+      }
+
+      setHours(updatedHours);
+    };
+
+    handleDateChange(date);
+  };
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
   return (
-
     <Dialog
       fullWidth
       open={open}
@@ -150,17 +133,50 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
           <Typography variant='body2'>Establece el total de horas</Typography>
         </Box>
 
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-        <TextField
-          id='outlined-basic'
-          label='Horas del Levantamiento'
-          value={horasLevantamiento}
-          onChange={handleInputChange}
-          error={error !== ''}
-          helperText={error}
-        />
-      </Box>
-
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <Box display='flex' alignItems='center'>
+                  <DateTimePicker
+                    minDate={moment().subtract(1, 'year')}
+                    maxDate={moment().add(1, 'year')}
+                    label='Fecha de inicio'
+                    value={hours.start}
+                    onChange={handleDateChangeWrapper('start')}
+                    InputLabelProps={{ shrink: true, required: true }}
+                  />
+                </Box>
+              </LocalizationProvider>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <Box display='flex' alignItems='center'>
+                  <DateTimePicker
+                    minDate={moment().subtract(1, 'year')}
+                    maxDate={moment().add(1, 'year')}
+                    label='Fecha de término'
+                    value={hours.end}
+                    onChange={handleDateChangeWrapper('end')}
+                    InputLabelProps={{ shrink: true, required: true }}
+                  />
+                </Box>
+              </LocalizationProvider>
+            </FormControl>
+          </Box>
+          <TextField
+            //id='outlined-basic'
+            //label='Horas del Levantamiento'
+            disabled={true}
+            justifyContent="center"
+            value={hours.total}
+            //onChange={handleInputChange}
+            error={error !== ''}
+            helperText={error}
+          />
+        </Box>
 
         <List dense sx={{ py: 4 }}>
           {draftmen.map(draftman => {
@@ -175,11 +191,11 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
                 }}
               >
                 <ListItemAvatar>
-                  {draftman.avatar?
-                    <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} /> :
-                    <CustomAvatar skin='light' >
-                      {getInitials(draftman.name ? draftman.name : 'John Doe')}
-                    </CustomAvatar> }
+                  {draftman.avatar ? (
+                    <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} />
+                  ) : (
+                    <CustomAvatar skin='light'>{getInitials(draftman.name ? draftman.name : 'John Doe')}</CustomAvatar>
+                  )}
                 </ListItemAvatar>
                 <ListItemText
                   primary={draftman.name}
@@ -187,14 +203,14 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
                   sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
                 />
                 <ListItemSecondaryAction sx={{ right: 0 }}>
-                <IconButton
-                      size='small'
-                      aria-haspopup='true'
-                      onClick={() => handleClickDelete(draftman.name)}
-                      aria-controls='modal-share-examples'
-                    >
-                      <Icon icon='mdi:delete-circle-outline' fontSize={20} color= '#f44336' />
-                    </IconButton>
+                  <IconButton
+                    size='small'
+                    aria-haspopup='true'
+                    onClick={() => handleClickDelete(draftman.name)}
+                    aria-controls='modal-share-examples'
+                  >
+                    <Icon icon='mdi:delete-circle-outline' fontSize={20} color='#f44336' />
+                  </IconButton>
                 </ListItemSecondaryAction>
               </ListItem>
             )
@@ -206,7 +222,6 @@ export const DialogDoneProject = ({open, doc, proyectistas, handleClose}) => { /
             Guardar
           </Button>
         </Box>
-
       </DialogContent>
     </Dialog>
   )

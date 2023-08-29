@@ -19,36 +19,40 @@ const donutColors = {
 }
 
 // ** Hooks
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const ChartDonutObjetivesLast30days = () => {
   // ** Hook
-  const {
-    consultAllObjetivesByState
-  } = useFirebase()
+  const { consultObjetives } = useFirebase()
   const theme = useTheme()
 
-  const [objByState, setObjByState] = useState([0,0,0])
-  const [loading, setLoading] = useState(true); // Agregamos un estado para indicar si estamos cargando los datos
+  const [objByState, setObjByState] = useState([0, 0, 0])
+  const [loading, setLoading] = useState(true) // Agregamos un estado para indicar si estamos cargando los datos
 
   useEffect(() => {
-      const fetchData = async () => {
-        const resObjByStates = await consultAllObjetivesByState();
-        setObjByState(resObjByStates);
-        setLoading(false); // Cuando los datos se han cargado, actualizamos el estado a false
-      };
+    const fetchData = async () => {
+      const objectivesByState = await consultObjetives('byState');
 
-    fetchData();
+      setObjByState(objectivesByState)
+      setLoading(false) // Cuando los datos se han cargado, actualizamos el estado a false
+    }
+
+    fetchData()
   }, [loading])
 
-  const totalObjetives = objByState.reduce((total, count) => total + count, 0);
+  const totalObjetives = objByState.reduce((total, count) => total + count, 0)
   const total = `Total: ${totalObjetives}`
 
   const options = {
     stroke: { width: 0 },
-    labels: ['agendados', 'en ejecución',  'terminados'],
+    labels: ['Agendados', 'En Ejecución', 'Terminados'],
     colors: [donutColors.series3, donutColors.series1, donutColors.series2],
-    dataLabels: { enabled: true, formatter: function (val, opt) { return opt.w.config.series[opt.seriesIndex]} },
+    dataLabels: {
+      enabled: true,
+      formatter: function (val, opt) {
+        return opt.w.config.series[opt.seriesIndex]
+      }
+    },
     legend: {
       position: 'bottom',
       markers: { offsetX: -3 },
@@ -132,8 +136,11 @@ const ChartDonutObjetivesLast30days = () => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       />
       <CardContent>
-        {loading? <p>Cargando datos...</p> : <ReactApexcharts type='donut' height={400} options={options} series={objByState} />}
-
+        {loading ? (
+          <p>Cargando datos...</p>
+        ) : (
+          <ReactApexcharts type='donut' height={400} options={options} series={objByState} />
+        )}
       </CardContent>
     </Card>
   )

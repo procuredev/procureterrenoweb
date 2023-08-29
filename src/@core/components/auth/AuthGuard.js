@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 // ** Hooks Import
-import { useFirebase } from 'src/context/useFirebaseAuth'
+import { useFirebase } from 'src/context/useFirebase'
 
 const AuthGuard = props => {
   const { children, fallback } = props
@@ -21,7 +21,7 @@ const AuthGuard = props => {
       const thisRoute = router.asPath
 
       // Si hay un usuario logueado
-      if (authUser){
+      if (authUser) {
         // Y si este usuario intenta ingresar al login, forgot-password o '/'
         if (thisRoute == '/login/' || thisRoute == '/forgot-password/' || thisRoute == '/') {
           // Será redirigido al home
@@ -31,7 +31,6 @@ const AuthGuard = props => {
         // Si no hay alguien conectado, siempre será redirigido al login
         router.replace('/login')
       }
-
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [router.route, authUser]

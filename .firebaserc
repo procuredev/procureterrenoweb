@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "procureterrenoweb"
-  }
+    "default": "procureterrenoweb",
+    "pruebasprocureterrenoweb": "pruebasprocureterrenoweb"
+  },
+  "targets": {},
+  "etags": {}
 }
