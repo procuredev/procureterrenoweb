@@ -20,6 +20,7 @@ import Slide from '@mui/material/Slide'
 import Skeleton from '@mui/material/Skeleton'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
+import { Download } from '@mui/icons-material'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -100,50 +101,102 @@ function CustomListItem({
 
 function DateListItem({ editable, label, value, onChange, initialValue }) {
   return (
-    <ListItem id={`list-${label}`} divider={!editable}>
+    <>
       {editable ? (
-        <StyledFormControl>
-          <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-            <DatePicker
-              minDate={moment().subtract(1, 'year')}
-              maxDate={moment().add(1, 'year')}
-              label={label}
-              value={value}
-              onChange={onChange}
-              slotProps={{
-                textField: {
-                  size: 'small',
-                  required: true,
-                  variant: 'standard',
-                  fullWidth: true
-                }
-              }}
-            />
-          </LocalizationProvider>
-        </StyledFormControl>
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+              <DatePicker
+                minDate={moment().subtract(1, 'year')}
+                maxDate={moment().add(1, 'year')}
+                label={label}
+                value={value}
+                onChange={onChange}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    required: true,
+                    variant: 'standard',
+                    fullWidth: true
+                  }
+                }}
+              />
+            </LocalizationProvider>
+          </StyledFormControl>
+        </ListItem>
       ) : (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-          <Typography component='div' sx={{ width: '30%' }}>
-            {label}
-          </Typography>
-          <Typography component='div' sx={{ width: '70%' }}>
-            {initialValue && unixToDate(initialValue.seconds)[0]}
-          </Typography>
-        </Box>
+        initialValue &&
+        initialValue.seconds && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue && unixToDate(initialValue.seconds)[0]}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
       )}
-    </ListItem>
+    </>
   )
 }
+
+const PhotoItem = ({ photoUrl }) => (
+  <Box sx={{ position: 'relative', height: '-webkit-fill-available', p:2 }}>
+    <Box component='img' src={photoUrl} alt="Photo" style={{ height: 'inherit'}} />
+    <IconButton
+    href={photoUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+      sx={{
+        position: 'absolute',
+        bottom: '10px',
+        right: '10px',
+        backgroundColor: 'rgba(220, 220, 220, 0.1)',
+      }}
+    >
+      <Download />
+    </IconButton>
+  </Box>
+);
+
+const PhotoGallery = ({ photos }) => (
+  <Box sx={{ ml:3, display: 'flex', height:'140px', width:'70%', justifyContent:'space-around' }}>
+    {photos.map((fotoUrl, index) => (
+      <PhotoItem key={index} photoUrl={fotoUrl} />
+    ))}
+  </Box>
+);
+
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
   let isPlanner = roleData && roleData.id === '5'
 
-  let { title, state, description, start, user, date, plant, area, id, ot, end, shift, userRole } = doc
+  let {
+    title,
+    state,
+    description,
+    start,
+    user,
+    date,
+    plant,
+    area,
+    id,
+    ot,
+    end,
+    supervisorShift,
+    userRole,
+    petitioner,
+    fotos
+  } = doc
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
   const [editable, setEditable] = useState(isPlanner)
   const [openAlert, setOpenAlert] = useState(false)
   const [eventData, setEventData] = useState(undefined)
+  const [petitionerContact, setPetitionerContact] = useState({})
 
   const [hasChanges, setHasChanges] = useState({
     title: false,
@@ -152,12 +205,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     start: false,
     end: false,
     ot: false,
-    shift: false,
-    description: false
+    supervisorShift: false,
+    description: false,
+    fotos: false
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
 
   // Verifica estado
@@ -165,16 +219,42 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const eventArray = useEvents(id, authUser)
 
+  const PetitionerContactComponent = () => (
+    <>
+      {petitioner && <Typography>{petitioner}</Typography>}
+      {petitionerContact && (
+        <>
+          <Typography>{petitionerContact.email}</Typography>
+          <Typography>{petitionerContact.phone}</Typography>
+        </>
+      )}
+    </>
+  )
+
   const initialValues = {
     title,
+    description,
+    petitioner,
     plant,
     area,
+    date: moment(date.toDate()),
     start: start && moment(start.toDate()),
     ...(ot && { ot }),
     ...(end && { end: moment(end.toDate()) }),
-    ...(shift && { shift }),
-    description
+    ...(supervisorShift && { supervisorShift }),
+    ...(fotos && { fotos })
   }
+
+  // Establece los contactos del Solicitante
+  useEffect(() => {
+    const fetchData = async () => {
+      const petitionerName = values.petitioner
+      const petitionerData = await getUserData('getPetitioner', null, { name: petitionerName })
+      setPetitionerContact(petitionerData)
+    }
+
+    fetchData()
+  }, [values.petitioner])
 
   // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
@@ -341,6 +421,28 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('area')}
                 />
                 <CustomListItem
+                  editable={false}
+                  label='Solicitante'
+                  id='petitioner'
+                  initialValue={<PetitionerContactComponent />}
+                />
+                <DateListItem
+                  editable={editable && roleData && roleData.canEditStart}
+                  label='Inicio'
+                  id='start'
+                  value={values.start}
+                  onChange={handleDateChange('start')}
+                  initialValue={start}
+                />
+                <DateListItem
+                  editable={editable && roleData && roleData.canEditEnd}
+                  label='Término'
+                  id='end'
+                  value={values.end}
+                  onChange={handleDateChange('end')}
+                  initialValue={end}
+                />
+                <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
                   label='OT'
                   id='ot'
@@ -350,31 +452,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   disabled={!isPlanner}
                   required={isPlanner}
                 />
-                <CustomListItem
-                  editable={false}
-                  label='Turno'
-                  id='shift'
-                  initialValue={shift}
-                  value={values.shift}
-                  onChange={handleInputChange('shift')}
-                />
-                <DateListItem
-                  editable={editable && roleData && roleData.canEditStart}
-                  label='Fecha de inicio'
-                  id='start'
-                  value={values.start}
-                  onChange={handleDateChange('start')}
-                  initialValue={start}
-                />
-                <DateListItem
-                  editable={editable && roleData && roleData.canEditEnd}
-                  label='Fecha de término'
-                  id='end'
-                  value={values.end}
-                  onChange={handleDateChange('end')}
-                  initialValue={end}
-                />
+                <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
+              <ListItem>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                Archivos adjuntos
+              </Typography>
+              {values.fotos && <PhotoGallery photos={fotos} />}
+            </Box>
+
+              </ListItem>
               </List>
+
+
 
               {editable ? (
                 <Button
