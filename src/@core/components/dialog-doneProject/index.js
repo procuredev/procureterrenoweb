@@ -87,17 +87,24 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     }
   }
 
-  const handleDateChange = dateField => date => {
-    const fieldValue = moment(date.toDate())
-    if (dateField === 'start'){
-      setHours({ ...hours, start: fieldValue })
-    } else {
-      const hoursDifference = fieldValue.diff(hours.start, 'hours');
-      setHours({ ...hours, end: fieldValue, total: hoursDifference });
-    }
+  const handleDateChangeWrapper = dateField => date => {
+    const handleDateChange = date => {
+      const fieldValue = moment(date.toDate());
+      const updatedHours = { ...hours };
 
-    //setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
-  }
+      if (dateField === 'start') {
+        updatedHours.start = fieldValue;
+      } else {
+        const hoursDifference = fieldValue.diff(updatedHours.start, 'hours');
+        updatedHours.end = fieldValue;
+        updatedHours.total = hoursDifference;
+      }
+
+      setHours(updatedHours);
+    };
+
+    handleDateChange(date);
+  };
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
@@ -136,7 +143,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                     maxDate={moment().add(1, 'year')}
                     label='Fecha de inicio'
                     value={hours.start}
-                    onChange={handleDateChange('end')}
+                    onChange={handleDateChangeWrapper('start')}
                     InputLabelProps={{ shrink: true, required: true }}
                   />
                 </Box>
@@ -152,7 +159,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                     maxDate={moment().add(1, 'year')}
                     label='Fecha de término'
                     value={hours.end}
-                    onChange={handleDateChange('end')}
+                    onChange={handleDateChangeWrapper('end')}
                     InputLabelProps={{ shrink: true, required: true }}
                   />
                 </Box>
@@ -160,10 +167,12 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
             </FormControl>
           </Box>
           <TextField
-            id='outlined-basic'
-            label='Horas del Levantamiento'
+            //id='outlined-basic'
+            //label='Horas del Levantamiento'
+            disabled={true}
+            justifyContent="center"
             value={hours.total}
-            onChange={handleInputChange}
+            //onChange={handleInputChange}
             error={error !== ''}
             helperText={error}
           />
