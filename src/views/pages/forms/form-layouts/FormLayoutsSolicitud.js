@@ -513,7 +513,8 @@ const FormLayoutsSolicitud = () => {
   useEffect(() => {
     if(values.contop){
       const contoOp = values.contop
-      getUserData('getUsersByRole', null, {role: 4}).then(value => setValues({...values, receiver:[value[0], {name : contoOp}]}))
+      getUserData('getUsersByRole', null, {role: 4}).then(value => setValues({ ...values, receiver: value[0] ? [value[0], { name: contoOp }] : [{ name: contoOp }] })
+      )
     }
   }, [values.contop])
 
