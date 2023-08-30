@@ -203,7 +203,6 @@ const AppCalendar = () => {
       borderColor: 'transparent',
       resume: eventResume(a).resume
     })),
-    showNonCurrentDates: false,
     eventDidMount: function (info) {
       tippy(info.el, {
         content: `
