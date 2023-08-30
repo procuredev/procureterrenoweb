@@ -99,7 +99,7 @@ function CustomListItem({
   )
 }
 
-function DateListItem({ editable, label, value, onChange, initialValue }) {
+function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
   return (
     <>
       {editable ? (
@@ -107,7 +107,7 @@ function DateListItem({ editable, label, value, onChange, initialValue }) {
           <StyledFormControl>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
               <DatePicker
-                minDate={moment().subtract(1, 'year')}
+                minDate={customMinDate || moment().subtract(1, 'year')}
                 maxDate={moment().add(1, 'year')}
                 label={label}
                 value={value}
@@ -144,32 +144,31 @@ function DateListItem({ editable, label, value, onChange, initialValue }) {
 }
 
 const PhotoItem = ({ photoUrl }) => (
-  <Box sx={{ position: 'relative', height: '-webkit-fill-available', p:2 }}>
-    <Box component='img' src={photoUrl} alt="Photo" style={{ height: 'inherit'}} />
+  <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+    <Box component='img' src={photoUrl} alt='Photo' style={{ height: 'inherit' }} />
     <IconButton
-    href={photoUrl}
-    target="_blank"
-    rel="noopener noreferrer"
+      href={photoUrl}
+      target='_blank'
+      rel='noopener noreferrer'
       sx={{
         position: 'absolute',
         bottom: '10px',
         right: '10px',
-        backgroundColor: 'rgba(220, 220, 220, 0.1)',
+        backgroundColor: 'rgba(220, 220, 220, 0.1)'
       }}
     >
       <Download />
     </IconButton>
   </Box>
-);
+)
 
 const PhotoGallery = ({ photos }) => (
-  <Box sx={{ ml:3, display: 'flex', height:'140px', width:'70%', justifyContent:'space-around' }}>
+  <Box sx={{ display: 'flex', height: '140px', width: '70%', justifyContent: 'space-around' }}>
     {photos.map((fotoUrl, index) => (
       <PhotoItem key={index} photoUrl={fotoUrl} />
     ))}
   </Box>
-);
-
+)
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
   let isPlanner = roleData && roleData.id === '5'
@@ -441,6 +440,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.end}
                   onChange={handleDateChange('end')}
                   initialValue={end}
+                  customMinDate={values.start}
                 />
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
@@ -453,18 +453,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   required={isPlanner}
                 />
                 <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
-              <ListItem>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
-                Archivos adjuntos
-              </Typography>
-              {values.fotos && <PhotoGallery photos={fotos} />}
-            </Box>
 
-              </ListItem>
+                {values.fotos && (
+                  <ListItem>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      <Typography component='div' sx={{ width: '30%', pr:2 }}>
+                        Archivos adjuntos
+                      </Typography>
+                      <PhotoGallery photos={fotos} />
+                    </Box>
+                  </ListItem>
+                )}
               </List>
-
-
 
               {editable ? (
                 <Button
