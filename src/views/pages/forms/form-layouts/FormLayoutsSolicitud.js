@@ -625,6 +625,28 @@ const FormLayoutsSolicitud = () => {
               </Box>
             </Grid>
 
+            {/*Descripción*/}
+            <Grid item xs={12}>
+              <Box display='flex' alignItems='center'>
+                <FormControl fullWidth>
+                  <TextField
+                    InputLabelProps={{ required: true}}
+                    fullWidth
+                    type='text'
+                    label='Descripción'
+                    inputProps={{ maxLength: 500 }}
+                    value={values.description}
+                    onChange={handleChange('description')}
+                    error={errors.description ? true : false}
+                    helperText={errors.description}
+                  />
+                </FormControl>
+                <StyledTooltip title='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'>
+                  <StyledInfoIcon color='action' />
+                </StyledTooltip>
+              </Box>
+            </Grid>
+
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
@@ -1101,28 +1123,6 @@ const FormLayoutsSolicitud = () => {
                   </StyledTooltip>
                 </Box>
               </FormControl>
-            </Grid>
-
-            {/*Descripción*/}
-            <Grid item xs={12}>
-              <Box display='flex' alignItems='center'>
-                <FormControl fullWidth>
-                  <TextField
-                    InputLabelProps={{ required: true}}
-                    fullWidth
-                    type='text'
-                    label='Descripción'
-                    inputProps={{ maxLength: 500 }}
-                    value={values.description}
-                    onChange={handleChange('description')}
-                    error={errors.description ? true : false}
-                    helperText={errors.description}
-                  />
-                </FormControl>
-                <StyledTooltip title='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'>
-                  <StyledInfoIcon color='action' />
-                </StyledTooltip>
-              </Box>
             </Grid>
 
             {/* VideoUrl */}
