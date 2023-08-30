@@ -317,17 +317,18 @@ const FormLayoutsSolicitud = () => {
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
+    const maxSizeBytes = 5 * 1024 * 1024; // 5 MB in bytes
 
     const isValidImage = file => {
       const extension = file.name.split('.').pop().toLowerCase()
 
-      return imageExtensions.includes(extension)
+      return imageExtensions.includes(extension) && file.size <= maxSizeBytes;
     }
 
     const isValidDocument = file => {
       const extension = file.name.split('.').pop().toLowerCase()
 
-      return documentExtensions.includes(extension)
+      return documentExtensions.includes(extension) && file.size <= maxSizeBytes;
     }
 
     const isValidFile = file => {
@@ -338,7 +339,7 @@ const FormLayoutsSolicitud = () => {
       return {
         name: file.name,
         isValid: isValidFile(file),
-        msj: `${file.name}`
+        msj: isValidFile(file) ? `${file.name}` : `${file.name} - El archivo excede el tamaño máximo de 5 MB`,
       }
     })
 
