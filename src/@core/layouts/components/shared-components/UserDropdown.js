@@ -161,7 +161,7 @@ const UserDropdown = props => {
       )
     } else {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
-      const currentName = authUser.displayName ?? name
+      const currentName = authUser.displayName ? authUser.displayName : 'Por definir'
 
       const initials = currentName
         .toUpperCase()
