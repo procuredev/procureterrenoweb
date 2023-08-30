@@ -158,7 +158,7 @@ const RenderTabContent = ({ data }) => {
                   border: 0,
                   py: theme => `${theme.spacing(1.5)} !important`
                 },
-                '&:first-child .MuiTableCell-body': {
+                '&:first-of-type .MuiTableCell-body': {
                   pt: theme => `${theme.spacing(3)} !important`
                 },
                 '&:last-child .MuiTableCell-body': {

@@ -166,16 +166,18 @@ const FormLayoutsSolicitud = () => {
         }
         if (prop === 'objective') {
           const isAnalysisGPRSelected = newValue === 'Análisis GPR'
-          const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
-          const currentWeek = moment().isoWeeks()
+          const currentWeek = moment().isoWeek();
+          const startDate = moment(values.start);
+          const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+          const weeksDifference = startDate.diff(currentDate, 'weeks');
 
           const inTenWeeks = moment()
             .locale('es')
-            .isoWeeks(currentWeek + 11)
-            .startOf('week')
+            .isoWeeks(currentWeek + 10)
+            //.startOf('week')
             .format('LL')
 
-          if (isAnalysisGPRSelected && weeksDifference < 11) {
+          if (isAnalysisGPRSelected && weeksDifference < 10) {
             setErrors(prevErrors => ({
               ...prevErrors,
               objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
@@ -226,32 +228,30 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const onBlur = async e => {
-    const resultSap = await consultSAP(e.target.value)
-    if (resultSap.exist) {
-      if (resultSap.sapWithOt) {
-        console.log(resultSap.sapWithOt)
-        setAlertMessage(resultSap.msj)
+  const handleBlur = async e => {
+    if (values.sap.length > 0) {
+      const resultSap = await consultSAP(e.target.value);
+
+      if (resultSap.exist) {
+        if (resultSap.sapWithOt) {
+          setAlertMessage(resultSap.msj);
+        } else {
+          setAlertMessage(resultSap.msj);
+        }
+      } else {
+        setValues({
+          ...values,
+          sap: e.target.value
+        });
       }
-      console.log(resultSap.sap)
-      setAlertMessage(resultSap.msj)
-    } else {
-      setValues({
-        ...values,
-        sap: e.target.value
-      })
+
+      return resultSap;
     }
-
-    // setAlertMessage(resultSap.msj)
-
-    return resultSap
-  }
-
-  // const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('https://')
+  };
 
   const validationRegex = {
-    title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
-    description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
+    //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     tag: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
@@ -270,17 +270,19 @@ const FormLayoutsSolicitud = () => {
       }
 
       if (key === 'objective') {
-        const isAnalysisGPRSelected = values[key] === 'Análisis GPR'
-        const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
-        const currentWeek = moment().isoWeeks()
+        const isAnalysisGPRSelected = values[key] === 'Análisis GPR';
+        const currentWeek = moment().isoWeek();
+        const startDate = moment(values.start);
+        const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+        const weeksDifference = startDate.diff(currentDate, 'weeks');
 
         const inTenWeeks = moment()
           .locale('es')
-          .isoWeeks(currentWeek + 11)
-          .startOf('week')
+          .isoWeeks(currentWeek + 10)
+          //.startOf('week')
           .format('LL')
 
-        if (isAnalysisGPRSelected && weeksDifference < 11) {
+        if (isAnalysisGPRSelected && weeksDifference < 10) {
           newErrors[key] = `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
         }
       }
@@ -311,14 +313,6 @@ const FormLayoutsSolicitud = () => {
       setPlants(['No aplica'])
     }
   }
-
-  /* const getContOp = async plant => {
-    console.log(plant, "PLANT2")
-    let options = await getUsers(plant)
-    console.log(options, "OPTIONS")
-
-    setContOpOptions(options)
-  } */
 
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
@@ -352,7 +346,6 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleOpenErrorDialog = msj => {
-    console.log(msj)
 
     setErrorFileMsj(msj)
     setErrorDialog(true)
@@ -366,10 +359,8 @@ const FormLayoutsSolicitud = () => {
     onDrop: acceptedFiles => {
       const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
       if (invalidFiles.length > 0) {
-        console.log(validateFiles(invalidFiles))
 
         const res = validateFiles(invalidFiles)
-        console.log(res[0].msj, 'res.msj')
         const msj = res[0].msj
         handleOpenErrorDialog(msj)
 
@@ -471,7 +462,6 @@ const FormLayoutsSolicitud = () => {
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isBlocked = await consultBlockDayInDB(values.start.toDate())
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
-    console.log(formErrors)
 
     if (Object.keys(formErrors).length === 0 && areFieldsValid === true && invalidFiles.length === 0) {
       try {
@@ -564,16 +554,18 @@ const FormLayoutsSolicitud = () => {
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
-      const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
-      const currentWeek = moment().isoWeeks()
+      const currentWeek = moment().isoWeek();
+      const startDate = moment(values.start);
+      const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+      const weeksDifference = startDate.diff(currentDate, 'weeks');
 
       const inTenWeeks = moment()
         .locale('es')
-        .isoWeeks(currentWeek + 11)
-        .startOf('week')
+        .isoWeeks(currentWeek + 10)
+        //.startOf('week')
         .format('LL')
 
-      if (weeksDifference < 11) {
+      if (weeksDifference < 10) {
         setErrors(prevErrors => ({
           ...prevErrors,
           objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
@@ -586,8 +578,6 @@ const FormLayoutsSolicitud = () => {
       }
     }
   }, [values.start])
-
-  console.log(petitioners, "petitioners")
 
   return (
     <Card>
@@ -1004,7 +994,7 @@ const FormLayoutsSolicitud = () => {
                   type='text'
                   label='Número SAP'
                   id='sap-input'
-                  onBlur={values.sap.length > 0 && onBlur}
+                  onBlur={handleBlur}
                   value={values.sap}
                   onChange={handleChange('sap')}
                   error={errors.sap ? true : false}
@@ -1117,11 +1107,11 @@ const FormLayoutsSolicitud = () => {
               <Box display='flex' alignItems='center'>
                 <FormControl fullWidth>
                   <TextField
-                    InputLabelProps={{ required: true }}
+                    InputLabelProps={{ required: true}}
                     fullWidth
                     type='text'
                     label='Descripción'
-                    inputProps={{ maxLength: 100 }}
+                    inputProps={{ maxLength: 500 }}
                     value={values.description}
                     onChange={handleChange('description')}
                     error={errors.description ? true : false}

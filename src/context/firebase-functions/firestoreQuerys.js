@@ -15,6 +15,7 @@ import {
   getCountFromServer
 } from 'firebase/firestore'
 
+import { unixToDate } from 'src/@core/components/unixToDate'
 
 // Librería
 import { capitalize } from 'lodash'
@@ -61,8 +62,6 @@ const useSnapshot = (datagrid = false, userParam) => {
 
   useEffect(() => {
     if (userParam) {
-      console.log(userParam.role, 'USER PLANT')
-
       let q = query(collection(db, 'solicitudes'))
 
       const getAllDocs = [1, 4, 5, 6, 7, 9]
@@ -124,7 +123,6 @@ const useSnapshot = (datagrid = false, userParam) => {
 
 // Obtener los datos de un rol
 const getRoleData = async role => {
-  console.log(role)
   const docRef = doc(db, 'roles', role)
   const docSnap = await getDoc(docRef)
   let data = docSnap.data()
@@ -172,9 +170,6 @@ const getUserData = async (type, plant, userParam = {shift : '', name : ''}) => 
   }
 
   try {
-
-
-
     // Obtener los documentos según la función de consulta y realizar la consulta
     const querySnapshot = await getDocs(queryFunc());
 
@@ -216,7 +211,6 @@ const getUserData = async (type, plant, userParam = {shift : '', name : ''}) => 
       } else if (userParam.plant === 'allPlants') {
         return allDocs.filter(doc => doc.role === 2);
       } else if (userParam.role === 3) {
-        console.log(allDocs, "allDocs")
 
         return allDocs;
       } else {
@@ -317,14 +311,15 @@ const consultSAP = async sap => {
         if (docItem.data().ot) {
           // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
           sapWithOt.push({
-            ot: docItem.data().ot,
+            title: docItem.data().title,
             author,
+            ot: docItem.data().ot,
+            date: unixToDate(docItem.data().date.seconds)[0],
             objective: docItem.data().objective,
-            title: docItem.data().title
           })
         } else {
           // Si el documento no tiene una OT asignada, agregarlo al arreglo 'sap'
-          sap.push({ author, objective: docItem.data().objective, title: docItem.data().title })
+          sap.push({ title: docItem.data().title, author, date: unixToDate(docItem.data().date.seconds)[0], objective: docItem.data().objective })
         }
       })
     )
@@ -333,7 +328,7 @@ const consultSAP = async sap => {
       // Si hay solicitudes con OT asignadas, retornar un objeto con información detallada
       messages = sap
         .map(
-          item => `Título: ${item.title}\n Solicitante: ${item.author}\n Tipo de Levantamiento: ${item.objective}\n`
+          item => `Título: ${item.title}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
 
           // Si todas las solicitudes están en revisión sin OT asignada, retornar un objeto con información detallada
         )
@@ -344,7 +339,7 @@ const consultSAP = async sap => {
       const otMessages = sapWithOt
         .map(
           item =>
-            `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Tipo de Levantamiento: ${item.objective}\n`
+            `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
         )
         .join('\n')
 

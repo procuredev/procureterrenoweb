@@ -238,20 +238,20 @@ export function solicitudValidator(values) {
 
   const valDetention = ['Sí', 'No', 'No aplica']
 
-  const valTitle = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
-  const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
+  //const valTitle = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
+  //const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
   const valSap = /^[0-9+]{0,10}$/
   const valFnLocation = /^[a-zA-Z0-9 -./]{0,25}$/ // /^[0-9+]{4,6}$/
 
   const validations = {
-    title: {
+   /*  title: {
       validate: value => valTitle.test(value),
       message: 'El título no admite caracteres especiales.'
     },
     description: {
       validate: value => valDescription.test(value),
       message: 'La descripción no admite caracteres especiales.'
-    },
+    }, */
     sap: {
       validate: value => valSap.test(value),
       message: 'El SAP solo recibe campos numéricos y debe tener de 8 a 10 caracteres.'
