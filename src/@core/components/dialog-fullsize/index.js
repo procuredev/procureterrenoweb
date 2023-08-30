@@ -335,6 +335,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const fieldValue = moment(date.toDate())
     setValues({ ...values, [dateField]: fieldValue })
     setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
+
+    // Si cambia start, end debe ser igual a start mas diferencia original
+    const isPetitioner = userRole === 2
+    const isContop = userRole === 3
+
+    // Variable diferencia original entre start y end
+    const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
+    
+    if (dateField === 'start' && end && (isPetitioner || isContop)) {
+      const newEnd = moment(date.toDate()).add(docDifference, 'days')
+      setValues({ ...values, end: newEnd })
+      setHasChanges({ ...hasChanges, end: !newEnd.isSame(initialValues.end) })
+    }
   }
 
   return (
