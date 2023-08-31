@@ -179,8 +179,8 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
 })
 
 // * Función que revisa la base de datos todos los días a las 6AM
-exports.sendInfoToSupervisorAtSixAM = functions.pubsub
-  .schedule('every day 06:00')
+exports.sendInfoToSupervisorAt8AM = functions.pubsub
+  .schedule('every day 07:45')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
