@@ -14,16 +14,12 @@ import 'moment/locale/es'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import localDate from 'src/@core/utils/handle-date-offset'
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import CardHeader from '@mui/material/CardHeader'
 import InputLabel from '@mui/material/InputLabel'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
@@ -38,7 +34,6 @@ import FormHelperText from '@mui/material/FormHelperText'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
 import { styled } from '@mui/material/styles'
 import areas from 'src/@core/components/plants-areas/index'
 import InfoIcon from '@mui/icons-material/Info'
@@ -54,7 +49,6 @@ import Icon from 'src/@core/components/icon'
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@emotion/react'
-import { DonutSmallOutlined } from '@mui/icons-material'
 
 // Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
@@ -117,15 +111,11 @@ const FormLayoutsSolicitud = () => {
   // ** Hooks
   const {
     authUser,
-    getPetitioner,
-    getReceiverUsers,
     newDoc,
     uploadFilesToFirebaseStorage,
-    getAllPlantUsers,
     consultBlockDayInDB,
     consultSAP,
     getUserData,
-    getUsers
   } = useFirebase()
   const router = useRouter()
   const theme = useTheme()
@@ -143,7 +133,6 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
-  const [validateUrlVideo, setValidUrlVideo] = useState({ url: 'https://url.com', tempUrl: '' })
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo']
@@ -1096,28 +1085,6 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
-            {/* VideoUrl */}
-            {/* <Grid item xs={12}>
-              <Box display='flex' alignItems='center'>
-                <TextField
-                  InputLabelProps={{ required: false }}
-                  fullWidth
-                  type='text'
-                  label='Video url'
-                  id='urlVideo-input'
-
-                  //onBlur={onBlurUrlVideo}
-                  value={values.urlvideo}
-                  onChange={event => setValidUrlVideo({ url: 'https://url.com', tempUrl: event.target.value })}
-                  error={isValidUrlVideo(validateUrlVideo.url)}
-                  helperText={isValidUrlVideo(validateUrlVideo.url) ? "URL incorrecta" : ""}
-                  inputProps={{ maxLength: 25 }}
-                />
-                <StyledTooltip title='Rellena este campo sólo si tienes el link del video. La url debe empezar con https://'>
-                  <StyledInfoIcon color='action' />
-                </StyledTooltip>
-              </Box>
-            </Grid> */}
 
             {/* Dropzone archivos */}
             <Grid item xs={12}>
@@ -1185,7 +1152,7 @@ const FormLayoutsSolicitud = () => {
                     </DialogTitle>
                     <DialogContent sx={{ textAlign: 'center' }}>
                       <CircularProgress
-                        size={40} // Ajusta el tamaño del CircularProgress según tus preferencias
+                        size={40}
                       />
                     </DialogContent>
                   </Dialog>
