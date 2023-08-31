@@ -107,7 +107,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     handleDateChange(date);
   };
 
- /*  useEffect(() => {
+  /* useEffect(() => {
     if (hours.start && hours.end) {
       const startOfWorkday = moment(hours.start).set('hour', 8).set('minute', 0);
       const endOfWorkday = moment(hours.start).set('hour', 18).set('minute', 0);
@@ -115,10 +115,10 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
       const endOfLunchBreak = moment(hours.start).set('hour', 13).set('minute', 0);
 
       // Filtrar las horas fuera del horario hábil y del horario de descanso
-      const filteredStart = moment.max(startOfWorkday, hours.start, endOfLunchBreak);
-      const filteredEnd = moment.min(endOfWorkday, hours.end, startOfLunchBreak);
+      //const filteredStart = moment.max(startOfWorkday, hours.start, endOfLunchBreak);
+      //const filteredEnd = moment.min(endOfWorkday, hours.end, startOfLunchBreak);
 
-      const duration = moment.duration(filteredEnd.diff(filteredStart));
+      const duration = moment.duration(endOfWorkday.diff(startOfWorkday));
       const totalMinutesDifference = duration.asMinutes();
 
       const hoursDifference = Math.floor(totalMinutesDifference / 60);

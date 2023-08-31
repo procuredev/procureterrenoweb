@@ -316,10 +316,15 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       7,
       [
+        {
+          condition: approves && approves.hasOwnProperty('draftmen'),
+          newState: state.supervisor,
+          log: 'Proyectistas asignados por Supervisor'
+        },
         // Supervisor agrega horas pasando estado de la solicitud a 8
         // Si horas cambia a objeto, en vez de checkear por string se deberá checkear que el objeto tenga {start, end y hours}
         {
-          condition: approves && typeof approves === 'string',
+          condition: approves && approves.hasOwnProperty('hours'),
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
         },
