@@ -527,8 +527,12 @@ const FormLayoutsSolicitud = () => {
   useEffect(() => {
     if (values.plant) {
       const fetchData = async () => {
-        const contOpOptions = await getUserData('getUsers', values.plant,)
+        const contOpOptions = await getUserData('getUsers', values.plant)
         setContOpOptions(contOpOptions)
+        //Si tiene longitud 1, se establece como contop por defecto
+        if (contOpOptions.length === 1 && contOpOptions[0].name) {
+          setValues({ ...values, contop: contOpOptions[0].name })
+        }
         const petitioners = await getUserData('getPetitioner', values.plant, {role: authUser.role})
         setPetitioners(petitioners)
       }
@@ -760,40 +764,6 @@ const FormLayoutsSolicitud = () => {
                 <Link onClick={() => router.replace('/mapa/')}>Haga clic acá para saber</Link>
               </Typography>
             </Grid>
-
-            {/* Contract operator
-            <Grid item xs={12}>
-              <Box display='flex' alignItems='center' width='100%'>
-                <FormControl
-                  fullWidth
-                  sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                  error={errors.contop ? true : false}
-                >
-                  <InputLabel id='input-label-contop'>Contract operator</InputLabel>
-                  <Box display='flex' alignItems='center' width='100%'>
-                    <Select
-                      label='Contract operator'
-                      id='id-contop'
-                      labelId='labelId-contop'
-                      value={values.contop}
-                      onChange={handleChange('contop')}
-                    >
-                      {contOpOptions.map(contop => {
-                        return (
-                          <MenuItem key={contop.name} value={contop.name}>
-                            {contop.name}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
-                    <StyledTooltip title='Selecciona el Contract Operator a cargo de la Planta donde se ejecutará el trabajo.'>
-                      <InfoIcon color='action' />
-                    </StyledTooltip>
-                  </Box>
-                  {errors.contop && <FormHelperText>{errors.contop}</FormHelperText>}
-                </FormControl>
-              </Box>
-            </Grid> */}
 
             {/* Contract Operator */}
             <Grid item xs={12}>
