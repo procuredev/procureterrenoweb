@@ -653,6 +653,7 @@ const FormLayoutsSolicitud = () => {
                 <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                   <Box display='flex' alignItems='center'>
                     <DatePicker
+                      dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
                       label='Fecha'

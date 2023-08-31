@@ -107,6 +107,7 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
           <StyledFormControl>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
               <DatePicker
+                dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
                 minDate={customMinDate || moment().subtract(1, 'year')}
                 maxDate={moment().add(1, 'year')}
                 label={label}
@@ -342,7 +343,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
     // Variable diferencia original entre start y end
     const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
-    
+
     if (dateField === 'start' && end && (isPetitioner || isContop)) {
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
       setValues({ ...values, end: newEnd })
