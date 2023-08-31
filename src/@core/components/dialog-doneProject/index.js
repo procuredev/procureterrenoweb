@@ -21,7 +21,7 @@ import EngineeringIcon from '@mui/icons-material/Engineering'
 import FormControl from '@mui/material/FormControl'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker'
 
 // ** Date Library
 //import moment from 'moment'
@@ -138,7 +138,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
             <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
               <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                 <Box display='flex' alignItems='center'>
-                  <DateTimePicker
+                  <MobileDateTimePicker
+                    dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
                     minDate={moment().subtract(1, 'year')}
                     maxDate={moment().add(1, 'year')}
                     label='Fecha de inicio'
@@ -154,7 +155,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
             <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
               <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                 <Box display='flex' alignItems='center'>
-                  <DateTimePicker
+                  <MobileDateTimePicker
+                    dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
                     minDate={moment().subtract(1, 'year')}
                     maxDate={moment().add(1, 'year')}
                     label='Fecha de término'
