@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, forwardRef } from 'react'
+import { useState, forwardRef, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -47,7 +47,13 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const [draftmen, setDraftmen] = useState([])
 
 
-  const [hours, setHours] = useState({})
+  const [hours, setHours] = useState({
+    start: null,
+    end: null,
+    total: '',
+    hours: 0,
+    minutes: 0,
+  })
   const [error, setError] = useState('')
 
   // ** Hooks
@@ -76,16 +82,13 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
 
   const onsubmit = id => {
-    if (hours !== '') {
-      updateDocs(id, {hours}, authUser)
-
-      // Aquí puedes actualizar el documento 'doc' en la base de datos con el campo 'horas levantamiento'
-      // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase
-      handleClose()
+    if (hours.total !== '') {
+      updateDocs(id, { hours: hours.total }, authUser); // Utiliza directamente el estado hours.total
+      handleClose();
     } else {
-      setError('Por favor, ingrese un número mayor a 0.')
+      setError('Por favor, indique fecha de inicio y fecha de término.');
     }
-  }
+  };
 
   const handleDateChangeWrapper = dateField => date => {
     const handleDateChange = date => {
@@ -95,9 +98,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
       if (dateField === 'start') {
         updatedHours.start = fieldValue;
       } else {
-        const hoursDifference = fieldValue.diff(updatedHours.start, 'hours');
         updatedHours.end = fieldValue;
-        updatedHours.total = hoursDifference;
       }
 
       setHours(updatedHours);
@@ -105,6 +106,63 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
     handleDateChange(date);
   };
+
+ /*  useEffect(() => {
+    if (hours.start && hours.end) {
+      const startOfWorkday = moment(hours.start).set('hour', 8).set('minute', 0);
+      const endOfWorkday = moment(hours.start).set('hour', 18).set('minute', 0);
+      const startOfLunchBreak = moment(hours.start).set('hour', 12).set('minute', 0);
+      const endOfLunchBreak = moment(hours.start).set('hour', 13).set('minute', 0);
+
+      // Filtrar las horas fuera del horario hábil y del horario de descanso
+      const filteredStart = moment.max(startOfWorkday, hours.start, endOfLunchBreak);
+      const filteredEnd = moment.min(endOfWorkday, hours.end, startOfLunchBreak);
+
+      const duration = moment.duration(filteredEnd.diff(filteredStart));
+      const totalMinutesDifference = duration.asMinutes();
+
+      const hoursDifference = Math.floor(totalMinutesDifference / 60);
+      const minutesDifference = Math.floor(totalMinutesDifference % 60);
+
+      console.log(hoursDifference, "hoursDifference")
+      console.log(minutesDifference, "minutesDifference")
+
+      if (hoursDifference < 0 || minutesDifference < 0) {
+        setError('La hora de término debe ser superior a la hora de inicio.')
+
+        return;
+      }
+
+      setHours(prevHours => ({
+        ...prevHours,
+        total: `${hoursDifference} horas ${minutesDifference} minutos`,
+        hours: hoursDifference,
+        minutes: minutesDifference,
+      }));
+    }
+  }, [hours.start, hours.end]); */
+
+  useEffect(() => {
+    if (hours.start && hours.end) {
+      const duration = moment.duration(hours.end.diff(hours.start));
+      const totalMinutesDifference = duration.asMinutes();
+
+      const hoursDifference = Math.floor(totalMinutesDifference / 60);
+      const minutesDifference = Math.floor(totalMinutesDifference % 60);
+
+      if (hoursDifference < 0 || minutesDifference < 0) {
+        // Mostrar un mensaje de error o realizar alguna acción en caso de valores negativos
+        return;
+      }
+
+      setHours(prevHours => ({
+        ...prevHours,
+        total: `${hoursDifference} horas ${minutesDifference} minutos`,
+        hours: hoursDifference,
+        minutes: minutesDifference,
+      }));
+    }
+  }, [hours.start, hours.end]);
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
