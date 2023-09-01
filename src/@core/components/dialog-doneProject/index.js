@@ -56,6 +56,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     minutes: 0,
   })
   const [error, setError] = useState('')
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
@@ -155,6 +156,16 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
       }
 
       console.log(totalHoursWithinWorkingDays, totalMinutes, "RES")
+
+      if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
+        setError('La hora de término debe ser superior a la hora de inicio.');
+        setIsSubmitDisabled(true);
+
+        return;
+      } else {
+        setError(null); // Para limpiar cualquier error previo.
+        setIsSubmitDisabled(false);
+      }
 
       setHours(prevHours => ({
         ...prevHours,
@@ -279,7 +290,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           })}
         </List>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
+          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar
           </Button>
