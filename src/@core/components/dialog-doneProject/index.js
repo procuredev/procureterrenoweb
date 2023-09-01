@@ -23,6 +23,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker'
 
+
 // ** Date Library
 //import moment from 'moment'
 import moment from 'moment-timezone'
@@ -58,6 +59,10 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
+
+  const workDayStart = new Date(0, 0, 0, 8, 0); // Hora de inicio de la jornada laboral (08:00 AM)
+  const workDayEnd = new Date(0, 0, 0, 20, 0);  // Hora de finalización de la jornada laboral (08:00 PM)
+
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -107,62 +112,59 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     handleDateChange(date);
   };
 
-  /* useEffect(() => {
-    if (hours.start && hours.end) {
-      const startOfWorkday = moment(hours.start).set('hour', 8).set('minute', 0);
-      const endOfWorkday = moment(hours.start).set('hour', 18).set('minute', 0);
-      const startOfLunchBreak = moment(hours.start).set('hour', 12).set('minute', 0);
-      const endOfLunchBreak = moment(hours.start).set('hour', 13).set('minute', 0);
-
-      // Filtrar las horas fuera del horario hábil y del horario de descanso
-      //const filteredStart = moment.max(startOfWorkday, hours.start, endOfLunchBreak);
-      //const filteredEnd = moment.min(endOfWorkday, hours.end, startOfLunchBreak);
-
-      const duration = moment.duration(endOfWorkday.diff(startOfWorkday));
-      const totalMinutesDifference = duration.asMinutes();
-
-      const hoursDifference = Math.floor(totalMinutesDifference / 60);
-      const minutesDifference = Math.floor(totalMinutesDifference % 60);
-
-      console.log(hoursDifference, "hoursDifference")
-      console.log(minutesDifference, "minutesDifference")
-
-      if (hoursDifference < 0 || minutesDifference < 0) {
-        setError('La hora de término debe ser superior a la hora de inicio.')
-
-        return;
-      }
-
-      setHours(prevHours => ({
-        ...prevHours,
-        total: `${hoursDifference} horas ${minutesDifference} minutos`,
-        hours: hoursDifference,
-        minutes: minutesDifference,
-      }));
-    }
-  }, [hours.start, hours.end]); */
-
   useEffect(() => {
     if (hours.start && hours.end) {
-      const duration = moment.duration(hours.end.diff(hours.start));
-      const totalMinutesDifference = duration.asMinutes();
+      const workStartHour = 8; // Hora de inicio de la jornada laboral
+      const workEndHour = 20; // Hora de finalización de la jornada laboral
+      const millisecondsPerHour = 60 * 60 * 1000; // Milisegundos por hora
 
-      const hoursDifference = Math.floor(totalMinutesDifference / 60);
-      const minutesDifference = Math.floor(totalMinutesDifference % 60);
+      let startDate = hours.start.clone();
+      let endDate = hours.end.clone();
 
-      if (hoursDifference < 0 || minutesDifference < 0) {
-        // Mostrar un mensaje de error o realizar alguna acción en caso de valores negativos
-        return;
+      // Asegurarse de que las fechas estén dentro de las horas de trabajo
+      if (startDate.hour() < workStartHour) {
+        startDate.hour(workStartHour).minute(0).second(0).millisecond(0);
       }
+      if (endDate.hour() > workEndHour) {
+        endDate.hour(workEndHour).minute(0).second(0).millisecond(0);
+      } else if (endDate.hour() < workStartHour) {
+        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0);
+      }
+
+      let totalHoursWithinWorkingDays = 0;
+      let totalMinutes = 0;
+
+      while (startDate.isBefore(endDate)) {
+        const currentDayEnd = startDate.clone().hour(workEndHour);
+
+        if (currentDayEnd.isAfter(endDate)) {
+          const durationMillis = endDate.diff(startDate);
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
+          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000));
+        } else {
+          const durationMillis = currentDayEnd.diff(startDate);
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
+        }
+
+        startDate.add(1, 'day').hour(workStartHour);
+      }
+
+      if (totalMinutes >= 60) {
+        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60);
+        totalMinutes %= 60;
+      }
+
+      console.log(totalHoursWithinWorkingDays, totalMinutes, "RES")
 
       setHours(prevHours => ({
         ...prevHours,
-        total: `${hoursDifference} horas ${minutesDifference} minutos`,
-        hours: hoursDifference,
-        minutes: minutesDifference,
+        total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
+        hours: totalHoursWithinWorkingDays,
+        minutes: totalMinutes,
       }));
     }
   }, [hours.start, hours.end]);
+
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
