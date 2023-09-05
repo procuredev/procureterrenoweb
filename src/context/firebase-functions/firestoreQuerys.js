@@ -299,6 +299,7 @@ const consultSAP = async sap => {
     let sapWithOt = []
     let sap = []
     let messages
+    let otMessages
 
     // Recorrer cada documento y obtener información adicional del usuario asociado
     await Promise.all(
@@ -336,13 +337,15 @@ const consultSAP = async sap => {
     }
 
     if (sapWithOt.length > 0) {
-      const otMessages = sapWithOt
-        .map(
-          item =>
-            `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
-        )
-        .join('\n')
+      otMessages = sapWithOt
+      .map(
+        item =>
+          `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
+      )
+      .join('\n')
+    }
 
+    if (sapWithOt.length > 0 && sap.length > 0) {
       return {
         exist: true,
         sap,
@@ -354,6 +357,16 @@ const consultSAP = async sap => {
           otMessages +
           `\n` +
           messages
+      }
+    } else if(sapWithOt.length > 0 && sap.length === 0) {
+      return {
+        exist: true,
+        sap,
+        sapWithOt,
+        msj:
+          `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cuales ${
+            sapWithOt.length
+          } tienen OT asignadas`
       }
     } else {
       return {
