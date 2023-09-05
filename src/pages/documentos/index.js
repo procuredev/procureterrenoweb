@@ -38,7 +38,7 @@ const Documentos = () => {
           );
           xhr.onreadystatechange = function (e) {
             if (xhr.readyState === 4 && xhr.status === 200) {
-              console.log(xhr.response);
+
             } else if (xhr.readyState === 4 && xhr.status === 401) {
               // Token invalid, so prompt for user permission.
               oauth2SignIn();
@@ -61,7 +61,7 @@ const Documentos = () => {
         const params = {
           client_id: CLIENT_ID,
           redirect_uri: 'http://localhost:3000/documentos',
-          scope: 'https://www.googleapis.com/auth/drive.metadata.readonly',
+          scope: 'https://www.googleapis.com/auth/drive.file',
           state: 'try_sample_request',
           include_granted_scopes: 'true',
           response_type: 'token',
@@ -99,6 +99,7 @@ const Documentos = () => {
           })
             .then((response) => response.json())
             .then((data) => {
+              console.log(data)
               if (data.files) {
                 setFiles(data.files);
               }
@@ -117,6 +118,32 @@ const Documentos = () => {
           getGoogleDriveFiles(); // Llama a la función aquí.
         }
       }
+
+      function uploadFile(file) {
+        const params = JSON.parse(localStorage.getItem('oauth2-test-params'));
+        if (params && params['access_token']) {
+          const accessToken = params['access_token'];
+          const formData = new FormData();
+          formData.append('file', file);
+
+          fetch('https://www.googleapis.com/upload/drive/v3/files', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log('File uploaded:', data);
+              // Puedes manejar la respuesta aquí
+            })
+            .catch((error) => {
+              console.error('Error uploading file:', error);
+            });
+        }
+      }
+
 
       useEffect(() => {
         const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'));
@@ -146,6 +173,8 @@ const Documentos = () => {
     return (
       <div>
         <button onClick={()=>trySampleRequest()}>Try sample request</button>
+        <input type="file" onChange={(e) => uploadFile(e.target.files[0])} />
+
         <ul>
         {files.map((file) => (
           <li key={file.id}>{file.name}</li>
