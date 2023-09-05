@@ -494,7 +494,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {eventData !== undefined &&
                 eventData.length > 0 &&
                 eventData.map(element => {
-                  let modified = element.prevDoc ? (element.prevDoc.start ? 'Modificado' : 'Modificado') : 'Aprobado'
+                  let modified = element.prevDoc ? (element.prevDoc.start ? 'Modificado' : 'Modificación aceptada') : 'Aprobado'
                   let status = element.newState === 10 ? 'Rechazado' : modified
 
                   return (
