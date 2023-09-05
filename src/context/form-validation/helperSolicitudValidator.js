@@ -234,7 +234,7 @@ export function solicitudValidator(values) {
     'Nube de Puntos'
   ]
 
-  const valType = ['Normal', 'Outage', 'Shutdown']
+  const valType = ['Normal', 'Outage', 'Shutdown', 'Oportunidad']
 
   const valDetention = ['Sí', 'No', 'No aplica']
 

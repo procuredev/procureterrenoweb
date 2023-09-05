@@ -930,6 +930,7 @@ const FormLayoutsSolicitud = () => {
                     <MenuItem value='Normal'>Normal</MenuItem>
                     <MenuItem value='Outage'>Outage</MenuItem>
                     <MenuItem value='Shutdown'>Shutdown</MenuItem>
+                    <MenuItem value='Oportunidad'>Oportunidad</MenuItem>
                   </Select>
                   <StyledTooltip title='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'>
                     <StyledInfoIcon color='action' />
