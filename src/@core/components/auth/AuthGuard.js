@@ -27,7 +27,7 @@ const AuthGuard = props => {
           // Será redirigido al home
           router.replace('/home')
         }
-      } else if (!authUser) {
+      } else if (!authUser && !thisRoute === '/documentos/') {
         // Si no hay alguien conectado, siempre será redirigido al login
         router.replace('/login')
       }
