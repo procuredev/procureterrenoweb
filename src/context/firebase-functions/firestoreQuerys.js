@@ -209,11 +209,13 @@ const getUserData = async (type, plant, userParam = {shift : '', name : ''}) => 
         return null; // Devolver nulo si no se encuentra el documento
 
       } else if (userParam.plant === 'allPlants') {
-        return allDocs.filter(doc => doc.role === 2);
+        const allDocsFiltered = allDocs.filter(doc => doc.role === 2)
+
+        return allDocsFiltered;
       } else if (userParam.role === 3) {
 
         return allDocs;
-      } else {
+      } else if (userParam.id) {
         const docRef = doc(db, 'users', userParam.id);
         const docSnapshot = await getDoc(docRef);
 
