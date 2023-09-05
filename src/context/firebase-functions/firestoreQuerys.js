@@ -361,7 +361,6 @@ const consultSAP = async sap => {
     } else if(sapWithOt.length > 0 && sap.length === 0) {
       return {
         exist: true,
-        sap,
         sapWithOt,
         msj:
           `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cuales ${
