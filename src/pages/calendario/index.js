@@ -196,6 +196,7 @@ const AppCalendar = () => {
     events: applyFilters(data, filters).map(a => ({
       title: eventResume(a).title,
       start: a.start.seconds * 1000,
+      ...a.end && {end: a.end.seconds * 1000},
       allDay: true,
       id: a.id,
       description: a.description,
@@ -242,6 +243,7 @@ const AppCalendar = () => {
     height: 'auto',
     contentHeight: 'auto',
     eventDisplay: 'block',
+    nextDayThreshold: '00:00:00',
     firstDay: 1,
     dayCellClassNames: function (date) {
       const foundObject = blockResult.find(obj => {

@@ -89,7 +89,7 @@ const generateFilterConfig = authUser => {
     },
     myWeek: {
       label: 'Aprobadas por Procure en mi semana',
-      type: 'General',
+      type: 'Estado',
       canSee: [1, 7],
       filterFunction: Boolean(authUser.shift === 'A')
         ? doc => otherWeek(doc.start.seconds)
