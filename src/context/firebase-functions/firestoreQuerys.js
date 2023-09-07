@@ -416,6 +416,7 @@ const consultUserEmailInDB = async email => {
 const consultDocs = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes'); // Obtener referencia a la colección 'solicitudes'
   let queries = [];  // Inicializar un arreglo para almacenar las consultas
+  let queryFunc;
 
   // Determinar el tipo de consulta a realizar
   switch (type) {
@@ -426,12 +427,19 @@ const consultDocs = async (type, options = {}) => {
 
       // Crear consultas por planta y agregarlas al arreglo de consultas
     case 'byPlants':
-      const plantQueries = options.plants.map(plant =>
-        query(coll, where('plant', '==', plant))
-      );
-      queries = plantQueries.map(getCountFromServer);
-      break;
+      queryFunc = async () => {
+        const queries = options.plants.map(async plant => {
+          const q = query(coll, where('plant', '==', plant));
+          const snapshot = await getDocs(q);
 
+          return snapshot.size;
+        });
+
+        const results = await Promise.all(queries);
+
+        return results;
+      };
+      break;
       // Crear consultas por estado y agregarlas al arreglo de consultas
     case 'byState':
       const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6));
@@ -446,10 +454,15 @@ const consultDocs = async (type, options = {}) => {
   }
 
   try {
-    const snapshots = await Promise.all(queries); // Ejecutar todas las consultas en paralelo y obtener los snapshots
-    const counts = snapshots.map(snapshot => snapshot.data().count); // Mapear los snapshots para obtener el conteo de cada consulta
+    if (type === 'byPlants'){
+      return queryFunc();
+    } else{
+      const snapshots = await Promise.all(queries); // Ejecutar todas las consultas en paralelo y obtener los snapshots
+      const counts = snapshots.map(snapshot => snapshot.data().count); // Mapear los snapshots para obtener el conteo de cada consulta
 
-    return counts; // Retornar el arreglo de conteos
+      return counts; // Retornar el arreglo de conteos
+    }
+
   } catch (error) {
     console.error('Error fetching document counts:', error); // En caso de error, imprimir un mensaje de error y retornar null
 

@@ -1,34 +1,18 @@
-// ** React Imports
-import { useState, useEffect } from 'react'
-
 // ** MUI Imports
-import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
-import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
 // ** Custom Components Imports
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
-// ** Hooks
-import { useFirebase } from 'src/context/useFirebase'
-
-const ChartBarsObjetivesByPlants = () => {
+const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
   // ** Hook
-  const { consultObjetives } = useFirebase()
   const theme = useTheme()
-
-  const [objByPlants, setObjByPlants] = useState([0, 0, 0, 0, 0, 0])
 
   const plants = [
     'Los Colorados',
@@ -38,19 +22,7 @@ const ChartBarsObjetivesByPlants = () => {
     'Puerto Coloso',
     'Instalacones Cátodo'
   ]
-  const resObjByPlants2 = objByPlants.map((el, index) => ({ x: plants[index], y: el }))
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const objectivesByPlants = await consultObjetives('byPlants', { plants: ['Planta Concentradora Los Colorados',
-      'Planta Concentradora Laguna Seca | Línea 1', 'Planta Concentradora Laguna Seca | Línea 2', 'Chancado y Correas',
-      'Puerto Coloso', 'Instalaciones Cátodo'] });
-
-      setObjByPlants(objectivesByPlants)
-    }
-
-    fetchData()
-  }, [])
+  const resObjByPlants2 = objetivesByPlants.map((el, index) => ({ x: plants[index], y: el }))
 
   const options = {
     tooltip: {
@@ -132,8 +104,6 @@ const ChartBarsObjetivesByPlants = () => {
     <Card>
       <CardHeader
         title='Levantamientos por Planta'
-
-        //subheader='Total semanal: 20'
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
@@ -142,7 +112,7 @@ const ChartBarsObjetivesByPlants = () => {
           type='bar'
           height={120}
           options={options}
-          series={[{ name: 'Levantamientos', data: objByPlants }]}
+          series={[{ name: 'Levantamientos', data: objetivesByPlants }]}
         />
       </CardContent>
     </Card>

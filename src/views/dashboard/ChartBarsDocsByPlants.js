@@ -1,82 +1,38 @@
-// ** React Imports
-import { useState, useEffect } from 'react'
-
 // ** MUI Imports
-import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
-import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
 // ** Custom Components Imports
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
-// ** Hooks
-import { useFirebase } from 'src/context/useFirebase'
-
-const ChartBarsDocsByPlants = () => {
+const ChartBarsDocsByPlants = ({ docsByPlants, loading }) => {
   // ** Hook
-  const { consultDocs } = useFirebase()
   const theme = useTheme()
-
-  const [docsByPlants, setDocsByPlants] = useState([0, 0, 0, 0, 0, 0])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const plants = [
-        'Planta Concentradora Los Colorados',
-        'Planta Concentradora Laguna Seca | Línea 1',
-        'Planta Concentradora Laguna Seca | Línea 2',
-        'Chancado y Correas',
-        'Puerto Coloso',
-        'Instalaciones Cátodo'
-      ];
-
-      const results = [];
-
-      for (const plant of plants) {
-        const result = await consultDocs('byPlants', { plants: [plant] });
-        results.push(result);
-      }
-
-      const combinedCounts = results.reduce((acc, counts) => {
-        counts.forEach((count, index) => {
-          acc[index] += count;
-        });
-
-        return acc;
-      }, Array(6).fill(0));
-
-      setDocsByPlants(combinedCounts);
-    };
-
-    fetchData();
-  }, []);
 
   const options = {
     tooltip: {
       x: {
         formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
-          //const value = series[seriesIndex][dataPointIndex];
           const plants = [
             'Los Colorados',
             'Laguna Seca 1',
             'Laguna Seca 2',
             'Chancado y Correas',
             'Puerto Coloso',
-            'Instalacones Cátodo'
+            'Instalaciones Cátodo'
           ]
 
-          return plants[dataPointIndex]
+          if (dataPointIndex >= 0 && dataPointIndex < plants.length) {
+            return plants[dataPointIndex];
+          } else {
+            // Devuelve un valor por defecto o una cadena vacía si dataPointIndex no es válido
+            return 'N/A';
+          }
         }
       }
     },
@@ -145,7 +101,7 @@ const ChartBarsDocsByPlants = () => {
           type='bar'
           height={120}
           options={options}
-          series={[{ name: 'Solicitudes', data: docsByPlants }]}
+          series={[{ name: 'Solicitudes', data: loading ? [0, 0, 0, 0, 0, 0] : docsByPlants }]}
         />
       </CardContent>
     </Card>
