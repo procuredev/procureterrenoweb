@@ -136,7 +136,7 @@ const AppCalendar = () => {
   }
 
   const handleBlockConfirmation = async () => {
-    await blockDayInDatabase(dayDialogOpen, blockReason).then(console.log(calendarRef.current))
+    await blockDayInDatabase(dayDialogOpen, blockReason)
     setOpen(false)
     setDayDialogOpen(false)
     setBlockReason('')
@@ -196,7 +196,7 @@ const AppCalendar = () => {
     events: applyFilters(data, filters).map(a => ({
       title: eventResume(a).title,
       start: a.start.seconds * 1000,
-      ...a.end && {end: a.end.seconds * 1000},
+      ...(a.end && { end: a.end.seconds * 1000 }),
       allDay: true,
       id: a.id,
       description: a.description,
@@ -247,10 +247,9 @@ const AppCalendar = () => {
     firstDay: 1,
     dayCellClassNames: function (date) {
       const foundObject = blockResult.find(obj => {
-        const objTimestamp = new Date(obj.timestamp * 1000).getTime()
-        const objDate = date.date.getTime()
+        const objTimestamp = new Date(obj.timestamp).setHours(0, 0, 0, 0) // Establece los segundos, milisegundos a 0
+        const objDate = date.date.setHours(0, 0, 0, 0) // Establece los segundos, milisegundos a 0
 
-        // Compara solo la parte de la fecha (día, mes y año)
         return objTimestamp === objDate
       })
 
@@ -265,7 +264,7 @@ const AppCalendar = () => {
     },
     fixedWeekCount: false,
     dateClick: async function (info) {
-      const result = await consultBlockDayInDB(new Date(info.date).getTime() / 1000)
+      const result = await consultBlockDayInDB(new Date(info.date).getTime())
       setConsultationResult(result)
       setDayDialogOpen(info.date)
     },
@@ -277,7 +276,7 @@ const AppCalendar = () => {
 
       let currentDate = new Date(startDate)
       while (currentDate <= endDate) {
-        const timestamp = Math.floor(currentDate.getTime() / 1000)
+        const timestamp = Math.floor(currentDate.getTime())
         timestamps.push(timestamp)
         currentDate.setDate(currentDate.getDate() + 1)
       }
@@ -293,7 +292,6 @@ const AppCalendar = () => {
 
       // Filtrar y agregar los resultados bloqueados al estado (evitando duplicados)
       const blockedResults = results.filter(result => result.value.blocked)
-
       // Verificar y agregar los resultados bloqueados al estado (evitando duplicados)
       setBlockResult(prevResults => {
         const existingTimestamps = prevResults.map(result => result.timestamp)
