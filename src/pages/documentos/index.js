@@ -150,6 +150,8 @@ const Documentos = () => {
         if (storedParams && storedParams['access_token']) {
           // Ya tienes un token de acceso, no es necesario autenticar de nuevo.
           getGoogleDriveFiles();
+
+          return
         } else {
           // No tienes un token de acceso, inicia el flujo de autenticación.
           const fragmentString = window.location.hash.substring(1);

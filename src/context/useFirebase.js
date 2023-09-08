@@ -14,7 +14,8 @@ import {
   signInWithEmailAndPassword,
   createUser,
   signAdminBack,
-  signAdminFailure
+  signAdminFailure,
+  signGoogle
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
@@ -95,6 +96,7 @@ const FirebaseContextProvider = props => {
     consultDocs,
     consultObjetives,
     getUsersWithSolicitudes,
+    signGoogle
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
