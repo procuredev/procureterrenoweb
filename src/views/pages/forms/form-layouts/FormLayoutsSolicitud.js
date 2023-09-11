@@ -50,19 +50,6 @@ import Icon from 'src/@core/components/icon'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@emotion/react'
 
-// Styled component for the upload image inside the dropzone area
-const Img = styled('img')(({ theme }) => ({
-  [theme.breakpoints.up('md')]: {
-    marginRight: theme.spacing(10)
-  },
-  [theme.breakpoints.down('md')]: {
-    marginBottom: theme.spacing(4)
-  },
-  [theme.breakpoints.down('sm')]: {
-    width: 250
-  }
-}))
-
 // Styled component for the heading inside the dropzone area
 const HeadingTypography = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(5),
@@ -88,6 +75,79 @@ const StyledInfoIcon = styled(InfoIcon)(({ theme }) => ({
   marginLeft: theme.spacing(4) // Añade un margen a la izquierda del InfoIcon
 }))
 
+const CustomTextField = props => {
+  return (
+    <Grid item xs={12}>
+      <Box display='flex' alignItems='center'>
+        <TextField fullWidth {...props} />
+        <StyledTooltip title={props.helper}>
+          <StyledInfoIcon color='action' />
+        </StyledTooltip>
+      </Box>
+    </Grid>
+  )
+}
+
+const CustomSelect = props => {
+  const { options, label, error, disabled, helper, ...selectProps } = props
+
+  return (
+    <Grid item xs={12}>
+      <FormControl fullWidth sx={{ '& .MuiInputBase-root ': { width: '100%' } }} disabled={disabled} error={error}>
+        <InputLabel>{label}</InputLabel>
+        <Box display='flex' alignItems='center'>
+          <Select {...selectProps}>
+            {options &&
+              options.map(option => {
+                return (
+                  <MenuItem key={option.name || option} value={option.name || option}>
+                    {option.name || option}
+                  </MenuItem>
+                )
+              })}
+          </Select>
+          <StyledTooltip title={helper}>
+            <StyledInfoIcon color='action' />
+          </StyledTooltip>
+        </Box>
+        {error && <FormHelperText>{error}</FormHelperText>}
+      </FormControl>
+    </Grid>
+  )
+}
+
+const CustomAutocomplete = props => {
+  const { error, label, helper, required, ...autoProps } = props
+
+  return (
+    <Grid item xs={12}>
+      <FormControl fullWidth>
+        <Box display='flex' alignItems='center'>
+          <Autocomplete
+            getOptionLabel={option => option.name}
+            isOptionEqualToValue={(option, value) => option.name === value.name}
+            multiple
+            fullWidth
+            {...autoProps}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label={label}
+                InputLabelProps={{ required: required }}
+                error={error ? true : false}
+                helperText={error}
+              />
+            )}
+          />
+          <StyledTooltip title={helper}>
+            <StyledInfoIcon color='action' />
+          </StyledTooltip>
+        </Box>
+      </FormControl>
+    </Grid>
+  )
+}
+
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
@@ -109,14 +169,7 @@ const FormLayoutsSolicitud = () => {
   }
 
   // ** Hooks
-  const {
-    authUser,
-    newDoc,
-    uploadFilesToFirebaseStorage,
-    consultBlockDayInDB,
-    consultSAP,
-    getUserData,
-  } = useFirebase()
+  const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData } = useFirebase()
   const router = useRouter()
   const theme = useTheme()
 
@@ -155,10 +208,10 @@ const FormLayoutsSolicitud = () => {
         }
         if (prop === 'objective') {
           const isAnalysisGPRSelected = newValue === 'Análisis GPR'
-          const currentWeek = moment().isoWeek();
-          const startDate = moment(values.start);
-          const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
-          const weeksDifference = startDate.diff(currentDate, 'weeks');
+          const currentWeek = moment().isoWeek()
+          const startDate = moment(values.start)
+          const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+          const weeksDifference = startDate.diff(currentDate, 'weeks')
 
           const inTenWeeks = moment()
             .locale('es')
@@ -219,24 +272,24 @@ const FormLayoutsSolicitud = () => {
 
   const handleBlur = async e => {
     if (values.sap.length > 0) {
-      const resultSap = await consultSAP(e.target.value);
+      const resultSap = await consultSAP(e.target.value)
 
       if (resultSap.exist) {
         if (resultSap.sapWithOt) {
-          setAlertMessage(resultSap.msj);
+          setAlertMessage(resultSap.msj)
         } else {
-          setAlertMessage(resultSap.msj);
+          setAlertMessage(resultSap.msj)
         }
       } else {
         setValues({
           ...values,
           sap: e.target.value
-        });
+        })
       }
 
-      return resultSap;
+      return resultSap
     }
-  };
+  }
 
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
@@ -259,11 +312,11 @@ const FormLayoutsSolicitud = () => {
       }
 
       if (key === 'objective') {
-        const isAnalysisGPRSelected = values[key] === 'Análisis GPR';
-        const currentWeek = moment().isoWeek();
-        const startDate = moment(values.start);
-        const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
-        const weeksDifference = startDate.diff(currentDate, 'weeks');
+        const isAnalysisGPRSelected = values[key] === 'Análisis GPR'
+        const currentWeek = moment().isoWeek()
+        const startDate = moment(values.start)
+        const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+        const weeksDifference = startDate.diff(currentDate, 'weeks')
 
         const inTenWeeks = moment()
           .locale('es')
@@ -306,18 +359,18 @@ const FormLayoutsSolicitud = () => {
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
-    const maxSizeBytes = 5 * 1024 * 1024; // 5 MB in bytes
+    const maxSizeBytes = 5 * 1024 * 1024 // 5 MB in bytes
 
     const isValidImage = file => {
       const extension = file.name.split('.').pop().toLowerCase()
 
-      return imageExtensions.includes(extension) && file.size <= maxSizeBytes;
+      return imageExtensions.includes(extension) && file.size <= maxSizeBytes
     }
 
     const isValidDocument = file => {
       const extension = file.name.split('.').pop().toLowerCase()
 
-      return documentExtensions.includes(extension) && file.size <= maxSizeBytes;
+      return documentExtensions.includes(extension) && file.size <= maxSizeBytes
     }
 
     const isValidFile = file => {
@@ -328,7 +381,7 @@ const FormLayoutsSolicitud = () => {
       return {
         name: file.name,
         isValid: isValidFile(file),
-        msj: isValidFile(file) ? `${file.name}` : `${file.name} - El archivo excede el tamaño máximo de 5 MB`,
+        msj: isValidFile(file) ? `${file.name}` : `${file.name} - El archivo excede el tamaño máximo de 5 MB`
       }
     })
 
@@ -336,7 +389,6 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleOpenErrorDialog = msj => {
-
     setErrorFileMsj(msj)
     setErrorDialog(true)
   }
@@ -349,7 +401,6 @@ const FormLayoutsSolicitud = () => {
     onDrop: acceptedFiles => {
       const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
       if (invalidFiles.length > 0) {
-
         const res = validateFiles(invalidFiles)
         const msj = res[0].msj
         handleOpenErrorDialog(msj)
@@ -366,31 +417,6 @@ const FormLayoutsSolicitud = () => {
     const uploadedFiles = files
     const filtered = uploadedFiles.filter(i => i.name !== file.name)
     setFiles([...filtered])
-  }
-
-  const renderFilePreview = file => {
-    return (
-      <Paper
-        elevation={0} // Ajusta el nivel de elevación según tus preferencias
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '10px',
-          border: `4px solid ${theme.palette.primary.main}`,
-          borderRadius: '4px',
-          width: '220px'
-        }}
-      >
-        {file.type.startsWith('image') ? (
-          <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
-        ) : (
-          <Icon icon='mdi:file-document-outline' fontSize={50} />
-        )}
-        <Typography variant='body2' sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}>
-          {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
-        </Typography>
-      </Paper>
-    )
   }
 
   const fileList = (
@@ -487,17 +513,26 @@ const FormLayoutsSolicitud = () => {
   }
 
   useEffect(() => {
-    getUserData('getReceiverUsers', values.plant).then(value => setAllUsers(value))
-  }, [])
+    if (!values.contop) return
+    ;(async () => {
+      const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
+        getUserData('getUsersByRole', null, { role: 3 }),
+        getUserData('getUsersByRole', null, { role: 4 }),
+        getUserData('getReceiverUsers', values.plant)
+      ])
 
-  useEffect(() => {
-    if(values.contop){
-      const contoOp = values.contop
-      getUserData('getUsersByRole', null, {role: 4}).then(value => setValues({ ...values, receiver: value[0] ? [value[0], { name: contoOp }] : [{ name: contoOp }] })
-      )
-    }
-  }, [values.contop])
+      const contOpName = values.contop
+      const filter = [{ name: contOpName }, { name: authUser.displayName }]
+      const receiverGroup = contOpUsers.concat(contOwnUser).concat(plantUsers)
+      const receiverFilter = receiverGroup.filter(user => ![filter].includes(user.name))
 
+      setAllUsers(receiverFilter)
+      setValues({
+        ...values,
+        receiver: [contOwnUser && { name: contOwnUser[0].name }, { name: contOpName }]
+      })
+    })()
+  }, [values.plant, values.contop])
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -522,36 +557,19 @@ const FormLayoutsSolicitud = () => {
         if (contOpOptions.length === 1 && contOpOptions[0].name) {
           setValues({ ...values, contop: contOpOptions[0].name })
         }
-        const petitioners = await getUserData('getPetitioner', values.plant, {role: authUser.role})
+        const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
         setPetitioners(petitioners)
       }
       fetchData()
     }
-
   }, [values.plant])
 
   useEffect(() => {
-    if (values.contop) {
-      const fetchData = async () => {
-        const receivers = await getUserData('getReceiverUsers', values.plant)
-        const receiversContOp = await getUserData('getUsersByRole', null, {role: 3})
-        const receiverGroup = receivers.concat(receiversContOp)
-        const filterName = [values.contop, authUser.displayName]
-        const receiverFilter = receiverGroup.filter((el) => !filterName.includes(el.name) )
-        setAllUsers(receiverFilter)
-      }
-      fetchData()
-    }
-
-  }, [values.contop])
-
-
-  useEffect(() => {
     if (values.objective === 'Análisis GPR') {
-      const currentWeek = moment().isoWeek();
-      const startDate = moment(values.start);
-      const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
-      const weeksDifference = startDate.diff(currentDate, 'weeks');
+      const currentWeek = moment().isoWeek()
+      const startDate = moment(values.start)
+      const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+      const weeksDifference = startDate.diff(currentDate, 'weeks')
 
       const inTenWeeks = moment()
         .locale('es')
@@ -598,47 +616,29 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-            {/* Título */}
-            <Grid item xs={12}>
-              <Box display='flex' alignItems='center'>
-                <TextField
-                  InputLabelProps={{ required: true }}
-                  fullWidth
-                  type='text'
-                  label='Título'
-                  value={values.title}
-                  onChange={handleChange('title')}
-                  error={errors.title ? true : false}
-                  helperText={errors.title}
-                  inputProps={{ maxLength: 100 }}
-                />
-                <StyledTooltip title='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'>
-                  <StyledInfoIcon color='action' />
-                </StyledTooltip>
-              </Box>
-            </Grid>
+            <CustomTextField
+              required
+              type='text'
+              label='Título'
+              value={values.title}
+              onChange={handleChange('title')}
+              error={errors.title ? true : false}
+              helperText={errors.title}
+              inputProps={{ maxLength: 100 }}
+              helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
+            />
 
-            {/*Descripción*/}
-            <Grid item xs={12}>
-              <Box display='flex' alignItems='center'>
-                <FormControl fullWidth>
-                  <TextField
-                    InputLabelProps={{ required: true}}
-                    fullWidth
-                    type='text'
-                    label='Descripción'
-                    inputProps={{ maxLength: 500 }}
-                    value={values.description}
-                    onChange={handleChange('description')}
-                    error={errors.description ? true : false}
-                    helperText={errors.description}
-                  />
-                </FormControl>
-                <StyledTooltip title='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'>
-                  <StyledInfoIcon color='action' />
-                </StyledTooltip>
-              </Box>
-            </Grid>
+            <CustomTextField
+              required
+              type='text'
+              label='Descripción'
+              value={values.description}
+              onChange={handleChange('description')}
+              error={errors.description ? true : false}
+              helperText={errors.description}
+              inputProps={{ maxLength: 500 }}
+              helper='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'
+            />
 
             {/* Fecha inicio */}
             <Grid item xs={12}>
@@ -646,7 +646,7 @@ const FormLayoutsSolicitud = () => {
                 <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                   <Box display='flex' alignItems='center'>
                     <DatePicker
-                      dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
+                      dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
                       label='Fecha'
@@ -668,83 +668,37 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
-            {/* Planta */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                disabled={
-                  authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
-                }
-                error={errors.plant ? true : false}
-              >
-                <InputLabel id='input-label-area'>Planta</InputLabel>
-                <Box display='flex' alignItems='center'>
-                  <Select
-                    label='Plant'
-                    id='id-plant'
-                    labelId='labelId-plant'
-                    value={values.plant}
-                    onChange={handleChange('plant')}
-                  >
-                    {authUser.role === 2 &&
-                    (authUser.plant[0] === 'Sucursal Santiago' || authUser.plant[0] === 'allPlants')
-                      ? areas.map(plant => {
-                          return (
-                            <MenuItem key={plant.name} value={plant.name}>
-                              {plant.name}
-                            </MenuItem>
-                          )
-                        })
-                      : authUser &&
-                        authUser.plant.map(plant => {
-                          return (
-                            <MenuItem key={plant} value={plant}>
-                              {plant}
-                            </MenuItem>
-                          )
-                        })}
-                  </Select>
-                  <StyledTooltip title='Selecciona la planta correspondiente.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.plant && <FormHelperText>{errors.plant}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomSelect
+              options={
+                authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
+                  ? areas
+                  : authUser.plant
+              }
+              label='Planta'
+              value={values.plant}
+              onChange={handleChange('plant')}
+              error={errors.plant ? true : false}
+              helperText={errors.plant}
+              disabled={
+                authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
+              }
+              helper='Selecciona la planta correspondiente.'
+              defaultValue=''
+            />
 
-            {/* Área */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                error={errors.area ? true : false}
-              >
-                <InputLabel id='input-label-area'>Área</InputLabel>
-                <Box display='flex' alignItems='center' width='100%'>
-                  <Select
-                    label='Área'
-                    defaultValue=''
-                    id='id-area'
-                    labelId='labelId-area'
-                    value={values.area}
-                    onChange={handleChange('area')}
-                  >
-                    {plants.map(plant => {
-                      return (
-                        <MenuItem key={plant} value={plant}>
-                          {plant}
-                        </MenuItem>
-                      )
-                    })}
-                  </Select>
-                  <StyledTooltip title='Selecciona el área dentro de tu planta en dónde se ejecutará la tarea que requieres.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.area && <FormHelperText>{errors.area}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomSelect
+              options={areas}
+              label='Área'
+              value={values.area}
+              onChange={handleChange('area')}
+              error={errors.area ? true : false}
+              helperText={errors.area}
+              disabled={
+                authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
+              }
+              helper='Selecciona el área dentro de tu planta en dónde se ejecutará la tarea que requieres.'
+              defaultValue=''
+            />
 
             {/* Texto mapa */}
             <Grid item xs={12}>
@@ -754,338 +708,154 @@ const FormLayoutsSolicitud = () => {
               </Typography>
             </Grid>
 
-            {/* Contract Operator */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                error={errors.contop ? true : false}
-              >
-                <InputLabel id='input-label-contop'>Contract Operator</InputLabel>
-                <Box display='flex' alignItems='center'>
-                  <Select
-                    value={values.contop}
-                    onChange={handleChange('contop')}
-                    label='Contract Operator'
-                    id='id-contop'
-                    labelId='labelId-contop'
-                  >
-                    {authUser.role === 3 ? (
-                      <MenuItem key={authUser.displayName} value={authUser.displayName}>
-                        {authUser.displayName}
-                      </MenuItem>
-                    ) : (
-                      contOpOptions.map(contop => {
-                        return (
-                          <MenuItem key={contop.name} value={contop.name}>
-                            {contop.name}
-                          </MenuItem>
-                        )
-                      })
-                    )}
-                  </Select>
-                  <StyledTooltip title='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.petitioner && <FormHelperText>{errors.petitioner}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomSelect
+              options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
+              label='Contract Operator'
+              value={values.contop}
+              onChange={handleChange('contop')}
+              error={errors.contop ? true : false}
+              helperText={errors.contop}
+              disabled={authUser.role === 3}
+              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+              defaultValue=''
+            />
 
-            {/* Functional Location */}
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <Box display='flex' alignItems='center'>
-                  <TextField
-                    fullWidth
-                    type='text'
-                    label='Functional Location'
-                    value={values.fnlocation}
-                    onChange={handleChange('fnlocation')}
-                    error={errors.fnlocation ? true : false}
-                    helperText={errors.fnlocation}
-                    inputProps={{ maxLength: 25 }}
-                  />
-                  <StyledTooltip title='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-              </FormControl>
-            </Grid>
+            <CustomTextField
+              type='text'
+              label='Functional Location'
+              value={values.fnlocation}
+              onChange={handleChange('fnlocation')}
+              error={errors.fnlocation ? true : false}
+              helperText={errors.fnlocation}
+              inputProps={{ maxLength: 25 }}
+              helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
+            />
 
-            {/* TAG */}
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <Box display='flex' alignItems='center'>
-                  <TextField
-                    fullWidth
-                    type='text'
-                    label='TAG'
-                    value={values.tag}
-                    onChange={handleChange('tag')}
-                    error={errors.tag ? true : false}
-                    helperText={errors.tag}
-                    inputProps={{ maxLength: 25 }}
-                  />
-                  <StyledTooltip title='Ingresa el código TAG para identificar el equipo.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-              </FormControl>
-            </Grid>
+            <CustomTextField
+              type='text'
+              label='TAG'
+              value={values.tag}
+              onChange={handleChange('tag')}
+              error={errors.tag ? true : false}
+              helperText={errors.tag}
+              inputProps={{ maxLength: 25 }}
+              helper='Ingresa el código TAG para identificar el equipo.'
+            />
+            <CustomSelect
+              options={
+                authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
+                  ? authUser.displayName
+                  : petitioners
+              }
+              label='Solicitante'
+              value={values.petitioner}
+              onChange={handleChange('petitioner')}
+              error={errors.petitioner ? true : false}
+              helperText={errors.petitioner}
+              disabled={
+                authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
+              }
+              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+              defaultValue=''
+            />
 
-            {/* Solicitante */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                error={errors.petitioner ? true : false}
-              >
-                <InputLabel id='input-label-solicitante'>Solicitante</InputLabel>
-                <Box display='flex' alignItems='center'>
-                  <Select
-                    disabled={
-                      authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
-                    }
-                    value={values.petitioner}
-                    onChange={handleChange('petitioner')}
-                    label='Solicitante'
-                    id='id-solicitante'
-                    labelId='labelId-solicitante'
-                  >
-                    {authUser.role === 2 &&
-                    (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants') ? (
-                      <MenuItem key={authUser.displayName} value={authUser.displayName}>
-                        {authUser.displayName}
-                      </MenuItem>
-                    ) : (
-                      petitioners.map(user => {
-                        return (
-                          <MenuItem key={user.name} value={user.name}>
-                            {user.name}
-                          </MenuItem>
-                        )
-                      })
-                    )}
-                  </Select>
-                  <StyledTooltip title='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.petitioner && <FormHelperText>{errors.petitioner}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomSelect
+              options={
+                (authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                  ? [petitionerOpShift]
+                  : [authUser.opshift]) || 'No aplica'
+              }
+              label='Contraturno del solicitante'
+              value={values.opshift}
+              onChange={handleChange('opshift')}
+              error={errors.opshift ? true : false}
+              helperText={errors.opshift}
+              disabled={authUser.role === 2}
+              helper='Corresponde a la persona que trabaja en el turno de la semana siguiente del solicitante.'
+              defaultValue=''
+            />
 
-            {/* Contraturno del Solicitante */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                error={errors.opshift ? true : false}
-              >
-                <InputLabel id='input-label-contraturno'>Contraturno del solicitante</InputLabel>
-                <Box display='flex' alignItems='center'>
-                  <Select
-                    disabled={authUser.role === 2}
-                    value={values.opshift}
-                    onChange={handleChange('opshift')}
-                    label='Contraturno del solicitante'
-                    id='id-contraturno'
-                    labelId='labelId-contraturno'
-                  >
-                    {authUser.role === 3 ||
-                    authUser.plant === 'allPlants' ||
-                    authUser.plant === 'Solicitante Santiago' ? (
-                      <MenuItem value={petitionerOpShift}>{petitionerOpShift}</MenuItem>
-                    ) : (
-                      <MenuItem value={authUser.opshift}>{authUser.opshift}</MenuItem>
-                    )}
-                    <MenuItem value={'No Aplica'}>{'No Aplica'}</MenuItem>
-                  </Select>
-                  <StyledTooltip title='Corresponde a la persona que trabaja en el turno de la semana siguiente del solicitante.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.opshift && <FormHelperText>{errors.opshift}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomSelect
+              options={['Normal', 'Outage', 'Shutdown', 'Oportunidad']}
+              label='Estado Operacional Planta'
+              value={values.type}
+              onChange={handleChange('type')}
+              error={errors.type ? true : false}
+              helperText={errors.type}
+              helper='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'
+              defaultValue=''
+            />
 
-            {/* Estado Operacional de la Planta */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                error={errors.type ? true : false}
-              >
-                <InputLabel id='input-label-type'>Estado Operacional Planta</InputLabel>
-                <Box display='flex' alignItems='center'>
-                  <Select
-                    label='Estado Operacional Planta'
-                    defaultValue=''
-                    id='id-type'
-                    labelId='labelId-type'
-                    value={values.type}
-                    onChange={handleChange('type')}
-                  >
-                    <MenuItem value='Normal'>Normal</MenuItem>
-                    <MenuItem value='Outage'>Outage</MenuItem>
-                    <MenuItem value='Shutdown'>Shutdown</MenuItem>
-                    <MenuItem value='Oportunidad'>Oportunidad</MenuItem>
-                  </Select>
-                  <StyledTooltip title='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomSelect
+              options={['Sí', 'No', 'No aplica']}
+              label='¿Estará la máquina detenida?'
+              value={values.detention}
+              onChange={handleChange('detention')}
+              error={errors.detention ? true : false}
+              helperText={errors.detention}
+              helper='Selecciona si la máquina estará detenida, no lo estará o no aplica el caso.'
+              defaultValue=''
+            />
 
-            {/* Máquina Detenida */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                error={errors.detention ? true : false}
-              >
-                <InputLabel id='input-label-detention'>¿Estará la máquina detenida?</InputLabel>
-                <Box display='flex' alignItems='center'>
-                  <Select
-                    label='¿Estará la máquina detenida?'
-                    defaultValue=''
-                    id='id-detention'
-                    labelId='labelId-detention'
-                    value={values.detention}
-                    onChange={handleChange('detention')}
-                  >
-                    <MenuItem value='Sí'>Sí</MenuItem>
-                    <MenuItem value='No'>No</MenuItem>
-                    <MenuItem value='No aplica'>No aplica</MenuItem>
-                  </Select>
-                  <StyledTooltip title='Selecciona si la máquina estará detenida, no lo estará o no aplica el caso.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.detention && <FormHelperText>{errors.detention}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomTextField
+              required
+              type='text'
+              label='Número SAP'
+              value={values.sap}
+              onChange={handleChange('sap')}
+              onBlur={handleBlur}
+              error={errors.sap ? true : false}
+              helperText={errors.sap}
+              inputProps={{ maxLength: 10 }}
+              helper='Rellena este campo sólo si conoces el número SAP'
+            />
 
-            {/* SAP */}
-            <Grid item xs={12}>
-              <Box display='flex' alignItems='center'>
-                <TextField
-                  InputLabelProps={{ required: false }}
-                  fullWidth
-                  type='text'
-                  label='Número SAP'
-                  id='sap-input'
-                  onBlur={handleBlur}
-                  value={values.sap}
-                  onChange={handleChange('sap')}
-                  error={errors.sap ? true : false}
-                  helperText={errors.sap}
-                  inputProps={{ maxLength: 10 }}
-                />
-                <StyledTooltip title='Rellena este campo sólo si conoces el número SAP'>
-                  <StyledInfoIcon color='action' />
-                </StyledTooltip>
-              </Box>
-            </Grid>
+            <CustomSelect
+              options={[
+                'Análisis fotogramétrico',
+                'Análisis GPR',
+                'Inspección Dron',
+                'Levantamiento 3D',
+                'Levantamiento 3D GPS',
+                'Topografía'
+              ]}
+              label='Tipo de Levantamiento'
+              value={values.objective}
+              onChange={handleChange('objective')}
+              error={errors.objective ? true : false}
+              helperText={errors.objective}
+              helper='Selecciona cuál es el tipo de levantamiento que necesitas para tu trabajo. Sólo podrás seleccionar una opción. Si requieres más de un tipo de levantamiento, deberás hacer una nueva solicitud para cada tipo de levantamiento.'
+              defaultValue=''
+            />
 
-            {/* Tipo de Levantamiento */}
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                error={errors.objective ? true : false}
-              >
-                <InputLabel id='input-label-objective'>Tipo de Levantamiento</InputLabel>
-                <Box display='flex' alignItems='center'>
-                  <Select
-                    label='Tipo de levantamiento'
-                    defaultValue=''
-                    id='id-objetivo'
-                    labelId='labelId-objetivo'
-                    value={values.objective}
-                    onChange={handleChange('objective')}
-                  >
-                    <MenuItem value='Análisis fotogramétrico'>Análisis fotogramétrico</MenuItem>
-                    <MenuItem value='Análisis GPR'>Análisis GPR</MenuItem>
-                    <MenuItem value='Inspección Dron'>Inspección Dron</MenuItem>
-                    <MenuItem value='Levantamiento 3D'>Levantamiento 3D</MenuItem>
-                    <MenuItem value='Levantamiento 3D GPS'>Levantamiento 3D GPS</MenuItem>
-                    <MenuItem value='Topografía'>Topografía</MenuItem>
-                  </Select>
-                  <StyledTooltip title='Selecciona cuál es el tipo de levantamiento que necesitas para tu trabajo. Sólo podrás seleccionar una opción. Si requieres más de un tipo de levantamiento, deberás hacer una nueva solicitud para cada tipo de levantamiento.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-                {errors.objective && <FormHelperText>{errors.objective}</FormHelperText>}
-              </FormControl>
-            </Grid>
+            <CustomAutocomplete
+              options={[
+                'Sketch',
+                'Plano de Fabricación',
+                'Plano de Diseño',
+                'Memoria de Cálculo',
+                'Informe',
+                'Nube de Puntos'
+              ]}
+              label='Entregables del levantamiento'
+              value={values.deliverable}
+              onChange={handleChange('deliverable')}
+              error={errors.deliverable ? true : false}
+              helperText={errors.deliverable}
+              helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
+              defaultValue=''
+            />
 
-            {/* Entregables */}
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <Box display='flex' alignItems='center'>
-                  <Autocomplete
-                    multiple
-                    fullWidth
-                    options={[
-                      'Sketch',
-                      'Plano de Fabricación',
-                      'Plano de Diseño',
-                      'Memoria de Cálculo',
-                      'Informe',
-                      'Nube de Puntos'
-                    ]}
-                    value={values.deliverable}
-                    onChange={handleChange('deliverable')}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        label='Entregables del levantamiento'
-                        InputLabelProps={{ required: true }}
-                        error={errors.deliverable ? true : false}
-                        helperText={errors.deliverable}
-                      />
-                    )}
-                  />
-                  <StyledTooltip title='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-              </FormControl>
-            </Grid>
-
-            {/* Destinatarios */}
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <Box display='flex' alignItems='center'>
-                  <Autocomplete
-                    multiple
-                    fullWidth
-                    options={allUsers}
-                    getOptionLabel={user => user.name}
-                    value={values.receiver}
-                    onChange={handleChange('receiver')}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        InputLabelProps={{ required: true }}
-                        variant='outlined'
-                        label='Destinatarios'
-                        error={errors.receiver ? true : false}
-                        helperText={errors.receiver}
-                      />
-                    )}
-                  />
-                  <StyledTooltip title='Selecciona a quién o a quiénes deberemos enviar los entregables.'>
-                    <StyledInfoIcon color='action' />
-                  </StyledTooltip>
-                </Box>
-              </FormControl>
-            </Grid>
-
+            <CustomAutocomplete
+              options={allUsers}
+              label='Destinatarios'
+              value={values.receiver}
+              onChange={handleChange('receiver')}
+              error={errors.receiver ? true : false}
+              helperText={errors.receiver}
+              helper='Selecciona a quién o a quiénes deberemos enviar los entregables.'
+              defaultValue=''
+            />
 
             {/* Dropzone archivos */}
             <Grid item xs={12}>
@@ -1152,9 +922,7 @@ const FormLayoutsSolicitud = () => {
                       Enviando solicitud
                     </DialogTitle>
                     <DialogContent sx={{ textAlign: 'center' }}>
-                      <CircularProgress
-                        size={40}
-                      />
+                      <CircularProgress size={40} />
                     </DialogContent>
                   </Dialog>
                 )}
