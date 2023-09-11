@@ -1,50 +1,19 @@
-// ** React Imports
-import { useState, useEffect } from 'react'
-
 // ** MUI Imports
-import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
-import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import 'moment/locale/es'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
 // ** Custom Components Imports
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
-// ** Hooks
-import { useFirebase } from 'src/context/useFirebase'
-
-const ObjetivesByMonth = () => {
+const ObjetivesByMonth = ({ objetivesOfLastSixMonths, monthsOfLastSixMonths }) => {
   // ** Hook
-  const { consultObjetives } = useFirebase()
   const theme = useTheme()
-
-  const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
-  const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const lastSixMonthsObjetives = await consultObjetives('lastSixMonths');
-      const monthArray = lastSixMonthsObjetives.map(item => item.month)
-      const cantArray = lastSixMonthsObjetives.map(item => item.cant)
-      setObjetivesOfLastSixMonths(cantArray)
-      setMonthssOfLastSixMonths(monthArray)
-    }
-
-    fetchData()
-  }, [])
-
-  //console.log(monthsOfLastSixMonths, "monthsOfLastSixMonths")
 
   const options = {
 

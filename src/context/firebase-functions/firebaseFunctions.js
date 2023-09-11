@@ -1,8 +1,7 @@
 // ** Firebase Imports
-import { updateProfile } from 'firebase/auth'
+import { getAuth, updateProfile, deleteUser, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { Firebase, db } from 'src/configs/firebase'
 import { doc, setDoc } from 'firebase/firestore'
-import { deleteUser } from 'firebase/auth'
 
 // ** Trae funcion que valida los campos del registro
 import { registerValidator } from '../form-validation/helperRegisterValidator'
@@ -175,6 +174,26 @@ async function signAdminFailure() {
   })
 }
 
+const signGoogle = async () => {
+  const auth = getAuth();
+  const provider = new GoogleAuthProvider()
+  provider.addScope('https://www.googleapis.com/auth/drive.file');
+  provider.addScope('https://www.googleapis.com/auth/drive.metadata.readonly');
+  provider.addScope('https://www.googleapis.com/auth/userinfo.email');
+  provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+
+  signInWithPopup(auth, provider)
+  .then((result) => {
+    // This gives you a Google Access Token. You can use it to access the Google API.
+    let credential = GoogleAuthProvider.credentialFromResult(result);
+    const token = credential.accessToken;
+    const params = {'access_token': token}
+    localStorage.setItem('oauth2-test-params', JSON.stringify(params));
+  }).catch((error) => {
+    console.log(error)
+  });
+  }
+
 export {
   formatAuthUser,
   resetPassword,
@@ -183,5 +202,6 @@ export {
   createUser,
   createUserInDatabase,
   signAdminBack,
-  signAdminFailure
+  signAdminFailure,
+  signGoogle,
 }

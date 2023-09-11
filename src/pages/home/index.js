@@ -8,21 +8,14 @@ import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import Icon from 'src/@core/components/icon'
-import Link from '@mui/material/Link'
 import Box from '@mui/material/Box'
 
 // ** Custom Component Import
-import CardStatisticsVertical from 'src/@core/components/card-statistics/card-stats-vertical'
-import ProfileCard from 'src/views/dashboard/ProfileCard'
 import ObjetivesByDay from 'src/views/dashboard/ObjetivesByDay'
 import ObjetivesByMonth from 'src/views/dashboard/objetivesByMonth'
 import ChartBarsDocsByPlants from 'src/views/dashboard/ChartBarsDocsByPlants'
 import ChartBarsObjetivesByPlants from 'src/views/dashboard/ChartBarsObjetivesByPlants'
-import ShowMap from 'src/views/dashboard/ShowMap'
-import DocStates from 'src/views/dashboard/DocStates'
-import PageHeader from 'src/@core/components/page-header'
 import CustomAvatar from 'src/@core/components/mui/avatar'
-import OptionsMenu from 'src/@core/components/option-menu'
 
 // ** Demo Components Imports
 import ChartDonutObjetivesLast30days from 'src/views/charts/apex-charts/ChartDonutObjetivesLast30days'
@@ -35,34 +28,80 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const Home = () => {
   // ** Hooks
-  const { consultDocs, consultObjetives } = useFirebase()
+  const { consultDocs, consultObjetives, getUsersWithSolicitudes } = useFirebase()
 
-  const [allDocs, setAllDocs] = useState(0)
-  const [allObj, setAllObj] = useState(0)
+  const [allDocs, setAllDocs] = useState(null);
+  const [docsByPlants, setDocsByPlants] = useState(null);
+  const [docsByState, setDocsByState] = useState([0, 0, 0]);
+  const [allObjetives, setAllObjetives] = useState(null);
+  const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0]);
+  const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
+  const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
+  const [objetivesByPlants, setObjetivesByPlants] = useState([0, 0, 0, 0, 0, 0]);
+  const [objetivesByState, setObjetivesByState] = useState([0, 0, 0]);
+  const [top10, setTop10] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const plants = [
+    'Planta Concentradora Los Colorados',
+    'Planta Concentradora Laguna Seca | Línea 1',
+    'Planta Concentradora Laguna Seca | Línea 2',
+    'Chancado y Correas',
+    'Puerto Coloso',
+    'Instalaciones Cátodo'
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
-      const allDocsCount = await consultDocs('all');
-      const allObjetivesCount = await consultObjetives('all');
-      setAllDocs(allDocsCount)
-      setAllObj(allObjetivesCount)
+      try {
+        const   [
+          allDocsCount,
+          allObjCount,
+          weekObj,
+          lastSixMonthsObjetives,
+          byStateDocs,
+          byStateObj,
+          byPlantsDocs,
+          byPlantsObj,
+          resTop10
+        ] = await Promise.all([
+          consultDocs('all'),
+          consultObjetives('all'),
+          consultObjetives('week'),
+          consultObjetives('lastSixMonths'),
+          consultDocs('byState'),
+          consultObjetives('byState'),
+          consultDocs('byPlants', { plants }),
+          consultObjetives('byPlants', { plants }),
+          getUsersWithSolicitudes()
+        ])
+
+        const monthArray = lastSixMonthsObjetives.map(item => item.month)
+        const cantArray = lastSixMonthsObjetives.map(item => item.cant)
+
+        setAllDocs(allDocsCount)
+        setAllObjetives(allObjCount);
+        setObjetivesOfActualWeek(weekObj);
+        setObjetivesOfLastSixMonths(lastSixMonthsObjetives);
+        setObjetivesOfLastSixMonths(cantArray)
+        setMonthssOfLastSixMonths(monthArray)
+        setObjetivesByPlants(byPlantsObj);
+        setDocsByPlants(byPlantsDocs);
+        setDocsByState(byStateDocs);
+        setObjetivesByState(byStateObj);
+        setTop10(resTop10)
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     }
 
     fetchData()
-  }, [])
+  }, [loading])
 
   return (
     <Grid container spacing={6} alignItems='stretch' className='match-height' sx={{ display: 'flex' }}>
-      {/* <PageHeader
-            title={
-              <Typography variant='h5'>
-                <Link href='https://github.com/apexcharts/react-apexcharts' target='_blank'>
-                  React ApexCharts
-                </Link>
-              </Typography>
-            }
-            subtitle={<Typography variant='body2'>React Component for ApexCharts</Typography>}
-          /> */}
+
       <Grid item xs={12} md={12}>
         <Card>
           <CardHeader sx={{ pb: 3.25 }} title='Resumen Estadístico' titleTypographyProps={{ variant: 'h6' }} />
@@ -88,7 +127,7 @@ const Home = () => {
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                      {allObj}
+                      {allObjetives}
                     </Typography>
                     <Typography variant='caption'>Levantamientos</Typography>
                   </Box>
@@ -112,52 +151,32 @@ const Home = () => {
         </Card>
       </Grid>
 
-      {/*  <Grid item height='auto' xs={12} sm={4}>
-        <ProfileCard />
-      </Grid>
-      <Grid item xs={12} sm={4}>
-        <ObjetivesByDay />
-      </Grid>
-      <Grid item xs={12} sm={4}>
-        <DocStates />
-      </Grid>
-      <Grid item xs={12} sm={6}>
-        <ShowMap />
-      </Grid>
-      <Grid item xs={12} sm={6}>
-      <CardStatisticsVertical
-                stats='18 solicitudes'
-                color='success'
-                title='Total de solicitudes activas'
-                icon={<Icon icon='mdi:file-document-multiple-outline' />}
-              />
-      </Grid> */}
 
       <Grid item xs={12} sm={6} md={6}>
-        <ObjetivesByDay />
+        <ObjetivesByDay objetivesOfActualWeek={objetivesOfActualWeek} />
       </Grid>
 
       <Grid item xs={12} sm={6} md={6}>
-        <ObjetivesByMonth />
+        <ObjetivesByMonth objetivesOfLastSixMonths={objetivesOfLastSixMonths} monthsOfLastSixMonths={monthsOfLastSixMonths} />
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <ChartDonutDocsLast30days />
+        <ChartDonutDocsLast30days docsByState={docsByState} loading={loading} />
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <ChartDonutObjetivesLast30days />
+        <ChartDonutObjetivesLast30days objetivesByState={objetivesByState} loading={loading}/>
       </Grid>
       <Grid item xs={12} sm={6}>
-        <ChartBarsDocsByPlants />
+        <ChartBarsDocsByPlants docsByPlants={docsByPlants} loading={loading}/>
       </Grid>
 
       <Grid item xs={12} sm={6} md={6}>
-        <ChartBarsObjetivesByPlants />
+        <ChartBarsObjetivesByPlants objetivesByPlants={objetivesByPlants} />
       </Grid>
 
       <Grid item xs={12} sm={12} md={12}>
-        <Top10UsersWihitMostDocs />
+        <Top10UsersWihitMostDocs top10={top10} />
       </Grid>
     </Grid>
   )

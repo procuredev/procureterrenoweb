@@ -53,6 +53,13 @@ const Navigation = () => {
       authorizedRoles: [1, 2, 3]
     },
     {
+      title: 'Documentos',
+      path: '/documentos',
+      icon: 'mdi:file-document-outline',
+      subject: 'documentos',
+      authorizedRoles: [1]
+    },
+    {
       title: 'Administración',
       icon: 'mdi:shield-account-outline',
       children: [

@@ -99,7 +99,7 @@ function CustomListItem({
   )
 }
 
-function DateListItem({ editable, label, value, onChange, initialValue }) {
+function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
   return (
     <>
       {editable ? (
@@ -107,7 +107,8 @@ function DateListItem({ editable, label, value, onChange, initialValue }) {
           <StyledFormControl>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
               <DatePicker
-                minDate={moment().subtract(1, 'year')}
+                dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
+                minDate={customMinDate || moment().subtract(1, 'year')}
                 maxDate={moment().add(1, 'year')}
                 label={label}
                 value={value}
@@ -144,32 +145,31 @@ function DateListItem({ editable, label, value, onChange, initialValue }) {
 }
 
 const PhotoItem = ({ photoUrl }) => (
-  <Box sx={{ position: 'relative', height: '-webkit-fill-available', p:2 }}>
-    <Box component='img' src={photoUrl} alt="Photo" style={{ height: 'inherit'}} />
+  <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+    <Box component='img' src={photoUrl} alt='Photo' style={{ height: 'inherit' }} />
     <IconButton
-    href={photoUrl}
-    target="_blank"
-    rel="noopener noreferrer"
+      href={photoUrl}
+      target='_blank'
+      rel='noopener noreferrer'
       sx={{
         position: 'absolute',
         bottom: '10px',
         right: '10px',
-        backgroundColor: 'rgba(220, 220, 220, 0.1)',
+        backgroundColor: 'rgba(220, 220, 220, 0.1)'
       }}
     >
       <Download />
     </IconButton>
   </Box>
-);
+)
 
 const PhotoGallery = ({ photos }) => (
-  <Box sx={{ ml:3, display: 'flex', height:'140px', width:'70%', justifyContent:'space-around' }}>
+  <Box sx={{ display: 'flex', height: '140px', width: '70%', justifyContent: 'space-around' }}>
     {photos.map((fotoUrl, index) => (
       <PhotoItem key={index} photoUrl={fotoUrl} />
     ))}
   </Box>
-);
-
+)
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
   let isPlanner = roleData && roleData.id === '5'
@@ -336,6 +336,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const fieldValue = moment(date.toDate())
     setValues({ ...values, [dateField]: fieldValue })
     setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
+
+    // Si cambia start, end debe ser igual a start mas diferencia original
+    const isPetitioner = userRole === 2
+    const isContop = userRole === 3
+
+    // Variable diferencia original entre start y end
+    const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
+
+    if (dateField === 'start' && end && (isPetitioner || isContop)) {
+      const newEnd = moment(date.toDate()).add(docDifference, 'days')
+      setValues({ ...values, end: newEnd })
+      setHasChanges({ ...hasChanges, end: !newEnd.isSame(initialValues.end) })
+    }
   }
 
   return (
@@ -441,6 +454,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.end}
                   onChange={handleDateChange('end')}
                   initialValue={end}
+                  customMinDate={values.start}
                 />
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
@@ -453,18 +467,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   required={isPlanner}
                 />
                 <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
-              <ListItem>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
-                Archivos adjuntos
-              </Typography>
-              {values.fotos && <PhotoGallery photos={fotos} />}
-            </Box>
 
-              </ListItem>
+                {values.fotos && (
+                  <ListItem>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      <Typography component='div' sx={{ width: '30%', pr:2 }}>
+                        Archivos adjuntos
+                      </Typography>
+                      <PhotoGallery photos={fotos} />
+                    </Box>
+                  </ListItem>
+                )}
               </List>
-
-
 
               {editable ? (
                 <Button
@@ -480,7 +494,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {eventData !== undefined &&
                 eventData.length > 0 &&
                 eventData.map(element => {
-                  let modified = element.prevDoc ? (element.prevDoc.start ? 'Modificado' : 'Modificado') : 'Aprobado'
+                  let modified = element.prevDoc ? (element.prevDoc.start ? 'Modificado' : 'Modificación aceptada') : 'Aprobado'
                   let status = element.newState === 10 ? 'Rechazado' : modified
 
                   return (

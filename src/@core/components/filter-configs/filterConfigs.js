@@ -49,7 +49,7 @@ const generateFilterConfig = authUser => {
       label: 'Aprobadas por MEL',
       canSee: [1, 2, 3, 4, 5, 6, 7, 9],
       type: 'Estado',
-      filterFunction: doc => doc.state === 4
+      filterFunction: doc => doc.state === 5
     },
     approvedByProcure: {
       label: 'Aprobadas por Procure',
@@ -89,7 +89,7 @@ const generateFilterConfig = authUser => {
     },
     myWeek: {
       label: 'Aprobadas por Procure en mi semana',
-      type: 'General',
+      type: 'Estado',
       canSee: [1, 7],
       filterFunction: Boolean(authUser.shift === 'A')
         ? doc => otherWeek(doc.start.seconds)

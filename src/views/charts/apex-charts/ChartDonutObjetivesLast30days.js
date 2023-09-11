@@ -1,6 +1,3 @@
-// ** React Imports
-import { useState, useEffect } from 'react'
-
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
@@ -18,29 +15,11 @@ const donutColors = {
   series5: '#ffa1a1'
 }
 
-// ** Hooks
-import { useFirebase } from 'src/context/useFirebase'
-
-const ChartDonutObjetivesLast30days = () => {
+const ChartDonutObjetivesLast30days = ({ objetivesByState, loading }) => {
   // ** Hook
-  const { consultObjetives } = useFirebase()
   const theme = useTheme()
 
-  const [objByState, setObjByState] = useState([0, 0, 0])
-  const [loading, setLoading] = useState(true) // Agregamos un estado para indicar si estamos cargando los datos
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const objectivesByState = await consultObjetives('byState');
-
-      setObjByState(objectivesByState)
-      setLoading(false) // Cuando los datos se han cargado, actualizamos el estado a false
-    }
-
-    fetchData()
-  }, [loading])
-
-  const totalObjetives = objByState.reduce((total, count) => total + count, 0)
+  const totalObjetives = objetivesByState.reduce((total, count) => total + count, 0)
   const total = `Total: ${totalObjetives}`
 
   const options = {
@@ -139,7 +118,7 @@ const ChartDonutObjetivesLast30days = () => {
         {loading ? (
           <p>Cargando datos...</p>
         ) : (
-          <ReactApexcharts type='donut' height={400} options={options} series={objByState} />
+          <ReactApexcharts type='donut' height={400} options={options} series={objetivesByState} />
         )}
       </CardContent>
     </Card>

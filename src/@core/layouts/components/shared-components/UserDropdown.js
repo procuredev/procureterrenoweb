@@ -127,11 +127,11 @@ const UserDropdown = props => {
   }
 
   useEffect(() => {
-    if (authUser.displayName === 'No definido') {
+    if (authUser && authUser.displayName === 'No definido') {
       setUserName('Por definir')
-    } else if (!authUser.displayName) {
+    } else if (authUser && !authUser.displayName) {
       setUserName('Por definir')
-    } else if (authUser.displayName && authUser.displayName !== '') {
+    } else if (authUser && authUser.displayName && authUser.displayName !== '') {
       setUserName(authUser.displayName)
     } else {
       setUserName('Por definir')
@@ -161,7 +161,7 @@ const UserDropdown = props => {
       )
     } else {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
-      const currentName = authUser.displayName ?? name
+      const currentName = authUser ? authUser.displayName : 'Por definir'
 
       const initials = currentName
         .toUpperCase()

@@ -458,9 +458,11 @@ const CalendarWrapper = styled(Box)(({ theme }) => {
           color: theme.palette.text.secondary
         },
         '& .fc-list-event-time': {
-          fontSize: '.875rem',
+          display: 'none',
+
+          /* fontSize: '.875rem',
           paddingLeft: theme.spacing(4),
-          color: `${theme.palette.text.secondary} !important`
+          color: `${theme.palette.text.secondary} !important` */
         }
       },
 

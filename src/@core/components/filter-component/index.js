@@ -80,7 +80,7 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
                     onChange={e => handleFilterChange(optionGroupName, e.target.value)}
                   >
                     <MenuItem key={`all-${optionGroupName}`} value={''}>
-                      {optionGroupName}
+                      Cualquier {optionGroupName}
                     </MenuItem>
                     {optionGroupData.map(option => (
                       <MenuItem key={option.key} value={option.key}>

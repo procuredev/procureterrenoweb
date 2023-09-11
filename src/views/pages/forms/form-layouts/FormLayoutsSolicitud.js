@@ -14,16 +14,12 @@ import 'moment/locale/es'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import localDate from 'src/@core/utils/handle-date-offset'
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import CardHeader from '@mui/material/CardHeader'
 import InputLabel from '@mui/material/InputLabel'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
@@ -38,7 +34,6 @@ import FormHelperText from '@mui/material/FormHelperText'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
 import { styled } from '@mui/material/styles'
 import areas from 'src/@core/components/plants-areas/index'
 import InfoIcon from '@mui/icons-material/Info'
@@ -54,7 +49,6 @@ import Icon from 'src/@core/components/icon'
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@emotion/react'
-import { DonutSmallOutlined } from '@mui/icons-material'
 
 // Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
@@ -117,15 +111,11 @@ const FormLayoutsSolicitud = () => {
   // ** Hooks
   const {
     authUser,
-    getPetitioner,
-    getReceiverUsers,
     newDoc,
     uploadFilesToFirebaseStorage,
-    getAllPlantUsers,
     consultBlockDayInDB,
     consultSAP,
     getUserData,
-    getUsers
   } = useFirebase()
   const router = useRouter()
   const theme = useTheme()
@@ -143,7 +133,6 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
-  const [validateUrlVideo, setValidUrlVideo] = useState({ url: 'https://url.com', tempUrl: '' })
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo']
@@ -166,16 +155,18 @@ const FormLayoutsSolicitud = () => {
         }
         if (prop === 'objective') {
           const isAnalysisGPRSelected = newValue === 'Análisis GPR'
-          const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
-          const currentWeek = moment().isoWeeks()
+          const currentWeek = moment().isoWeek();
+          const startDate = moment(values.start);
+          const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+          const weeksDifference = startDate.diff(currentDate, 'weeks');
 
           const inTenWeeks = moment()
             .locale('es')
-            .isoWeeks(currentWeek + 11)
-            .startOf('week')
+            .isoWeeks(currentWeek + 10)
+            //.startOf('week')
             .format('LL')
 
-          if (isAnalysisGPRSelected && weeksDifference < 11) {
+          if (isAnalysisGPRSelected && weeksDifference < 10) {
             setErrors(prevErrors => ({
               ...prevErrors,
               objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
@@ -226,32 +217,30 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const onBlur = async e => {
-    const resultSap = await consultSAP(e.target.value)
-    if (resultSap.exist) {
-      if (resultSap.sapWithOt) {
-        console.log(resultSap.sapWithOt)
-        setAlertMessage(resultSap.msj)
+  const handleBlur = async e => {
+    if (values.sap.length > 0) {
+      const resultSap = await consultSAP(e.target.value);
+
+      if (resultSap.exist) {
+        if (resultSap.sapWithOt) {
+          setAlertMessage(resultSap.msj);
+        } else {
+          setAlertMessage(resultSap.msj);
+        }
+      } else {
+        setValues({
+          ...values,
+          sap: e.target.value
+        });
       }
-      console.log(resultSap.sap)
-      setAlertMessage(resultSap.msj)
-    } else {
-      setValues({
-        ...values,
-        sap: e.target.value
-      })
+
+      return resultSap;
     }
-
-    // setAlertMessage(resultSap.msj)
-
-    return resultSap
-  }
-
-  // const isValidUrlVideo = (url) => url.length < 2 || !url.includes('.') || !url.startsWith('https://')
+  };
 
   const validationRegex = {
-    title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
-    description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
+    //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     tag: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
@@ -270,17 +259,19 @@ const FormLayoutsSolicitud = () => {
       }
 
       if (key === 'objective') {
-        const isAnalysisGPRSelected = values[key] === 'Análisis GPR'
-        const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
-        const currentWeek = moment().isoWeeks()
+        const isAnalysisGPRSelected = values[key] === 'Análisis GPR';
+        const currentWeek = moment().isoWeek();
+        const startDate = moment(values.start);
+        const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+        const weeksDifference = startDate.diff(currentDate, 'weeks');
 
         const inTenWeeks = moment()
           .locale('es')
-          .isoWeeks(currentWeek + 11)
-          .startOf('week')
+          .isoWeeks(currentWeek + 10)
+          //.startOf('week')
           .format('LL')
 
-        if (isAnalysisGPRSelected && weeksDifference < 11) {
+        if (isAnalysisGPRSelected && weeksDifference < 10) {
           newErrors[key] = `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
         }
       }
@@ -312,28 +303,21 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  /* const getContOp = async plant => {
-    console.log(plant, "PLANT2")
-    let options = await getUsers(plant)
-    console.log(options, "OPTIONS")
-
-    setContOpOptions(options)
-  } */
-
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
+    const maxSizeBytes = 5 * 1024 * 1024; // 5 MB in bytes
 
     const isValidImage = file => {
       const extension = file.name.split('.').pop().toLowerCase()
 
-      return imageExtensions.includes(extension)
+      return imageExtensions.includes(extension) && file.size <= maxSizeBytes;
     }
 
     const isValidDocument = file => {
       const extension = file.name.split('.').pop().toLowerCase()
 
-      return documentExtensions.includes(extension)
+      return documentExtensions.includes(extension) && file.size <= maxSizeBytes;
     }
 
     const isValidFile = file => {
@@ -344,7 +328,7 @@ const FormLayoutsSolicitud = () => {
       return {
         name: file.name,
         isValid: isValidFile(file),
-        msj: `${file.name}`
+        msj: isValidFile(file) ? `${file.name}` : `${file.name} - El archivo excede el tamaño máximo de 5 MB`,
       }
     })
 
@@ -352,7 +336,6 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleOpenErrorDialog = msj => {
-    console.log(msj)
 
     setErrorFileMsj(msj)
     setErrorDialog(true)
@@ -366,10 +349,8 @@ const FormLayoutsSolicitud = () => {
     onDrop: acceptedFiles => {
       const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
       if (invalidFiles.length > 0) {
-        console.log(validateFiles(invalidFiles))
 
         const res = validateFiles(invalidFiles)
-        console.log(res[0].msj, 'res.msj')
         const msj = res[0].msj
         handleOpenErrorDialog(msj)
 
@@ -471,7 +452,6 @@ const FormLayoutsSolicitud = () => {
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isBlocked = await consultBlockDayInDB(values.start.toDate())
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
-    console.log(formErrors)
 
     if (Object.keys(formErrors).length === 0 && areFieldsValid === true && invalidFiles.length === 0) {
       try {
@@ -536,8 +516,12 @@ const FormLayoutsSolicitud = () => {
   useEffect(() => {
     if (values.plant) {
       const fetchData = async () => {
-        const contOpOptions = await getUserData('getUsers', values.plant,)
+        const contOpOptions = await getUserData('getUsers', values.plant)
         setContOpOptions(contOpOptions)
+        //Si tiene longitud 1, se establece como contop por defecto
+        if (contOpOptions.length === 1 && contOpOptions[0].name) {
+          setValues({ ...values, contop: contOpOptions[0].name })
+        }
         const petitioners = await getUserData('getPetitioner', values.plant, {role: authUser.role})
         setPetitioners(petitioners)
       }
@@ -564,16 +548,18 @@ const FormLayoutsSolicitud = () => {
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
-      const weeksDifference = moment(values.start).isoWeeks() - moment().isoWeeks()
-      const currentWeek = moment().isoWeeks()
+      const currentWeek = moment().isoWeek();
+      const startDate = moment(values.start);
+      const currentDate = moment().subtract(1, 'days'); // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+      const weeksDifference = startDate.diff(currentDate, 'weeks');
 
       const inTenWeeks = moment()
         .locale('es')
-        .isoWeeks(currentWeek + 11)
-        .startOf('week')
+        .isoWeeks(currentWeek + 10)
+        //.startOf('week')
         .format('LL')
 
-      if (weeksDifference < 11) {
+      if (weeksDifference < 10) {
         setErrors(prevErrors => ({
           ...prevErrors,
           objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
@@ -586,8 +572,6 @@ const FormLayoutsSolicitud = () => {
       }
     }
   }, [values.start])
-
-  console.log(petitioners, "petitioners")
 
   return (
     <Card>
@@ -634,12 +618,35 @@ const FormLayoutsSolicitud = () => {
               </Box>
             </Grid>
 
+            {/*Descripción*/}
+            <Grid item xs={12}>
+              <Box display='flex' alignItems='center'>
+                <FormControl fullWidth>
+                  <TextField
+                    InputLabelProps={{ required: true}}
+                    fullWidth
+                    type='text'
+                    label='Descripción'
+                    inputProps={{ maxLength: 500 }}
+                    value={values.description}
+                    onChange={handleChange('description')}
+                    error={errors.description ? true : false}
+                    helperText={errors.description}
+                  />
+                </FormControl>
+                <StyledTooltip title='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'>
+                  <StyledInfoIcon color='action' />
+                </StyledTooltip>
+              </Box>
+            </Grid>
+
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                 <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                   <Box display='flex' alignItems='center'>
                     <DatePicker
+                      dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
                       label='Fecha'
@@ -746,40 +753,6 @@ const FormLayoutsSolicitud = () => {
                 <Link onClick={() => router.replace('/mapa/')}>Haga clic acá para saber</Link>
               </Typography>
             </Grid>
-
-            {/* Contract operator
-            <Grid item xs={12}>
-              <Box display='flex' alignItems='center' width='100%'>
-                <FormControl
-                  fullWidth
-                  sx={{ '& .MuiInputBase-root ': { width: '100%' } }}
-                  error={errors.contop ? true : false}
-                >
-                  <InputLabel id='input-label-contop'>Contract operator</InputLabel>
-                  <Box display='flex' alignItems='center' width='100%'>
-                    <Select
-                      label='Contract operator'
-                      id='id-contop'
-                      labelId='labelId-contop'
-                      value={values.contop}
-                      onChange={handleChange('contop')}
-                    >
-                      {contOpOptions.map(contop => {
-                        return (
-                          <MenuItem key={contop.name} value={contop.name}>
-                            {contop.name}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
-                    <StyledTooltip title='Selecciona el Contract Operator a cargo de la Planta donde se ejecutará el trabajo.'>
-                      <InfoIcon color='action' />
-                    </StyledTooltip>
-                  </Box>
-                  {errors.contop && <FormHelperText>{errors.contop}</FormHelperText>}
-                </FormControl>
-              </Box>
-            </Grid> */}
 
             {/* Contract Operator */}
             <Grid item xs={12}>
@@ -957,6 +930,7 @@ const FormLayoutsSolicitud = () => {
                     <MenuItem value='Normal'>Normal</MenuItem>
                     <MenuItem value='Outage'>Outage</MenuItem>
                     <MenuItem value='Shutdown'>Shutdown</MenuItem>
+                    <MenuItem value='Oportunidad'>Oportunidad</MenuItem>
                   </Select>
                   <StyledTooltip title='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'>
                     <StyledInfoIcon color='action' />
@@ -1004,7 +978,7 @@ const FormLayoutsSolicitud = () => {
                   type='text'
                   label='Número SAP'
                   id='sap-input'
-                  onBlur={values.sap.length > 0 && onBlur}
+                  onBlur={handleBlur}
                   value={values.sap}
                   onChange={handleChange('sap')}
                   error={errors.sap ? true : false}
@@ -1112,50 +1086,6 @@ const FormLayoutsSolicitud = () => {
               </FormControl>
             </Grid>
 
-            {/*Descripción*/}
-            <Grid item xs={12}>
-              <Box display='flex' alignItems='center'>
-                <FormControl fullWidth>
-                  <TextField
-                    InputLabelProps={{ required: true }}
-                    fullWidth
-                    type='text'
-                    label='Descripción'
-                    inputProps={{ maxLength: 100 }}
-                    value={values.description}
-                    onChange={handleChange('description')}
-                    error={errors.description ? true : false}
-                    helperText={errors.description}
-                  />
-                </FormControl>
-                <StyledTooltip title='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'>
-                  <StyledInfoIcon color='action' />
-                </StyledTooltip>
-              </Box>
-            </Grid>
-
-            {/* VideoUrl */}
-            {/* <Grid item xs={12}>
-              <Box display='flex' alignItems='center'>
-                <TextField
-                  InputLabelProps={{ required: false }}
-                  fullWidth
-                  type='text'
-                  label='Video url'
-                  id='urlVideo-input'
-
-                  //onBlur={onBlurUrlVideo}
-                  value={values.urlvideo}
-                  onChange={event => setValidUrlVideo({ url: 'https://url.com', tempUrl: event.target.value })}
-                  error={isValidUrlVideo(validateUrlVideo.url)}
-                  helperText={isValidUrlVideo(validateUrlVideo.url) ? "URL incorrecta" : ""}
-                  inputProps={{ maxLength: 25 }}
-                />
-                <StyledTooltip title='Rellena este campo sólo si tienes el link del video. La url debe empezar con https://'>
-                  <StyledInfoIcon color='action' />
-                </StyledTooltip>
-              </Box>
-            </Grid> */}
 
             {/* Dropzone archivos */}
             <Grid item xs={12}>
@@ -1223,7 +1153,7 @@ const FormLayoutsSolicitud = () => {
                     </DialogTitle>
                     <DialogContent sx={{ textAlign: 'center' }}>
                       <CircularProgress
-                        size={40} // Ajusta el tamaño del CircularProgress según tus preferencias
+                        size={40}
                       />
                     </DialogContent>
                   </Dialog>

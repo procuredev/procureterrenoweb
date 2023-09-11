@@ -103,6 +103,16 @@ const FormLayoutsBasic = () => {
         }
         getOptions(plantArray, newValue)
         break
+      case 'role':
+        newValue = event.target.value
+        values.plant = []
+        values.shift = ''
+        values.opshift = ''
+        break
+      case 'company':
+        newValue = event.target.value
+        values.role = ''
+        break
       default:
         newValue = event.target.value
         break
@@ -297,19 +307,16 @@ const FormLayoutsBasic = () => {
 
   const getOptions = async (plant, shift = '') => {
     if (plant.length > 0) {
-      console.log(plant.length)
       let options = await getUserData('getUsers', plant, {shift})
       options.push({ name: 'No Aplica' })
-      console.log(options)
       if (shift) {
-        console.log('solicitante')
         setOpShiftOptions(options)
       } else {
-        console.log('contract operator')
         setContOptions(options)
       }
     }
   }
+
 
   return (
     <Card>

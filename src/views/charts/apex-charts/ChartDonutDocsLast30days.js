@@ -1,6 +1,3 @@
-// ** React Imports
-import { useState, useEffect } from 'react'
-
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
@@ -18,27 +15,9 @@ const donutColors = {
   series5: '#ffa1a1'
 }
 
-// ** Hooks
-import { useFirebase } from 'src/context/useFirebase'
-
-const ChartDonutDocsLast30days = () => {
+const ChartDonutDocsLast30days = ({ docsByState, loading }) => {
   // ** Hook
-  const { consultDocs } = useFirebase()
   const theme = useTheme()
-
-  const [docsByState, setDocsByState] = useState([0, 0, 0])
-  const [loading, setLoading] = useState(true) // Agregamos un estado para indicar si estamos cargando los datos
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const docsByState = await consultDocs('byState');
-      setDocsByState(docsByState)
-      setLoading(false) // Cuando los datos se han cargado, actualizamos el estado a false
-    }
-
-    fetchData()
-  }, [loading])
-
 
   const totalDocuments = docsByState.reduce((total, count) => total + count, 0)
   const total = `Recibidas: ${totalDocuments}`

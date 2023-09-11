@@ -1,7 +1,5 @@
-//Hola
-//hola como estas
 // ** React Imports
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -51,9 +49,6 @@ import themeConfig from 'src/configs/themeConfig'
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
-// ** Demo Imports
-import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
-
 // ** Styled Components
 
 const RightWrapper = styled(Box)(({ theme }) => ({
@@ -73,7 +68,7 @@ const BoxWrapper = styled(Box)(({ theme }) => ({
   }
 }))
 
-const TypographyStyled = styled(Typography)(({ theme }) => ({
+const TypographyStyled = styled(Typography)(() => ({
   fontWeight: 600,
   textAlign: 'center',
   letterSpacing: '0.18px'
@@ -107,18 +102,14 @@ const LoginPage = () => {
   // ** Hooks
 
   const theme = useTheme()
-  const bgColors = useBgColor()
   const { settings } = useSettings()
-  const hidden = useMediaQuery(theme.breakpoints.down('md'))
 
   // ** Vars
   const { skin } = settings
-  const { authUser, signInWithEmailAndPassword } = useFirebase()
-  const router = useRouter()
+  const { signInWithEmailAndPassword, signGoogle } = useFirebase()
 
   const {
     control,
-    setError,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -141,6 +132,16 @@ const LoginPage = () => {
         setAlertMessage(errorMessage)
 
         // setErrorMessage(errorMessage)
+      })
+  }
+
+  const handleSignGoogle = () => {
+    signGoogle()
+      .then(token => {
+        // Manejar la respuesta exitosa
+      })
+      .catch(error => {
+        console.log(error)
       })
   }
 
@@ -183,54 +184,6 @@ const LoginPage = () => {
             <Box
               sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
             >
-              {/* <Box
-                component='img'
-                sx={{ width: '60%', m: 3,}}
-                src='https://raw.githubusercontent.com/carlapazjm/firmaprocure/main/Procure.png'
-              /> */}
-              {/* <Box sx={{ width: '100%', m: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <svg width='222' height='75' viewBox="0 0 222 75" xmlns='http://www.w3.org/2000/svg'>
-                  <defs>
-                    <mask id='maskO'>
-                      <rect x='0' y='0' width='100%' height='100%' fill={theme.palette.primary.contrastText} />
-                      <text x='65' y='59' fontSize='36' fontFamily='Arial' fill={theme.palette.text}>
-                        O
-                      </text>
-                    </mask>
-                  </defs>
-                  <rect x='0' y='0' width='100%' height='100%' fill={theme.palette.background.paper} />
-                  <text x='0' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
-                    P
-                  </text>
-                  <text x='35' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
-                    R
-                  </text>
-                  <rect x='64' y='0' width='30' height='60' fill='rgb(146, 193, 61)' mask='url(#maskO)' />
-                  <text x='95' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
-                    C
-                  </text>
-                  <text x='130' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
-                    U
-                  </text>
-                  <text x='165' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
-                    R
-                  </text>
-                  <text x='200' y='60' fontSize='36' fontFamily='Arial' fill={theme.palette.text.primary}>
-                    E
-                  </text>
-                  <text
-                    x='0'
-                    y='75'
-                    fontSize='11'
-                    fontFamily='Arial'
-                    textLength='222'
-                    lengthAdjust='spacingAndGlyphs'
-                    fill={theme.palette.text.primary}
-                  >
-                    S E R V I C I O S&#xA0;&#xA0;&#xA0;D E&#xA0;&#xA0;&#xA0;I N G E N I E R Í A
-                  </text>
-                </svg>
-              </Box> */}
               <Box sx={{ width: '65%', m: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <svg id='Capa_1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 950.6 349.07'>
                   <rect x='262.35' width='131.58' height='267.11' fill='#92c13d' />
@@ -348,7 +301,7 @@ const LoginPage = () => {
                     {errorMessage}
                   </Alert>
                 ) : (
-                  <TypographyStyled variant='body2' sx={{ textAlign: 'center' }}>
+                  <TypographyStyled variant='h7' sx={{ textAlign: 'center' }}>
                     Iniciar sesión
                   </TypographyStyled>
                 )}
@@ -369,7 +322,6 @@ const LoginPage = () => {
                       onBlur={onBlur}
                       onChange={onChange}
                       error={Boolean(errors.email)}
-                      // placeholder='admin@materialize.com'
                     />
                   )}
                 />
@@ -427,8 +379,11 @@ const LoginPage = () => {
                   Olvidaste tu contraseña?
                 </Typography>
               </Box>
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
+              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>
                 Entrar
+              </Button>
+              <Button fullWidth size='large' onClick={() => handleSignGoogle()} variant='contained' sx={{ mb: 7, display:'none' }}>
+                Entrar con Google
               </Button>
             </form>
           </BoxWrapper>

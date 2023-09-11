@@ -12,9 +12,11 @@ import {
   onSnapshot,
   where,
   orderBy,
-  getCountFromServer
+  getCountFromServer,
+  documentId
 } from 'firebase/firestore'
 
+import { unixToDate } from 'src/@core/components/unixToDate'
 
 // Librería
 import { capitalize } from 'lodash'
@@ -61,8 +63,6 @@ const useSnapshot = (datagrid = false, userParam) => {
 
   useEffect(() => {
     if (userParam) {
-      console.log(userParam.role, 'USER PLANT')
-
       let q = query(collection(db, 'solicitudes'))
 
       const getAllDocs = [1, 4, 5, 6, 7, 9]
@@ -124,7 +124,6 @@ const useSnapshot = (datagrid = false, userParam) => {
 
 // Obtener los datos de un rol
 const getRoleData = async role => {
-  console.log(role)
   const docRef = doc(db, 'roles', role)
   const docSnap = await getDoc(docRef)
   let data = docSnap.data()
@@ -147,112 +146,114 @@ const getData = async id => {
 // getUserData agrupa funciones relacionadas con la colección 'users'
 // identifica que funcion debe ejecutar de acuerdo al parametro 'type' que se le proporcione
 // recibe el parametro (userParam = {shift : ''}) para establecer el valor por defecto en caso de recibir sólo los parametros type y plant.
-const getUserData = async (type, plant, userParam = {shift : '', name : ''}) => {
-  const coll = collection(db, 'users'); // Crear una referencia a la colección 'users' en la base de datos
-  let allDocs = []; // Arreglo para almacenar los documentos extendidos
+const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => {
+  const coll = collection(db, 'users') // Crear una referencia a la colección 'users' en la base de datos
+  let allDocs = [] // Arreglo para almacenar los documentos extendidos
 
   // Mapa de consultas según el tipo
   const queryMap = {
     // Si se proporciona el turno, obtener usuarios solicitantes con el turno opuesto, de lo contrario, obtener usuarios Contrac Operator
-    'getUsers': () => userParam.shift !== ''
-      ? query(coll, where('plant', 'array-contains-any', plant), where('shift', '!=', userParam.shift), where('role', '==', 2))
-      : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
-    'getAllPlantUsers': () => query(coll, where('plant', 'array-contains', plant)),
-    'getAllProcureUsers': () => query(coll, where('company', '==', 'Procure')),
-    'getUserProyectistas': () => query(coll, where('role', '==', 8), where('shift', '==', userParam.shift)),
-    'getPetitioner':  () => query(coll, where('plant', 'array-contains', plant)),
-    'getReceiverUsers': () => query(coll,  where('plant', 'array-contains', plant), where('role', '==', 2)),
-    'getUsersByRole': () => query(coll,  where('role', '==', userParam.role)),
-  };
+    getUsers: () =>
+      userParam.shift !== ''
+        ? query(
+            coll,
+            where('plant', 'array-contains-any', plant),
+            where('shift', '!=', userParam.shift),
+            where('role', '==', 2)
+          )
+        : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
+    getAllPlantUsers: () => query(coll, where('plant', 'array-contains', plant)),
+    getAllProcureUsers: () => query(coll, where('company', '==', 'Procure')),
+    getUserProyectistas: () => query(coll, where('role', '==', 8), where('shift', '==', userParam.shift)),
+    getPetitioner: () => query(coll, where('plant', 'array-contains', plant)),
+    getReceiverUsers: () => query(coll, where('plant', 'array-contains', plant), where('role', '==', 2)),
+    getUsersByRole: () => query(coll, where('role', '==', userParam.role))
+  }
 
-  const queryFunc = queryMap[type]; // Obtener la función de consulta según el tipo
+  const queryFunc = queryMap[type] // Obtener la función de consulta según el tipo
 
   if (!queryFunc) {
-    throw new Error(`Invalid type: ${type}`);
+    throw new Error(`Invalid type: ${type}`)
   }
 
   try {
-
-
-
     // Obtener los documentos según la función de consulta y realizar la consulta
-    const querySnapshot = await getDocs(queryFunc());
+    const querySnapshot = await getDocs(queryFunc())
 
     // Iterar a través de los resultados de la consulta y construir el arreglo de usuarios extendidos
     querySnapshot.forEach(doc => {
       // Construir el objeto de usuario según el tipo y sus datos
-      const userObj = type === 'getUserProyectistas' ? doc.data().urlFoto ? {
-        userId: doc.id,
-        name: doc.data().name,
-        avatar: doc.data().urlFoto,
-      } : {
-        userId: doc.id,
-        name: doc.data().name,
-      } : type === 'getReceiverUsers' ? {
-        id: doc.id,
-        name: doc.data().name,
-        email: doc.data().email,
-        phone: doc.data().phone,
-      } : {
-        ...doc.data(),
-        id: doc.id
-      };
-      allDocs.push(userObj); // Agregar el objeto de usuario al arreglo
-    });
+      const userObj =
+        type === 'getUserProyectistas'
+          ? doc.data().urlFoto
+            ? {
+                userId: doc.id,
+                name: doc.data().name,
+                avatar: doc.data().urlFoto
+              }
+            : {
+                userId: doc.id,
+                name: doc.data().name
+              }
+          : type === 'getReceiverUsers'
+          ? {
+              id: doc.id,
+              name: doc.data().name,
+              email: doc.data().email,
+              phone: doc.data().phone
+            }
+          : {
+              ...doc.data(),
+              id: doc.id
+            }
+      allDocs.push(userObj) // Agregar el objeto de usuario al arreglo
+    })
 
     if (type === 'getPetitioner') {
       // Verificar el tipo de usuario actual y agregarlo al arreglo si corresponde
       if (userParam.name) {
-        const querySnapshot = await getDocs(query(coll, where('name', '==', userParam.name)));
+        const querySnapshot = await getDocs(query(coll, where('name', '==', userParam.name)))
 
         if (!querySnapshot.empty) {
-          const docSnapshot = querySnapshot.docs[0];
+          const docSnapshot = querySnapshot.docs[0]
 
-          return { email: docSnapshot.data().email, phone: docSnapshot.data().phone };
+          return { email: docSnapshot.data().email, phone: docSnapshot.data().phone }
         }
 
-        return null; // Devolver nulo si no se encuentra el documento
-
+        return null // Devolver nulo si no se encuentra el documento
       } else if (userParam.plant === 'allPlants') {
-        return allDocs.filter(doc => doc.role === 2);
-      } else if (userParam.role === 3) {
-        console.log(allDocs, "allDocs")
+        const allDocsFiltered = allDocs.filter(doc => doc.role === 2)
 
-        return allDocs;
-      } else {
-        const docRef = doc(db, 'users', userParam.id);
-        const docSnapshot = await getDoc(docRef);
+        return allDocsFiltered
+      } else if (userParam.role === 3) {
+        return allDocs
+      } else if (userParam.id) {
+        const docRef = doc(db, 'users', userParam.id)
+        const docSnapshot = await getDoc(docRef)
 
         if (docSnapshot.exists()) {
-          allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id });
+          allDocs.push({ ...docSnapshot.data(), id: docSnapshot.id })
         }
 
-        return allDocs;
+        return allDocs
       }
     }
 
-
-    return allDocs; // Retornar el arreglo de usuarios extendidos
+    return allDocs // Retornar el arreglo de usuarios extendidos
   } catch (error) {
-    console.error('Error fetching documents:', error);
+    console.error('Error fetching documents:', error)
 
-    return null; // En caso de error, retornar nulo
+    return null // En caso de error, retornar nulo
   }
-};
-
+}
 
 // Consultar si existen solicitudes para una fecha específica
 const dateWithDocs = async date => {
-  if (!date || !date.seconds) {
-    return
-  }
-
   const allDocs = []
 
   //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
-  const q = query(collection(db, 'solicitudes'), where('start', '==', date))
+  const q = query(collection(db, 'solicitudes'), where('start', '==', new Timestamp(date, 0)))
   const querySnapshot = await getDocs(q)
-
   querySnapshot.forEach(doc => {
     // doc.data() is never undefined for query doc snapshots
     allDocs.push({ ...doc.data(), id: doc.id })
@@ -267,22 +268,27 @@ const dateWithDocs = async date => {
 
 // Consultar si un día está bloqueado en la base de datos
 const consultBlockDayInDB = async date => {
-  const fechaTimestamp = Timestamp.fromMillis(date) // Convierte a objeto Timestamp de Firebase
-  const docRef = doc(collection(db, 'diasBloqueados'), date.toString())
+  const startOfDay = moment(date).startOf('day').unix().toString()
+  const endOfDay = moment(date).endOf('day').unix().toString()
 
-  const docSnap = await getDoc(docRef)
-  if (docSnap.exists()) {
-    const data = docSnap.data()
-    if (data.blocked === true) {
-      // Si el día ya está bloqueado, lo desbloquea en el documento
-      return { msj: `El día que ha seleccionado se encuentra inhabilitado, motivo: ${data.cause} `, blocked: true }
+  const docRef = collection(db, 'diasBloqueados')
+  const querySnapshot = await getDocs(query(docRef, where(documentId(), '>=', startOfDay), where(documentId(), '<=', endOfDay)))
+
+  if (!querySnapshot.empty) {
+    // Si hay resultados, al menos un timestamp abarca todo el día
+    const blockedDoc = querySnapshot.docs.find(doc => doc.data().blocked)
+
+    if (blockedDoc) {
+      const data = blockedDoc.data()
+
+      return { msj: `El día que has seleccionado está bloqueado, motivo: ${data.cause}`, blocked: true }
     } else {
-      let msj = await dateWithDocs(fechaTimestamp)
+      let msj = await dateWithDocs(date / 1000)
 
       return { msj, blocked: false }
     }
   } else {
-    let msj = await dateWithDocs(fechaTimestamp)
+    let msj = await dateWithDocs(date / 1000)
 
     return { msj, blocked: false }
   }
@@ -305,6 +311,7 @@ const consultSAP = async sap => {
     let sapWithOt = []
     let sap = []
     let messages
+    let otMessages
 
     // Recorrer cada documento y obtener información adicional del usuario asociado
     await Promise.all(
@@ -317,14 +324,20 @@ const consultSAP = async sap => {
         if (docItem.data().ot) {
           // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
           sapWithOt.push({
-            ot: docItem.data().ot,
+            title: docItem.data().title,
             author,
-            objective: docItem.data().objective,
-            title: docItem.data().title
+            ot: docItem.data().ot,
+            date: unixToDate(docItem.data().date.seconds)[0],
+            objective: docItem.data().objective
           })
         } else {
           // Si el documento no tiene una OT asignada, agregarlo al arreglo 'sap'
-          sap.push({ author, objective: docItem.data().objective, title: docItem.data().title })
+          sap.push({
+            title: docItem.data().title,
+            author,
+            date: unixToDate(docItem.data().date.seconds)[0],
+            objective: docItem.data().objective
+          })
         }
       })
     )
@@ -333,7 +346,8 @@ const consultSAP = async sap => {
       // Si hay solicitudes con OT asignadas, retornar un objeto con información detallada
       messages = sap
         .map(
-          item => `Título: ${item.title}\n Solicitante: ${item.author}\n Tipo de Levantamiento: ${item.objective}\n`
+          item =>
+            `Título: ${item.title}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
 
           // Si todas las solicitudes están en revisión sin OT asignada, retornar un objeto con información detallada
         )
@@ -341,13 +355,15 @@ const consultSAP = async sap => {
     }
 
     if (sapWithOt.length > 0) {
-      const otMessages = sapWithOt
+      otMessages = sapWithOt
         .map(
           item =>
-            `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Tipo de Levantamiento: ${item.objective}\n`
+            `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
         )
         .join('\n')
+    }
 
+    if (sapWithOt.length > 0 && sap.length > 0) {
       return {
         exist: true,
         sap,
@@ -360,13 +376,21 @@ const consultSAP = async sap => {
           `\n` +
           messages
       }
+    } else if (sapWithOt.length > 0 && sap.length === 0) {
+      return {
+        exist: true,
+        sapWithOt,
+        msj: `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cuales ${
+          sapWithOt.length
+        } tienen OT asignadas`
+      }
     } else {
       return {
         exist: true,
         sap,
         msj:
-        `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas:\n\n` +
-        messages
+          `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas:\n\n` +
+          messages
       }
     }
   } else {
@@ -405,154 +429,164 @@ const consultUserEmailInDB = async email => {
 }
 
 const consultDocs = async (type, options = {}) => {
-  const coll = collection(db, 'solicitudes'); // Obtener referencia a la colección 'solicitudes'
-  let queries = [];  // Inicializar un arreglo para almacenar las consultas
+  const coll = collection(db, 'solicitudes') // Obtener referencia a la colección 'solicitudes'
+  let queries = [] // Inicializar un arreglo para almacenar las consultas
+  let queryFunc
 
   // Determinar el tipo de consulta a realizar
   switch (type) {
-      // Agregar la consulta de obtener todos los documentos a las consultas
+    // Agregar la consulta de obtener todos los documentos a las consultas
     case 'all':
-      queries.push(getCountFromServer(coll));
-      break;
+      queries.push(getCountFromServer(coll))
+      break
 
-      // Crear consultas por planta y agregarlas al arreglo de consultas
+    // Crear consultas por planta y agregarlas al arreglo de consultas
     case 'byPlants':
-      const plantQueries = options.plants.map(plant =>
-        query(coll, where('plant', '==', plant))
-      );
-      queries = plantQueries.map(getCountFromServer);
-      break;
+      queryFunc = async () => {
+        const queries = options.plants.map(async plant => {
+          const q = query(coll, where('plant', '==', plant))
+          const snapshot = await getDocs(q)
 
-      // Crear consultas por estado y agregarlas al arreglo de consultas
+          return snapshot.size
+        })
+
+        const results = await Promise.all(queries)
+
+        return results
+      }
+      break
+    // Crear consultas por estado y agregarlas al arreglo de consultas
     case 'byState':
-      const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6));
-      const q2 = query(coll, where('state', '>=', 6), where('state', '<', 10));
-      const q3 = query(coll, where('state', '==', 10));
-      queries = [q1, q2, q3].map(getCountFromServer);
-      break;
+      const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6))
+      const q2 = query(coll, where('state', '>=', 6), where('state', '<', 10))
+      const q3 = query(coll, where('state', '==', 10))
+      queries = [q1, q2, q3].map(getCountFromServer)
+      break
 
     default:
       // Si el tipo de consulta no es válido, lanzar un error
-      throw new Error(`Invalid type: ${type}`);
+      throw new Error(`Invalid type: ${type}`)
   }
 
   try {
-    const snapshots = await Promise.all(queries); // Ejecutar todas las consultas en paralelo y obtener los snapshots
-    const counts = snapshots.map(snapshot => snapshot.data().count); // Mapear los snapshots para obtener el conteo de cada consulta
+    if (type === 'byPlants') {
+      return queryFunc()
+    } else {
+      const snapshots = await Promise.all(queries) // Ejecutar todas las consultas en paralelo y obtener los snapshots
+      const counts = snapshots.map(snapshot => snapshot.data().count) // Mapear los snapshots para obtener el conteo de cada consulta
 
-    return counts; // Retornar el arreglo de conteos
+      return counts // Retornar el arreglo de conteos
+    }
   } catch (error) {
-    console.error('Error fetching document counts:', error); // En caso de error, imprimir un mensaje de error y retornar null
+    console.error('Error fetching document counts:', error) // En caso de error, imprimir un mensaje de error y retornar null
 
-    return null;
+    return null
   }
-};
-
+}
 
 const consultObjetives = async (type, options = {}) => {
-  const coll = collection(db, 'solicitudes');
-  let queryFunc;
+  const coll = collection(db, 'solicitudes')
+  let queryFunc
 
   switch (type) {
     case 'all':
       // Consulta para obtener el total de documentos con estado mayor o igual a 6
       queryFunc = async () => {
-        const q = query(coll, where('state', '>=', 6));
-        const snapshot = await getCountFromServer(q);
+        const q = query(coll, where('state', '>=', 6))
+        const snapshot = await getCountFromServer(q)
 
-        return snapshot.data().count;
-      };
-      break;
+        return snapshot.data().count
+      }
+      break
 
     case 'week':
       // Consulta para obtener el número de documentos por día de la semana en la semana actual
       queryFunc = async () => {
-        const startDate = moment().startOf('isoWeek').toDate();
-        const endDate = moment().endOf('isoWeek').toDate();
-        const documentsByDay = Array(7).fill(0);
-        const q = query(coll, where('state', '>=', 6));
-        const snapshot = await getDocs(q);
+        const startDate = moment().startOf('isoWeek').toDate()
+        const endDate = moment().endOf('isoWeek').toDate()
+        const documentsByDay = Array(7).fill(0)
+        const q = query(coll, where('state', '>=', 6))
+        const snapshot = await getDocs(q)
 
         snapshot.forEach(doc => {
-          const start = doc.data().start.toDate();
-          const dayOfWeek = moment(start).isoWeekday();
+          const start = doc.data().start.toDate()
+          const dayOfWeek = moment(start).isoWeekday()
           if (moment(start).isSameOrAfter(startDate) && moment(start).isSameOrBefore(endDate)) {
-            documentsByDay[dayOfWeek - 1]++;
+            documentsByDay[dayOfWeek - 1]++
           }
-        });
+        })
 
-        return documentsByDay;
-      };
-      break;
+        return documentsByDay
+      }
+      break
 
     case 'lastSixMonths':
       // Consulta para obtener el número de documentos en los últimos seis meses
       queryFunc = async () => {
-        const currentDate = moment();
-        const monthsData = [];
-        const queries = [];
+        const currentDate = moment()
+        const monthsData = []
+        const queries = []
 
         for (let i = 0; i < 6; i++) {
-          const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate();
-          const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate();
+          const monthStartDate = currentDate.clone().subtract(i, 'months').startOf('month').toDate()
+          const monthEndDate = currentDate.clone().subtract(i, 'months').endOf('month').toDate()
 
-          const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate));
-          queries.push(getDocs(q));
+          const q = query(coll, where('start', '>=', monthStartDate), where('start', '<=', monthEndDate))
+          queries.push(getDocs(q))
         }
 
-        const snapshots = await Promise.all(queries);
+        const snapshots = await Promise.all(queries)
 
         snapshots.forEach((snapshot, index) => {
-          const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6);
-          const cant = filteredDocs.length;
-          const monthStartDate = currentDate.clone().subtract(index, 'months').startOf('month');
-          const month = capitalize(monthStartDate.locale('es').format('MMM'));
-          monthsData.unshift({ month, cant });
-        });
+          const filteredDocs = snapshot.docs.filter(doc => doc.data().state >= 6)
+          const cant = filteredDocs.length
+          const monthStartDate = currentDate.clone().subtract(index, 'months').startOf('month')
+          const month = capitalize(monthStartDate.locale('es').format('MMM'))
+          monthsData.unshift({ month, cant })
+        })
 
-        return monthsData;
-      };
-      break;
+        return monthsData
+      }
+      break
 
     case 'byPlants':
       // Consulta para obtener el número de documentos por planta
       queryFunc = async () => {
         const queries = options.plants.map(async plant => {
-          const q = query(coll, where('plant', '==', plant), where('state', '>=', 6));
-          const snapshot = await getDocs(q);
+          const q = query(coll, where('plant', '==', plant), where('state', '>=', 6))
+          const snapshot = await getDocs(q)
 
-          return snapshot.size;
-        });
+          return snapshot.size
+        })
 
-        const results = await Promise.all(queries);
+        const results = await Promise.all(queries)
 
-        return results;
-      };
-      break;
+        return results
+      }
+      break
 
     case 'byState':
       // Consulta para obtener el número de documentos por estado
       queryFunc = async () => {
-        const q1 = query(coll, where('state', '==', 6));
-        const q2 = query(coll, where('state', '==', 7));
-        const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10));
-        const queryAllStates = [q1, q2, q3];
+        const q1 = query(coll, where('state', '==', 6))
+        const q2 = query(coll, where('state', '==', 7))
+        const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10))
+        const queryAllStates = [q1, q2, q3]
 
-        const snapshots = await Promise.all(queryAllStates.map(getCountFromServer));
-        const documentsByState = snapshots.map(snapshot => snapshot.data().count);
+        const snapshots = await Promise.all(queryAllStates.map(getCountFromServer))
+        const documentsByState = snapshots.map(snapshot => snapshot.data().count)
 
-        return documentsByState;
-      };
-      break;
+        return documentsByState
+      }
+      break
 
     default:
       // Lanzar un error si el tipo no es válido
-      throw new Error(`Invalid type: ${type}`);
+      throw new Error(`Invalid type: ${type}`)
   }
 
-  return queryFunc();
-};
-
+  return queryFunc()
+}
 
 const getUsersWithSolicitudes = async () => {
   const collSolicitudes = collection(db, 'solicitudes') // Obtener referencia a la colección 'solicitudes'
@@ -626,5 +660,5 @@ export {
   consultUserEmailInDB,
   consultDocs,
   consultObjetives,
-  getUsersWithSolicitudes,
+  getUsersWithSolicitudes
 }

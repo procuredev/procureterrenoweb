@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, forwardRef } from 'react'
+import { useState, forwardRef, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -21,7 +21,8 @@ import EngineeringIcon from '@mui/icons-material/Engineering'
 import FormControl from '@mui/material/FormControl'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker'
+
 
 // ** Date Library
 //import moment from 'moment'
@@ -47,11 +48,22 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const [draftmen, setDraftmen] = useState([])
 
 
-  const [hours, setHours] = useState({})
+  const [hours, setHours] = useState({
+    start: null,
+    end: null,
+    total: '',
+    hours: 0,
+    minutes: 0,
+  })
   const [error, setError] = useState('')
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
+
+  const workDayStart = new Date(0, 0, 0, 8, 0); // Hora de inicio de la jornada laboral (08:00 AM)
+  const workDayEnd = new Date(0, 0, 0, 20, 0);  // Hora de finalización de la jornada laboral (08:00 PM)
+
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -76,16 +88,13 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
 
   const onsubmit = id => {
-    if (hours !== '') {
-      updateDocs(id, {hours}, authUser)
-
-      // Aquí puedes actualizar el documento 'doc' en la base de datos con el campo 'horas levantamiento'
-      // usando la función updateDocs o cualquier método que utilices para actualizar los datos en Firebase
-      handleClose()
+    if (hours.total !== '') {
+      updateDocs(id, { hours: hours.total }, authUser); // Utiliza directamente el estado hours.total
+      handleClose();
     } else {
-      setError('Por favor, ingrese un número mayor a 0.')
+      setError('Por favor, indique fecha de inicio y fecha de término.');
     }
-  }
+  };
 
   const handleDateChangeWrapper = dateField => date => {
     const handleDateChange = date => {
@@ -95,9 +104,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
       if (dateField === 'start') {
         updatedHours.start = fieldValue;
       } else {
-        const hoursDifference = fieldValue.diff(updatedHours.start, 'hours');
         updatedHours.end = fieldValue;
-        updatedHours.total = hoursDifference;
       }
 
       setHours(updatedHours);
@@ -105,6 +112,70 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
     handleDateChange(date);
   };
+
+  useEffect(() => {
+    if (hours.start && hours.end) {
+      const workStartHour = 8; // Hora de inicio de la jornada laboral
+      const workEndHour = 20; // Hora de finalización de la jornada laboral
+      const millisecondsPerHour = 60 * 60 * 1000; // Milisegundos por hora
+
+      let startDate = hours.start.clone();
+      let endDate = hours.end.clone();
+
+      // Asegurarse de que las fechas estén dentro de las horas de trabajo
+      if (startDate.hour() < workStartHour) {
+        startDate.hour(workStartHour).minute(0).second(0).millisecond(0);
+      }
+      if (endDate.hour() > workEndHour) {
+        endDate.hour(workEndHour).minute(0).second(0).millisecond(0);
+      } else if (endDate.hour() < workStartHour) {
+        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0);
+      }
+
+      let totalHoursWithinWorkingDays = 0;
+      let totalMinutes = 0;
+
+      while (startDate.isBefore(endDate)) {
+        const currentDayEnd = startDate.clone().hour(workEndHour);
+
+        if (currentDayEnd.isAfter(endDate)) {
+          const durationMillis = endDate.diff(startDate);
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
+          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000));
+        } else {
+          const durationMillis = currentDayEnd.diff(startDate);
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
+        }
+
+        startDate.add(1, 'day').hour(workStartHour);
+      }
+
+      if (totalMinutes >= 60) {
+        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60);
+        totalMinutes %= 60;
+      }
+
+      console.log(totalHoursWithinWorkingDays, totalMinutes, "RES")
+
+      if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
+        setError('La hora de término debe ser superior a la hora de inicio.');
+        setIsSubmitDisabled(true);
+
+        return;
+      } else {
+        setError(null); // Para limpiar cualquier error previo.
+        setIsSubmitDisabled(false);
+      }
+
+      setHours(prevHours => ({
+        ...prevHours,
+        total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
+        hours: totalHoursWithinWorkingDays,
+        minutes: totalMinutes,
+      }));
+    }
+  }, [hours.start, hours.end]);
+
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
@@ -138,7 +209,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
             <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
               <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                 <Box display='flex' alignItems='center'>
-                  <DateTimePicker
+                  <MobileDateTimePicker
+                    dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
                     minDate={moment().subtract(1, 'year')}
                     maxDate={moment().add(1, 'year')}
                     label='Fecha de inicio'
@@ -154,7 +226,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
             <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
               <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                 <Box display='flex' alignItems='center'>
-                  <DateTimePicker
+                  <MobileDateTimePicker
+                    dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
                     minDate={moment().subtract(1, 'year')}
                     maxDate={moment().add(1, 'year')}
                     label='Fecha de término'
@@ -217,7 +290,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           })}
         </List>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
+          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar
           </Button>
