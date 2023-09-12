@@ -42,6 +42,9 @@ const searchbyColletionAndField = async (col, field, value) => {
 }
 
 // Función para enviar emails de forma automática
+// user es el usuario conectado que efectúa el envío de la solicitud
+// values son los valores seleccionados en en formulario de nueva solicitud
+// reqId es el número de solicitud (Contador)
 export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
 
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
@@ -118,8 +121,28 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const receiver = values.receiver.map(receiver => receiver.email).join(', ')
       const description = values.description
 
-      // Llamada al html del email con las constantes previamente indicadads
-      const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+      let emailHtml
+
+      // Si la solicitud considera que se le entregue una memoria de cálculo, también se enviará un email notificando a gente de Procure y al Solicitante al respecto
+      if (values.deliverable.includes('Memoria de Cálculo')){
+        // Según lo indicado por gerencia, deberá enviarse un email a Cristobal Paillacar, Iván Durán, Felipe Monge y las mismas personas de ArrayCC para que estén notificadads de la solicitud de Memoria de Cálculo
+        // Para esto, se han almacenado en la Colección 'domain/emailCalculationReport' los emails de quienes de a quienes tiene que enviarse
+
+        const emailCalculationReportRef = doc(db, 'domain', 'emailCalculationReport')
+        const emailCalculationReportSnap = await getDoc(emailCalculationReportRef)
+        const emailCalculationReportData = emailCalculationReportSnap.data()
+        const procureUsersEmail = emailCalculationReportData.emails // Se selecciona el email de quienes exista en el array
+        arrayCC = arrayCC.concat(procureUsersEmail)
+
+        let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". Procure procederá a generar una presupuesto especial para el caso indicado.`
+        lastMessage = specialMessage + ' ' + lastMessage
+        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+
+      } else {
+        // Llamada al html del email con las constantes previamente indicadads
+        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+      }
+
 
       // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
       updateDoc(docRef, {
@@ -133,6 +156,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
           html: emailHtml
         }
       })
+
       console.log('E-mail a Solicitante de nueva solicitud enviado con éxito.')
     } catch (error) {
       console.error('Error al enviar email:', error)
