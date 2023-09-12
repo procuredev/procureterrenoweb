@@ -382,7 +382,7 @@ const consultSAP = async sap => {
         sapWithOt,
         msj: `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cuales ${
           sapWithOt.length
-        } tienen OT asignadas`
+        } tienen OT asignadas:\n\n` + otMessages
       }
     } else {
       return {

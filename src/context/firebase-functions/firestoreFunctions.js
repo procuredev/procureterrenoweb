@@ -187,7 +187,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       user: email,
       userName: displayName,
       date: Timestamp.fromDate(new Date()),
-      ...(prevDoc ? { prevDoc } : {})
+      ...(prevDoc &&  Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
     }
 
     await updateDoc(ref, changedFields)

@@ -306,9 +306,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const newData = {}
 
     for (const key in values) {
+      console.log(hasChanges[key], key, "hasChanges[key]")
       if (hasChanges[key]) {
         newData[key] = values[key]
       }
+
     }
 
     if (Object.keys(newData).length > 0) {
@@ -345,9 +347,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
 
     if (dateField === 'start' && end && (isPetitioner || isContop)) {
+      const newStart = date
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
-      setValues({ ...values, end: newEnd })
-      setHasChanges({ ...hasChanges, end: !newEnd.isSame(initialValues.end) })
+      setValues({ ...values, start: newStart, end: newEnd })
+      setHasChanges({ ...hasChanges, start: !newStart.isSame(initialValues.start), end: !newEnd.isSame(initialValues.end) })
     }
   }
 
@@ -493,8 +496,46 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
               {eventData !== undefined &&
                 eventData.length > 0 &&
+                // *** Mapea los eventos para los usuarios MEL ***
+                [2,3,4].includes(authUser.role) ? (
+                  eventData.map(element => {
+
+                    const determineModificationType = (element) => {
+                      const hasPreviousDoc = element.prevDoc;
+                      const isModifiedStart = hasPreviousDoc && element.prevDoc.start;
+                      const isStateDecreased = element.newState < element.prevState;
+
+                      if (isModifiedStart || isStateDecreased) return 'Modificado';
+                      if (hasPreviousDoc) return 'Modificación aceptada';
+
+                      return 'Aprobado';
+                  };
+
+                  const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element);
+
+                    const result = element.newState === 5 ? '' :
+                    <div key={element.date}>
+                    <TimelineItem>
+                      <TimelineOppositeContent>{unixToDate(element.date.seconds)}</TimelineOppositeContent>
+                      <TimelineSeparator>
+                        <TimelineDot />
+                        <TimelineConnector />
+                      </TimelineSeparator>
+                      <TimelineContent>
+                        <Typography variant='body1'>
+                          {status} por { [0, 1, 6, 10].includes(element.newState) && element.prevState === 5 ? 'Procure' : element.userName}
+                        </Typography>
+                        <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                      </TimelineContent>
+                    </TimelineItem>
+                  </div>
+
+
+                    return result
+                  })) :
+                  // *** Mapea los eventos para los usuarios Procure ***
                 eventData.map(element => {
-                  let modified = element.prevDoc ? (element.prevDoc.start ? 'Modificado' : 'Modificación aceptada') : 'Aprobado'
+                  let modified = element.prevDoc ? element.prevDoc.start ? 'Modificado' : element.prevDoc.end && element.prevDoc.ot ? 'Aprobado' : 'Modificación aceptada' : 'Aprobado'
                   let status = element.newState === 10 ? 'Rechazado' : modified
 
                   return (
