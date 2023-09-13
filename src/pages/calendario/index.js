@@ -196,7 +196,7 @@ const AppCalendar = () => {
     events: applyFilters(data, filters).map(a => ({
       title: eventResume(a).title,
       start: a.start.seconds * 1000,
-      ...(a.end && { end: a.end.seconds * 1000 }),
+      ...(a.end && { end: (a.end.seconds + 1*24*60*60) * 1000 }),
       allDay: true,
       id: a.id,
       description: a.description,
@@ -269,8 +269,8 @@ const AppCalendar = () => {
       setDayDialogOpen(info.date)
     },
     datesSet: async function (params) {
-      const startDate = params.start
-      const endDate = params.end
+      const startDate = params.start.seconds
+      const endDate = params.end.seconds
 
       const timestamps = []
 
