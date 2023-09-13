@@ -19,8 +19,6 @@ import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import InputLabel from '@mui/material/InputLabel'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
@@ -30,15 +28,8 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
-import FormHelperText from '@mui/material/FormHelperText'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import List from '@mui/material/List'
-import { styled } from '@mui/material/styles'
-import areas from 'src/@core/components/plants-areas/index'
-import InfoIcon from '@mui/icons-material/Info'
-import Tooltip, { tooltipClasses } from '@mui/material/Tooltip'
-import Autocomplete from '@mui/material/Autocomplete'
+import plants from 'src/@core/components/plants-areas/index'
 import CircularProgress from '@mui/material/CircularProgress'
 import Paper from '@mui/material/Paper'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
@@ -50,103 +41,16 @@ import Icon from 'src/@core/components/icon'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@emotion/react'
 
-// Styled component for the heading inside the dropzone area
-const HeadingTypography = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(5),
-  [theme.breakpoints.down('sm')]: {
-    marginBottom: theme.spacing(4)
-  }
-}))
-
-//Styled tooltip-popover
-const StyledTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
-  ({ theme }) => ({
-    [`& .${tooltipClasses.tooltip}`]: {
-      backgroundColor: theme.palette.grey[700],
-      color: 'white',
-      boxShadow: theme.shadows[1],
-      fontSize: '1.0em', // Aquí es donde especificas el tamaño del texto
-      padding: theme.spacing(4, 4)
-    }
-  })
-)
-
-const StyledInfoIcon = styled(InfoIcon)(({ theme }) => ({
-  marginLeft: theme.spacing(4) // Añade un margen a la izquierda del InfoIcon
-}))
-
-const CustomTextField = props => {
-  return (
-    <Grid item xs={12}>
-      <Box display='flex' alignItems='center'>
-        <TextField fullWidth {...props} />
-        <StyledTooltip title={props.helper}>
-          <StyledInfoIcon color='action' />
-        </StyledTooltip>
-      </Box>
-    </Grid>
-  )
-}
-
-const CustomSelect = props => {
-  const { options, label, error, disabled, helper, ...selectProps } = props
-
-  return (
-    <Grid item xs={12}>
-      <FormControl fullWidth sx={{ '& .MuiInputBase-root ': { width: '100%' } }} disabled={disabled} error={error}>
-        <InputLabel>{label}</InputLabel>
-        <Box display='flex' alignItems='center'>
-          <Select {...selectProps}>
-            {options &&
-              options.map(option => {
-                return (
-                  <MenuItem key={option.name || option} value={option.name || option}>
-                    {option.name || option}
-                  </MenuItem>
-                )
-              })}
-          </Select>
-          <StyledTooltip title={helper}>
-            <StyledInfoIcon color='action' />
-          </StyledTooltip>
-        </Box>
-        {error && <FormHelperText>{error}</FormHelperText>}
-      </FormControl>
-    </Grid>
-  )
-}
-
-const CustomAutocomplete = props => {
-  const { error, label, helper, required, ...autoProps } = props
-
-  return (
-    <Grid item xs={12}>
-      <FormControl fullWidth>
-        <Box display='flex' alignItems='center'>
-          <Autocomplete
-            getOptionLabel={option => option.name}
-            isOptionEqualToValue={(option, value) => option.name === value.name}
-            multiple
-            fullWidth
-            {...autoProps}
-            renderInput={params => (
-              <TextField
-                {...params}
-                label={label}
-                InputLabelProps={{ required: required }}
-                error={error ? true : false}
-                helperText={error}
-              />
-            )}
-          />
-          <StyledTooltip title={helper}>
-            <StyledInfoIcon color='action' />
-          </StyledTooltip>
-        </Box>
-      </FormControl>
-    </Grid>
-  )
-}
+// ** Custom Components
+import {
+  CustomTextField,
+  CustomSelect,
+  CustomAutocomplete,
+  StyledInfoIcon,
+  StyledTooltip,
+  HeadingTypography
+} from 'src/@core/components/custom-form/index'
+import { is } from 'date-fns/locale'
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -174,7 +78,8 @@ const FormLayoutsSolicitud = () => {
   const theme = useTheme()
 
   // ** States
-  const [plants, setPlants] = useState([]) // authUser && authUser.plant.map(plant => plant)
+  const [areas, setAreas] = useState([])
+  const [fixed, setFixed] = useState([])
   const [contOpOptions, setContOpOptions] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [files, setFiles] = useState([])
@@ -232,8 +137,13 @@ const FormLayoutsSolicitud = () => {
         break
       }
       case autoFields.includes(prop): {
-        newValue = data
+        newValue = prop === 'receiver' ? [...fixed, ...data.filter(option => fixed.indexOf(option) === -1)] : data
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
+        if (prop === 'deliverable' && newValue.includes('Memoria de Cálculo')) {
+          setAlertMessage(
+            'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello.'
+          )
+        }
         break
       }
       case prop === 'start': {
@@ -345,14 +255,14 @@ const FormLayoutsSolicitud = () => {
   }
 
   const findAreas = plant => {
-    let setOfAreas = areas.find(obj => obj.name === plant)
+    let setOfAreas = plants.find(obj => obj.name == plant)
     if (setOfAreas) {
       let areaNames = setOfAreas.allAreas.map(
         element => Object.keys(element).toString() + ' - ' + Object.values(element).toString()
       )
-      setPlants(Object.values(areaNames))
+      setAreas(Object.values(areaNames))
     } else {
-      setPlants(['No aplica'])
+      setAreas(['No aplica'])
     }
   }
 
@@ -476,10 +386,15 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isBlocked = await consultBlockDayInDB(values.start.toDate())
+    const isUrgent = ['Outage', 'Shutdown', 'Oportunidad'].includes(values.type)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
-
-    if (Object.keys(formErrors).length === 0 && areFieldsValid === true && invalidFiles.length === 0) {
+    let isBlocked = await consultBlockDayInDB(values.start.toDate())
+    if (
+      Object.keys(formErrors).length === 0 &&
+      areFieldsValid === true &&
+      invalidFiles.length === 0 &&
+      ((isBlocked && isBlocked.blocked === false) || isUrgent)
+    ) {
       try {
         setIsUploading(true) // Se activa el Spinner
 
@@ -499,6 +414,16 @@ const FormLayoutsSolicitud = () => {
         setIsUploading(false) // Se cierra el spinner en caso de error
       }
     } else {
+      if (
+        Object.keys(formErrors).length === 0 &&
+        areFieldsValid === true &&
+        invalidFiles.length === 0 &&
+        isBlocked.blocked &&
+        !isUrgent
+      ) {
+        setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
+      }
+      console.log(formErrors)
       setIsUploading(false)
       setErrors(formErrors)
     }
@@ -526,11 +451,13 @@ const FormLayoutsSolicitud = () => {
       const receiverGroup = contOpUsers.concat(contOwnUser).concat(plantUsers)
       const receiverFilter = receiverGroup.filter(user => ![filter].includes(user.name))
 
+      const fixedValues = [
+        contOwnUser && { name: contOwnUser[0].name, disabled: true },
+        { name: contOpName, disabled: true }
+      ]
       setAllUsers(receiverFilter)
-      setValues({
-        ...values,
-        receiver: [contOwnUser && { name: contOwnUser[0].name }, { name: contOpName }]
-      })
+      setFixed(fixedValues)
+      setValues({ ...values, receiver: fixedValues })
     })()
   }, [values.plant, values.contop])
 
@@ -545,18 +472,22 @@ const FormLayoutsSolicitud = () => {
       setValues({ ...values, plant: onlyPlant, opshift: userOpshift, petitioner: userOption })
       findAreas(onlyPlant)
     }
-  }, [])
+  }, [authUser])
 
   //Establece opciones de contract operator
   useEffect(() => {
     if (values.plant) {
       const fetchData = async () => {
-        const contOpOptions = await getUserData('getUsers', values.plant)
-        setContOpOptions(contOpOptions)
-        //Si tiene longitud 1, se establece como contop por defecto
-        if (contOpOptions.length === 1 && contOpOptions[0].name) {
-          setValues({ ...values, contop: contOpOptions[0].name })
-        }
+        await getUserData('getUsers', values.plant)
+          .then(contOpOptions => {
+            setContOpOptions(contOpOptions)
+            if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
+              setValues({ ...values, contop: contOpOptions[0].name })
+            }
+          })
+          .catch(error => {
+            console.log(error)
+          })
         const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
         setPetitioners(petitioners)
       }
@@ -622,8 +553,7 @@ const FormLayoutsSolicitud = () => {
               label='Título'
               value={values.title}
               onChange={handleChange('title')}
-              error={errors.title ? true : false}
-              helperText={errors.title}
+              error={errors.title}
               inputProps={{ maxLength: 100 }}
               helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
             />
@@ -634,8 +564,7 @@ const FormLayoutsSolicitud = () => {
               label='Descripción'
               value={values.description}
               onChange={handleChange('description')}
-              error={errors.description ? true : false}
-              helperText={errors.description}
+              error={errors.description}
               inputProps={{ maxLength: 500 }}
               helper='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'
             />
@@ -671,14 +600,13 @@ const FormLayoutsSolicitud = () => {
             <CustomSelect
               options={
                 authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
-                  ? areas
-                  : authUser.plant
+                  ? plants
+                  : [authUser.plant[0]]
               }
               label='Planta'
               value={values.plant}
               onChange={handleChange('plant')}
-              error={errors.plant ? true : false}
-              helperText={errors.plant}
+              error={errors.plant}
               disabled={
                 authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
               }
@@ -691,8 +619,7 @@ const FormLayoutsSolicitud = () => {
               label='Área'
               value={values.area}
               onChange={handleChange('area')}
-              error={errors.area ? true : false}
-              helperText={errors.area}
+              error={errors.area}
               disabled={
                 authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
               }
@@ -713,8 +640,7 @@ const FormLayoutsSolicitud = () => {
               label='Contract Operator'
               value={values.contop}
               onChange={handleChange('contop')}
-              error={errors.contop ? true : false}
-              helperText={errors.contop}
+              error={errors.contop}
               disabled={authUser.role === 3}
               helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
               defaultValue=''
@@ -725,8 +651,7 @@ const FormLayoutsSolicitud = () => {
               label='Functional Location'
               value={values.fnlocation}
               onChange={handleChange('fnlocation')}
-              error={errors.fnlocation ? true : false}
-              helperText={errors.fnlocation}
+              error={errors.fnlocation}
               inputProps={{ maxLength: 25 }}
               helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
             />
@@ -736,22 +661,20 @@ const FormLayoutsSolicitud = () => {
               label='TAG'
               value={values.tag}
               onChange={handleChange('tag')}
-              error={errors.tag ? true : false}
-              helperText={errors.tag}
+              error={errors.tag}
               inputProps={{ maxLength: 25 }}
               helper='Ingresa el código TAG para identificar el equipo.'
             />
             <CustomSelect
               options={
                 authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
-                  ? authUser.displayName
+                  ? [authUser.displayName]
                   : petitioners
               }
               label='Solicitante'
               value={values.petitioner}
               onChange={handleChange('petitioner')}
-              error={errors.petitioner ? true : false}
-              helperText={errors.petitioner}
+              error={errors.petitioner}
               disabled={
                 authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
               }
@@ -768,8 +691,7 @@ const FormLayoutsSolicitud = () => {
               label='Contraturno del solicitante'
               value={values.opshift}
               onChange={handleChange('opshift')}
-              error={errors.opshift ? true : false}
-              helperText={errors.opshift}
+              error={errors.opshift}
               disabled={authUser.role === 2}
               helper='Corresponde a la persona que trabaja en el turno de la semana siguiente del solicitante.'
               defaultValue=''
@@ -780,8 +702,7 @@ const FormLayoutsSolicitud = () => {
               label='Estado Operacional Planta'
               value={values.type}
               onChange={handleChange('type')}
-              error={errors.type ? true : false}
-              helperText={errors.type}
+              error={errors.type}
               helper='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'
               defaultValue=''
             />
@@ -791,8 +712,7 @@ const FormLayoutsSolicitud = () => {
               label='¿Estará la máquina detenida?'
               value={values.detention}
               onChange={handleChange('detention')}
-              error={errors.detention ? true : false}
-              helperText={errors.detention}
+              error={errors.detention}
               helper='Selecciona si la máquina estará detenida, no lo estará o no aplica el caso.'
               defaultValue=''
             />
@@ -804,8 +724,7 @@ const FormLayoutsSolicitud = () => {
               value={values.sap}
               onChange={handleChange('sap')}
               onBlur={handleBlur}
-              error={errors.sap ? true : false}
-              helperText={errors.sap}
+              error={errors.sap}
               inputProps={{ maxLength: 10 }}
               helper='Rellena este campo sólo si conoces el número SAP'
             />
@@ -822,8 +741,7 @@ const FormLayoutsSolicitud = () => {
               label='Tipo de Levantamiento'
               value={values.objective}
               onChange={handleChange('objective')}
-              error={errors.objective ? true : false}
-              helperText={errors.objective}
+              error={errors.objective}
               helper='Selecciona cuál es el tipo de levantamiento que necesitas para tu trabajo. Sólo podrás seleccionar una opción. Si requieres más de un tipo de levantamiento, deberás hacer una nueva solicitud para cada tipo de levantamiento.'
               defaultValue=''
             />
@@ -840,21 +758,20 @@ const FormLayoutsSolicitud = () => {
               label='Entregables del levantamiento'
               value={values.deliverable}
               onChange={handleChange('deliverable')}
-              error={errors.deliverable ? true : false}
+              error={errors.deliverable}
               helperText={errors.deliverable}
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
-              defaultValue=''
             />
 
             <CustomAutocomplete
+              isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}
               label='Destinatarios'
               value={values.receiver}
               onChange={handleChange('receiver')}
-              error={errors.receiver ? true : false}
+              error={errors.receiver}
               helperText={errors.receiver}
               helper='Selecciona a quién o a quiénes deberemos enviar los entregables.'
-              defaultValue=''
             />
 
             {/* Dropzone archivos */}

@@ -414,30 +414,4 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-// ** Consultar si existen solicitudes para una fecha específica
-const dateWithDocs = async date => {
-  try {
-    if (!date || !date.seconds) {
-      return
-    }
-    const allDocs = []
-    const q = query(collection(db, 'solicitudes'), where('start', '==', date))
-    const querySnapshot = await getDocs(q)
-
-    querySnapshot.forEach(doc => {
-      // doc.data() is never undefined for query doc snapshots
-      allDocs.push({ ...doc.data(), id: doc.id })
-    })
-
-    if (allDocs.length > 0) {
-      return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día`
-    } else {
-      return 'Fecha Disponible'
-    }
-  } catch (error) {
-    console.error('Error al consultar la disponibilidad de la fecha:', error)
-    throw new Error('Error al consultar la disponibilidad de la fecha')
-  }
-}
-
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, dateWithDocs }
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase }
