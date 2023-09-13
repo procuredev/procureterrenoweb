@@ -178,13 +178,15 @@ exports.checkDatabaseEveryOneHour = functions.pubsub.schedule('every 60 minutes'
   return null
 })
 
-// * Función que revisa la base de datos todos los días a las 6AM
+// * Función que revisa la base de datos todos los días a las 8AM
 exports.sendInfoToSupervisorAt8AM = functions.pubsub
   .schedule('every day 07:45')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 4, 0, 0)) // Se almacena la fecha de hoy, ajustando la hora a medianoche
+    now.toLocaleString('es-CL', {timeZone: 'Chile/Continental'})
+    const today = new Date(now) // Se almacena la fecha de hoy, ajustando la hora a medianoche
+    today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000) // Se almacena la fecha de mañana, ajustando la fecha al día siguiente
 
     const requestsRef = admin.firestore().collection('solicitudes') // Se llama a la referencia de Solicitudes
@@ -250,6 +252,10 @@ exports.sendInfoToSupervisorAt8AM = functions.pubsub
         const supervisorEmail = supervisorData.email // Se almacena el e-mail del Supervisor
         const supervisorName = supervisorData.name // Se almacena el e-mail del Supervisor
 
+        const drawmansSnapshot = await usersRef.where('shift', '==', supervisorWork.supervisorShift).where('role', '==', 8).get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
+        const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
+        const drawmansEmail = drawmansData.map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
+
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
         const plannerData = plannerSnapshot.docs[0].data() // Se almacena en una constante los datos del Planificador
         const plannerEmail = plannerData.email // Se almacena el e-mail del Planificador
@@ -287,7 +293,7 @@ exports.sendInfoToSupervisorAt8AM = functions.pubsub
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
         await emailsRef.doc(mailId).update({
           to: supervisorEmail,
-          cc: [plannerEmail, admContratoEmail],
+          cc: [plannerEmail, admContratoEmail].concat(drawmansEmail),
           date: now,
           emailType: 'supervisorDailyTasks',
           message: {
