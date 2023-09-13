@@ -259,11 +259,11 @@ const dateWithDocs = async date => {
     allDocs.push({ ...doc.data(), id: doc.id })
   })
 
-  if (allDocs.length > 0) {
-    return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día`
-  } else {
-    return 'Fecha Disponible'
+  if (allDocs.length === 0) {
+    return
   }
+
+  return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día`
 }
 
 // Consultar si un día está bloqueado en la base de datos
@@ -272,7 +272,10 @@ const consultBlockDayInDB = async date => {
   const endOfDay = moment(date).endOf('day').unix().toString()
 
   const docRef = collection(db, 'diasBloqueados')
-  const querySnapshot = await getDocs(query(docRef, where(documentId(), '>=', startOfDay), where(documentId(), '<=', endOfDay)))
+  
+  const querySnapshot = await getDocs(
+    query(docRef, where(documentId(), '>=', startOfDay), where(documentId(), '<=', endOfDay))
+  )
 
   if (!querySnapshot.empty) {
     // Si hay resultados, al menos un timestamp abarca todo el día
