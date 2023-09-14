@@ -93,7 +93,7 @@ const FormLayoutsSolicitud = () => {
   const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo']
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'urgency']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop']
     const autoFields = ['deliverable', 'receiver']
     let newValue
@@ -386,7 +386,7 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isUrgent = ['Outage', 'Shutdown', 'Oportunidad'].includes(values.type)
+    const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
     if (
@@ -646,6 +646,17 @@ const FormLayoutsSolicitud = () => {
               defaultValue=''
             />
 
+            {authUser.role === 7 && (
+              <CustomTextField
+                label='OT'
+                value={values.ot}
+                onChange={handleChange('ot')}
+                error={errors.ot}
+                inputProps={{ maxLength: 5 }}
+                helper='Ingresa el número de OT.'
+              />
+            )}
+
             <CustomTextField
               type='text'
               label='Functional Location'
@@ -698,7 +709,7 @@ const FormLayoutsSolicitud = () => {
             />
 
             <CustomSelect
-              options={['Normal', 'Outage', 'Shutdown', 'Oportunidad']}
+              options={['Normal', 'Outage', 'Shutdown']}
               label='Estado Operacional Planta'
               value={values.type}
               onChange={handleChange('type')}
@@ -706,6 +717,18 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'
               defaultValue=''
             />
+
+            {authUser.role === 7 && (
+              <CustomSelect
+                options={['Urgencia', 'Emergencia', 'Oportunidad']}
+                label='Tipo de urgencia'
+                value={values.urgency}
+                onChange={handleChange('urgency')}
+                error={errors.urgency}
+                helper='Selecciona el tipo de urgencia de la tarea.'
+                defaultValue=''
+              />
+            )}
 
             <CustomSelect
               options={['Sí', 'No', 'No aplica']}
