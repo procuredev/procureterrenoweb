@@ -51,21 +51,18 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
   const handleClickOpen = doc => {
-    console.log(doc)
 
     setDoc(doc)
     setOpen(true)
   }
 
   const handleClickOpenEvents = doc => {
-    console.log(doc)
 
     setDoc(doc)
     setOpenEvents(true)
   }
 
   const handleClickOpenDone = doc => {
-    console.log(doc)
 
     setDoc(doc)
     setOpenDone(true)

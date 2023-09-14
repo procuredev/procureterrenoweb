@@ -599,7 +599,7 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
+                authUser.role === 7 || authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
                   ? plants
                   : [authUser.plant[0]]
               }
@@ -678,9 +678,9 @@ const FormLayoutsSolicitud = () => {
             />
             <CustomSelect
               options={
-                authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
-                  ? [authUser.displayName]
-                  : petitioners
+                (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                  ? [petitionerOpShift]
+                  : [authUser.opshift]) || 'No aplica'
               }
               label='Solicitante'
               value={values.petitioner}

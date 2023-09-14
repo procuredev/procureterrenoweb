@@ -82,10 +82,15 @@ const newDoc = async (values, userParam) => {
       engineering: userParam.engineering
     })
 
+    const adjustedDate = moment(values.start).subtract(1, 'day');
+    const week = moment(adjustedDate.toDate()).isoWeek()
+
     // Establecemos los campos adicionales de la solicitud
     await updateDoc(docRef, {
       ...newDoc,
-      state: userParam.role || 'No definido'
+      // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
+      state: userParam.role === 7 ? 6 : userParam.role || 'No definido',
+      supervisorShift : userParam.role === 7 ? week % 2 === 0 ? 'A' : 'B' : null
     })
 
     // Se envía email a quienes corresponda
