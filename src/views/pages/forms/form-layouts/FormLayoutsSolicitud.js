@@ -50,7 +50,6 @@ import {
   StyledTooltip,
   HeadingTypography
 } from 'src/@core/components/custom-form/index'
-import { is } from 'date-fns/locale'
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -423,7 +422,6 @@ const FormLayoutsSolicitud = () => {
       ) {
         setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
       }
-      console.log(formErrors)
       setIsUploading(false)
       setErrors(formErrors)
     }
@@ -447,11 +445,13 @@ const FormLayoutsSolicitud = () => {
       ])
 
       const contOpName = values.contop
+      const petitionerName = values.petitioner
       const filter = [{ name: contOpName }, { name: authUser.displayName }]
       const receiverGroup = contOpUsers.concat(contOwnUser).concat(plantUsers)
       const receiverFilter = receiverGroup.filter(user => ![filter].includes(user.name))
 
       const fixedValues = [
+        petitionerName && { name: petitionerName, disabled: true },
         contOwnUser && { name: contOwnUser[0].name, disabled: true },
         { name: contOpName, disabled: true }
       ]
@@ -486,7 +486,7 @@ const FormLayoutsSolicitud = () => {
             }
           })
           .catch(error => {
-            console.log(error)
+            // handle error
           })
         const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
         setPetitioners(petitioners)
@@ -680,7 +680,7 @@ const FormLayoutsSolicitud = () => {
               options={
                 (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
                   ? [petitionerOpShift]
-                  : [authUser.opshift]) || 'No aplica'
+                  : [authUser.displayName]) || 'No aplica'
               }
               label='Solicitante'
               value={values.petitioner}
@@ -782,7 +782,6 @@ const FormLayoutsSolicitud = () => {
               value={values.deliverable}
               onChange={handleChange('deliverable')}
               error={errors.deliverable}
-              helperText={errors.deliverable}
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
             />
 
@@ -793,7 +792,6 @@ const FormLayoutsSolicitud = () => {
               value={values.receiver}
               onChange={handleChange('receiver')}
               error={errors.receiver}
-              helperText={errors.receiver}
               helper='Selecciona a quién o a quiénes deberemos enviar los entregables.'
             />
 

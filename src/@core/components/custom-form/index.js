@@ -66,7 +66,7 @@ const CustomSelect = props => {
 
   return (
     <Grid item xs={12}>
-      <FormControl fullWidth sx={{ '& .MuiInputBase-root ': { width: '100%' } }} disabled={disabled} error={error}>
+      <FormControl fullWidth sx={{ '& .MuiInputBase-root ': { width: '100%' } }} disabled={disabled} error={!!error}>
         <InputLabel>{label}</InputLabel>
         <Box display='flex' alignItems='center'>
           <Select input={<OutlinedInput label={label} />} {...selectProps}>
