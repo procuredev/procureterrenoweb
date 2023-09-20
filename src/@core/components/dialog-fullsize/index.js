@@ -503,6 +503,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     const determineModificationType = (element) => {
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
+                      const emergencyApprovedBySupervisor = element.prevDoc && element.prevDoc.emergencyApprovedBySupervisor;
                       const hasPreviousDoc = element.prevDoc;
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start;
                       const isStateDecreased = element.newState < element.prevState;
@@ -511,6 +512,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       if (isDraftmenAssigned) return 'Proyectistas asignados';
                       if (isHoursEstablished) return 'Levantamiento finalizado';
                       if (hasPreviousDoc) return 'Modificación aceptada';
+                      if (emergencyApprovedBySupervisor) return 'Emergencia aprobada';
+
 
                       return 'Aprobado';
                   };

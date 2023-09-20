@@ -221,6 +221,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const dateHasChanged = latestEvent && 'prevDoc' in latestEvent && 'start' in latestEvent.prevDoc
   const approveWithChanges = typeof approves === 'object' || typeof approves === 'string'
   const approvedByPlanner = latestEvent.prevState === state.planner
+  const emergencyBySupervisor = latestEvent.newState === state.draftsman && userRole === 7
   const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
   const returnedContOp = latestEvent.newState === state.returnedContOp
   const devolutionState = userRole === 2 ? state.returnedPetitioner : state.returnedContOp
@@ -249,6 +250,13 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       3,
       [
+        //
+        {
+          condition: approves && emergencyBySupervisor,
+          newState: state.draftsman,
+          emergencyApprovedBySupervisor: true,
+          log: 'Emergencia aprobada por Contrac Operator'
+        },
         // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 0)
         {
           condition: approves && approveWithChanges && !returnedContOp,
@@ -384,6 +392,7 @@ const updateDocs = async (id, approves, userParam) => {
   }
 
   changedFields.state = newState
+  changedFields.emergencyApprovedBySupervisor = prevState === 8 && newState === 8 ? true : false
 
   updateDocumentAndAddEvent(ref, changedFields, userParam, prevDoc, docSnapshot.uid, id, prevState)
 }

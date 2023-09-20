@@ -205,9 +205,10 @@ const TableBasic = ({ rows, role, roleData }) => {
         const isPetitioner = role === 2 && row.state === role - 2
         const hasPrevState = role !== 3 && row.state === role - 1
         const isContop = role === 3 && row.contop === authUser.displayName && (row.state === 2 || row.state === 1)
+        const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === false
         const isPlanner = role === 5 && (row.state === 3 || row.state === 4)
         const isRevisado = row.state > role
-        const canEdit = hasPrevState || isContop || isPlanner || isPetitioner
+        const canEdit = hasPrevState || isContop || isPlanner || isPetitioner || isContopEmergency
         const flexDirection = md ? 'row' : 'column'
 
         const renderButtons = (
@@ -222,7 +223,9 @@ const TableBasic = ({ rows, role, roleData }) => {
                 <Check sx={{ fontSize: 18 }} />
               </Button>
             )}
-            <Button
+            {!isContopEmergency && (
+              <>
+              <Button
               onClick={() => handleClickOpen(row)}
               variant='contained'
               color={isPlanner ? 'success' : 'secondary'}
@@ -238,6 +241,9 @@ const TableBasic = ({ rows, role, roleData }) => {
             >
               <Clear sx={{ fontSize: 18 }} />
             </Button>
+              </>
+            )}
+
           </Container>
         )
 

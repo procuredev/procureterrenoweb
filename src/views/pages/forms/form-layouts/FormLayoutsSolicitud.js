@@ -696,7 +696,7 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                (authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                (authUser.role === 7 || authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
                   ? [petitionerOpShift]
                   : [authUser.opshift]) || 'No aplica'
               }
