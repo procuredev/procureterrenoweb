@@ -676,11 +676,12 @@ const FormLayoutsSolicitud = () => {
               inputProps={{ maxLength: 25 }}
               helper='Ingresa el código TAG para identificar el equipo.'
             />
+
             <CustomSelect
               options={
                 (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
-                  ? [petitionerOpShift]
-                  : [authUser.displayName]) || 'No aplica'
+                  ? petitioners.map(item => ({ name: item.name }))
+                  : [authUser.displayName])
               }
               label='Solicitante'
               value={values.petitioner}
