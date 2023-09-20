@@ -54,7 +54,7 @@ import {
 const FormLayoutsSolicitud = () => {
   const initialValues = {
     title: '',
-    start: moment.tz('America/Santiago').startOf('day'),
+    start: moment().startOf('day'),
     plant: '',
     area: '',
     contop: '',
@@ -149,7 +149,7 @@ const FormLayoutsSolicitud = () => {
         let startDate = event
         setValues({
           ...values,
-          start: moment.tz(startDate, 'America/Santiago').startOf('day')
+          start: startDate
         })
 
         const resultDate = await consultBlockDayInDB(startDate.toDate())
@@ -397,7 +397,7 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: values.start.toDate() }, authUser)
+        const solicitud = await newDoc({ ...values, start: moment.tz(values.start.toDate(), 'America/Santiago').set({hour: 0}).toDate() }, authUser)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
