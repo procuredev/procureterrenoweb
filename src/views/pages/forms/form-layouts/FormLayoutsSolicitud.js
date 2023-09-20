@@ -397,7 +397,7 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: moment.tz(values.start.toDate(), 'America/Santiago').set({hour: 0}).toDate() }, authUser)
+        const solicitud = await newDoc({ ...values, start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate() }, authUser)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
