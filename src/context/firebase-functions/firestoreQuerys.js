@@ -164,7 +164,7 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => 
         : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
     getAllPlantUsers: () => query(coll, where('plant', 'array-contains', plant)),
     getAllProcureUsers: () => query(coll, where('company', '==', 'Procure')),
-    getUserProyectistas: () => query(coll, where('role', '==', 8), where('shift', '==', userParam.shift)),
+    getUserProyectistas: () => query(coll, where('role', '==', 8), where('shift', 'array-contains', userParam.shift[0])),
     getPetitioner: () => query(coll, where('plant', 'array-contains', plant)),
     getReceiverUsers: () => query(coll, where('plant', 'array-contains', plant), where('role', '==', 2)),
     getUsersByRole: () => query(coll, where('role', '==', userParam.role))
@@ -272,7 +272,7 @@ const consultBlockDayInDB = async date => {
   const endOfDay = moment(date).endOf('day').unix().toString()
 
   const docRef = collection(db, 'diasBloqueados')
-  
+
   const querySnapshot = await getDocs(
     query(docRef, where(documentId(), '>=', startOfDay), where(documentId(), '<=', endOfDay))
   )
