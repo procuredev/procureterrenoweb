@@ -245,9 +245,6 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     getData(await searchbyColletionAndField('users', 'name', requirementData.contop))
   ])
 
-  console.log(requirementData.supervisorShift)
-  console.log(await getSupervisorData(requirementData.supervisorShift))
-
   const requesterEmail = requesterData.email
   const requesterRole = requesterData.role
   const cOwnerEmail = cOwnerData.email
