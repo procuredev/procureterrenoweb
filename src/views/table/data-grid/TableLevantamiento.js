@@ -14,6 +14,7 @@ import { Typography, IconButton } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
+import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, esES } from '@mui/x-data-grid'
 import CardHeader from '@mui/material/CardHeader'
 import { DateRangePicker } from '@mui/lab'
@@ -133,13 +134,31 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         const { row } = params
 
         return (
-          <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-            <IconButton onClick={() => handleClickOpenEvents(row)}>
-              <OpenInNewOutlined sx={{ fontSize: 18 }} />
-            </IconButton>
+          <Tooltip
+            title={row.title}
+            placement='bottom-end'
+            key={row.title}
+            leaveTouchDelay={0}
+            //TransitionComponent={Fade}
+            TransitionProps={{ timeout: 0 }}
+          >
+            <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+              <IconButton onClick={() => handleClickOpenEvents(row)}>
+                <OpenInNewOutlined sx={{ fontSize: 18 }} />
+              </IconButton>
 
-            <Typography variant='string'>{row.title}</Typography>
-          </Box>
+              <Typography sx={{
+                  textDecoration: 'none',
+                  transition: 'text-decoration 0.2s',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+                variant='string'>{row.title}
+                </Typography>
+            </Box>
+          </Tooltip>
+
         )
       }
     },
