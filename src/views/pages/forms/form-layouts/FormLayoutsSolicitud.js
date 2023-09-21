@@ -68,7 +68,10 @@ const FormLayoutsSolicitud = () => {
     deliverable: [],
     receiver: [],
     description: '',
-    tag: ''
+    tag: '',
+    end: null,
+    ot: '',
+    emergency: ''
   }
 
   // ** Hooks
@@ -131,6 +134,7 @@ const FormLayoutsSolicitud = () => {
           }
         }
         if (prop === 'plant') {
+          setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
           findAreas(newValue)
         }
         break
@@ -145,8 +149,18 @@ const FormLayoutsSolicitud = () => {
         }
         break
       }
+      case prop === 'end': {
+        let endDate = event
+        console.log(event,"event")
+        setValues({
+          ...values,
+          end: endDate
+        })
+        break
+      }
       case prop === 'start': {
         let startDate = event
+        console.log(event, "eventStart")
         setValues({
           ...values,
           start: startDate
@@ -397,7 +411,7 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate() }, authUser)
+        const solicitud = await newDoc({ ...values, start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(), end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null }, authUser)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
@@ -451,7 +465,7 @@ const FormLayoutsSolicitud = () => {
       const receiverFilter = receiverGroup.filter(user => ![filter].includes(user.name))
 
       const fixedValues = [
-        petitionerName && { name: petitionerName, disabled: true },
+        petitionerName && petitionerName !== '' && { name: petitionerName, disabled: true },
         contOwnUser && { name: contOwnUser[0].name, disabled: true },
         { name: contOpName, disabled: true }
       ]
@@ -459,7 +473,7 @@ const FormLayoutsSolicitud = () => {
       setFixed(fixedValues)
       setValues({ ...values, receiver: fixedValues })
     })()
-  }, [values.plant, values.contop])
+  }, [values.plant, values.contop, values.petitioner])
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -477,6 +491,8 @@ const FormLayoutsSolicitud = () => {
   //Establece opciones de contract operator
   useEffect(() => {
     if (values.plant) {
+      console.log("Valor actual de plant: ", values.plant);
+
       const fetchData = async () => {
         await getUserData('getUsers', values.plant)
           .then(contOpOptions => {
@@ -596,6 +612,36 @@ const FormLayoutsSolicitud = () => {
                 </LocalizationProvider>
               </FormControl>
             </Grid>
+
+            {/* Fecha finalización */}
+            {authUser.role === 7 && (
+              <Grid item xs={12}>
+                <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                    <Box display='flex' alignItems='center'>
+                      <DatePicker
+                        dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                        minDate={moment().subtract(1, 'year')}
+                        maxDate={moment().add(1, 'year')}
+                        label='Fecha de término'
+                        value={values.end}
+                        onChange={date => handleChange('end')(date)}
+                        InputLabelProps={{ shrink: true, required: true }}
+                        slotProps={{
+                          textField: {
+                            error: errors.end ? true : false,
+                            helperText: errors.end
+                          }
+                        }}
+                      />
+                      <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
+                        <StyledInfoIcon color='action' />
+                      </StyledTooltip>
+                    </Box>
+                  </LocalizationProvider>
+                </FormControl>
+              </Grid>
+            )}
 
             <CustomSelect
               options={

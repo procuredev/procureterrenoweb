@@ -161,8 +161,14 @@ const AppCalendar = () => {
         break
     }
 
+    if(doc.userRole === 7){
+      color = theme.palette.black.main
+    }
+
     return color
   }
+
+
 
   const eventResume = doc => {
     let ot = ''
