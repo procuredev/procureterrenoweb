@@ -70,19 +70,19 @@ const DataGridLevantamientos = () => {
         ]
       : [
           {
-            data: data.filter(doc => doc.state >= 6 && doc.state < 10 && doc.supervisorShift === authUser.shift),
+            data: data.filter(doc => doc.state >= 6 && doc.state < 10 && doc.supervisorShift === authUser.shift[0]),
             label: 'Todos los levantamientos'
           },
           {
-            data: data.filter(doc => doc.state === 6 && doc.supervisorShift === authUser.shift),
+            data: data.filter(doc => doc.state === 6 && doc.supervisorShift === authUser.shift[0]),
             label: 'Por Revisar'
           },
           {
-            data: data.filter(doc => doc.state === 7 && doc.supervisorShift === authUser.shift),
+            data: data.filter(doc => doc.state === 7 && doc.supervisorShift === authUser.shift[0]),
             label: 'En Proceso'
           },
           {
-            data: data.filter(doc => doc.state === 8 && doc.supervisorShift === authUser.shift),
+            data: data.filter(doc => doc.state === 8 && doc.supervisorShift === authUser.shift[0]),
             label: 'Terminados'
           }
         ]
