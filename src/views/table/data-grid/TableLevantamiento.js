@@ -127,7 +127,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'title',
       headerName: 'Solicitud',
-      flex: 0.3,
+      flex: 0.6,
       minWidth: 220,
       renderCell: params => {
         const { row } = params
@@ -147,7 +147,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       field: 'ot',
       headerName: 'OT',
       flex: 0.1,
-      minWidth: 100,
+      minWidth: 50,
       renderCell: params => {
         const { row } = params
 
@@ -157,8 +157,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      minWidth: 200,
-      flex: 0.1,
+      minWidth: 120,
+      flex: 0.4,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -176,8 +176,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'plant',
       headerName: 'Planta',
-      flex: 0.3,
-      minWidth: 180,
+      flex: 0.4,
+      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
