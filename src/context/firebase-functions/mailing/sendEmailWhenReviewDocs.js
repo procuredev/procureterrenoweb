@@ -44,7 +44,7 @@ const searchbyColletionAndField = async (col, field, value) => {
  // Obtener usuarios con rol 8 según su turno
  const getSupervisorData = async (shift) => {
   // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', '==', shift))
+  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', 'array-contains', shift))
 
   try {
     const querySnapshot = await getDocs(q)
@@ -244,6 +244,9 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     requirementData.supervisorShift ? await getSupervisorData(requirementData.supervisorShift) : '',
     getData(await searchbyColletionAndField('users', 'name', requirementData.contop))
   ])
+
+  console.log(requirementData.supervisorShift)
+  console.log(await getSupervisorData(requirementData.supervisorShift))
 
   const requesterEmail = requesterData.email
   const requesterRole = requesterData.role
