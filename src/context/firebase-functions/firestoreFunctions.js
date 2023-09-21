@@ -160,8 +160,8 @@ const processFieldChanges = (incomingFields, currentDoc) => {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
 
-    console.log(value)
-    console.log(currentFieldValue)
+    //console.log(value)
+    //console.log(currentFieldValue)
 
     if (key === 'start' || key === 'end') {
       value = moment(value.toDate()).toDate().getTime()

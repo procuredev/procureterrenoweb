@@ -107,7 +107,7 @@ const Home = () => {
           <CardHeader sx={{ pb: 3.25 }} title='Resumen Estadístico' titleTypographyProps={{ variant: 'h6' }} />
           <CardContent>
             <Grid container spacing={6}>
-              <Grid item xs={12} sm={4}>
+              <Grid  item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='primary' sx={{ mr: 4 }}>
                     <Icon icon='mdi:text-box-outline' />
@@ -120,7 +120,7 @@ const Home = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='warning' sx={{ mr: 4 }}>
                     <Icon icon='mdi:progress-upload' />
@@ -133,7 +133,7 @@ const Home = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              {/* <Grid item xs={12} sm={4}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='info' sx={{ mr: 4 }}>
                     <Icon icon='mdi:tooltip-edit-outline' />
@@ -145,7 +145,7 @@ const Home = () => {
                     <Typography variant='caption'> Trabajos de Gabinete</Typography>
                   </Box>
                 </Box>
-              </Grid>
+              </Grid> */}
             </Grid>
           </CardContent>
         </Card>
