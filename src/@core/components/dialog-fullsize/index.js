@@ -154,8 +154,6 @@ function getIconForFileType(filePath) {
   const urlWithoutParams = filePath.split('?')[0];
   const extension = urlWithoutParams.split('.').pop().toLowerCase();
 
-  console.log(extension, "extension")
-
   switch (extension) {
     case 'pdf':
       return '/icons/pdf.png';
@@ -365,7 +363,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const newData = {}
 
     for (const key in values) {
-      console.log(hasChanges[key], key, "hasChanges[key]")
       if (hasChanges[key]) {
         newData[key] = values[key]
       }
