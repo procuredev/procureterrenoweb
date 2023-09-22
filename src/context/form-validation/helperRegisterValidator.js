@@ -83,10 +83,10 @@ export function registerValidator(values) {
           if (values.plant.includes('Sucursal Santiago')) {
             return true
           } else {
-            return valShiftMel.includes(value)
+            return value.every(val => valShiftMel.includes(val))
           }
         } else if (values.company === 'Procure' && (values.role === 7 || values.role === 8)) {
-          return valShiftProcure.includes(value)
+          return value.every(val => valShiftProcure.includes(val))
         }
 
         return false
@@ -110,7 +110,7 @@ export function registerValidator(values) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
     }
-    if (!['role', 'plant', 'engineering'].includes(key) && typeof values[key] !== 'string') {
+    if (!['role', 'plant', 'engineering', 'shift'].includes(key) && typeof values[key] !== 'string') {
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
     if (validations.hasOwnProperty(key)) {

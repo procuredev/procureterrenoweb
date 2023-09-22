@@ -44,7 +44,7 @@ const FormLayoutsBasic = () => {
     role: '',
     plant: [],
     engineering: '',
-    shift: '',
+    shift: [],
     opshift: ''
   }
 
@@ -95,24 +95,27 @@ const FormLayoutsBasic = () => {
         }
         getOptions(newValue)
         break
+
       case 'shift':
-        newValue = event.target.value
+        newValue = Array.isArray(event) ? event : [event]
         let plantArray = values.plant
         if (!Array.isArray(values.plant)) {
           plantArray = values.plant.split(',')
         }
         getOptions(plantArray, newValue)
         break
+
       case 'role':
         newValue = event.target.value
         values.plant = []
-        values.shift = ''
+        values.shift = []
         values.opshift = ''
         break
       case 'company':
         newValue = event.target.value
         values.role = ''
         break
+
       default:
         newValue = event.target.value
         break
@@ -135,6 +138,7 @@ const FormLayoutsBasic = () => {
       })
     }
   }
+
   const santiago = 'Sucursal Santiago'
   let names = areas.map(plant => plant.name)
   names = names.concat(santiago)
@@ -185,10 +189,20 @@ const FormLayoutsBasic = () => {
             }
             break
           case 'shift':
-            if (values.company === 'Procure' && !['A', 'B'].includes(values.shift)) {
-              newErrors['shift'] = 'Por favor, selecciona un valor válido (A o B)'
-            } else if (values.company === 'MEL' && !['P', 'Q'].includes(values.shift)) {
-              newErrors['shift'] = 'Por favor, selecciona un valor válido (P o Q)'
+            if (values.company === 'Procure') {
+              const validValues = ['A', 'B']
+              const invalidValues = values.shift.filter((value) => !validValues.includes(value))
+
+              if (invalidValues.length > 0) {
+                newErrors['shift'] = 'Por favor, selecciona un valor válido (A o B)'
+              }
+            } else if (values.company === 'MEL') {
+              const validValues = ['P', 'Q']
+              const invalidValues = values.shift.filter((value) => !validValues.includes(value))
+
+              if (invalidValues.length > 0) {
+                newErrors['shift'] = 'Por favor, selecciona un valor válido (P o Q)'
+              }
             }
             break
           case 'plant':
@@ -308,6 +322,12 @@ const FormLayoutsBasic = () => {
   const getOptions = async (plant, shift = '') => {
     if (plant.length > 0) {
       let options = await getUserData('getUsers', plant, {shift})
+
+      // Verificar si options es null o no es una matriz antes de usar push
+      if (!Array.isArray(options)) {
+        options = [] // Inicializar como una matriz vacía si no es una matriz válida
+      }
+
       options.push({ name: 'No Aplica' })
       if (shift) {
         setOpShiftOptions(options)
@@ -478,13 +498,17 @@ const FormLayoutsBasic = () => {
                   <Select
                     label='Turno'
                     value={values.shift}
-                    onChange={handleChange('shift')}
+                    onChange={(event) => {
+                      const selectedShifts = event.target.value
+                      handleChange('shift')(selectedShifts)
+                    }}
+                    multiple
                     error={errors.shift ? true : false}
                   >
-                    {values.company === 'MEL' && <MenuItem value={'P'}>Turno P</MenuItem>}
-                    {values.company === 'MEL' && <MenuItem value={'Q'}>Turno Q</MenuItem>}
-                    {values.company === 'Procure' && <MenuItem value={'A'}>Turno A</MenuItem>}
-                    {values.company === 'Procure' && <MenuItem value={'B'}>Turno B</MenuItem>}
+                    {values.company === 'MEL' && <MenuItem value={'P'}>P</MenuItem>}
+                    {values.company === 'MEL' && <MenuItem value={'Q'}>Q</MenuItem>}
+                    {values.company === 'Procure' && <MenuItem value={'A'}>A</MenuItem>}
+                    {values.company === 'Procure' && <MenuItem value={'B'}>B</MenuItem>}
                   </Select>
                   {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>}
                 </FormControl>
