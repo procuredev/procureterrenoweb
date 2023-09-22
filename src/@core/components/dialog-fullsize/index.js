@@ -150,27 +150,77 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
   )
 }
 
-const PhotoItem = ({ photoUrl }) => (
-  <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
-    <Box component='img' src={photoUrl} alt='Photo' style={{ height: 'inherit' }} />
-    <IconButton
-      href={photoUrl}
-      target='_blank'
-      rel='noopener noreferrer'
-      sx={{
-        position: 'absolute',
-        bottom: '10px',
-        right: '10px',
-        backgroundColor: 'rgba(220, 220, 220, 0.1)'
-      }}
-    >
-      <Download />
-    </IconButton>
-  </Box>
-)
+function getIconForFileType(filePath) {
+  const urlWithoutParams = filePath.split('?')[0];
+  const extension = urlWithoutParams.split('.').pop().toLowerCase();
+
+  console.log(extension, "extension")
+
+  switch (extension) {
+    case 'pdf':
+      return '/icons/pdf.png';
+    case 'ppt':
+    case 'pptx':
+      return '/icons/ppt.png';
+    case 'doc':
+    case 'docx':
+      return '/icons/doc.png';
+    case 'xls':
+    case 'xlsx':
+      return '/icons/xls.png';
+    default:
+      return '/icons/default.png';
+  }
+}
+
+const getFileIcon = (fileType) => {
+  switch (fileType) {
+    case 'application/pdf':
+      return 'mdi:file-pdf';
+    case 'application/msword':
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      return 'mdi:file-word';
+    case 'application/vnd.ms-excel':
+    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return 'mdi:file-excel';
+    // ... agregar más tipos de archivo según sea necesario
+    default:
+      return 'mdi:file-document-outline';
+  }
+};
+
+const PhotoItem = ({ photoUrl }) => {
+  const urlWithoutParams = photoUrl.split('?')[0];
+  const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase());
+  const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl);
+
+
+  return (
+    <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+      {/* <a href={photoUrl} target='_blank' rel='noopener noreferrer' style={{ display: 'block', height: '100%' }}>
+
+      </a> */}
+      <Box component='img' src={displaySrc}  onClick={() => window.open(photoUrl, '_blank')} alt='Photo' style={{ height: 'inherit', cursor: 'pointer' }} />
+        <IconButton
+          href={photoUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+          sx={{
+            position: 'absolute',
+            bottom: '10px',
+            right: '10px',
+            backgroundColor: 'rgba(220, 220, 220, 0.1)'
+          }}
+        >
+          <Download />
+        </IconButton>
+
+    </Box>
+  )
+}
 
 const PhotoGallery = ({ photos }) => (
-  <Box sx={{ display: 'flex', height: '140px', width: '70%', justifyContent: 'space-around' }}>
+  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', overflow: 'auto', height: '140px', width: '70%', justifyContent: 'space-evently' }}>
     {photos.map((fotoUrl, index) => (
       <PhotoItem key={index} photoUrl={fotoUrl} />
     ))}
@@ -446,7 +496,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
             {file.type.startsWith('image') ? (
               <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
             ) : (
-              <Icon icon='mdi:file-document-outline' fontSize={50} />
+              <Icon icon={getFileIcon(file.type)} fontSize={50} />
             )}
             <Typography
               variant='body2'
