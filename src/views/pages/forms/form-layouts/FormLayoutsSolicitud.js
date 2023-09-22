@@ -71,7 +71,7 @@ const FormLayoutsSolicitud = () => {
     tag: '',
     end: null,
     ot: '',
-    emergency: ''
+    urgency: ''
   }
 
   // ** Hooks
@@ -95,8 +95,8 @@ const FormLayoutsSolicitud = () => {
   const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'urgency']
-    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop']
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
+    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
     switch (true) {
@@ -134,7 +134,14 @@ const FormLayoutsSolicitud = () => {
           }
         }
         if (prop === 'plant') {
-          setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
+          setValues(prevValues => ({
+            ...prevValues,
+            [prop]: newValue,
+            area: '',
+            contop: '',
+            receiver: [...fixed],
+          }))
+
           findAreas(newValue)
         }
         break
@@ -449,31 +456,74 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+    //Establece opciones de contract operator
+    useEffect(() => {
+      if (values.plant) {
+
+        const fetchData = async () => {
+          await getUserData('getUsers', values.plant)
+            .then(contOpOptions => {
+              setContOpOptions(contOpOptions)
+              if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
+                setValues({ ...values, contop: contOpOptions[0].name })
+              }
+            })
+            .catch(error => {
+              // handle error
+            })
+          const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
+          setPetitioners(petitioners)
+        }
+        fetchData()
+      }
+    }, [values.plant])
+
   useEffect(() => {
     if (!values.contop) return
-    ;(async () => {
-      const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
-        getUserData('getUsersByRole', null, { role: 3 }),
-        getUserData('getUsersByRole', null, { role: 4 }),
-        getUserData('getReceiverUsers', values.plant)
-      ])
+    (async () => {
+      try {
 
-      const contOpName = values.contop
-      const petitionerName = values.petitioner
-      const filter = [{ name: contOpName }, { name: authUser.displayName }]
-      const receiverGroup = contOpUsers.concat(contOwnUser).concat(plantUsers)
-      const receiverFilter = receiverGroup.filter(user => ![filter].includes(user.name))
+        // Obtiene los datos de los usuarios de manera concurrente
+        const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
+          getUserData('getUsersByRole', null, { role: 3 }),
+          getUserData('getUsersByRole', null, { role: 4 }),
+          getUserData('getReceiverUsers', values.plant)
+        ])
 
-      const fixedValues = [
-        petitionerName && petitionerName !== '' && { name: petitionerName, disabled: true },
-        contOwnUser && { name: contOwnUser[0].name, disabled: true },
-        { name: contOpName, disabled: true }
-      ]
-      setAllUsers(receiverFilter)
-      setFixed(fixedValues)
-      setValues({ ...values, receiver: fixedValues })
-    })()
+        // Filtra los nombres que no deben aparecer
+        // Revisar los casos está pendiente, antes estaba authUser.displayName y contop en estos nombres filtrados
+        const filterNames = []
+
+        // Combina los usuarios en un solo grupo
+        const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
+
+        // Filtra los usuarios que no tienen nombres en la lista filterNames
+        const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
+
+        // Filtra los que no tienen una key name igual a algún name de receceiverFilter, no que no incluya el nombre
+        const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
+
+        // Crea un array de valores fijos
+        let fixedValues = [
+          contOwnUser && { name: contOwnUser[0].name, disabled: true },
+          { name: values.contop, disabled: true },
+        ]
+        // Agrega solicitante si es que existe
+        if (values.petitioner !== '') {
+          fixedValues.push({ name: values.petitioner, disabled: true })
+        }
+
+        // Actualiza los estados de los usuarios y los valores fijos
+        setAllUsers(receiverFilter.concat(petitionerUsers))
+        setFixed(fixedValues)
+        setValues({ ...values, receiver: fixedValues })
+      } catch (error) {
+        // Manejo de errores
+        console.error('Error al obtener datos de usuarios:', error)
+      }
+    })();
   }, [values.plant, values.contop, values.petitioner])
+
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -487,29 +537,6 @@ const FormLayoutsSolicitud = () => {
       findAreas(onlyPlant)
     }
   }, [authUser])
-
-  //Establece opciones de contract operator
-  useEffect(() => {
-    if (values.plant) {
-      console.log("Valor actual de plant: ", values.plant);
-
-      const fetchData = async () => {
-        await getUserData('getUsers', values.plant)
-          .then(contOpOptions => {
-            setContOpOptions(contOpOptions)
-            if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
-              setValues({ ...values, contop: contOpOptions[0].name })
-            }
-          })
-          .catch(error => {
-            // handle error
-          })
-        const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
-        setPetitioners(petitioners)
-      }
-      fetchData()
-    }
-  }, [values.plant])
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
@@ -743,8 +770,8 @@ const FormLayoutsSolicitud = () => {
             <CustomSelect
               options={
                 (authUser.role === 7 || authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
-                  ? [petitionerOpShift]
-                  : [authUser.opshift]) || 'No aplica'
+                  ?  [{name: 'No aplica'}]
+                  : [authUser.opshift] || [{name: 'No aplica'}])
               }
               label='Contraturno del solicitante'
               value={values.opshift}
@@ -833,7 +860,7 @@ const FormLayoutsSolicitud = () => {
             />
 
             <CustomAutocomplete
-              isOptionEqualToValue={(option, value) => option.name === value.name}
+              isOptionEqualToValue={(option, value) => (option.name === value.name)}
               options={allUsers}
               label='Destinatarios'
               value={values.receiver}
