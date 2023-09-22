@@ -150,6 +150,8 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
   )
 }
 
+
+//esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
 function getIconForFileType(filePath) {
   const urlWithoutParams = filePath.split('?')[0];
   const extension = urlWithoutParams.split('.').pop().toLowerCase();
@@ -171,6 +173,7 @@ function getIconForFileType(filePath) {
   }
 }
 
+//esta función se usa para establecer los iconos de los documentos que se van a adjuntar al documento, previo a cargarlos.
 const getFileIcon = (fileType) => {
   switch (fileType) {
     case 'application/pdf':
@@ -187,6 +190,7 @@ const getFileIcon = (fileType) => {
   }
 };
 
+// función que renderiza cada elemento adjunto y renderiza la variable 'displaySrc' que usa un condicional en caso que el elemento sea una image muestra el thumbnail, caso contrario muestra el icono según el tipo de archivo
 const PhotoItem = ({ photoUrl }) => {
   const urlWithoutParams = photoUrl.split('?')[0];
   const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase());
@@ -195,9 +199,6 @@ const PhotoItem = ({ photoUrl }) => {
 
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
-      {/* <a href={photoUrl} target='_blank' rel='noopener noreferrer' style={{ display: 'block', height: '100%' }}>
-
-      </a> */}
       <Box component='img' src={displaySrc}  onClick={() => window.open(photoUrl, '_blank')} alt='Photo' style={{ height: 'inherit', cursor: 'pointer' }} />
         <IconButton
           href={photoUrl}
