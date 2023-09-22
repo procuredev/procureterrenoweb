@@ -351,7 +351,7 @@ export function solicitudValidator(values) {
       }
     }
 
-    if (!['receiver', 'deliverable', 'start', 'sap', 'fnlocation'].includes(key) && typeof values[key] !== 'string') {
+    if (!['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end'].includes(key) && typeof values[key] !== 'string') {
       console.log(`El campo ${key} debe ser en formato texto.`)
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
