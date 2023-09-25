@@ -432,60 +432,51 @@ const consultUserEmailInDB = async email => {
 }
 
 const consultDocs = async (type, options = {}) => {
-  const coll = collection(db, 'solicitudes') // Obtener referencia a la colección 'solicitudes'
-  let queries = [] // Inicializar un arreglo para almacenar las consultas
-  let queryFunc
-
-  // Determinar el tipo de consulta a realizar
-  switch (type) {
-    // Agregar la consulta de obtener todos los documentos a las consultas
-    case 'all':
-      queries.push(getCountFromServer(coll))
-      break
-
-    // Crear consultas por planta y agregarlas al arreglo de consultas
-    case 'byPlants':
-      queryFunc = async () => {
-        const queries = options.plants.map(async plant => {
-          const q = query(coll, where('plant', '==', plant))
-          const snapshot = await getDocs(q)
-
-          return snapshot.size
-        })
-
-        const results = await Promise.all(queries)
-
-        return results
-      }
-      break
-    // Crear consultas por estado y agregarlas al arreglo de consultas
-    case 'byState':
-      const q1 = query(coll, where('state', '>=', 1), where('state', '<', 6))
-      const q2 = query(coll, where('state', '>=', 6), where('state', '<', 10))
-      const q3 = query(coll, where('state', '==', 10))
-      queries = [q1, q2, q3].map(getCountFromServer)
-      break
-
-    default:
-      // Si el tipo de consulta no es válido, lanzar un error
-      throw new Error(`Invalid type: ${type}`)
-  }
+  const coll = collection(db, 'solicitudes');
 
   try {
-    if (type === 'byPlants') {
-      return queryFunc()
-    } else {
-      const snapshots = await Promise.all(queries) // Ejecutar todas las consultas en paralelo y obtener los snapshots
-      const counts = snapshots.map(snapshot => snapshot.data().count) // Mapear los snapshots para obtener el conteo de cada consulta
+    switch (type) {
+      case 'all':
+        const qAll = query(coll);
+        const snapshotAll = await getDocs(qAll);
 
-      return counts // Retornar el arreglo de conteos
+        return snapshotAll.size;
+
+      case 'byPlants':
+        const resultsByPlants = await Promise.all(
+          options.plants.map(async plant => {
+            const qPlant = query(coll, where('plant', '==', plant));
+            const snapshotPlant = await getDocs(qPlant);
+
+            return snapshotPlant.size;
+          })
+        );
+
+        return resultsByPlants;
+
+      case 'byState':
+        const states = [[1, 5], [6, 9], [10, 10]];
+
+        const resultsByState = await Promise.all(
+          states.map(async ([start, end]) => {
+            const qState = query(coll, where('state', '>=', start), where('state', '<=', end));
+            const snapshotState = await getDocs(qState);
+
+            return snapshotState.size;
+          })
+        );
+
+        return resultsByState;
+
+      default:
+        throw new Error(`Invalid type: ${type}`);
     }
   } catch (error) {
-    console.error('Error fetching document counts:', error) // En caso de error, imprimir un mensaje de error y retornar null
+    console.error('Error fetching document counts:', error);
 
-    return null
+    return null;
   }
-}
+};
 
 const consultObjetives = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes')
