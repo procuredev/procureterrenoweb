@@ -234,8 +234,9 @@ const FormLayoutsSolicitud = () => {
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag']
     for (const key in values) {
+      const excludedFields = authUser.role === 7 ? true : (key !== 'end' && key !== 'ot' && key !== 'urgency')
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo') {
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && excludedFields) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
@@ -418,7 +419,15 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(), end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null }, authUser)
+        const solicitud = await newDoc({
+          ...values,
+          receiver: values.receiver.map((option) => {
+            const { disabled, ...rest } = option;
+
+            return rest;}),
+          start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
+          end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null },
+          authUser)
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
@@ -443,6 +452,7 @@ const FormLayoutsSolicitud = () => {
       ) {
         setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
       }
+      console.log(formErrors)
       setIsUploading(false)
       setErrors(formErrors)
     }
@@ -456,73 +466,69 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-    //Establece opciones de contract operator
-    useEffect(() => {
-      if (values.plant) {
+  const fetchData = async () => {
+    try {
 
-        const fetchData = async () => {
-          await getUserData('getUsers', values.plant)
-            .then(contOpOptions => {
-              setContOpOptions(contOpOptions)
-              if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
-                setValues({ ...values, contop: contOpOptions[0].name })
-              }
-            })
-            .catch(error => {
-              // handle error
-            })
-          const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
-          setPetitioners(petitioners)
+        const contOpOptions = await getUserData('getUsers', values.plant)
+        setContOpOptions(contOpOptions);
+
+        const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role });
+        setPetitioners(petitioners);
+
+        if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
+          return contOpOptions[0]
         }
-        fetchData()
+    } catch (error) {
+      console.error('Error en la petición:', error);
+    }
+  };
+
+  const getFixedUsers = async (contop) => {
+    try {
+      const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
+        getUserData('getUsersByRole', null, { role: 3 }),
+        getUserData('getUsersByRole', null, { role: 4 }),
+        getUserData('getReceiverUsers', values.plant)
+      ]);
+
+      const filterNames = [];
+
+      const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers];
+
+      const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name));
+
+      const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name));
+
+      let fixedOptions = [];
+
+      if (contop) {
+        fixedOptions.push({ ...contop, disabled: true });
       }
-    }, [values.plant])
+
+      if (contOwnUser) {
+        fixedOptions.push({ ...contOwnUser[0], disabled: true });
+      }
+
+      if (values.petitioner !== '') {
+        fixedOptions.push({ name: values.petitioner, disabled: true });
+      }
+
+      setFixed(fixedOptions);
+      setValues((values)=>({...values, ...(contop && {contop: contop.name}), receiver: [...fixedOptions]}));
+       setAllUsers(receiverFilter.concat(petitionerUsers));
+    } catch (error) {
+      console.error('Error al obtener datos de usuarios:', error);
+    }
+  };
 
   useEffect(() => {
-    if (!values.contop) return
-    (async () => {
-      try {
+    if (values.plant) {
+    fetchData().then((contOpValue) => getFixedUsers(contOpValue),
+    console.log(fixed),
+    console.log(values.contop));
 
-        // Obtiene los datos de los usuarios de manera concurrente
-        const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
-          getUserData('getUsersByRole', null, { role: 3 }),
-          getUserData('getUsersByRole', null, { role: 4 }),
-          getUserData('getReceiverUsers', values.plant)
-        ])
-
-        // Filtra los nombres que no deben aparecer
-        // Revisar los casos está pendiente, antes estaba authUser.displayName y contop en estos nombres filtrados
-        const filterNames = []
-
-        // Combina los usuarios en un solo grupo
-        const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
-
-        // Filtra los usuarios que no tienen nombres en la lista filterNames
-        const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
-
-        // Filtra los que no tienen una key name igual a algún name de receceiverFilter, no que no incluya el nombre
-        const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
-
-        // Crea un array de valores fijos
-        let fixedValues = [
-          contOwnUser && { name: contOwnUser[0].name, disabled: true },
-          { name: values.contop, disabled: true },
-        ]
-        // Agrega solicitante si es que existe
-        if (values.petitioner !== '') {
-          fixedValues.push({ name: values.petitioner, disabled: true })
-        }
-
-        // Actualiza los estados de los usuarios y los valores fijos
-        setAllUsers(receiverFilter.concat(petitionerUsers))
-        setFixed(fixedValues)
-        setValues({ ...values, receiver: fixedValues })
-      } catch (error) {
-        // Manejo de errores
-        console.error('Error al obtener datos de usuarios:', error)
-      }
-    })();
-  }, [values.plant, values.contop, values.petitioner])
+    }
+  }, [values.plant]);
 
 
   // Establece planta solicitante y contop solicitante
