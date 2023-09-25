@@ -43,14 +43,14 @@ const Navigation = () => {
       title: 'Solicitudes',
       icon: 'mdi:file-document-multiple-outline',
       subject: 'solicitudes',
-      authorizedRoles: [1, 2, 3, 4, 5, 6]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7]
     },
     {
       title: 'Nueva Solicitud',
       path: '/nueva-solicitud',
       icon: 'mdi:email-outline',
       subject: 'nueva-solicitud',
-      authorizedRoles: [1, 2, 3, 7]
+      authorizedRoles: [1, 2, 3]
     },
     {
       title: 'Documentos',
