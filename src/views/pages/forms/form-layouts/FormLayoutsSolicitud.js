@@ -96,7 +96,18 @@ const FormLayoutsSolicitud = () => {
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
-    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
+
+    const selectFields = [
+      'plant',
+      'area',
+      'petitioner',
+      'opshift',
+      'type',
+      'detention',
+      'objective',
+      'contop',
+      'urgency'
+    ]
     const autoFields = ['deliverable', 'receiver']
     let newValue
     switch (true) {
@@ -139,7 +150,7 @@ const FormLayoutsSolicitud = () => {
             [prop]: newValue,
             area: '',
             contop: '',
-            receiver: [...fixed],
+            receiver: [...fixed]
           }))
 
           findAreas(newValue)
@@ -158,7 +169,6 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'end': {
         let endDate = event
-        console.log(event,"event")
         setValues({
           ...values,
           end: endDate
@@ -167,7 +177,6 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event
-        console.log(event, "eventStart")
         setValues({
           ...values,
           start: startDate
@@ -234,7 +243,7 @@ const FormLayoutsSolicitud = () => {
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag']
     for (const key in values) {
-      const excludedFields = authUser.role === 7 ? true : (key !== 'end' && key !== 'ot' && key !== 'urgency')
+      const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       // Error campos vacíos
       if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && excludedFields) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
@@ -407,7 +416,9 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+    
+    const isUrgent =
+      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
     if (
@@ -419,15 +430,19 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({
-          ...values,
-          receiver: values.receiver.map((option) => {
-            const { disabled, ...rest } = option;
+        const solicitud = await newDoc(
+          {
+            ...values,
+            receiver: values.receiver.map(option => {
+              const { disabled, ...rest } = option
 
-            return rest;}),
-          start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-          end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null },
-          authUser)
+              return rest
+            }),
+            start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
+            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null
+          },
+          authUser
+        )
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
@@ -452,7 +467,6 @@ const FormLayoutsSolicitud = () => {
       ) {
         setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
       }
-      console.log(formErrors)
       setIsUploading(false)
       setErrors(formErrors)
     }
@@ -468,68 +482,63 @@ const FormLayoutsSolicitud = () => {
 
   const fetchData = async () => {
     try {
+      const contOpOptions = await getUserData('getUsers', values.plant)
+      setContOpOptions(contOpOptions)
 
-        const contOpOptions = await getUserData('getUsers', values.plant)
-        setContOpOptions(contOpOptions);
+      const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
+      setPetitioners(petitioners)
 
-        const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role });
-        setPetitioners(petitioners);
-
-        if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
-          return contOpOptions[0]
-        }
+      if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
+        return contOpOptions[0]
+      }
     } catch (error) {
-      console.error('Error en la petición:', error);
+      console.error('Error en la petición:', error)
     }
-  };
+  }
 
-  const getFixedUsers = async (contop) => {
+  const getFixedUsers = async contop => {
     try {
       const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
         getUserData('getUsersByRole', null, { role: 3 }),
         getUserData('getUsersByRole', null, { role: 4 }),
         getUserData('getReceiverUsers', values.plant)
-      ]);
+      ])
 
-      const filterNames = [];
+      const filterNames = []
 
-      const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers];
+      const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
 
-      const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name));
+      const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
 
-      const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name));
+      const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
 
-      let fixedOptions = [];
+      let fixedOptions = []
 
       if (contop) {
-        fixedOptions.push({ ...contop, disabled: true });
+        fixedOptions.push({ ...contop, disabled: true })
       }
 
       if (contOwnUser) {
-        fixedOptions.push({ ...contOwnUser[0], disabled: true });
+        fixedOptions.push({ ...contOwnUser[0], disabled: true })
       }
 
       if (values.petitioner !== '') {
-        fixedOptions.push({ name: values.petitioner, disabled: true });
+        fixedOptions.push({ name: values.petitioner, disabled: true })
       }
 
-      setFixed(fixedOptions);
-      setValues((values)=>({...values, ...(contop && {contop: contop.name}), receiver: [...fixedOptions]}));
-       setAllUsers(receiverFilter.concat(petitionerUsers));
+      setFixed(fixedOptions)
+      setValues(values => ({ ...values, ...(contop && { contop: contop.name }), receiver: [...fixedOptions] }))
+      setAllUsers(receiverFilter.concat(petitionerUsers))
     } catch (error) {
-      console.error('Error al obtener datos de usuarios:', error);
+      console.error('Error al obtener datos de usuarios:', error)
     }
-  };
+  }
 
   useEffect(() => {
     if (values.plant) {
-    fetchData().then((contOpValue) => getFixedUsers(contOpValue),
-    console.log(fixed),
-    console.log(values.contop));
-
+      fetchData().then(contOpValue => getFixedUsers(contOpValue))
     }
-  }, [values.plant]);
-
+  }, [values.plant])
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -678,7 +687,8 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                authUser.role === 7 || authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
+                authUser.role === 7 ||
+                (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
                   ? plants
                   : [authUser.plant[0]]
               }
@@ -758,9 +768,12 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                authUser.role === 3 ||
+                authUser.role === 7 ||
+                authUser.plant === 'allPlants' ||
+                authUser.plant === 'Solicitante Santiago'
                   ? petitioners.map(item => ({ name: item.name }))
-                  : [authUser.displayName])
+                  : [authUser.displayName]
               }
               label='Solicitante'
               value={values.petitioner}
@@ -775,9 +788,12 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                (authUser.role === 7 || authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
-                  ?  [{name: 'No aplica'}]
-                  : [authUser.opshift] || [{name: 'No aplica'}])
+                authUser.role === 7 ||
+                authUser.role === 3 ||
+                authUser.plant === 'allPlants' ||
+                authUser.plant === 'Solicitante Santiago'
+                  ? [{ name: 'No aplica' }]
+                  : [authUser.opshift] || [{ name: 'No aplica' }]
               }
               label='Contraturno del solicitante'
               value={values.opshift}
@@ -866,7 +882,7 @@ const FormLayoutsSolicitud = () => {
             />
 
             <CustomAutocomplete
-              isOptionEqualToValue={(option, value) => (option.name === value.name)}
+              isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}
               label='Destinatarios'
               value={values.receiver}
