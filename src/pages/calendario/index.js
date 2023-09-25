@@ -275,12 +275,13 @@ const AppCalendar = () => {
       setDayDialogOpen(info.date)
     },
     datesSet: async function (params) {
-      const startDate = params.start.seconds
-      const endDate = params.end.seconds
+      const startDate = params.start.getTime()
+      const endDate = params.end.getTime()
 
       const timestamps = []
 
       let currentDate = new Date(startDate)
+
       while (currentDate <= endDate) {
         const timestamp = Math.floor(currentDate.getTime())
         timestamps.push(timestamp)
