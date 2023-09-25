@@ -31,6 +31,11 @@ const ObjetivesByDay = ({objetivesOfActualWeek}) => {
 
           return daysOfWeek[dataPointIndex]
         }
+      },
+      y: {
+        formatter: function (value) {
+          return Math.round(value); // Redondea el valor para asegurar que se muestre como un entero
+        }
       }
     },
     chart: {
@@ -73,7 +78,7 @@ const ObjetivesByDay = ({objetivesOfActualWeek}) => {
         style: { colors: theme.palette.text.disabled }
       }
     },
-    yaxis: { show: false },
+    yaxis: {  show: false },
     grid: {
       show: false,
       padding: {
