@@ -1,16 +1,9 @@
-// ** React Imports
-import { Fragment, useState, useEffect } from 'react'
-
-// ** Hooks
-import { useFirebase } from 'src/context/useFirebase'
-import { useRouter } from 'next/router'
-
-// ** Date Library
-//import moment from 'moment'
-import moment from 'moment-timezone'
 import 'moment/locale/es'
-
-// ** MUI Imports
+import moment from 'moment-timezone'
+import { Fragment, useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { useDropzone } from 'react-dropzone'
+import { useFirebase } from 'src/context/useFirebase'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
@@ -32,12 +25,9 @@ import {
   Typography
 } from '@mui/material'
 
-// ** Third Party Imports
-import { useDropzone } from 'react-dropzone'
-
 // ** Custom Components
-import plants from 'src/@core/components/plants-areas/index'
 import Icon from 'src/@core/components/icon'
+import plants from 'src/@core/components/plants-areas/index'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 import {
