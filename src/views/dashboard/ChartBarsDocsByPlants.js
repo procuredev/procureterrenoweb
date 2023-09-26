@@ -71,7 +71,7 @@ const ChartBarsDocsByPlants = ({ docsByPlants, loading }) => {
     xaxis: {
       axisTicks: { show: false },
       axisBorder: { show: false },
-      categories: ['LC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT'],
+      categories: ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT'],
       labels: {
         style: { colors: theme.palette.text.disabled }
       }
