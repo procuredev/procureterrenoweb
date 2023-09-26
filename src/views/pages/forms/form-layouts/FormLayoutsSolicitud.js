@@ -82,6 +82,24 @@ const FormLayoutsSolicitud = () => {
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
 
+const handleGPRSelected = () => {
+  const currentWeek = moment().isoWeek()
+  const startDate = moment(values.start)
+  const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+  const weeksDifference = startDate.diff(currentDate, 'weeks')
+
+  const inTenWeeks = moment()
+    .locale('es')
+    .isoWeeks(currentWeek + 10)
+    .format('LL')
+
+  if (weeksDifference < 10) {
+    setErrors(prevErrors => ({
+      ...prevErrors,
+      objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
+    }))
+  }}
+
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
@@ -101,25 +119,8 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'petitioner' && authUser.role !== 2) {
           getPetitionerOpShift(newValue)
         }
-        if (prop === 'objective') {
-          const isAnalysisGPRSelected = newValue === 'Análisis GPR'
-          const currentWeek = moment().isoWeek()
-          const startDate = moment(values.start)
-          const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
-          const weeksDifference = startDate.diff(currentDate, 'weeks')
-
-          const inTenWeeks = moment()
-            .locale('es')
-            .isoWeeks(currentWeek + 10)
-            //.startOf('week')
-            .format('LL')
-
-          if (isAnalysisGPRSelected && weeksDifference < 10) {
-            setErrors(prevErrors => ({
-              ...prevErrors,
-              objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
-            }))
-          }
+        if (prop === 'objective' && newValue === 'Análisis GPR') {
+          handleGPRSelected()
         }
         if (prop === 'plant') {
           setValues(prevValues => ({
