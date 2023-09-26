@@ -416,7 +416,7 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    
+
     const isUrgent =
       ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
@@ -605,6 +605,30 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
+
+          {authUser.role === 7 && (
+            <>
+              <CustomTextField
+                label='OT'
+                value={values.ot}
+                onChange={handleChange('ot')}
+                error={errors.ot}
+                inputProps={{ maxLength: 5 }}
+                helper='Ingresa el número de OT.'
+              />
+
+              <CustomSelect
+                options={['Urgencia', 'Emergencia', 'Oportunidad']}
+                label='Tipo de urgencia'
+                value={values.urgency}
+                onChange={handleChange('urgency')}
+                error={errors.urgency}
+                helper='Selecciona el tipo de urgencia de la tarea.'
+                defaultValue=''
+              />
+              </>
+            )}
+
             <CustomTextField
               required
               type='text'
@@ -636,7 +660,7 @@ const FormLayoutsSolicitud = () => {
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
-                      label='Fecha'
+                      label='Fecha de inicio'
                       value={values.start}
                       onChange={date => handleChange('start')(date)}
                       InputLabelProps={{ shrink: true, required: true }}
@@ -735,17 +759,6 @@ const FormLayoutsSolicitud = () => {
               defaultValue=''
             />
 
-            {authUser.role === 7 && (
-              <CustomTextField
-                label='OT'
-                value={values.ot}
-                onChange={handleChange('ot')}
-                error={errors.ot}
-                inputProps={{ maxLength: 5 }}
-                helper='Ingresa el número de OT.'
-              />
-            )}
-
             <CustomTextField
               type='text'
               label='Functional Location'
@@ -813,18 +826,6 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'
               defaultValue=''
             />
-
-            {authUser.role === 7 && (
-              <CustomSelect
-                options={['Urgencia', 'Emergencia', 'Oportunidad']}
-                label='Tipo de urgencia'
-                value={values.urgency}
-                onChange={handleChange('urgency')}
-                error={errors.urgency}
-                helper='Selecciona el tipo de urgencia de la tarea.'
-                defaultValue=''
-              />
-            )}
 
             <CustomSelect
               options={['Sí', 'No', 'No aplica']}
