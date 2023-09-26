@@ -12,34 +12,32 @@ import 'moment/locale/es'
 
 // ** MUI Imports
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import List from '@mui/material/List'
-import plants from 'src/@core/components/plants-areas/index'
-import CircularProgress from '@mui/material/CircularProgress'
-import DialogErrorFile from 'src/@core/components/dialog-errorFile'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControl,
+  Grid,
+  Link,
+  List,
+  Typography
+} from '@mui/material'
 
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
-import { useTheme } from '@emotion/react'
 
 // ** Custom Components
+import plants from 'src/@core/components/plants-areas/index'
+import Icon from 'src/@core/components/icon'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import {
   CustomTextField,
   CustomSelect,
@@ -76,7 +74,7 @@ const FormLayoutsSolicitud = () => {
   // ** Hooks
   const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData } = useFirebase()
   const router = useRouter()
-  
+
   // ** States
   const [areas, setAreas] = useState([])
   const [fixed, setFixed] = useState([])
@@ -560,27 +558,26 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
+            {authUser.role === 7 && (
+              <>
+                <CustomTextField
+                  label='OT'
+                  value={values.ot}
+                  onChange={handleChange('ot')}
+                  error={errors.ot}
+                  inputProps={{ maxLength: 5 }}
+                  helper='Ingresa el número de OT.'
+                />
 
-          {authUser.role === 7 && (
-            <>
-              <CustomTextField
-                label='OT'
-                value={values.ot}
-                onChange={handleChange('ot')}
-                error={errors.ot}
-                inputProps={{ maxLength: 5 }}
-                helper='Ingresa el número de OT.'
-              />
-
-              <CustomSelect
-                options={['Urgencia', 'Emergencia', 'Oportunidad']}
-                label='Tipo de urgencia'
-                value={values.urgency}
-                onChange={handleChange('urgency')}
-                error={errors.urgency}
-                helper='Selecciona el tipo de urgencia de la tarea.'
-                defaultValue=''
-              />
+                <CustomSelect
+                  options={['Urgencia', 'Emergencia', 'Oportunidad']}
+                  label='Tipo de urgencia'
+                  value={values.urgency}
+                  onChange={handleChange('urgency')}
+                  error={errors.urgency}
+                  helper='Selecciona el tipo de urgencia de la tarea.'
+                  defaultValue=''
+                />
               </>
             )}
 
