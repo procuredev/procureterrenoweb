@@ -71,8 +71,8 @@ const Home = () => {
           consultObjetives('lastSixMonths'),
           consultDocs('byState'),
           consultObjetives('byState'),
-          consultDocs('byPlants', { plants }),
-          consultObjetives('byPlants', { plants }),
+          consultDocs('byPlants'),
+          consultObjetives('byPlants'),
           getUsersWithSolicitudes()
         ])
 

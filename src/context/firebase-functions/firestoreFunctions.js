@@ -57,7 +57,7 @@ const newDoc = async (values, userParam) => {
     solicitudValidator(values)
     const requestNumber = await requestCounter()
 
-    const docRef = await addDoc(collection(db, 'solicitudes'), {
+    const initialValues = {
       title: values.title,
       start: values.start,
       plant: values.plant,
@@ -80,18 +80,39 @@ const newDoc = async (values, userParam) => {
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
       engineering: userParam.engineering
-    })
+    };
+
+    const docRef = await addDoc(collection(db, 'solicitudes'), initialValues)
 
     const adjustedDate = moment(values.start).subtract(1, 'day');
     const week = moment(adjustedDate.toDate()).isoWeek()
 
+
     // Establecemos los campos adicionales de la solicitud
     await updateDoc(docRef, {
-      ...newDoc,
+      ...initialValues,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
       state: userParam.role === 7 ? 6 : userParam.role || 'No definido',
       supervisorShift : userParam.role === 7 ? week % 2 === 0 ? 'A' : 'B' : null
     })
+
+    // Actualizar el contador en la colección 'plants_counts'
+    await db.runTransaction(async (transaction) => {
+      const plantCountRef = collection(db, 'plants_counts').doc(values.plant);
+      const plantCountDoc = await transaction.get(plantCountRef);
+
+      // Si el documento no existe, crea uno con countObjetives o countDocs establecido en 1, dependiendo de userParam.role
+      if (!plantCountDoc.exists) {
+        const initialData = userParam.role === 7 ? { countObjetives: 1 } : { countDocs: 1 };
+        transaction.set(plantCountRef, initialData);
+      } else {
+        // Si el documento existe, incrementa countObjetives o countDocs
+        const fieldToIncrement = userParam.role === 7 ? 'countObjetives' : 'countDocs';
+        transaction.update(plantCountRef, {
+          [fieldToIncrement]: firebase.firestore.FieldValue.increment(1)
+        });
+      }
+    });
 
     // Se envía email a quienes corresponda
     await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
@@ -373,6 +394,24 @@ const updateDocs = async (id, approves, userParam) => {
 
   // const addOT = role === 5 && approves && !hasOT
   // const ot = addOT ? await increaseAndGetNewOTValue() : null
+
+  const { plant } = docSnapshot;
+  if (newState === 6) {
+    await db.runTransaction(async (transaction) => {
+      const plantCountRef = collection(db, 'plants_counts').doc(plant);
+      const plantCountDoc = await transaction.get(plantCountRef);
+
+      // Si el documento no existe, crea uno con countObjetives establecido en 1
+      if (!plantCountDoc.exists) {
+        transaction.set(plantCountRef, { countObjetives: 1 });
+      } else {
+        // Si el documento existe, incrementa countObjetives
+        transaction.update(plantCountRef, {
+          countObjetives: firebase.firestore.FieldValue.increment(1)
+        });
+      }
+    });
+  }
 
   const addShift = newState === 6
   const supervisorShift = addShift ? await setSupervisorShift(docStartDate) : null

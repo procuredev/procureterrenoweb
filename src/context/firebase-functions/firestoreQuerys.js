@@ -431,28 +431,50 @@ const consultUserEmailInDB = async email => {
   }
 }
 
+const listOfPlants = [
+  'Planta Concentradora Los Colorados',
+  'Planta Concentradora Laguna Seca | Línea 1',
+  'Planta Concentradora Laguna Seca | Línea 2',
+  'Chancado y Correas',
+  'Puerto Coloso',
+  'Instalaciones Cátodo'
+];
+
 const consultDocs = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes');
 
   try {
+    let snapshot
     switch (type) {
       case 'all':
-        const qAll = query(coll);
-        const snapshotAll = await getDocs(qAll);
+        const totalDocsCountRef = collection(db, 'plants_counts');
+        snapshot = await getDocs(totalDocsCountRef);
 
-        return snapshotAll.size;
+        // Suma todos los contadores 'countDocs' de todas las plantas
+        const totalCountDocs = snapshot.docs.reduce((acc, doc) => {
+          const count = doc.data().countDocs || 0;
+
+          return acc + count;
+        }, 0);
+
+        return totalCountDocs;
 
       case 'byPlants':
-        const resultsByPlants = await Promise.all(
-          options.plants.map(async plant => {
-            const qPlant = query(coll, where('plant', '==', plant));
-            const snapshotPlant = await getDocs(qPlant);
+        const plantDocCountRef = collection(db, 'plants_counts');
+        snapshot = await getDocs(plantDocCountRef);
 
-            return snapshotPlant.size;
-          })
-        );
+        // Convertimos los documentos obtenidos a un objeto para acceder a ellos más fácilmente
+        const plantCountsFromDb = snapshot.docs.reduce((acc, doc) => {
+          acc[doc.id] = doc.data().countDocs || 0;  // Aquí estamos usando "countDocs" en lugar de "countObjetives"
 
-        return resultsByPlants;
+          return acc;
+        }, {});
+
+
+        // Creamos el resultado basándonos en todas las plantas y llenamos los valores desde el objeto anterior
+        const plantsDocCounts = listOfPlants.map(plantName => plantCountsFromDb[plantName] || 0);
+
+        return plantsDocCounts;
 
       case 'byState':
         const states = [[1, 5], [6, 9], [10, 10]];
@@ -481,17 +503,22 @@ const consultDocs = async (type, options = {}) => {
 const consultObjetives = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes')
   let queryFunc
+  let snapshot
 
   switch (type) {
     case 'all':
       // Consulta para obtener el total de documentos con estado mayor o igual a 6
-      queryFunc = async () => {
-        const q = query(coll, where('state', '>=', 6))
-        const snapshot = await getCountFromServer(q)
+      const totalObjetivesCountRef = collection(db, 'plants_counts');
+      snapshot = await getDocs(totalObjetivesCountRef);
 
-        return snapshot.data().count
-      }
-      break
+      // Suma todos los contadores 'countObjetives' de todas las plantas
+      const totalCountObjetives = snapshot.docs.reduce((acc, doc) => {
+        const count = doc.data().countObjetives || 0;
+
+        return acc + count;
+      }, 0);
+
+      return totalCountObjetives;
 
     case 'week':
       // Consulta para obtener el número de documentos por día de la semana en la semana actual
@@ -500,7 +527,7 @@ const consultObjetives = async (type, options = {}) => {
         const endDate = moment().endOf('isoWeek').toDate()
         const documentsByDay = Array(7).fill(0)
         const q = query(coll, where('state', '>=', 6))
-        const snapshot = await getDocs(q)
+        snapshot = await getDocs(q)
 
         snapshot.forEach(doc => {
           const start = doc.data().start.toDate()
@@ -545,7 +572,22 @@ const consultObjetives = async (type, options = {}) => {
 
     case 'byPlants':
       // Consulta para obtener el número de documentos por planta
-      queryFunc = async () => {
+      const plantObjetiveCountRef = collection(db, 'plants_counts');
+      const snapshot = await getDocs(plantObjetiveCountRef);
+
+      // Convertimos los documentos obtenidos a un objeto para acceder a ellos más fácilmente
+      const plantCountsFromDb = snapshot.docs.reduce((acc, doc) => {
+        acc[doc.id] = doc.data().countObjetives || 0;
+
+        return acc;
+      }, {});
+
+      // Creamos el resultado basándonos en todas las plantas y llenamos los valores desde el objeto anterior
+      const plantsObjetiveCounts = listOfPlants.map(plantName => plantCountsFromDb[plantName] || 0);
+
+  return plantsObjetiveCounts;
+
+      /* queryFunc = async () => {
         const queries = options.plants.map(async plant => {
           const q = query(coll, where('plant', '==', plant), where('state', '>=', 6))
           const snapshot = await getDocs(q)
@@ -557,7 +599,7 @@ const consultObjetives = async (type, options = {}) => {
 
         return results
       }
-      break
+      break */
 
     case 'byState':
       // Consulta para obtener el número de documentos por estado
