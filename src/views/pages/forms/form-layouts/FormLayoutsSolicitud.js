@@ -48,7 +48,8 @@ import {
   CustomAutocomplete,
   StyledInfoIcon,
   StyledTooltip,
-  HeadingTypography
+  HeadingTypography,
+  FileList
 } from 'src/@core/components/custom-form/index'
 
 const FormLayoutsSolicitud = () => {
@@ -358,49 +359,6 @@ const FormLayoutsSolicitud = () => {
     const filtered = uploadedFiles.filter(i => i.name !== file.name)
     setFiles([...filtered])
   }
-
-  const fileList = (
-    <Grid container spacing={2}>
-      {files.map(file => (
-        <Grid item key={file.name}>
-          <Paper
-            elevation={0}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '10px',
-              border: `4px solid ${theme.palette.primary.main}`,
-              borderRadius: '4px',
-              width: '220px',
-              position: 'relative' // Agregamos esta propiedad para posicionar el icono correctamente
-            }}
-          >
-            {file.type.startsWith('image') ? (
-              <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
-            ) : (
-              <Icon icon='mdi:file-document-outline' fontSize={50} />
-            )}
-            <Typography
-              variant='body2'
-              sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
-            >
-              {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
-            </Typography>
-            <IconButton
-              onClick={() => handleRemoveFile(file)}
-              sx={{
-                position: 'absolute', // Posicionamos el icono en relación al Paper
-                top: '0px', // Ajusta el valor según la posición vertical deseada
-                right: '0px' // Ajusta el valor según la posición horizontal deseada
-              }}
-            >
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Paper>
-        </Grid>
-      ))}
-    </Grid>
-  )
 
   const handleRemoveAllFiles = () => {
     setFiles
@@ -920,7 +878,9 @@ const FormLayoutsSolicitud = () => {
                   </div>
                   {files.length ? (
                     <Fragment>
-                      <List>{fileList}</List>
+                      <List>
+                        <FileList files={files} handleRemoveFile={handleRemoveFile} />
+                      </List>
                       <div className='buttons'>
                         <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
                           Quitar todo

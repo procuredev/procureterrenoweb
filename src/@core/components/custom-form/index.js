@@ -14,6 +14,11 @@ import InfoIcon from '@mui/icons-material/Info'
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip'
 import Autocomplete from '@mui/material/Autocomplete'
 import OutlinedInput from '@mui/material/OutlinedInput'
+import Paper from '@mui/material/Paper'
+import IconButton from '@mui/material/IconButton'
+import Icon from 'src/@core/components/icon'
+import { useTheme } from '@emotion/react'
+
 
 // Styled component for the heading inside the dropzone area
 const HeadingTypography = styled(Typography)(({ theme }) => ({
@@ -130,4 +135,52 @@ const CustomAutocomplete = props => {
   )
 }
 
-export { HeadingTypography, CustomTextField, CustomSelect, CustomAutocomplete, StyledTooltip, StyledInfoIcon }
+const FileList = props => {
+  const { files, handleRemoveFile } = props
+  const theme = useTheme()
+
+  return (
+    <Grid container spacing={2}>
+      {files.map(file => (
+        <Grid item key={file.name}>
+          <Paper
+            elevation={0}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '10px',
+              border: `4px solid ${theme.palette.primary.main}`,
+              borderRadius: '4px',
+              width: '220px',
+              position: 'relative' // Agregamos esta propiedad para posicionar el icono correctamente
+            }}
+          >
+            {file.type.startsWith('image') ? (
+              <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
+            ) : (
+              <Icon icon='mdi:file-document-outline' fontSize={50} />
+            )}
+            <Typography
+              variant='body2'
+              sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
+            >
+              {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
+            </Typography>
+            <IconButton
+              onClick={() => handleRemoveFile(file)}
+              sx={{
+                position: 'absolute', // Posicionamos el icono en relación al Paper
+                top: '0px', // Ajusta el valor según la posición vertical deseada
+                right: '0px' // Ajusta el valor según la posición horizontal deseada
+              }}
+            >
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  )
+}
+
+export { HeadingTypography, CustomTextField, CustomSelect, CustomAutocomplete, StyledTooltip, StyledInfoIcon, FileList }
