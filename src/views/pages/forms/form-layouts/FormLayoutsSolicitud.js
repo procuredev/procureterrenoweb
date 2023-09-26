@@ -19,7 +19,6 @@ import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
@@ -31,7 +30,6 @@ import DialogContentText from '@mui/material/DialogContentText'
 import List from '@mui/material/List'
 import plants from 'src/@core/components/plants-areas/index'
 import CircularProgress from '@mui/material/CircularProgress'
-import Paper from '@mui/material/Paper'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 // ** Icon Imports
@@ -78,8 +76,7 @@ const FormLayoutsSolicitud = () => {
   // ** Hooks
   const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData } = useFirebase()
   const router = useRouter()
-  const theme = useTheme()
-
+  
   // ** States
   const [areas, setAreas] = useState([])
   const [fixed, setFixed] = useState([])
