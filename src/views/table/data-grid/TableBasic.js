@@ -17,20 +17,13 @@ import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import CardHeader from '@mui/material/CardHeader'
-import { DateRangePicker } from '@mui/lab'
-import { date } from 'yup/lib/locale'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
-import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
+import { Check, Clear, Edit } from '@mui/icons-material'
 
 const TableBasic = ({ rows, role, roleData }) => {
-  const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
