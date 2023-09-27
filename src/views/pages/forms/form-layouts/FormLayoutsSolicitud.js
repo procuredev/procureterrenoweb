@@ -90,7 +90,7 @@ const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState(initialValues)
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
-  const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
+  const [isUploading, setIsUploading] = useState(false)
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
@@ -110,7 +110,12 @@ const FormLayoutsSolicitud = () => {
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         if (prop === 'petitioner' && authUser.role !== 2) {
           getPetitionerOpShift(newValue)
-        }
+        if (newValue !== values.contop) {
+          !allUsers.some(user => user.name === newValue) && setAllUsers(values => [...values, {name: newValue, disabled:true}])
+          setValues(values => ({ ...values, receiver: [...fixed, {name: newValue, disabled:true}]}))
+        } else {
+          setValues(values => ({ ...values, receiver: [...fixed]}))
+        }}
         if (prop === 'objective') {
           const isAnalysisGPRSelected = newValue === 'Análisis GPR'
           const currentWeek = moment().isoWeek()
@@ -465,11 +470,6 @@ const FormLayoutsSolicitud = () => {
       if (contOwnUser) {
         fixedOptions.push({ ...contOwnUser[0], disabled: true })
       }
-
-      if (values.petitioner !== '') {
-        fixedOptions.push({ name: values.petitioner, disabled: true })
-      }
-
       setFixed(fixedOptions)
       setValues(values => ({ ...values, ...(contop && { contop: contop.name }), receiver: [...fixedOptions] }))
       setAllUsers(receiverFilter.concat(petitionerUsers))
