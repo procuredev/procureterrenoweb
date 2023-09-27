@@ -12,6 +12,7 @@ import 'moment/locale/es'
 
 // ** MUI Imports
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
 import {
   Box,
@@ -38,6 +39,7 @@ import { useDropzone } from 'react-dropzone'
 import plants from 'src/@core/components/plants-areas/index'
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
+
 import {
   CustomTextField,
   CustomSelect,
@@ -92,18 +94,7 @@ const FormLayoutsSolicitud = () => {
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
-
-    const selectFields = [
-      'plant',
-      'area',
-      'petitioner',
-      'opshift',
-      'type',
-      'detention',
-      'objective',
-      'contop',
-      'urgency'
-    ]
+    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
     switch (true) {
@@ -173,6 +164,7 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event
+        console.log(event, "eventStart")
         setValues({
           ...values,
           start: startDate
@@ -369,9 +361,7 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-
-    const isUrgent =
-      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+    const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
     if (
@@ -396,6 +386,7 @@ const FormLayoutsSolicitud = () => {
           },
           authUser
         )
+
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
@@ -558,6 +549,7 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
+
             {authUser.role === 7 && (
               <>
                 <CustomTextField
@@ -665,6 +657,7 @@ const FormLayoutsSolicitud = () => {
               options={
                 authUser.role === 7 ||
                 (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
+
                   ? plants
                   : [authUser.plant[0]]
               }
@@ -733,12 +726,9 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                authUser.role === 3 ||
-                authUser.role === 7 ||
-                authUser.plant === 'allPlants' ||
-                authUser.plant === 'Solicitante Santiago'
+                (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
                   ? petitioners.map(item => ({ name: item.name }))
-                  : [authUser.displayName]
+                  : [authUser.displayName])
               }
               label='Solicitante'
               value={values.petitioner}
@@ -753,12 +743,9 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                authUser.role === 7 ||
-                authUser.role === 3 ||
-                authUser.plant === 'allPlants' ||
-                authUser.plant === 'Solicitante Santiago'
-                  ? [{ name: 'No aplica' }]
-                  : [authUser.opshift] || [{ name: 'No aplica' }]
+                (authUser.role === 7 || authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                  ?  [{name: 'No aplica'}]
+                  : [authUser.opshift] || [{name: 'No aplica'}])
               }
               label='Contraturno del solicitante'
               value={values.opshift}
@@ -835,7 +822,7 @@ const FormLayoutsSolicitud = () => {
             />
 
             <CustomAutocomplete
-              isOptionEqualToValue={(option, value) => option.name === value.name}
+              isOptionEqualToValue={(option, value) => (option.name === value.name)}
               options={allUsers}
               label='Destinatarios'
               value={values.receiver}

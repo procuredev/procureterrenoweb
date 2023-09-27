@@ -19,7 +19,6 @@ import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 
-
 // Styled component for the heading inside the dropzone area
 const HeadingTypography = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(5),
@@ -184,3 +183,4 @@ const FileList = props => {
 }
 
 export { HeadingTypography, CustomTextField, CustomSelect, CustomAutocomplete, StyledTooltip, StyledInfoIcon, FileList }
+

@@ -108,7 +108,7 @@ const newDoc = async (values, userParam) => {
       ...(end && { end })
     })
 
-    const adjustedDate = moment(values.start).subtract(1, 'day')
+    const adjustedDate = moment(values.start).subtract(1, 'day');
     const week = moment(adjustedDate.toDate()).isoWeek()
 
     // Establecemos los campos adicionales de la solicitud
@@ -117,7 +117,6 @@ const newDoc = async (values, userParam) => {
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
       state: userParam.role === 7 ? 6 : userParam.role || 'No definido',
       supervisorShift: userParam.role === 7 ? (week % 2 === 0 ? 'A' : 'B') : null
-    })
 
     // Se envía email a quienes corresponda
     await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)

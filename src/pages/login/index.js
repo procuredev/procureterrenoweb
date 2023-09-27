@@ -382,9 +382,9 @@ const LoginPage = () => {
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>
                 Entrar
               </Button>
-              <Button fullWidth size='large' onClick={() => handleSignGoogle()} variant='contained' sx={{ mb: 7 }}>
+              {/* <Button fullWidth size='large' onClick={() => handleSignGoogle()} variant='contained' sx={{ mb: 7 }}>
                 Entrar con Google
-              </Button>
+              </Button> */}
             </form>
           </BoxWrapper>
         </Paper>
