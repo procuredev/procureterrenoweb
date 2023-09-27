@@ -76,8 +76,14 @@ const Home = () => {
           getUsersWithSolicitudes()
         ])
 
-        const monthArray = lastSixMonthsObjetives.map(item => item.month)
-        const cantArray = lastSixMonthsObjetives.map(item => item.cant)
+        /* const monthArray = lastSixMonthsObjetives.map(item => item.month)
+        const cantArray = lastSixMonthsObjetives.map(item => item.cant) */
+        const [monthArray, cantArray] = lastSixMonthsObjetives.reduce((acc, item) => {
+          acc[0].push(item.month);
+          acc[1].push(item.cant);
+
+          return acc;
+      }, [[], []]);
 
         setAllDocs(allDocsCount)
         setAllObjetives(allObjCount);

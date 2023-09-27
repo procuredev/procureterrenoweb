@@ -50,7 +50,7 @@ const Navigation = () => {
       path: '/nueva-solicitud',
       icon: 'mdi:email-outline',
       subject: 'nueva-solicitud',
-      authorizedRoles: [1, 2, 3]
+      authorizedRoles: [1, 2, 3, 7]
     },
     {
       title: 'Documentos',

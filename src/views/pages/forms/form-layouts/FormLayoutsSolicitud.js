@@ -12,43 +12,42 @@ import 'moment/locale/es'
 
 // ** MUI Imports
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import List from '@mui/material/List'
-import plants from 'src/@core/components/plants-areas/index'
-import CircularProgress from '@mui/material/CircularProgress'
-import Paper from '@mui/material/Paper'
-import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControl,
+  Grid,
+  Link,
+  List,
+  Typography
+} from '@mui/material'
 
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
-import { useTheme } from '@emotion/react'
 
 // ** Custom Components
+import plants from 'src/@core/components/plants-areas/index'
+import Icon from 'src/@core/components/icon'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
+
 import {
   CustomTextField,
   CustomSelect,
   CustomAutocomplete,
   StyledInfoIcon,
   StyledTooltip,
-  HeadingTypography
+  HeadingTypography,
+  FileList
 } from 'src/@core/components/custom-form/index'
 
 const FormLayoutsSolicitud = () => {
@@ -77,7 +76,6 @@ const FormLayoutsSolicitud = () => {
   // ** Hooks
   const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData } = useFirebase()
   const router = useRouter()
-  const theme = useTheme()
 
   // ** States
   const [areas, setAreas] = useState([])
@@ -139,7 +137,7 @@ const FormLayoutsSolicitud = () => {
             [prop]: newValue,
             area: '',
             contop: '',
-            receiver: [...fixed],
+            receiver: [...fixed]
           }))
 
           findAreas(newValue)
@@ -158,7 +156,6 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'end': {
         let endDate = event
-        console.log(event,"event")
         setValues({
           ...values,
           end: endDate
@@ -234,8 +231,9 @@ const FormLayoutsSolicitud = () => {
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag']
     for (const key in values) {
+      const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo') {
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && excludedFields) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
@@ -349,49 +347,6 @@ const FormLayoutsSolicitud = () => {
     setFiles([...filtered])
   }
 
-  const fileList = (
-    <Grid container spacing={2}>
-      {files.map(file => (
-        <Grid item key={file.name}>
-          <Paper
-            elevation={0}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '10px',
-              border: `4px solid ${theme.palette.primary.main}`,
-              borderRadius: '4px',
-              width: '220px',
-              position: 'relative' // Agregamos esta propiedad para posicionar el icono correctamente
-            }}
-          >
-            {file.type.startsWith('image') ? (
-              <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
-            ) : (
-              <Icon icon='mdi:file-document-outline' fontSize={50} />
-            )}
-            <Typography
-              variant='body2'
-              sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
-            >
-              {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
-            </Typography>
-            <IconButton
-              onClick={() => handleRemoveFile(file)}
-              sx={{
-                position: 'absolute', // Posicionamos el icono en relación al Paper
-                top: '0px', // Ajusta el valor según la posición vertical deseada
-                right: '0px' // Ajusta el valor según la posición horizontal deseada
-              }}
-            >
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Paper>
-        </Grid>
-      ))}
-    </Grid>
-  )
-
   const handleRemoveAllFiles = () => {
     setFiles
     setFiles([])
@@ -418,7 +373,20 @@ const FormLayoutsSolicitud = () => {
       try {
         setIsUploading(true) // Se activa el Spinner
 
-        const solicitud = await newDoc({ ...values, start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(), end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null }, authUser)
+        const solicitud = await newDoc(
+          {
+            ...values,
+            receiver: values.receiver.map(option => {
+              const { disabled, ...rest } = option
+
+              return rest
+            }),
+            start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
+            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null
+          },
+          authUser
+        )
+
         await uploadFilesToFirebaseStorage(files, solicitud.id)
 
         // Luego de completar la carga, puedes ocultar el spinner
@@ -456,74 +424,65 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-    //Establece opciones de contract operator
-    useEffect(() => {
-      if (values.plant) {
+  const fetchData = async () => {
+    try {
+      const contOpOptions = await getUserData('getUsers', values.plant)
+      setContOpOptions(contOpOptions)
 
-        const fetchData = async () => {
-          await getUserData('getUsers', values.plant)
-            .then(contOpOptions => {
-              setContOpOptions(contOpOptions)
-              if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
-                setValues({ ...values, contop: contOpOptions[0].name })
-              }
-            })
-            .catch(error => {
-              // handle error
-            })
-          const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
-          setPetitioners(petitioners)
-        }
-        fetchData()
+      const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
+      setPetitioners(petitioners)
+
+      if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
+        return contOpOptions[0]
       }
-    }, [values.plant])
+    } catch (error) {
+      console.error('Error en la petición:', error)
+    }
+  }
+
+  const getFixedUsers = async contop => {
+    try {
+      const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
+        getUserData('getUsersByRole', null, { role: 3 }),
+        getUserData('getUsersByRole', null, { role: 4 }),
+        getUserData('getReceiverUsers', values.plant)
+      ])
+
+      const filterNames = []
+
+      const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
+
+      const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
+
+      const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
+
+      let fixedOptions = []
+
+      if (contop) {
+        fixedOptions.push({ ...contop, disabled: true })
+      }
+
+      if (contOwnUser) {
+        fixedOptions.push({ ...contOwnUser[0], disabled: true })
+      }
+
+      if (values.petitioner !== '') {
+        fixedOptions.push({ name: values.petitioner, disabled: true })
+      }
+
+      setFixed(fixedOptions)
+      setValues(values => ({ ...values, ...(contop && { contop: contop.name }), receiver: [...fixedOptions] }))
+      setAllUsers(receiverFilter.concat(petitionerUsers))
+    } catch (error) {
+      console.error('Error al obtener datos de usuarios:', error)
+    }
+  }
 
   useEffect(() => {
-    if (!values.contop) return
-    (async () => {
-      try {
-
-        // Obtiene los datos de los usuarios de manera concurrente
-        const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
-          getUserData('getUsersByRole', null, { role: 3 }),
-          getUserData('getUsersByRole', null, { role: 4 }),
-          getUserData('getReceiverUsers', values.plant)
-        ])
-
-        // Filtra los nombres que no deben aparecer
-        // Revisar los casos está pendiente, antes estaba authUser.displayName y contop en estos nombres filtrados
-        const filterNames = []
-
-        // Combina los usuarios en un solo grupo
-        const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
-
-        // Filtra los usuarios que no tienen nombres en la lista filterNames
-        const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
-
-        // Filtra los que no tienen una key name igual a algún name de receceiverFilter, no que no incluya el nombre
-        const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
-
-        // Crea un array de valores fijos
-        let fixedValues = [
-          contOwnUser && { name: contOwnUser[0].name, disabled: true },
-          { name: values.contop, disabled: true },
-        ]
-        // Agrega solicitante si es que existe
-        if (values.petitioner !== '') {
-          fixedValues.push({ name: values.petitioner, disabled: true })
-        }
-
-        // Actualiza los estados de los usuarios y los valores fijos
-        setAllUsers(receiverFilter.concat(petitionerUsers))
-        setFixed(fixedValues)
-        setValues({ ...values, receiver: fixedValues })
-      } catch (error) {
-        // Manejo de errores
-        console.error('Error al obtener datos de usuarios:', error)
-      }
-    })();
-  }, [values.plant, values.contop, values.petitioner])
-
+    if (values.plant) {
+      fetchData().then(contOpValue => getFixedUsers(contOpValue))
+    }
+  }, [values.plant])
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -590,6 +549,30 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
+
+            {authUser.role === 7 && (
+              <>
+                <CustomTextField
+                  label='OT'
+                  value={values.ot}
+                  onChange={handleChange('ot')}
+                  error={errors.ot}
+                  inputProps={{ maxLength: 5 }}
+                  helper='Ingresa el número de OT.'
+                />
+
+                <CustomSelect
+                  options={['Urgencia', 'Emergencia', 'Oportunidad']}
+                  label='Tipo de urgencia'
+                  value={values.urgency}
+                  onChange={handleChange('urgency')}
+                  error={errors.urgency}
+                  helper='Selecciona el tipo de urgencia de la tarea.'
+                  defaultValue=''
+                />
+              </>
+            )}
+
             <CustomTextField
               required
               type='text'
@@ -621,7 +604,7 @@ const FormLayoutsSolicitud = () => {
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
-                      label='Fecha'
+                      label='Fecha de inicio'
                       value={values.start}
                       onChange={date => handleChange('start')(date)}
                       InputLabelProps={{ shrink: true, required: true }}
@@ -672,7 +655,9 @@ const FormLayoutsSolicitud = () => {
 
             <CustomSelect
               options={
-                authUser.role === 7 || authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
+                authUser.role === 7 ||
+                (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
+
                   ? plants
                   : [authUser.plant[0]]
               }
@@ -718,17 +703,6 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
               defaultValue=''
             />
-
-            {authUser.role === 7 && (
-              <CustomTextField
-                label='OT'
-                value={values.ot}
-                onChange={handleChange('ot')}
-                error={errors.ot}
-                inputProps={{ maxLength: 5 }}
-                helper='Ingresa el número de OT.'
-              />
-            )}
 
             <CustomTextField
               type='text'
@@ -791,18 +765,6 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona en qué estado operacional se encontrará el lugar donde se ejecutará la tarea.'
               defaultValue=''
             />
-
-            {authUser.role === 7 && (
-              <CustomSelect
-                options={['Urgencia', 'Emergencia', 'Oportunidad']}
-                label='Tipo de urgencia'
-                value={values.urgency}
-                onChange={handleChange('urgency')}
-                error={errors.urgency}
-                helper='Selecciona el tipo de urgencia de la tarea.'
-                defaultValue=''
-              />
-            )}
 
             <CustomSelect
               options={['Sí', 'No', 'No aplica']}
@@ -897,7 +859,9 @@ const FormLayoutsSolicitud = () => {
                   </div>
                   {files.length ? (
                     <Fragment>
-                      <List>{fileList}</List>
+                      <List>
+                        <FileList files={files} handleRemoveFile={handleRemoveFile} />
+                      </List>
                       <div className='buttons'>
                         <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
                           Quitar todo

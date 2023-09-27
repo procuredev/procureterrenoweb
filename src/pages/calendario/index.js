@@ -271,8 +271,10 @@ const AppCalendar = () => {
     fixedWeekCount: false,
     dateClick: async function (info) {
       const result = await consultBlockDayInDB(new Date(info.date).getTime())
-      setConsultationResult(result)
-      setDayDialogOpen(info.date)
+      if (result.blocked) {
+        setConsultationResult(result)
+        setDayDialogOpen(info.date)
+      }
     },
     datesSet: async function (params) {
       const startDate = params.start.getTime()

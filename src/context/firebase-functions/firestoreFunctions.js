@@ -53,33 +53,59 @@ const requestCounter = async () => {
 }
 
 const newDoc = async (values, userParam) => {
+  const {
+    title,
+    start,
+    plant,
+    area,
+    contop,
+    fnlocation,
+    petitioner,
+    opshift,
+    type,
+    detention,
+    sap,
+    objective,
+    deliverable,
+    receiver,
+    description,
+    ot,
+    end,
+    urgency
+  } = values
+
+  const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
+
   try {
     solicitudValidator(values)
     const requestNumber = await requestCounter()
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
-      title: values.title,
-      start: values.start,
-      plant: values.plant,
-      area: values.area,
-      contop: values.contop,
-      fnlocation: values.fnlocation,
-      petitioner: values.petitioner,
-      opshift: values.opshift,
-      type: values.type,
-      detention: values.detention,
-      sap: values.sap,
-      objective: values.objective,
-      deliverable: values.deliverable,
-      receiver: values.receiver,
-      description: values.description,
-      uid: userParam.uid,
-      user: userParam.displayName,
-      userEmail: userParam.email,
-      userRole: userParam.role,
+      title,
+      start,
+      plant,
+      area,
+      contop,
+      fnlocation,
+      petitioner,
+      opshift,
+      type,
+      detention,
+      sap,
+      objective,
+      deliverable,
+      receiver,
+      description,
+      uid,
+      user,
+      userEmail,
+      userRole,
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
-      engineering: userParam.engineering
+      engineering,
+      ...(urgency && { urgency }),
+      ...(ot && { ot }),
+      ...(end && { end })
     })
 
     const adjustedDate = moment(values.start).subtract(1, 'day');
@@ -90,8 +116,7 @@ const newDoc = async (values, userParam) => {
       ...newDoc,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
       state: userParam.role === 7 ? 6 : userParam.role || 'No definido',
-      supervisorShift : userParam.role === 7 ? week % 2 === 0 ? 'A' : 'B' : null
-    })
+      supervisorShift: userParam.role === 7 ? (week % 2 === 0 ? 'A' : 'B') : null
 
     // Se envía email a quienes corresponda
     await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
@@ -125,7 +150,7 @@ const getLatestEvent = async id => {
 }
 
 const setSupervisorShift = async date => {
-  const adjustedDate = moment(date.toDate()).subtract(1, 'day'); // Restar un día para iniciar la semana en martes
+  const adjustedDate = moment(date.toDate()).subtract(1, 'day') // Restar un día para iniciar la semana en martes
   const week = moment(adjustedDate.toDate()).isoWeek()
   const supervisorShift = week % 2 === 0 ? 'A' : 'B'
 
@@ -192,7 +217,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       user: email,
       userName: displayName,
       date: Timestamp.fromDate(new Date()),
-      ...(prevDoc &&  Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
+      ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
     }
 
     await updateDoc(ref, changedFields)
@@ -298,8 +323,8 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && !changingStartDate && !dateHasChanged,
           newState: state.planner,
           log: 'Modificado sin cambio de fecha por Planificador'
-        },
-      ],
+        }
+      ]
     ],
     [
       6,
@@ -335,7 +360,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && approves.hasOwnProperty('hours'),
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
-        },
+        }
 
         // Caso para cuando supervisor cambia fecha al momento de asignar proyectistas o antes (6 --> 1)
       ]
@@ -385,7 +410,7 @@ const updateDocs = async (id, approves, userParam) => {
 
   if (approves) {
     changedFields = {
-    //  ...(addOT && ot ? { ot } : {}),
+      //  ...(addOT && ot ? { ot } : {}),
       ...(addShift && supervisorShift ? { supervisorShift } : {}),
       ...changedFields
     }
