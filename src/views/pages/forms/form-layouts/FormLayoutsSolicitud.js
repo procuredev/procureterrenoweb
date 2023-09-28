@@ -659,7 +659,7 @@ const FormLayoutsSolicitud = () => {
                 (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
 
                   ? plants
-                  : [authUser.plant[0]]
+                  : [...authUser.plant]
               }
               label='Planta'
               value={values.plant}
