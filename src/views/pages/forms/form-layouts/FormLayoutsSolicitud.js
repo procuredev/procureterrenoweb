@@ -1,16 +1,9 @@
-// ** React Imports
-import { Fragment, useState, useEffect } from 'react'
-
-// ** Hooks
-import { useFirebase } from 'src/context/useFirebase'
-import { useRouter } from 'next/router'
-
-// ** Date Library
-//import moment from 'moment'
-import moment from 'moment-timezone'
 import 'moment/locale/es'
-
-// ** MUI Imports
+import moment from 'moment-timezone'
+import { Fragment, useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { useDropzone } from 'react-dropzone'
+import { useFirebase } from 'src/context/useFirebase'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
@@ -32,12 +25,9 @@ import {
   Typography
 } from '@mui/material'
 
-// ** Third Party Imports
-import { useDropzone } from 'react-dropzone'
-
 // ** Custom Components
-import plants from 'src/@core/components/plants-areas/index'
 import Icon from 'src/@core/components/icon'
+import plants from 'src/@core/components/plants-areas/index'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 import {
@@ -92,6 +82,24 @@ const FormLayoutsSolicitud = () => {
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
+const handleGPRSelected = () => {
+  const currentWeek = moment().isoWeek()
+  const startDate = moment(values.start)
+  const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+  const weeksDifference = startDate.diff(currentDate, 'weeks')
+
+  const inTenWeeks = moment()
+    .locale('es')
+    .isoWeeks(currentWeek + 10)
+    .format('LL')
+
+  if (weeksDifference < 10) {
+    setErrors(prevErrors => ({
+      ...prevErrors,
+      objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
+    }))
+  }}
+
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
@@ -110,31 +118,9 @@ const FormLayoutsSolicitud = () => {
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         if (prop === 'petitioner' && authUser.role !== 2) {
           getPetitionerOpShift(newValue)
-        if (newValue !== values.contop) {
-          !allUsers.some(user => user.name === newValue) && setAllUsers(values => [...values, {name: newValue, disabled:true}])
-          setValues(values => ({ ...values, receiver: [...fixed, {name: newValue, disabled:true}]}))
-        } else {
-          setValues(values => ({ ...values, receiver: [...fixed]}))
-        }}
-        if (prop === 'objective') {
-          const isAnalysisGPRSelected = newValue === 'Análisis GPR'
-          const currentWeek = moment().isoWeek()
-          const startDate = moment(values.start)
-          const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
-          const weeksDifference = startDate.diff(currentDate, 'weeks')
-
-          const inTenWeeks = moment()
-            .locale('es')
-            .isoWeeks(currentWeek + 10)
-            //.startOf('week')
-            .format('LL')
-
-          if (isAnalysisGPRSelected && weeksDifference < 10) {
-            setErrors(prevErrors => ({
-              ...prevErrors,
-              objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
-            }))
-          }
+        }
+        if (prop === 'objective' && newValue === 'Análisis GPR') {
+          handleGPRSelected()
         }
         if (prop === 'plant') {
           setValues(prevValues => ({
