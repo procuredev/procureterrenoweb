@@ -80,7 +80,7 @@ const FormLayoutsSolicitud = () => {
   const [values, setValues] = useState(initialValues)
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
-  const [isUploading, setIsUploading] = useState(false) // Estado para controlar el spinner mientras la solicitud es enviada
+  const [isUploading, setIsUploading] = useState(false)
 
 const handleGPRSelected = () => {
   const currentWeek = moment().isoWeek()
@@ -456,11 +456,6 @@ const handleGPRSelected = () => {
       if (contOwnUser) {
         fixedOptions.push({ ...contOwnUser[0], disabled: true })
       }
-
-      if (values.petitioner !== '') {
-        fixedOptions.push({ name: values.petitioner, disabled: true })
-      }
-
       setFixed(fixedOptions)
       setValues(values => ({ ...values, ...(contop && { contop: contop.name }), receiver: [...fixedOptions] }))
       setAllUsers(receiverFilter.concat(petitionerUsers))
@@ -650,7 +645,7 @@ const handleGPRSelected = () => {
                 (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
 
                   ? plants
-                  : [authUser.plant[0]]
+                  : [...authUser.plant]
               }
               label='Planta'
               value={values.plant}
