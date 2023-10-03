@@ -195,18 +195,77 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Acciones',
       renderCell: params => {
         const { row } = params
-        const isPetitioner = role === 2 && row.state === role - 2
-        const hasPrevState = role !== 3 && row.state === role - 1
-        const isContop = role === 3 && row.contop === authUser.displayName && (row.state === 2 || row.state === 1)
-        const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === false
-        const isPlanner = role === 5 && (row.state === 3 || row.state === 4)
+
+        const hasPrevState = row.state === role - 1
+        const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === true
+        const isMyRequest = authUser.uid === row.uid
+        const isOwnReturned = isMyRequest && row.state === 1
+        const hasOTEnd = row.ot && row.end
+
+        const permissions = {
+          1: {
+            approve: row.state <= 6,
+            edit: row.state <= 6,
+            reject: row.state <= 6
+          },
+          2: {
+            approve: isOwnReturned,
+            edit: isOwnReturned || (row.state === 6 && isMyRequest),
+            reject: isMyRequest && row.state <= 6
+          },
+          3: {
+            approve: hasPrevState || isOwnReturned || isContopEmergency,
+            edit: isOwnReturned || hasPrevState || row.state === 6,
+            reject: row.state <= 6
+          },
+          4: {
+            approve: hasPrevState,
+            edit: [3,6].includes(row.state),
+            reject: row.state <= 6
+          },
+          5: {
+            approve: hasOTEnd && [3,4].includes(row.state),
+            edit: [3,4,6].includes(row.state),
+            reject: [3,4,6].includes(row.state)
+          },
+          6: {
+            approve: hasPrevState,
+            edit: hasPrevState,
+            reject: [5,6].includes(row.state)
+          },
+          7: {
+            approve: hasPrevState,
+            edit: false,
+            reject: false
+          },
+          8: {
+            approve: hasPrevState,
+            edit: false,
+            reject: false
+          },
+          9: {
+            approve: false,
+            edit: false,
+            reject: false
+          },
+          10: {
+            approve: false,
+            edit: false,
+            reject: false
+          }
+        }
+
+        const canApprove = permissions[role].approve
+        const canEdit = permissions[role].edit
+        const canReject = permissions[role].reject
+
+        const plannerApprove = role === 5 && row.state <= 4
         const isRevisado = row.state > role
-        const canEdit = hasPrevState || isContop || isPlanner || isPetitioner || isContopEmergency
         const flexDirection = md ? 'row' : 'column'
 
         const renderButtons = (
           <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
-            {!isPlanner && (
+            {canApprove && (
               <Button
                 onClick={() => handleClickOpenAlert(row, true)}
                 variant='contained'
@@ -216,16 +275,17 @@ const TableBasic = ({ rows, role, roleData }) => {
                 <Check sx={{ fontSize: 18 }} />
               </Button>
             )}
-            {!isContopEmergency && (
-              <>
+            {canEdit && (
               <Button
               onClick={() => handleClickOpen(row)}
               variant='contained'
-              color={isPlanner ? 'success' : 'secondary'}
+              color={plannerApprove ? 'success' : 'secondary'}
               sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
             >
-              {isPlanner ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
+              {plannerApprove ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
             </Button>
+            )}
+            {canReject && (
             <Button
               onClick={() => handleClickOpenAlert(row, false)}
               variant='contained'
@@ -234,7 +294,6 @@ const TableBasic = ({ rows, role, roleData }) => {
             >
               <Clear sx={{ fontSize: 18 }} />
             </Button>
-              </>
             )}
 
           </Container>
@@ -242,7 +301,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
         return (
           <>
-            {canEdit ? (
+            {canApprove || canEdit || canReject ? (
               md ? (
                 renderButtons
               ) : (
@@ -271,12 +330,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     }
   ]
-
-  const isPetitioner = role === 2 && doc.state === role - 2
-  const hasPrevState = role !== 3 && doc.state === role - 1
-  const isContop = role === 3 && doc.contop === authUser.displayName && (doc.state === 2 || doc.state === 1)
-  const isPlanner = role === 5 && (doc.state === 3 || doc.state === 4)
-  const canEdit = hasPrevState || isContop || isPlanner || isPetitioner
 
   return (
     <Card>
@@ -312,7 +365,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             handleClose={handleClose}
             doc={doc}
             roleData={roleData}
-            editButtonVisible={canEdit}
+            editButtonVisible={true}
           />
         )}
       </Box>
