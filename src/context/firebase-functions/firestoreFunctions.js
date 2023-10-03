@@ -231,15 +231,14 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
 
 function getNextState(role, approves, latestEvent, userRole) {
   const state = {
-    returnedPetitioner: 0,
-    returnedContOp: 1,
+    returned: 1,
     contOperator: 3,
     contOwner: 4,
     planner: 5,
     contAdmin: 6,
     supervisor: 7,
     draftsman: 8,
-    rejected: 10
+    rejected: 0
   }
 
   // Cambiar la función para que reciba el docSnapshot y compare la fecha original de start con la que estoy modificándolo ahora
@@ -250,7 +249,6 @@ function getNextState(role, approves, latestEvent, userRole) {
   const emergencyBySupervisor = latestEvent.newState === state.draftsman && userRole === 7
   const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
   const returnedContOp = latestEvent.newState === state.returnedContOp
-  const devolutionState = userRole === 2 ? state.returnedPetitioner : state.returnedContOp
   const changingStartDate = typeof approves === 'object' && 'start' in approves
 
   const rules = new Map([
@@ -308,10 +306,10 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       4,
       [
-        // Si modifica, se le devuelve al autor (3 --> 0/1)
+        // Si modifica, se le devuelve al autor (3 --> 1)
         {
           condition: approveWithChanges,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Aprobado por Planificador'
         }
       ]
@@ -333,21 +331,21 @@ function getNextState(role, approves, latestEvent, userRole) {
         // Planificador modifica, Adm Contrato no modifica
         {
           condition: approves && !approveWithChanges && dateHasChanged,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Aprobada con cambio de fecha'
         },
 
         // Planificador no modifica, Adm Contrato sí
         {
           condition: approves && approveWithChanges && !dateHasChanged,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Modificado por adm contrato'
         },
 
         // Planificador modifica, Adm Contrato sí modifica
         {
           condition: approves && approveWithChanges && dateHasChanged,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Modificado por adm contrato y planificador'
         }
       ]

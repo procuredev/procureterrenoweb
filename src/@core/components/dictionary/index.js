@@ -10,7 +10,7 @@
 // white -> custom blanco (definido en: src/layouts/UserThemeOptions.js)
 // yello -> custom amarillo (definido en: src/layouts/UserThemeOptions.js)
 const dictionary = {
-  0: { name: 'Devuelto', title: 'Devuelto', longTitle: 'Devuelto para revisión', details: 'En espera de revisión por Solicitante', color: 'orange' }, // Naranaja
+  0: { name: 'Rechazado', title: 'Rechazado', longTitle: 'Rechazado', details: 'Rechazado', color: 'secondary' }, // Gris
   1: { name: 'Devuelto', title: 'Devuelto', longTitle: 'Devuelto para revisión', details: 'En espera de revisión por Contract Operator', color: 'orange' }, // Naranaja
   2: { name: 'Solicitante', title: 'En revisión', longTitle: 'En revisión por MEL', details: 'En espera de revisión por Contract Operator', color: 'info'}, // Azul
   3: { name: 'Contract Operator', title: 'En revisión', longTitle: 'En revisión por Procure', details: 'En espera de revisión por Contract Owner', color: 'info'}, // Azul
@@ -20,7 +20,6 @@ const dictionary = {
   7: { name: 'Supervisor', title: 'En levantamiento', longTitle: 'Proyectistas asignados', details: 'En espera de término del Levantamiento', color: 'primary' }, // Verde
   8: { name: 'Proyectista', title: 'Levantamiento finalizado', longTitle: 'Levantamiento finalizado', details: 'Levantamiento finalizado', color: 'yellow' }, // Amarillo
   9: { name: 'Gerente', title: 'Finalizado', longTitle: 'Documentos entregados', details: 'Documentos entregados', color: 'yellow' }, // Amarillo
-  10: { name: 'Rechazado', title: 'Rechazado', longTitle: 'Rechazado', details: 'Rechazado', color: 'secondary' }, // Gris
   100: { name: 'Cargando...', title: 'Cargando...', longTitle: 'Cargando...', details: 'No disponible', color: 'white' } // Blanco
 }
 
