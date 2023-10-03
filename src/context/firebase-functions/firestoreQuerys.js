@@ -547,12 +547,17 @@ const consultObjetives = async (type, options = {}) => {
       // Consulta para obtener el número de documentos por planta
       queryFunc = async () => {
         const queries = options.plants.map(async plant => {
-          const q = query(coll, where('plant', '==', plant), where('state', '>=', 6))
-          const snapshot = await getDocs(q)
+          const query1 = query(coll, where('plant', '==', plant), where('state', '>=', 6))
+          const query2 = query(coll, where('plant', '==', plant), where('state', '==', 7))
 
-          return snapshot.size
+          const snapshot1 = await getDocs(query1)
+          const snapshot2 = await getDocs(query2)
+
+          return {
+            query1: snapshot1.size,
+            query2: snapshot2.size
+          }
         })
-
         const results = await Promise.all(queries)
 
         return results
