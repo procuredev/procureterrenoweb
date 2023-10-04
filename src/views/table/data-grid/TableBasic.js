@@ -259,7 +259,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const canEdit = permissions[role].edit
         const canReject = permissions[role].reject
 
-        const plannerApprove = role === 5 && row.state <= 4
+        const approveWithChanges = role === 5 && row.state <= 4 && !canApprove
         const isRevisado = row.state > role
         const flexDirection = md ? 'row' : 'column'
 
@@ -279,10 +279,10 @@ const TableBasic = ({ rows, role, roleData }) => {
               <Button
               onClick={() => handleClickOpen(row)}
               variant='contained'
-              color={plannerApprove ? 'success' : 'secondary'}
+              color={approveWithChanges ? 'success' : 'secondary'}
               sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
             >
-              {plannerApprove ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
+              {approveWithChanges ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
             </Button>
             )}
             {canReject && (
