@@ -234,7 +234,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             reject: [5,6].includes(row.state)
           },
           7: {
-            approve: hasPrevState,
+            approve: false,
             edit: false,
             reject: false
           },
