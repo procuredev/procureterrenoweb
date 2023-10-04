@@ -390,7 +390,7 @@ const updateDocs = async (id, approves, userParam) => {
   const { ref, docSnapshot } = await getDocumentAndUser(id)
   const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
   const latestEvent = await getLatestEvent(id)
-  const rejected = 10
+  const rejected = 0
   const role = userParam.role
   let newState = approves ? getNextState(role, approves, latestEvent, userRole) : rejected
   let processedFields = { incomingFields: {}, changedFields: {} }
