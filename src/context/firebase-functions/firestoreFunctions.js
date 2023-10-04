@@ -279,7 +279,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && emergencyBySupervisor,
           newState: state.draftsman,
           emergencyApprovedBySupervisor: true,
-          log: 'Emergencia aprobada por Contrac Operator'
+          log: 'Emergencia aprobada por Contract Operator'
         },
         // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 0)
         {
