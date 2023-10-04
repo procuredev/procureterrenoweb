@@ -1,13 +1,11 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
 import TabContext from '@mui/lab/TabContext'
@@ -15,16 +13,9 @@ import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 
 // ** Custom Components Imports
-import PageHeader from 'src/@core/components/page-header'
 
 // ** Demo Components Imports
 import TableLevantamiento from 'src/views/table/data-grid/TableLevantamiento'
-import TableFilter from 'src/views/table/data-grid/TableFilter'
-import TableColumns from 'src/views/table/data-grid/TableColumns'
-import TableEditable from 'src/views/table/data-grid/TableEditable'
-import TableBasicSort from 'src/views/table/data-grid/TableBasicSort'
-import TableSelection from 'src/views/table/data-grid/TableSelection'
-import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 
 const DataGridLevantamientos = () => {
   const [value, setValue] = useState('1')
