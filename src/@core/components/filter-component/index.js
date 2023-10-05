@@ -71,7 +71,7 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
             const optionGroupName = Object.keys(optionGroup)[0]
             const optionGroupData = optionGroup[optionGroupName]
 
-            if (optionGroupName === 'General' && optionGroupData.length === 0) {
+            if (optionGroupData.length === 0) {
               return null
             }
 
