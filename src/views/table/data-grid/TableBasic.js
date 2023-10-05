@@ -323,7 +323,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             ) : isRevisado ? (
               'Revisado'
             ) : (
-              row.state === 0 ? 'Pendiente de revisión' : 'Rechazado'
+              row.state === 0 ? 'Rechazado' : 'Pendiente de revisión'
             )}
           </>
         )
