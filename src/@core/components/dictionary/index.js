@@ -13,7 +13,7 @@ const dictionary = {
   0: { name: 'Devuelto', title: 'Devuelto', longTitle: 'Devuelto para revisión', details: 'En espera de revisión por Solicitante', color: 'orange' }, // Naranaja
   1: { name: 'Devuelto', title: 'Devuelto', longTitle: 'Devuelto para revisión', details: 'En espera de revisión por Contract Operator', color: 'orange' }, // Naranaja
   2: { name: 'Solicitante', title: 'En revisión', longTitle: 'En revisión por MEL', details: 'En espera de revisión por Contract Operator', color: 'info'}, // Azul
-  3: { name: 'Contract Operator', title: 'En revisión', longTitle: 'En revisión por Procure', details: 'En espera de revisión por Contract Owner', color: 'info'}, // Azul
+  3: { name: 'Contract Operator', title: 'En revisión', longTitle: 'En revisión por Procure', details: 'En espera de revisión por Planificador', color: 'info'}, // Azul
   4: { name: 'Contract Owner', title: 'En revisión', longTitle: 'En revisión por Procure', details: 'En espera de revisión por Planificador', color: 'info'}, // Azul
   5: { name: 'Planificador',title: 'En revisión', longTitle: 'En revisión por Procure', details: 'En espera de revisión por Administrador de Contrato', color: 'info'}, // Azul
   6: { name: 'Administrador de Contrato', title: 'Agendado', longTitle: 'Aprobado por Procure', details: 'En espera de asignación de Proyectistas', color: 'primary' }, // Verde
