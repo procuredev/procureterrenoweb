@@ -301,7 +301,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
         return (
           <>
-            {canApprove || canEdit || canReject ? (
+            {(canApprove || canEdit || canReject) && row.state !== 0  ? (
               md ? (
                 renderButtons
               ) : (
@@ -323,7 +323,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             ) : isRevisado ? (
               'Revisado'
             ) : (
-              'Pendiente de revisión'
+              row.state === 0 ? 'Pendiente de revisión' : 'Rechazado'
             )}
           </>
         )
