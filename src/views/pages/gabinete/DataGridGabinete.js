@@ -11,6 +11,7 @@ import Tab from '@mui/material/Tab'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
+import {Chip, ListItem, Paper} from '@mui/material'
 
 // ** Custom Components Imports
 import Select from '@mui/material/Select'
@@ -88,6 +89,21 @@ const DataGridGabinete = () => {
         doc.designerReview.find(designer => designer.userId === authUser.uid)
       )
 
+      const renderDesignerChips = () => {
+        if (petition && petition.designerReview) {
+          return petition.designerReview.map((designer, index) => (
+            <ListItem key={index}>
+              <Chip
+                label={designer.name}
+                // Puedes añadir más propiedades como una función onDelete si deseas que se pueda eliminar el chip
+              />
+            </ListItem>
+          ));
+        }
+
+        return null;
+      }
+
 
   useEffect(() => {
     const fetchProyectistas = async () => {
@@ -148,6 +164,22 @@ const DataGridGabinete = () => {
             onClick={() => petition && handleClickOpenCodeGenerator(petition)}
             >Generar nuevo documento
           </Button>)}
+
+          <TextField
+          label='Proyectistas asignados'
+          InputProps={{
+            readOnly: true,
+            startAdornment:
+              petition && petition.designerReview && petition.designerReview.map((designer, index) => (
+                <Chip
+                  key={index}
+                  label={designer.name}
+                  // Puedes añadir más propiedades como una función onDelete si deseas que se pueda eliminar el chip
+                />
+              ))
+
+          }}
+        />
 
           <TextField
             label='Título'

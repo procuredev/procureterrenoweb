@@ -212,18 +212,33 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
   if (Object.keys(changedFields).length > 0) {
     const { email, displayName } = userParam
 
-    let newEvent = {
-      prevState,
-      newState: changedFields.state,
-      user: email,
-      userName: displayName,
-      date: Timestamp.fromDate(new Date()),
-      ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
-    }
+    let newEvent = {}
 
-    await updateDoc(ref, changedFields)
-    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
-    await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
+    if(changedFields.designerReview && changedFields.designerReview.length > 0) {
+      // 1. Obtener el documento actual desde Firestore
+      const currentDocSnapshot = await getDoc(ref);
+      if (currentDocSnapshot.exists()) {
+        const currentDocData = currentDocSnapshot.data();
+        // 2. Combinar el designerReview actual con el nuevo designerReview
+        const combinedDesignerReview = [...(currentDocData.designerReview || []), ...changedFields.designerReview];
+        // Actualizar changedFields con el designerReview combinado
+        changedFields.designerReview = combinedDesignerReview;
+      }
+
+      await updateDoc(ref, changedFields);
+    } else {
+      newEvent = {
+        prevState,
+        newState: changedFields.state,
+        user: email,
+        userName: displayName,
+        date: Timestamp.fromDate(new Date()),
+        ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
+      }
+      await updateDoc(ref, changedFields)
+      await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+      await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
+    }
   } else {
     console.log('No se escribió ningún documento')
   }
@@ -252,6 +267,8 @@ function getNextState(role, approves, latestEvent, userRole) {
   const returnedContOp = latestEvent.newState === state.returnedContOp
   const devolutionState = userRole === 2 ? state.returnedPetitioner : state.returnedContOp
   const changingStartDate = typeof approves === 'object' && 'start' in approves
+
+  console.log("ENTRA EN NEXTSTATE")
 
   const rules = new Map([
     [
@@ -361,6 +378,12 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && approves.hasOwnProperty('hours'),
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
+        },
+
+        {
+          condition: approves && approves.hasOwnProperty('designerReview'),
+          newState: state.draftsman,
+          log: 'Proyectistas agregados por Supervisor'
         }
 
         // Caso para cuando supervisor cambia fecha al momento de asignar proyectistas o antes (6 --> 1)
