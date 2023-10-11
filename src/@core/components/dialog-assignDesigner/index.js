@@ -32,7 +32,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 
 
-export const DialogAssignDesigner = ({ open, doc, proyectistas, handleClose }) => {
+export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, setDesignerAssigned }) => {
   //falta evaluar la foto del proyectista
   // ** States
   const [designerReviewState, setDesignerReviewState] = useState([])
@@ -68,6 +68,7 @@ export const DialogAssignDesigner = ({ open, doc, proyectistas, handleClose }) =
       }));
       updateDocs(id, {designerReview}, authUser)
       setDesignerReviewState([])
+      setDesignerAssigned(true)
       handleClose()
     }
   }

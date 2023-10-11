@@ -7,11 +7,9 @@ import { useFirebase } from 'src/context/useFirebase'
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
-import Tab from '@mui/material/Tab'
 import TabContext from '@mui/lab/TabContext'
-import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
-import {Chip, ListItem, Paper} from '@mui/material'
+import {Chip} from '@mui/material'
 
 // ** Custom Components Imports
 import Select from '@mui/material/Select'
@@ -36,20 +34,12 @@ const DataGridGabinete = () => {
   const [selectedPetition, setSelectedPetition] = useState('');
   const [blueprints, setBlueprints] = useState([]);
   const [openCodeGenerator, setOpenCodeGenerator] = useState(false)
+  const [blueprintGenerated, setBlueprintGenerated] = useState(false);
+  const [designerAssigned, setDesignerAssigned] = useState(false);
 
-  const { useSnapshot, authUser, getRoleData, updateDocs, getUserData, getUserProyectistas, getBlueprints } = useFirebase()
+  const { useSnapshot, authUser, getRoleData, getUserData, getBlueprints, fetchPetitionById } = useFirebase()
   const data = useSnapshot(true, authUser)
 
-  useEffect(() => {
-    const role = async () => {
-      if (authUser) {
-        const role = await getRoleData(authUser.role.toString())
-        setRoleData(role)
-      }
-    }
-
-    role()
-  }, [])
 
   const handleClickOpenCodeGenerator = doc => {
 
@@ -59,10 +49,6 @@ const DataGridGabinete = () => {
 
   const handleCloseCodeGenerator = () => {
     setOpenCodeGenerator(false)
-  }
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
   }
 
   const handleClickOpen = doc => {
@@ -75,7 +61,9 @@ const DataGridGabinete = () => {
   }
 
   const handleChangePetition = (event) => {
-    setPetition(event.target.value);
+    const selectedOt = event.target.value;
+    const selectedPetition = petitions.find(p => p.ot === selectedOt);
+    setPetition(selectedPetition);
 }
 
   const petitions =
@@ -89,47 +77,43 @@ const DataGridGabinete = () => {
         doc.designerReview.find(designer => designer.userId === authUser.uid)
       )
 
-      const renderDesignerChips = () => {
-        if (petition && petition.designerReview) {
-          return petition.designerReview.map((designer, index) => (
-            <ListItem key={index}>
-              <Chip
-                label={designer.name}
-                // Puedes añadir más propiedades como una función onDelete si deseas que se pueda eliminar el chip
-              />
-            </ListItem>
-          ));
+
+  // Obtener el rol del usuario
+  useEffect(() => {
+    const fetchRoleAndProyectistas = async () => {
+      if (authUser) {
+        const role = await getRoleData(authUser.role.toString());
+        setRoleData(role);
+
+        // Cargar los proyectistas
+        const resProyectistas = await getUserData('getUserProyectistas', null, authUser);
+        setProyectistas(resProyectistas);
+      }
+    };
+
+    fetchRoleAndProyectistas();
+  }, [authUser]);
+
+  // Obtener peticiones actualizadas y blueprints
+  useEffect(() => {
+    const fetchData = async () => {
+      if (designerAssigned || blueprintGenerated) {
+        const updatedPetition = await fetchPetitionById(petition.id);
+        if (updatedPetition) {
+          setPetition(updatedPetition);
+          // Reset flags
+          setDesignerAssigned(false);
+          setBlueprintGenerated(false);
         }
-
-        return null;
       }
-
-
-  useEffect(() => {
-    const fetchProyectistas = async () => {
-      const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
-      setProyectistas(resProyectistas)
-      // setLoadingProyectistas(false)
-    }
-
-    fetchProyectistas()
-  }, [authUser.shift])
-
-  useEffect(() => {
-    if(petition){
-      const fetchBlueprints = async () => {
-        const resBlueprints = await getBlueprints(petition.id)
-        setBlueprints(resBlueprints)
+      if (petition) {
+        const resBlueprints = await getBlueprints(petition.id);
+        setBlueprints(resBlueprints);
       }
+    };
 
-      fetchBlueprints()
-    }
-
-  }, [petition])
-
-  console.log("blueprints:", blueprints)
-  console.log("petition.id:", petition.id)
-
+    fetchData();
+  }, [designerAssigned, blueprintGenerated, petition]);
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
@@ -138,7 +122,7 @@ const DataGridGabinete = () => {
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
             <InputLabel id="demo-select-small-label">Ot</InputLabel>
             <Select
-              value={selectedPetition}
+              value={selectedPetition.ot}
               label='Ot'
               id='controlled-select'
               onChange={handleChangePetition}
@@ -148,7 +132,7 @@ const DataGridGabinete = () => {
                   <em>None</em>
               </MenuItem>
               {petitions.map((petitionItem, index) => (
-                <MenuItem key={index} value={petitionItem}>
+                <MenuItem key={index} value={petitionItem.ot}>
                     Ot: {petitionItem.ot}
                 </MenuItem>
               ))}
@@ -170,13 +154,12 @@ const DataGridGabinete = () => {
           InputProps={{
             readOnly: true,
             startAdornment:
-              petition && petition.designerReview && petition.designerReview.map((designer, index) => (
-                <Chip
+            petition && petition.designerReview && petition.designerReview.map((designer, index) => (
+              <Chip
                   key={index}
                   label={designer.name}
-                  // Puedes añadir más propiedades como una función onDelete si deseas que se pueda eliminar el chip
-                />
-              ))
+              />
+          ))
 
           }}
         />
@@ -206,8 +189,8 @@ const DataGridGabinete = () => {
           </TabPanel>
         </Grid>
       </TabContext>
-      <DialogAssignDesigner open={open} handleClose={handleClose} doc={petition} proyectistas={proyectistas} />
-      {openCodeGenerator && <DialogCodeGenerator open={openCodeGenerator} handleClose={handleCloseCodeGenerator} doc={petition} roleData={roleData} />}
+      <DialogAssignDesigner open={open} handleClose={handleClose} doc={petition} proyectistas={proyectistas} setDesignerAssigned={setDesignerAssigned} />
+      {openCodeGenerator && <DialogCodeGenerator open={openCodeGenerator} handleClose={handleCloseCodeGenerator} doc={petition} roleData={roleData} setBlueprintGenerated={setBlueprintGenerated} />}
     </Box>
   )
 }

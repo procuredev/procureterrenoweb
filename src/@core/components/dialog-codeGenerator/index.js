@@ -43,7 +43,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogCodeGenerator = ({ open, doc, handleClose }) => {
+export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenerated }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
@@ -66,6 +66,7 @@ export const DialogCodeGenerator = ({ open, doc, handleClose }) => {
   const onsubmit = id => {
     if (typeOfDiscipline && typeOfDocument) {
       generateBlueprint(typeOfDiscipline, typeOfDocument, doc, authUser)
+      setBlueprintGenerated(true)
       handleClose();
     } else {
       setError('Por favor, indique tipo de disciplina y tipo de documento.');

@@ -478,6 +478,18 @@ const consultDocs = async (type, options = {}) => {
   }
 };
 
+
+const fetchPetitionById = async id => {
+  const docRef = doc(db, 'solicitudes', id)
+  const docSnap = await getDoc(docRef)
+
+  if (docSnap.exists()) {
+    return { ...docSnap.data(), id: docSnap.id }
+  } else {
+    return undefined
+  }
+}
+
 const consultObjetives = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes')
   let queryFunc
@@ -659,5 +671,6 @@ export {
   consultUserEmailInDB,
   consultDocs,
   consultObjetives,
-  getUsersWithSolicitudes
+  getUsersWithSolicitudes,
+  fetchPetitionById
 }
