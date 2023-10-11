@@ -35,7 +35,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 export const DialogAssignDesigner = ({ open, doc, proyectistas, handleClose }) => {
   //falta evaluar la foto del proyectista
   // ** States
-  const [designerReview, setDesignerReview] = useState([])
+  const [designerReviewState, setDesignerReviewState] = useState([])
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
 
 
@@ -45,42 +45,51 @@ export const DialogAssignDesigner = ({ open, doc, proyectistas, handleClose }) =
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
-    const updatedDesignerReview = designerReview.filter(designer => designer.name !== name)
+    const updatedDesignerReviewState = designerReviewState.filter(designer => designer.name !== name)
 
     // Actualizamos el estado con el nuevo array actualizado
-    setDesignerReview(updatedDesignerReview)
+    setDesignerReviewState(updatedDesignerReviewState)
   }
 
   const handleListItemClick = option => {
     // Verificamos si el option ya existe en el array draftmen
-    if (!designerReview.some(designer => designer.name === option.name)) {
+    if (!designerReviewState.some(designer => designer.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDesignerReview(prevDesigner => [...prevDesigner, option])
+      setDesignerReviewState(prevDesigner => [...prevDesigner, option])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
 
   const onsubmit = id => {
-    if (designerReview.length > 0) {
+    if (designerReviewState.length > 0) {
+      const designerReview = designerReviewState.map(item => ({
+        ...item,
+        allocationTime: new Date().getTime()
+      }));
       updateDocs(id, {designerReview}, authUser)
-      setDesignerReview([])
+      setDesignerReviewState([])
       handleClose()
     }
   }
 
+
   const filterOptions = (options) => {
-    // Convierte las opciones seleccionadas en un array de nombres
-    const selectedNames = designerReview.map(designer => designer.name)
+
+    // Convierte las opciones seleccionadas y las existentes en doc.designerReview en arrays de nombres
+    const selectedNamesFromState = designerReviewState.map(designer => designer.name);
+
+    let selectedNamesFromDoc = [];
+    if (doc && doc.designerReview) {
+      selectedNamesFromDoc = doc.designerReview.map(designer => designer.name);
+    }
+
+    const allSelectedNames = [...selectedNamesFromState, ...selectedNamesFromDoc];
 
     // Filtra las opciones y devuelve solo las que no están en el array de nombres seleccionados
-    return options.filter(option => !selectedNames.includes(option.name))
+    return options.filter(option => !allSelectedNames.includes(option.name));
   }
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
-
-  useEffect(() => {
-    console.log("render")
-  }, [])
 
   useEffect(() => {
     setFilteredOptions(proyectistas);
@@ -95,7 +104,7 @@ export const DialogAssignDesigner = ({ open, doc, proyectistas, handleClose }) =
       onClose={() => handleClose()}
       TransitionComponent={Transition}
       onBackdropClick={() => {
-        setDesignerReview([])
+        setDesignerReviewState([])
         handleClose()
       }}
     >
@@ -103,7 +112,7 @@ export const DialogAssignDesigner = ({ open, doc, proyectistas, handleClose }) =
         <IconButton
           size='small'
           onClick={() => {
-            setDesignerReview([])
+            setDesignerReviewState([])
             handleClose()
           }}
           sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
@@ -151,9 +160,9 @@ export const DialogAssignDesigner = ({ open, doc, proyectistas, handleClose }) =
             </ListItem>
           )}
         />
-        <Typography variant='h6'>{`${designerReview.length} Seleccionados`}</Typography>
+        <Typography variant='h6'>{`${designerReviewState.length} Seleccionados`}</Typography>
         <List dense sx={{ py: 4 }}>
-          {designerReview.map(designer => {
+          {designerReviewState.map(designer => {
             return (
               <ListItem
                 key={designer.name}
