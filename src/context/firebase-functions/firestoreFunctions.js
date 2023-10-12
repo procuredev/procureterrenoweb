@@ -268,8 +268,6 @@ function getNextState(role, approves, latestEvent, userRole) {
   const devolutionState = userRole === 2 ? state.returnedPetitioner : state.returnedContOp
   const changingStartDate = typeof approves === 'object' && 'start' in approves
 
-  console.log("ENTRA EN NEXTSTATE")
-
   const rules = new Map([
     [
       2,

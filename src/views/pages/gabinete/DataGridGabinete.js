@@ -122,7 +122,7 @@ const DataGridGabinete = () => {
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
             <InputLabel id="demo-select-small-label">Ot</InputLabel>
             <Select
-              value={selectedPetition.ot}
+              value={selectedPetition ? selectedPetition.ot : ''}
               label='Ot'
               id='controlled-select'
               onChange={handleChangePetition}
