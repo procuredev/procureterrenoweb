@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useFirebase } from 'src/context/useFirebase'
@@ -28,7 +28,15 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
+  const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
+  const isResizing = useRef(-1);
+
+  useEffect(() => {
+    if (rows) {
+      setLoading(false)
+    }
+  }, [rows])
 
   const handleClickOpen = doc => {
     setDoc(doc)
@@ -69,12 +77,100 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
+  const DEFAULT_MIN_WIDTH_CELL = 70;
+  const DEFAULT_MAX_WIDTH_CELL = 800;
+
+  const adjustWidthColumn = (index, width) => {
+    const minWidth = DEFAULT_MIN_WIDTH_CELL;
+    const maxWidth = DEFAULT_MAX_WIDTH_CELL;
+
+    const newWidth =
+      width > maxWidth ? maxWidth : width < minWidth ? minWidth : width;
+
+
+      // Selecciona todos los elementos con colindex=2
+      const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`);
+
+      // Itera sobre los elementos y ajusta su estilo
+      columnElements.forEach((element) => {
+        element.style.maxWidth = "none";
+        element.style.minWidth = "none";
+        element.style.width = newWidth + 'px';
+      });
+
+      const header = document.querySelector(`[aria-colindex="${index}"]`);
+      if (header) {
+        header.style.maxWidth = "none";
+        header.style.minWidth = "none";
+        header.style.width = newWidth + 'px';
+      }
+
+  }
+
+  const handleMiDivClick = (event) => {
+    // Acciones que deseas realizar cuando se hace clic en un div con la clase 'MuiDataGrid-columnSeparator'
+    //console.log('Se hizo clic en un div:', event.target.textContent);
+    const index = event.srcElement.parentNode.parentElement.attributes[3] ? event.srcElement.parentNode.parentElement.attributes[3].nodeValue : 0
+    isResizing.current = index;
+  };
+
+  const handleDivMove = (event) => {
+    if (isResizing.current > 0) {
+      console.log('presionado mouseX:', isResizing.current, event.clientX);
+
+      adjustWidthColumn(isResizing.current, event.clientX, event);
+    }
+
+  };
+
+  const handleDivDown = (event) => {
+    console.log('se soltó mouse')
+    isResizing.current = -1;
+  };
+
+
+  useEffect(() => {
+    if (!loading) {
+    const hoverDiv = document.querySelector('.MuiDataGrid-columnHeaders');  // Selecciona el div que aparece con hover
+
+    const handleHoverDivHover = () => {
+      // Acciones que deseas realizar cuando el div aparece con hover
+      console.log('El div apareció con hover.');
+
+      // Selecciona todos los divs con la clase 'MuiDataGrid-columnSeparator' y agrega event listeners
+      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
+
+      if (miDivs) {
+        miDivs.forEach((div) => {
+          div.addEventListener('mousedown', handleMiDivClick);
+          div.addEventListener('mousemove', handleDivMove);
+          div.addEventListener('mouseup', handleDivDown);
+        });
+      }
+    };
+
+    if (hoverDiv) {
+      hoverDiv.addEventListener('mouseenter', handleHoverDivHover);
+    }
+
+    // Limpia los event listeners cuando el componente se desmonta
+    return () => {
+      hoverDiv.removeEventListener('mouseenter', handleHoverDivHover)
+      hoverDiv.removeEventListener('mousedown', handleMiDivClick);
+      hoverDiv.removeEventListener('mousemove', handleDivMove);
+
+    /*   const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
+      miDivs.forEach((div) => {
+        div.removeEventListener('click', handleMiDivClick);
+      }); */
+    };
+  }
+  }, [loading]);
+
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
-      flex: 0.8,
-      minWidth: 220,
       renderCell: params => {
         const { row } = params
 
@@ -111,8 +207,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      minWidth: 120,
-      flex: 0.4,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -130,8 +224,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
-      flex: 0.4,
-      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -141,8 +233,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'start',
       headerName: 'Inicio',
-      flex: 0.4,
-      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -152,8 +242,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'end',
       headerName: 'Entrega',
-      flex: 0.4,
-      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -163,8 +251,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'supervisorShift',
       headerName: 'Turno',
-      flex: 0.4,
-      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -174,8 +260,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'ot',
       headerName: 'OT',
-      flex: 0.3,
-      minWidth: 50,
       renderCell: params => {
         const { row } = params
 
@@ -185,11 +269,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'user',
       headerName: 'Autor',
-      flex: 0.6,
-      minWidth: 120
     },
     {
-      flex: 0.3,
       minWidth: md ? 190 : 100,
       field: 'actions',
       headerName: 'Acciones',
