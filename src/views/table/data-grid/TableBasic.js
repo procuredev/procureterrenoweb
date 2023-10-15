@@ -16,7 +16,7 @@ import { Typography, IconButton } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import { DataGridPro, esES } from '@mui/x-data-grid-pro';
+import { DataGridPro, esES } from '@mui/x-data-grid-pro'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -30,7 +30,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
-  const isResizing = useRef(-1);
+  const isResizing = useRef(-1)
+  const separatorRef = useRef(null)
 
   useEffect(() => {
     if (rows) {
@@ -155,95 +156,84 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
-  const DEFAULT_MIN_WIDTH_CELL = 70;
-  const DEFAULT_MAX_WIDTH_CELL = 800;
+  const DEFAULT_MIN_WIDTH_CELL = 70
+  const DEFAULT_MAX_WIDTH_CELL = 800
 
   const adjustWidthColumn = (index, width) => {
-    const minWidth = DEFAULT_MIN_WIDTH_CELL;
-    const maxWidth = DEFAULT_MAX_WIDTH_CELL;
+    const minWidth = DEFAULT_MIN_WIDTH_CELL
+    const maxWidth = DEFAULT_MAX_WIDTH_CELL
 
-    const newWidth =
-      width > maxWidth ? maxWidth : width < minWidth ? minWidth : width;
+    let newWidth = width > maxWidth ? maxWidth : width < minWidth ? minWidth : width
 
+    // Selecciona todos los elementos con colindex=2
+    const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`)
 
-      // Selecciona todos los elementos con colindex=2
-      const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`);
-
-      // Itera sobre los elementos y ajusta su estilo
-      columnElements.forEach((element) => {
-        element.style.maxWidth = "none";
-        element.style.minWidth = "none";
-        element.style.width = newWidth + 'px';
-      });
-
-      const header = document.querySelector(`[aria-colindex="${index}"]`);
-      if (header) {
-        header.style.maxWidth = "none";
-        header.style.minWidth = "none";
-        header.style.width = newWidth + 'px';
-      }
-
+    // Itera sobre los elementos y ajusta su estilo
+    columnElements.forEach(element => {
+      element.style.maxWidth = 'none'
+      element.style.minWidth = 'none'
+      element.style.width = newWidth + 'px'
+    })
   }
 
-  const handleMiDivClick = (event) => {
-    // Acciones que deseas realizar cuando se hace clic en un div con la clase 'MuiDataGrid-columnSeparator'
-    //console.log('Se hizo clic en un div:', event.target.textContent);
-    const index = event.srcElement.parentNode.parentElement.attributes[3] ? event.srcElement.parentNode.parentElement.attributes[3].nodeValue : 0
-    isResizing.current = index;
-  };
+  const handleMiDivClick = event => {
+    separatorRef.current = event.srcElement.parentElement
 
-  const handleDivMove = (event) => {
-    if (isResizing.current > 0) {
-      console.log('presionado mouseX:', isResizing.current, event.clientX);
+    const index = event.srcElement.parentNode.parentElement.attributes[3]
+      ? event.srcElement.parentNode.parentElement.attributes[3].nodeValue
+      : 0
+    separatorRef.current = event.srcElement.parentElement
+    isResizing.current = index
+    setCursorDocument(true)
+  }
 
-      adjustWidthColumn(isResizing.current, event.clientX, event);
+  const handleMouseMove = event => {
+    if (isResizing.current >= 0) {
+      const width = event.clientX - separatorRef.current.getBoundingClientRect().left
+      adjustWidthColumn(isResizing.current, width)
     }
+  }
 
-  };
+  const handleMouseUp = event => {
+    isResizing.current = -1
+    separatorRef.current = null
+    setCursorDocument(false)
+  }
 
-  const handleDivDown = (event) => {
-    console.log('se soltó mouse')
-    isResizing.current = -1;
-  };
-
+  const setCursorDocument = isResizing => {
+    document.body.style.cursor = isResizing ? 'col-resize' : 'auto'
+  }
 
   useEffect(() => {
     if (!loading) {
-    const hoverDiv = document.querySelector('.MuiDataGrid-columnHeaders');  // Selecciona el div que aparece con hover
-
-    const handleHoverDivHover = () => {
-      // Acciones que deseas realizar cuando el div aparece con hover
-      console.log('El div apareció con hover.');
-
       // Selecciona todos los divs con la clase 'MuiDataGrid-columnSeparator' y agrega event listeners
-      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
+      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator')
 
       if (miDivs) {
-        miDivs.forEach((div) => {
-          div.addEventListener('mousedown', handleMiDivClick);
-          div.addEventListener('mousemove', handleDivMove);
-          div.addEventListener('mouseup', handleDivDown);
-        });
+        miDivs.forEach(div => {
+          div.addEventListener('mousedown', handleMiDivClick)
+        })
       }
-    };
-
-    if (hoverDiv) {
-      hoverDiv.addEventListener('mouseenter', handleHoverDivHover);
     }
 
-    // Limpia los event listeners cuando el componente se desmonta
     return () => {
-      hoverDiv.removeEventListener('mouseenter', handleHoverDivHover)
-      hoverDiv.removeEventListener('mousedown', handleMiDivClick);
-      hoverDiv.removeEventListener('mousemove', handleDivMove);
+      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator')
+      miDivs.forEach(div => {
+        div.removeEventListener('click', handleMiDivClick)
+      })
+    }
+  }, [loading])
 
-    /*   const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
-      miDivs.forEach((div) => {
-        div.removeEventListener('click', handleMiDivClick);
-      }); */
-    };
-  }
-  }, [loading]);
+  useEffect(() => {
+    // loadColumnInfoLocalStorage();
+    document.onmousemove = handleMouseMove
+    document.onmouseup = handleMouseUp
+
+    return () => {
+      document.onmousemove = null
+      document.onmouseup = null
+    }
+  }, [])
 
   const columns = [
     {
@@ -346,7 +336,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'user',
-      headerName: 'Autor',
+      headerName: 'Autor'
     },
     {
       minWidth: md ? 190 : 100,
