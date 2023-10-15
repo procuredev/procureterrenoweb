@@ -31,6 +31,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
   const isResizing = useRef(-1);
+  const separatorRef = useRef(null);
 
   useEffect(() => {
     if (rows) {
@@ -67,6 +68,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const md = useMediaQuery(theme.breakpoints.up('md'))
   const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
+
   useEffect(() => {
     // Busca el documento actualizado en rows
     const updatedDoc = rows.find(row => row.id === doc.id)
@@ -84,9 +86,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     const minWidth = DEFAULT_MIN_WIDTH_CELL;
     const maxWidth = DEFAULT_MAX_WIDTH_CELL;
 
-    const newWidth =
+    let newWidth =
       width > maxWidth ? maxWidth : width < minWidth ? minWidth : width;
-
 
       // Selecciona todos los elementos con colindex=2
       const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`);
@@ -98,44 +99,37 @@ const TableBasic = ({ rows, role, roleData }) => {
         element.style.width = newWidth + 'px';
       });
 
-      const header = document.querySelector(`[aria-colindex="${index}"]`);
-      if (header) {
-        header.style.maxWidth = "none";
-        header.style.minWidth = "none";
-        header.style.width = newWidth + 'px';
-      }
-
   }
 
   const handleMiDivClick = (event) => {
-    // Acciones que deseas realizar cuando se hace clic en un div con la clase 'MuiDataGrid-columnSeparator'
-    //console.log('Se hizo clic en un div:', event.target.textContent);
+    separatorRef.current = event.srcElement.parentElement
     const index = event.srcElement.parentNode.parentElement.attributes[3] ? event.srcElement.parentNode.parentElement.attributes[3].nodeValue : 0
+    separatorRef.current = event.srcElement.parentElement
     isResizing.current = index;
+    setCursorDocument(true);
   };
 
-  const handleDivMove = (event) => {
-    if (isResizing.current > 0) {
-      console.log('presionado mouseX:', isResizing.current, event.clientX);
-
-      adjustWidthColumn(isResizing.current, event.clientX, event);
+  const handleMouseMove = (event) => {
+    if (isResizing.current >= 0) {
+      const width =  event.clientX - separatorRef.current.getBoundingClientRect().left;
+      adjustWidthColumn(isResizing.current, width);
     }
 
   };
 
-  const handleDivDown = (event) => {
-    console.log('se soltó mouse')
+  const handleMouseUp = (event) => {
     isResizing.current = -1;
+    separatorRef.current = null;
+    setCursorDocument(false);
   };
 
+  const setCursorDocument = (isResizing) => {
+    document.body.style.cursor = isResizing ? "col-resize" : "auto";
+  };
 
   useEffect(() => {
     if (!loading) {
-    const hoverDiv = document.querySelector('.MuiDataGrid-columnHeaders');  // Selecciona el div que aparece con hover
 
-    const handleHoverDivHover = () => {
-      // Acciones que deseas realizar cuando el div aparece con hover
-      console.log('El div apareció con hover.');
 
       // Selecciona todos los divs con la clase 'MuiDataGrid-columnSeparator' y agrega event listeners
       const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
@@ -143,29 +137,29 @@ const TableBasic = ({ rows, role, roleData }) => {
       if (miDivs) {
         miDivs.forEach((div) => {
           div.addEventListener('mousedown', handleMiDivClick);
-          div.addEventListener('mousemove', handleDivMove);
-          div.addEventListener('mouseup', handleDivDown);
         });
       }
-    };
-
-    if (hoverDiv) {
-      hoverDiv.addEventListener('mouseenter', handleHoverDivHover);
     }
 
-    // Limpia los event listeners cuando el componente se desmonta
-    return () => {
-      hoverDiv.removeEventListener('mouseenter', handleHoverDivHover)
-      hoverDiv.removeEventListener('mousedown', handleMiDivClick);
-      hoverDiv.removeEventListener('mousemove', handleDivMove);
 
-    /*   const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
+    return () => {
+      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
       miDivs.forEach((div) => {
         div.removeEventListener('click', handleMiDivClick);
-      }); */
-    };
-  }
+      });}
+
   }, [loading]);
+
+  useEffect(() => {
+    // loadColumnInfoLocalStorage();
+    document.onmousemove = handleMouseMove
+    document.onmouseup = handleMouseUp
+
+    return () => {
+      document.onmousemove = null;
+      document.onmouseup = null;
+    };
+  }, []);
 
   const columns = [
     {
@@ -363,7 +357,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid
-          disableColumnMenu //disable built-in mui filters
+          disableColumnMenu
+          disableColumnSelector
+          disableRowSelectionOnClick
+          disableColumnFilter
+          sx={{ '.MuiDataGrid-columnSeparator:hover': { cursor: 'col-resize' } }}
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
