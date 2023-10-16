@@ -26,7 +26,8 @@ import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
 
 const DataGridGabinete = () => {
   const [value, setValue] = useState('1')
-  const [petition, setPetition] = useState('')
+  const [currentPetition, setCurrentPetition] = useState('')
+  const [currentOT, setCurrentOT] = useState('')
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
@@ -37,8 +38,8 @@ const DataGridGabinete = () => {
   const [blueprintGenerated, setBlueprintGenerated] = useState(false);
   const [designerAssigned, setDesignerAssigned] = useState(false);
 
-  const { useSnapshot, authUser, getRoleData, getUserData, getBlueprints, fetchPetitionById } = useFirebase()
-  const data = useSnapshot(true, authUser)
+  const { useSnapshot, authUser, getUserData} = useFirebase()
+  const petitions = useSnapshot(false, authUser, true)
 
 
   const handleClickOpenCodeGenerator = doc => {
@@ -60,31 +61,15 @@ const DataGridGabinete = () => {
     setOpen(false)
   }
 
-  const handleChangePetition = (event) => {
-    const selectedOt = event.target.value;
-    const selectedPetition = petitions.find(p => p.ot === selectedOt);
-    setPetition(selectedPetition);
-}
+  const handleChange = (event) => {
+    const currentDoc = petitions.filter(petition => petition.ot === event.target.value)[0]
+    setCurrentPetition(currentDoc)
+    setCurrentOT(event.target.value)
+  }
 
-  const petitions =
-    authUser.role === 1
-      ? data.filter(doc => doc.state == 8)
-      : authUser.role === 7 ?
-      data.filter(doc => doc.state == 8 && doc.supervisorShift === authUser.shift[0])
-      : data.filter(doc =>
-        doc.state == 8 &&
-        doc.designerReview &&  // Comprueba si designerReview existe antes de llamar a find
-        doc.designerReview.find(designer => designer.userId === authUser.uid)
-      )
-
-
-  // Obtener el rol del usuario
   useEffect(() => {
     const fetchRoleAndProyectistas = async () => {
       if (authUser) {
-        const role = await getRoleData(authUser.role.toString());
-        setRoleData(role);
-
         // Cargar los proyectistas
         const resProyectistas = await getUserData('getUserProyectistas', null, authUser);
         setProyectistas(resProyectistas);
@@ -94,38 +79,17 @@ const DataGridGabinete = () => {
     fetchRoleAndProyectistas();
   }, [authUser]);
 
-  // Obtener peticiones actualizadas y blueprints
-  useEffect(() => {
-    const fetchData = async () => {
-      if (designerAssigned || blueprintGenerated) {
-        const updatedPetition = await fetchPetitionById(petition.id);
-        if (updatedPetition) {
-          setPetition(updatedPetition);
-          // Reset flags
-          setDesignerAssigned(false);
-          setBlueprintGenerated(false);
-        }
-      }
-      if (petition) {
-        const resBlueprints = await getBlueprints(petition.id);
-        setBlueprints(resBlueprints);
-      }
-    };
-
-    fetchData();
-  }, [designerAssigned, blueprintGenerated, petition]);
-
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-            <InputLabel id="demo-select-small-label">Ot</InputLabel>
+            <InputLabel id="demo-select-small-label">OT</InputLabel>
             <Select
               value={selectedPetition ? selectedPetition.ot : ''}
-              label='Ot'
+              label='OT'
               id='controlled-select'
-              onChange={handleChangePetition}
+              onChange={handleChange}
               labelId='controlled-select-label'
             >
               <MenuItem value=''>
@@ -133,7 +97,7 @@ const DataGridGabinete = () => {
               </MenuItem>
               {petitions.map((petitionItem, index) => (
                 <MenuItem key={index} value={petitionItem.ot}>
-                    Ot: {petitionItem.ot}
+                    OT: {petitionItem.ot}
                 </MenuItem>
               ))}
             </Select>
@@ -141,44 +105,38 @@ const DataGridGabinete = () => {
           {authUser.role === 7 ?
             (<Button
             variant='contained'
-            onClick={() => petition && handleClickOpen(petition)}
+            onClick={() => currentPetition && handleClickOpen(currentPetition)}
             >Asignar proyectista</Button>)
             : (<Button
             variant='contained'
-            onClick={() => petition && handleClickOpenCodeGenerator(petition)}
+            onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
             >Generar nuevo documento
           </Button>)}
 
           <TextField
-          label='Proyectistas asignados'
-          InputProps={{
-            readOnly: true,
-            startAdornment:
-            petition && petition.designerReview && petition.designerReview.map((designer, index) => (
-              <Chip
-                  key={index}
-                  label={designer.name}
-              />
-          ))
-
-          }}
-        />
+            label='Proyectistas asignados'
+            multiline
+            InputProps={{
+              readOnly: true
+            }}
+            value={currentOT && petitions.find(doc => doc.ot === currentOT).designerReview?.map(item => item.name)}
+          />
 
           <TextField
             label='Título'
-            value={petition ? petition.title : ''}
+            value={currentPetition ? currentPetition.title : ''}
             id='form-props-read-only-input'
             InputProps={{ readOnly: true }}
           />
           <TextField
             label='Tipo de levantamiento'
-            value={petition ? petition.objective : ''}
+            value={currentPetition ? currentPetition.objective : ''}
             id='form-props-read-only-input'
             InputProps={{ readOnly: true }}
           />
           <TextField
             label='Entregable'
-            value={petition ? petition.deliverable.map(item => item) : ''}
+            value={currentPetition ? currentPetition.deliverable.map(item => item) : ''}
             id='form-props-read-only-input'
             InputProps={{ readOnly: true }}
           />
@@ -189,8 +147,8 @@ const DataGridGabinete = () => {
           </TabPanel>
         </Grid>
       </TabContext>
-      <DialogAssignDesigner open={open} handleClose={handleClose} doc={petition} proyectistas={proyectistas} setDesignerAssigned={setDesignerAssigned} />
-      {openCodeGenerator && <DialogCodeGenerator open={openCodeGenerator} handleClose={handleCloseCodeGenerator} doc={petition} roleData={roleData} setBlueprintGenerated={setBlueprintGenerated} />}
+      <DialogAssignDesigner open={open} handleClose={handleClose} doc={currentPetition} proyectistas={proyectistas} setDesignerAssigned={setDesignerAssigned} />
+      {openCodeGenerator && <DialogCodeGenerator open={openCodeGenerator} handleClose={handleCloseCodeGenerator} doc={currentPetition} roleData={roleData} setBlueprintGenerated={setBlueprintGenerated} />}
     </Box>
   )
 }

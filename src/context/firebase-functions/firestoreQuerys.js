@@ -58,7 +58,7 @@ const useEvents = (id, userParam) => {
 }
 
 // ** Escucha cambios en los documentos en tiempo real
-const useSnapshot = (datagrid = false, userParam) => {
+const useSnapshot = (datagrid = false, userParam, control = false) => {
   const [data, setData] = useState([])
 
   useEffect(() => {
@@ -88,6 +88,20 @@ const useSnapshot = (datagrid = false, userParam) => {
             break
         }
       }
+
+      if (control) {
+        switch (userParam.role) {
+          case 1:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
+            break;
+          case 7:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8), where('supervisorShift', '==', userParam.shift[0]))
+            break;
+          default:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8), where('designerReview', 'array-contains', { userId: userParam.uid }))
+            break;
+        }}
+
 
       const unsubscribe = onSnapshot(q, async querySnapshot => {
         try {
