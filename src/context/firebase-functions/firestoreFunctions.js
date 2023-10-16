@@ -371,8 +371,6 @@ function getNextState(role, approves, latestEvent, userRole) {
     console.log('No se encontraron reglas para el rol')
 
     return role
-  } else {
-    console.log(roleRules)
   }
 
   for (const rule of roleRules) {
