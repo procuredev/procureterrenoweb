@@ -247,8 +247,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const approveWithChanges = typeof approves === 'object' || typeof approves === 'string'
   const approvedByPlanner = latestEvent.prevState === state.planner
   const emergencyBySupervisor = latestEvent.newState === state.draftsman && userRole === 7
-  const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
-  const returnedContOp = latestEvent.newState === state.returnedContOp
+  const returned = latestEvent.newState === state.returned
   const changingStartDate = typeof approves === 'object' && 'start' in approves
 
   const rules = new Map([
@@ -258,14 +257,14 @@ function getNextState(role, approves, latestEvent, userRole) {
         // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 0 --> 6)
         // No se usó dateHasChanged porque el cambio podría haber pasado en el penúltimo evento
         {
-          condition: approves && approvedByPlanner && returnedPetitioner && !approveWithChanges,
+          condition: approves && approvedByPlanner && returned && !approveWithChanges,
           newState: state.contAdmin,
           log: 'Devuelto por Adm Contrato Procure'
         },
 
         // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 0 --> 3)
         {
-          condition: approves && dateHasChanged && returnedPetitioner && !approveWithChanges,
+          condition: approves && dateHasChanged && returned && !approveWithChanges,
           newState: state.contOperator,
           log: 'Devuelto por Cont Operator/Cont Owner MEL'
         }
@@ -283,21 +282,21 @@ function getNextState(role, approves, latestEvent, userRole) {
         },
         // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 0)
         {
-          condition: approves && approveWithChanges && !returnedContOp,
-          newState: state.returnedPetitioner,
+          condition: approves && approveWithChanges && !returned,
+          newState: state.returned,
           log: 'Devuelto por Contract Operator hacia Solcitante'
         },
 
         // Si aprueba y viene con estado 5 lo pasa a 6 (5 --> 1 --> 6)
         {
-          condition: approves && approvedByPlanner && returnedContOp && !approveWithChanges,
+          condition: approves && approvedByPlanner && returned && !approveWithChanges,
           newState: state.contAdmin,
           log: 'Devuelto por Adm Contrato Procure'
         },
 
         // Si vuelve a modificar una devolución, pasa al planificador (revisada por contract owner) (3 --> 1 --> 3)
         {
-          condition: approves && !approvedByPlanner && returnedContOp,
+          condition: approves && !approvedByPlanner && returned,
           newState: state.contOperator,
           log: 'Devuelto por Cont Owner MEL'
         }
@@ -372,6 +371,8 @@ function getNextState(role, approves, latestEvent, userRole) {
     console.log('No se encontraron reglas para el rol')
 
     return role
+  } else {
+    console.log(roleRules)
   }
 
   for (const rule of roleRules) {
