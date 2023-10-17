@@ -98,7 +98,7 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
             q = query(collection(db, 'solicitudes'), where('state', '==', 8), where('supervisorShift', '==', userParam.shift[0]))
             break;
           default:
-            q = query(collection(db, 'solicitudes'), where('state', '==', 8), where('designerReview', 'array-contains', { userId: userParam.uid }))
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
             break;
         }}
 

@@ -39,7 +39,13 @@ const DataGridGabinete = () => {
   const [designerAssigned, setDesignerAssigned] = useState(false);
 
   const { useSnapshot, authUser, getUserData} = useFirebase()
-  const petitions = useSnapshot(false, authUser, true)
+  let petitions = useSnapshot(false, authUser, true)
+
+  if(authUser.role === 8){
+    petitions = petitions.filter(petition => petition.designerReview?.map(item => item.hasOwnProperty('userId') && item['userId']===authUser.uid))
+
+  }
+
 
 
   const handleClickOpenCodeGenerator = doc => {
