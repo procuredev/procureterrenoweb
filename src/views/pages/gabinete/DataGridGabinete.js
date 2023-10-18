@@ -104,7 +104,7 @@ const DataGridGabinete = () => {
 
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
-      <TabContext value={value}>
+
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
             <InputLabel id="demo-select-small-label">OT</InputLabel>
@@ -165,11 +165,11 @@ const DataGridGabinete = () => {
           />
         </Box>
         <Grid item xs={12}>
-          <TabPanel value="1">
+
             <TableGabinete rows={blueprints ? blueprints : []} roleData={roleData} role={authUser.role} />
-          </TabPanel>
+
         </Grid>
-      </TabContext>
+
       <DialogAssignDesigner open={open} handleClose={handleClose} doc={currentPetition} proyectistas={proyectistas} setDesignerAssigned={setDesignerAssigned} />
       {openCodeGenerator && <DialogCodeGenerator open={openCodeGenerator} handleClose={handleCloseCodeGenerator} doc={currentPetition} roleData={roleData} setBlueprintGenerated={setBlueprintGenerated} />}
     </Box>
