@@ -38,15 +38,13 @@ const DataGridGabinete = () => {
   const [blueprintGenerated, setBlueprintGenerated] = useState(false);
   const [designerAssigned, setDesignerAssigned] = useState(false);
 
-  const { useSnapshot, authUser, getUserData} = useFirebase()
+  const { useSnapshot, authUser, getUserData, getBlueprints} = useFirebase()
   let petitions = useSnapshot(false, authUser, true)
 
   if(authUser.role === 8){
     petitions = petitions.filter(petition => petition.designerReview?.map(item => item.hasOwnProperty('userId') && item['userId']===authUser.uid))
 
   }
-
-
 
   const handleClickOpenCodeGenerator = doc => {
 
@@ -85,6 +83,25 @@ const DataGridGabinete = () => {
     fetchRoleAndProyectistas();
   }, [authUser]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      if ( blueprintGenerated) {
+        const updatedPetition = await fetchPetitionById(currentPetition.id);
+        if (updatedPetition) {
+          setCurrentPetition(updatedPetition);
+          // Reset flags
+          setBlueprintGenerated(false);
+        }
+      }
+      if (currentPetition) {
+        const resBlueprints = await getBlueprints(currentPetition.id);
+        setBlueprints(resBlueprints);
+      }
+    };
+    fetchData();
+  }, [ blueprintGenerated, currentPetition]);
+
+
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
       <TabContext value={value}>
@@ -92,7 +109,7 @@ const DataGridGabinete = () => {
           <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
             <InputLabel id="demo-select-small-label">OT</InputLabel>
             <Select
-              value={selectedPetition ? selectedPetition.ot : ''}
+              value={currentPetition ? currentPetition.ot : ''}
               label='OT'
               id='controlled-select'
               onChange={handleChange}
