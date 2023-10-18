@@ -60,6 +60,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     const isMyRequest = authUser.uid === row.uid
     const isOwnReturned = isMyRequest && row.state === 1
     const hasOTEnd = row.ot && row.end
+    const createdBySupervisor = row.userRole === 7
 
       return {
       1: {
@@ -69,13 +70,13 @@ const TableBasic = ({ rows, role, roleData }) => {
       },
       2: {
         approve: isOwnReturned,
-        edit: isOwnReturned || (row.state === 6 && isMyRequest),
+        edit: isOwnReturned || ([2, 6].includes(row.state) && isMyRequest),
         reject: isMyRequest && row.state <= 6
       },
       3: {
-        approve: hasPrevState || isOwnReturned || isContopEmergency,
-        edit: isOwnReturned || hasPrevState || row.state === 6,
-        reject: row.state <= 6
+        approve: hasPrevState || isOwnReturned || isContopEmergency || (createdBySupervisor && row.state === 8),
+        edit: (isOwnReturned || hasPrevState || row.state === 6 || (isMyRequest && row.state === 3)) && !createdBySupervisor,
+        reject: row.state <= 6 && !createdBySupervisor
       },
       4: {
         approve: hasPrevState,
