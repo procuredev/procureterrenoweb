@@ -51,9 +51,11 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
   const [typeOfDiscipline, setTypeOfDiscipline] = useState('')
   const [typeOfDocument, setTypeOfDocument] = useState('')
+  const [disciplines, setDisciplines] = useState([]);
+  const [deliverables, setDeliverables] = useState([]);
 
   // ** Hooks
-  const { updateDocs, authUser, generateBlueprint } = useFirebase()
+  const { updateDocs, authUser, generateBlueprint, fetchPlaneProperties } = useFirebase()
 
   const handleChangeTypeOfDiscipline = (event) => {
     setTypeOfDiscipline(event.target.value);
@@ -62,6 +64,8 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
   const handleChangeTypeOfDocument = (event) => {
     setTypeOfDocument(event.target.value);
   }
+
+
 
   const onsubmit = id => {
     if (typeOfDiscipline && typeOfDocument) {
@@ -72,6 +76,16 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
       setError('Por favor, indique tipo de disciplina y tipo de documento.');
     }
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      let {resDeliverables,resDisciplines} = await fetchPlaneProperties()
+      setDisciplines(resDisciplines)
+      setDeliverables(resDeliverables)
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <Dialog
@@ -112,15 +126,15 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
                 <MenuItem value=''>
                     <em>None</em>
                 </MenuItem>
-                <MenuItem value='100'>
-                    <em>MEC</em>
-                </MenuItem>
-                <MenuItem value='150'>
-                    <em>ELEC</em>
-                </MenuItem>
-                <MenuItem value='200'>
-                    <em>CIV</em>
-                </MenuItem>
+
+                { Object.entries(disciplines).map(([key, value]) => (
+
+                  <MenuItem key={key} value={value}>
+                  <em>{key}</em>
+                  </MenuItem>
+                  ))
+                }
+
 
               </Select>
             </FormControl>
@@ -138,15 +152,13 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
                 <MenuItem value=''>
                     <em>None</em>
                 </MenuItem>
-                <MenuItem value='XXX'>
-                    <em>PLANO</em>
-                </MenuItem>
-                <MenuItem value='YYY'>
-                    <em>INF</em>
-                </MenuItem>
-                <MenuItem value='ZZZ'>
-                    <em>MEMORIA</em>
-                </MenuItem>
+                { Object.entries(deliverables).map(([key, value]) => (
+
+                  <MenuItem key={key} value={value}>
+                  <em>{key}</em>
+                  </MenuItem>
+                  ))
+                  }
 
               </Select>
             </FormControl>

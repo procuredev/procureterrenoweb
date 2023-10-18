@@ -39,7 +39,8 @@ import {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
-  fetchPetitionById
+  fetchPetitionById,
+  fetchPlaneProperties
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -102,7 +103,8 @@ const FirebaseContextProvider = props => {
     signGoogle,
     generateBlueprint,
     getBlueprints,
-    fetchPetitionById
+    fetchPetitionById,
+    fetchPlaneProperties
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

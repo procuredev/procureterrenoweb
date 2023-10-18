@@ -492,6 +492,20 @@ const consultDocs = async (type, options = {}) => {
   }
 };
 
+const fetchPlaneProperties = async () => {
+  const docRef = doc(db, 'domain', 'planeProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const resDeliverables = await docSnap.data().deliverables
+    const resDisciplines = await docSnap.data().disciplines
+
+
+    return {resDeliverables, resDisciplines }
+  } else {
+    console.log('El documento no existe');
+  }
+};
 
 const fetchPetitionById = async id => {
   const docRef = doc(db, 'solicitudes', id)
@@ -686,5 +700,6 @@ export {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
-  fetchPetitionById
+  fetchPetitionById,
+  fetchPlaneProperties
 }

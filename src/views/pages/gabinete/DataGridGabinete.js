@@ -38,7 +38,7 @@ const DataGridGabinete = () => {
   const [blueprintGenerated, setBlueprintGenerated] = useState(false);
   const [designerAssigned, setDesignerAssigned] = useState(false);
 
-  const { useSnapshot, authUser, getUserData, getBlueprints} = useFirebase()
+  const { useSnapshot, authUser, getUserData, getBlueprints, fetchPetitionById} = useFirebase()
   let petitions = useSnapshot(false, authUser, true)
 
   if(authUser.role === 8){
