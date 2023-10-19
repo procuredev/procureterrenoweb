@@ -11,6 +11,7 @@ import {
   getDocs,
   onSnapshot,
   where,
+  or,
   orderBy,
   getCountFromServer,
   documentId
@@ -74,14 +75,14 @@ const useSnapshot = (datagrid = false, userParam) => {
             q = query(collection(db, 'solicitudes'), where('plant', 'in', userParam.plant))
             break
           case 5:
-            q = query(collection(db, 'solicitudes'), where('state', '>=', userParam.role - 2))
+            q = query(collection(db, 'solicitudes'), or(where('state', '>=', userParam.role - 2), where('state', '==', 0)))
             break
           case 7:
-            q = query(collection(db, 'solicitudes'), where('state', '>=', 6))
+            q = query(collection(db, 'solicitudes'), or(where('state', '>=', 6), where('state', '==', 0)))
             break
           default:
             if ([4, 6].includes(userParam.role)) {
-              q = query(collection(db, 'solicitudes'), where('state', '>=', userParam.role - 1))
+              q = query(collection(db, 'solicitudes'), or(where('state', '>=', userParam.role - 1), where('state', '==', 0)))
             }
             break
         }
