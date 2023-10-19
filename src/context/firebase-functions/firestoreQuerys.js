@@ -65,8 +65,6 @@ const useSnapshot = (datagrid = false, userParam) => {
     if (userParam) {
       let q = query(collection(db, 'solicitudes'))
 
-      const getAllDocs = [1, 4, 5, 6, 7, 9]
-
       if (datagrid) {
         switch (userParam.role) {
           case 2:
@@ -82,7 +80,7 @@ const useSnapshot = (datagrid = false, userParam) => {
             q = query(collection(db, 'solicitudes'), where('state', '>=', 6))
             break
           default:
-            if (getAllDocs.includes(userParam.role) && ![1, 9].includes(userParam.role)) {
+            if ([4, 6].includes(userParam.role)) {
               q = query(collection(db, 'solicitudes'), where('state', '>=', userParam.role - 1))
             }
             break
