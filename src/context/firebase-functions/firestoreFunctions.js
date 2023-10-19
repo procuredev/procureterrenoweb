@@ -254,7 +254,7 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       2,
       [
-        // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 0 --> 6)
+        // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 1 --> 6)
         // No se usó dateHasChanged porque el cambio podría haber pasado en el penúltimo evento
         {
           condition: approves && approvedByPlanner && returned && !approveWithChanges,
@@ -262,7 +262,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'Devuelto por Adm Contrato Procure'
         },
 
-        // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 0 --> 3)
+        // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 1 --> 3)
         {
           condition: approves && dateHasChanged && returned && !approveWithChanges,
           newState: state.contOperator,
@@ -280,7 +280,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           emergencyApprovedBySupervisor: true,
           log: 'Emergencia aprobada por Contract Operator'
         },
-        // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 0)
+        // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 1)
         {
           condition: approves && approveWithChanges && !returned,
           newState: state.returned,
