@@ -48,7 +48,6 @@ const DataGridGabinete = () => {
   }
 
   const handleClickOpenCodeGenerator = doc => {
-    //setDoc(doc)
     setOpenCodeGenerator(true)
   }
 
@@ -57,7 +56,6 @@ const DataGridGabinete = () => {
   }
 
   const handleClickOpen = doc => {
-    //setDoc(doc)
     setOpen(true)
   }
 
@@ -86,9 +84,10 @@ const DataGridGabinete = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (blueprintGenerated) {
-        const updatedPetition = await fetchPetitionById(currentPetition.id)
-        if (updatedPetition) {
-          setCurrentPetition(updatedPetition)
+        const resBlueprints = await getBlueprints(currentPetition.id)
+        if (resBlueprints) {
+          console.log("resBlueprints", resBlueprints)
+          setBlueprints(resBlueprints)
           // Reset flags
           setBlueprintGenerated(false)
         }
@@ -143,7 +142,12 @@ const DataGridGabinete = () => {
               ))}
             </Select>
           </FormControl>
-          {authUser.role === 7 ?
+         */}
+
+
+      <Box sx={{m:5}}>
+        <Box sx={{ py: 5, display: 'flex'}}>
+        {authUser.role === 7 ?
             (<Button
             variant='contained'
             onClick={() => currentPetition && handleClickOpen(currentPetition)}
@@ -153,18 +157,7 @@ const DataGridGabinete = () => {
             onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
             >Generar nuevo documento
           </Button>)}
-         */}
 
-      <Box sx={{m:5}}>
-        <Box sx={{ py: 5, display: 'flex'}}>
-          <TextField
-          sx={{m:2.5}}
-            label='Título'
-            multiline
-            value={currentPetition ? currentPetition.title : ''}
-            id='form-props-read-only-input'
-            InputProps={{ readOnly: true }}
-          />
           <Autocomplete
             multiple
             sx={{m:2.5}}
@@ -176,6 +169,14 @@ const DataGridGabinete = () => {
                 label='Proyectistas asignados'
               />
             )}
+          />
+          <TextField
+          sx={{m:2.5}}
+            label='Título'
+            multiline
+            value={currentPetition ? currentPetition.title : ''}
+            id='form-props-read-only-input'
+            InputProps={{ readOnly: true }}
           />
           <TextField
             sx={{m:2.5}}
