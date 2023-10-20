@@ -30,6 +30,11 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const { updateDocs, authUser } = useFirebase()
 
+  const findCurrentDoc = (rows) => {
+    return rows.find(row => row.id === doc.id)
+  }
+
+
   const handleClickOpen = doc => {
     setDoc(doc)
     setOpen(true)
@@ -54,7 +59,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     setOpenAlert(false)
   }
 
-  const permissions = (row) => {
+  const permissions = (row, role) => {
+    if (!row) return
+
     const hasPrevState = row.state === role - 1
     const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === true
     const isMyRequest = authUser.uid === row.uid
@@ -62,7 +69,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     const hasOTEnd = row.ot && row.end
     const createdBySupervisor = row.userRole === 7
 
-      return {
+    const dictionary = {
       1: {
         approve: row.state <= 6,
         edit: row.state <= 6,
@@ -113,6 +120,8 @@ const TableBasic = ({ rows, role, roleData }) => {
         edit: false,
         reject: false
       }}
+
+    return dictionary[role]
     }
 
   const theme = useTheme()
@@ -256,10 +265,10 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Acciones',
       renderCell: params => {
         const { row } = params
-        const permissionsData = permissions(row);
-        const canApprove = permissionsData[role].approve
-        const canEdit = permissionsData[role].edit
-        const canReject = permissionsData[role].reject
+        const permissionsData = permissions(row, role);
+        const canApprove = permissionsData.approve
+        const canEdit = permissionsData.edit
+        const canReject = permissionsData.reject
 
         const approveWithChanges = role === 5 && row.state <= 4 && !canApprove
         const isRevisado = row.state > role
@@ -364,11 +373,11 @@ const TableBasic = ({ rows, role, roleData }) => {
         ></AlertDialog>
         {open && (
           <FullScreenDialog
-            open={open}
+            open={Boolean(findCurrentDoc(rows), role)}
             handleClose={handleClose}
-            doc={doc}
+            doc={findCurrentDoc(rows)}
             roleData={roleData}
-            editButtonVisible={permissions(doc)[role].edit}
+            editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
           />
         )}
       </Box>
