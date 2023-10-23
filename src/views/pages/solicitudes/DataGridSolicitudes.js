@@ -47,7 +47,7 @@ const DataGrid = () => {
   const tabContent = authUser
     ? [
         {
-          data: data,
+          data: data.filter(doc => doc.state !== 0),
           label: 'Todas las solicitudes',
           info: 'Todas las solicitudes'
         },
@@ -62,7 +62,7 @@ const DataGrid = () => {
           info: 'Solicitudes aprobadas por Procure'
         },
         {
-          data: data.filter(doc => doc.state === 10),
+          data: data.filter(doc => doc.state === 0),
           label: 'Rechazadas',
           info: 'Solicitudes rechazadas'
         }
