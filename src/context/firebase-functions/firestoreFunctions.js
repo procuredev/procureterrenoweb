@@ -249,6 +249,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const emergencyBySupervisor = latestEvent.newState === state.draftsman && userRole === 7
   const returned = latestEvent.newState === state.returned
   const changingStartDate = typeof approves === 'object' && 'start' in approves
+  const modifiedBySameRole = userRole === role
 
   const rules = new Map([
     [
@@ -282,7 +283,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         },
         // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 1)
         {
-          condition: approves && approveWithChanges && !returned,
+          condition: approves && approveWithChanges && !returned && !modifiedBySameRole,
           newState: state.returned,
           log: 'Devuelto por Contract Operator hacia Solcitante'
         },
