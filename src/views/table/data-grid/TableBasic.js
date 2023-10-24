@@ -63,11 +63,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     if (!row) return
 
     const hasPrevState = row.state === role - 1
-    const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === false
+    const createdBySupervisor = row.userRole === 7
+    const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === false && createdBySupervisor
     const isMyRequest = authUser.uid === row.uid
     const isOwnReturned = isMyRequest && row.state === 1
     const hasOTEnd = row.ot && row.end
-    const createdBySupervisor = row.userRole === 7
 
     const dictionary = {
       1: {
