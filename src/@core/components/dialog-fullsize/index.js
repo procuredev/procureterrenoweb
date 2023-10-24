@@ -778,7 +778,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     if (isModifiedStart || isStateDecreased) return 'Modificado';
                     if (isDraftmenAssigned) return 'Proyectistas asignados';
                     if (isHoursEstablished) return 'Levantamiento finalizado';
-                    if (hasPreviousDoc) return 'Modificación aceptada';
 
                     return 'Aprobado';
                 };
