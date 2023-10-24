@@ -415,8 +415,11 @@ const updateDocs = async (id, approves, userParam) => {
     }
   }
 
+  if (userRole === 7 && newState === 8) {
+    changedFields.emergencyApprovedBySupervisor = prevState === 8 ? true : false
+  }
+
   changedFields.state = newState
-  changedFields.emergencyApprovedBySupervisor = prevState === 8 && newState === 8 ? true : false
 
   updateDocumentAndAddEvent(ref, changedFields, userParam, prevDoc, docSnapshot.uid, id, prevState)
 }
