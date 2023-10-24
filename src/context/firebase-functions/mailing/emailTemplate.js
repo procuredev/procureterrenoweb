@@ -1,6 +1,28 @@
-export const getEmailTemplate = (userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage) => {
-  return (
-    `<h2>Estimad@ ${userName}:</h2>
+export const getEmailTemplate = (
+  userName,
+  mainMessage,
+  requestNumber,
+  title,
+  engineering,
+  otProcure,
+  supervisor,
+  start,
+  end,
+  plant,
+  area,
+  functionalLocation,
+  contractOperator,
+  petitioner,
+  sapNumber,
+  operationalType,
+  machineDetention,
+  jobType,
+  deliverable,
+  receiver,
+  description,
+  lastMessage
+) => {
+  return `<h2>Estimad@ ${userName}:</h2>
       <p>${mainMessage}. A continuación puede encontrar el detalle de la solicitud:</p>
       <table style="width:100%;">
         <tr>
@@ -82,7 +104,6 @@ export const getEmailTemplate = (userName, mainMessage, requestNumber, title, en
       </table
       <p>${lastMessage}</p>
       <p>Para mayor información revise la solicitud en nuestra página web</p>
-      <p>Saludos,<br>Procure Terreno Web</p>
+      <p>Saludos,<br>Prosite</p>
       `
-  )
 }
