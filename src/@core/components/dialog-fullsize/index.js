@@ -229,23 +229,6 @@ const PhotoGallery = ({ photos }) => (
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
   let isPlanner = roleData && roleData.id === '5'
 
-  let {
-    title,
-    state,
-    description,
-    start,
-    user,
-    date,
-    plant,
-    area,
-    id,
-    ot,
-    end,
-    supervisorShift,
-    userRole,
-    petitioner,
-    fotos
-  } = doc
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
   const [editable, setEditable] = useState(isPlanner)
@@ -271,11 +254,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
-
-  // Verifica estado
-  state = typeof state === 'number' ? state : 100
-
-  const eventArray = useEvents(id, authUser)
+  const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
   const PetitionerContactComponent = () => (
     <>
@@ -289,19 +268,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     </>
   )
 
-  const initialValues = {
-    title,
-    description,
-    petitioner,
-    plant,
-    area,
-    date: moment(date.toDate()),
-    start: start && moment(start.toDate()),
-    ...(ot && { ot }),
-    ...(end && { end: moment(end.toDate()) }),
-    ...(supervisorShift && { supervisorShift }),
-    ...(fotos && { fotos })
-  }
+  const initialValues = doc ? {
+    title: doc.title,
+    description: doc.description,
+    petitioner: doc.petitioner,
+    plant: doc.plant,
+    area: doc.area,
+    date: moment(doc.date.toDate()),
+    start: doc.start && moment(doc.start.toDate()),
+    ...(doc.ot && { ot: doc.ot }),
+    ...(doc.end && { end: moment(doc.end.toDate()) }),
+    ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
+    ...(doc. fotos && { fotos: doc.fotos })
+  } : {}
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -534,6 +513,29 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleLinkClick = event => {
     event.preventDefault()
   }
+
+  if (!doc) return null
+
+  let {
+    title,
+    state,
+    description,
+    start,
+    user,
+    date,
+    plant,
+    area,
+    id,
+    ot,
+    end,
+    supervisorShift,
+    userRole,
+    petitioner,
+    fotos
+  } = doc
+
+  // Verifica estado
+  state = typeof state === 'number' ? state : 100
 
   return (
     <Dialog
@@ -768,13 +770,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
                     const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
                     const hasPreviousDoc = element.prevDoc;
+                    const OTEndAdded = element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
                     const isModifiedStart = hasPreviousDoc && element.prevDoc.start;
                     const isStateDecreased = element.newState < element.prevState;
 
+                    if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados';
                     if (isModifiedStart || isStateDecreased) return 'Modificado';
                     if (isDraftmenAssigned) return 'Proyectistas asignados';
                     if (isHoursEstablished) return 'Levantamiento finalizado';
-                    if (hasPreviousDoc) return 'Modificación aceptada';
 
                     return 'Aprobado';
                 };
