@@ -11,6 +11,7 @@ import {
   getDocs,
   onSnapshot,
   where,
+  or,
   orderBy,
   getCountFromServer,
   documentId
@@ -65,8 +66,6 @@ const useSnapshot = (datagrid = false, userParam) => {
     if (userParam) {
       let q = query(collection(db, 'solicitudes'))
 
-      const getAllDocs = [1, 4, 5, 6, 7, 9]
-
       if (datagrid) {
         switch (userParam.role) {
           case 2:
@@ -76,14 +75,14 @@ const useSnapshot = (datagrid = false, userParam) => {
             q = query(collection(db, 'solicitudes'), where('plant', 'in', userParam.plant))
             break
           case 5:
-            q = query(collection(db, 'solicitudes'), where('state', '>=', userParam.role - 2))
+            q = query(collection(db, 'solicitudes'), or(where('state', '>=', userParam.role - 2), where('state', '==', 0)))
             break
           case 7:
-            q = query(collection(db, 'solicitudes'), where('state', '>=', 6))
+            q = query(collection(db, 'solicitudes'), or(where('state', '>=', 6), where('state', '==', 0)))
             break
           default:
-            if (getAllDocs.includes(userParam.role) && ![1, 9].includes(userParam.role)) {
-              q = query(collection(db, 'solicitudes'), where('state', '>=', userParam.role - 1))
+            if ([4, 6].includes(userParam.role)) {
+              q = query(collection(db, 'solicitudes'), or(where('state', '>=', userParam.role - 1), where('state', '==', 0)))
             }
             break
         }
@@ -547,12 +546,17 @@ const consultObjetives = async (type, options = {}) => {
       // Consulta para obtener el número de documentos por planta
       queryFunc = async () => {
         const queries = options.plants.map(async plant => {
-          const q = query(coll, where('plant', '==', plant), where('state', '>=', 6))
-          const snapshot = await getDocs(q)
+          const query1 = query(coll, where('plant', '==', plant), where('state', '>=', 6))
+          const query2 = query(coll, where('plant', '==', plant), where('state', '==', 7))
 
-          return snapshot.size
+          const snapshot1 = await getDocs(query1)
+          const snapshot2 = await getDocs(query2)
+
+          return {
+            query1: snapshot1.size,
+            query2: snapshot2.size
+          }
         })
-
         const results = await Promise.all(queries)
 
         return results

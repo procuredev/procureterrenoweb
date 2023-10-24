@@ -1,5 +1,6 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Chip from '@mui/material/Chip'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -37,6 +38,7 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import FilterComponent from 'src/@core/components/filter-component'
 import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
 import filterByLabel from 'src/@core/components/custom-filters/customFilters'
+import { Typography } from '@mui/material'
 
 const AppCalendar = () => {
   const calendarRef = useRef()
@@ -382,6 +384,26 @@ const AppCalendar = () => {
           )}
         </Box>
       </CalendarWrapper>
+      <Box
+          sx={{
+            mt:4,
+            px: 5,
+            py: 4,
+            flexGrow: 1,
+            borderRadius: 1,
+            boxShadow: 'none',
+            backgroundColor: 'background.paper'
+          }}
+        >
+        <Typography variant='h6'>
+          Clasificación de colores:
+        </Typography>
+        <Chip label="Shutdown" sx={{mx:1.5, my:3, bgcolor: theme.palette.error.main}} />
+        <Chip label="Outage" sx={{mx:1.5, my:3, bgcolor: theme.palette.warning.main}} />
+        <Chip label="Normal" sx={{mx:1.5, my:3, bgcolor: theme.palette.primary.main}} />
+        <Chip label="Urgencia" sx={{mx:1.5, my:3, bgcolor: theme.palette.black.main}} />
+        <Chip label="No definido" sx={{mx:1.5, my:3, bgcolor: theme.palette.secondary.main}} />
+        </Box>
     </>
   )
 }

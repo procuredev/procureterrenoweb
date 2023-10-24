@@ -37,7 +37,7 @@ const Home = () => {
   const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0]);
   const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
   const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
-  const [objetivesByPlants, setObjetivesByPlants] = useState([0, 0, 0, 0, 0, 0]);
+  const [objetivesByPlants, setObjetivesByPlants] = useState([{query1:0, query2:0}, {query1:0, query2:0}, {query1:0, query2:0}, {query1:0, query2:0}, {query1:0, query2:0},{query1:0, query2:0}]);
   const [objetivesByState, setObjetivesByState] = useState([0, 0, 0]);
   const [top10, setTop10] = useState([])
   const [loading, setLoading] = useState(true)

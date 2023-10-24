@@ -46,7 +46,7 @@ const ChartBarsDocsByPlants = ({ docsByPlants, loading }) => {
         distributed: true,
         columnWidth: '51%',
         endingShape: 'rounded',
-        startingShape: 'rounded'
+        startingShape: 'rounded',
       }
     },
     legend: { show: false },
@@ -96,10 +96,10 @@ const ChartBarsDocsByPlants = ({ docsByPlants, loading }) => {
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
-      <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
+      <CardContent sx={{  pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
         <ReactApexcharts
           type='bar'
-          height={120}
+          height={150}
           options={options}
           series={[{ name: 'Solicitudes', data: loading ? [0, 0, 0, 0, 0, 0] : docsByPlants }]}
         />

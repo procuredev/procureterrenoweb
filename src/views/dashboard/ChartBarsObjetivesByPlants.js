@@ -15,14 +15,26 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
   const theme = useTheme()
 
   const plants = [
-    'Los Colorados',
-    'Laguna Seca 1',
-    'Laguna Seca 2',
-    'Chancado y Correas',
-    'Puerto Coloso',
-    'Instalacones Cátodo'
+    {name:'Los Colorados', initial:'PCLC'},
+    {name:'Laguna Seca 1', initial:'LSL1'},
+    {name:'Laguna Seca 2', initial:'LSL2'},
+    {name:'Chancado y Correas', initial:'CHCO'},
+    {name:'Puerto Coloso', initial:'PCOL'},
+    {name:'Instalacones Cátodo', initial:'ICAT'}
   ]
-  const resObjByPlants2 = objetivesByPlants.map((el, index) => ({ x: plants[index], y: el }))
+
+  const query1Results = objetivesByPlants.map(result => result.query1)
+  const query2Results = objetivesByPlants.map(result => result.query2)
+  const resObjByPlants2 = query1Results.map((el, index) => ({ x: plants[index], y: el }))
+
+
+  const chartData = plants.map((plant, index) => ({
+    name: plant.name,
+    initial: plant.initial,
+    query1: query1Results && query1Results[index],
+    query2: query2Results && query2Results[index]
+  }));
+
 
   const options = {
     tooltip: {
@@ -49,23 +61,15 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
     plotOptions: {
       bar: {
         borderRadius: 8,
-        distributed: true,
+        distributed: false,
         columnWidth: '51%',
         endingShape: 'rounded',
-        startingShape: 'rounded'
+        startingShape: 'rounded',
       }
     },
     legend: { show: false },
     dataLabels: { enabled: false },
-    colors: [
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 1),
-      hexToRGBA(theme.palette.primary.main, 1)
-    ],
+    colors: [theme.palette.primary.main, theme.palette.warning.main],
     states: {
       hover: {
         filter: { type: 'none' }
@@ -76,13 +80,18 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
     },
     series: [
       {
-        data: resObjByPlants2
+        name: 'Levantamientos',
+        data: chartData.map(item => item.query1),
+      },
+      {
+        name: 'Levantamientos activos',
+        data: chartData.map(item => item.query2),
       }
     ],
     xaxis: {
+      categories: chartData.map(item => item.initial),
       axisTicks: { show: false },
       axisBorder: { show: false },
-      categories: ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT'],
       labels: {
         style: {
           colors: theme.palette.text.disabled
@@ -110,13 +119,13 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
         <ReactApexcharts
           type='bar'
-          height={120}
+          height={150}
           options={options}
-          series={[{ name: 'Levantamientos', data: objetivesByPlants }]}
+          series={options.series}
         />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default ChartBarsObjetivesByPlants

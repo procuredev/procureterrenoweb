@@ -20,6 +20,12 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
   const theme = useTheme()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
 
+  const plural = word => {
+    if (word === 'OT') return 'Con y sin OT'
+
+    return ['a','e','i','o','u'].includes(word.charAt(word.length - 1)) ? word + 's' : word + 'es'
+  }
+
   const getFilterOptionsByType = type => {
     const optionsByType = Object.entries(filterConfig)
       .filter(([key, value]) => value.type === type && value.canSee.includes(authUser.role))
@@ -65,7 +71,7 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
             const optionGroupName = Object.keys(optionGroup)[0]
             const optionGroupData = optionGroup[optionGroupName]
 
-            if (optionGroupName === 'General' && optionGroupData.length === 0) {
+            if (optionGroupData.length === 0) {
               return null
             }
 
@@ -80,7 +86,7 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
                     onChange={e => handleFilterChange(optionGroupName, e.target.value)}
                   >
                     <MenuItem key={`all-${optionGroupName}`} value={''}>
-                      Cualquier {optionGroupName}
+                      {plural(optionGroupName)}
                     </MenuItem>
                     {optionGroupData.map(option => (
                       <MenuItem key={option.key} value={option.key}>
