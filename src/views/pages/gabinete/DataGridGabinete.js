@@ -193,7 +193,7 @@ const DataGridGabinete = () => {
             InputProps={{ readOnly: true }}
           />
         </Box>
-        <TableGabinete rows={blueprints ? blueprints : []} roleData={roleData} role={authUser.role} />
+        <TableGabinete rows={blueprints ? blueprints : []} roleData={roleData} role={authUser.role} petitionId={currentPetition? currentPetition.id : null} setBlueprintGenerated={setBlueprintGenerated} />
       </Box>
 
       <DialogAssignDesigner

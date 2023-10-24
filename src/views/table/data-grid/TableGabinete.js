@@ -20,9 +20,12 @@ import CardHeader from '@mui/material/CardHeader'
 import { DateRangePicker } from '@mui/lab'
 import { date } from 'yup/lib/locale'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import CloudDownloadOutlinedIcon from '@mui/icons-material/CloudDownloadOutlined';
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
+import TextField from '@mui/material/TextField'
 
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
@@ -35,25 +38,52 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import TableSpanning from 'src/views/table/mui/TableSpanning'
+import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 
-const TableGabinete = ({ rows, role, roleData }) => {
+const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated }) => {
   const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
+  const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState({})
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
   const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
-  const [draftmen, setDraftmen] = useState([])
+  const [descriptions, setDescriptions] = useState({});
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
+
+  const handleDescriptionChange = (id, value) => {
+    setDescriptions(prev => ({ ...prev, [id]: value }));
+  }
+
+  const handleSubmit = (id) => {
+    // Aquí debo implementar la lógica para actualizar el documento 'row' con el nuevo campo 'description'
+    // Una vez hecho eso, poder resetear la descripción para ese 'id'
+    setDescriptions(prev => {
+        const newState = { ...prev };
+        delete newState[id];
+
+        return newState;
+    });
+  }
 
   const handleClickOpen = doc => {
 
     setDoc(doc)
     setOpen(true)
+  }
+
+  const handleOpenUploadDialog = doc => {
+
+    setDoc(doc)
+    setOpenUploadDialog(true)
+  }
+
+  const handleCloseUploadDialog = () => {
+    setOpenUploadDialog(false)
   }
 
   const handleClickOpenEvents = doc => {
@@ -89,18 +119,6 @@ const TableGabinete = ({ rows, role, roleData }) => {
   const sm = useMediaQuery(theme.breakpoints.up('sm'))
   const md = useMediaQuery(theme.breakpoints.up('md'))
   const xl = useMediaQuery(theme.breakpoints.up('xl'))
-
-  //const resultProyectistas = getUserProyectistas(authUser.shift)
-
-  /* useEffect(() => {
-    // Busca el documento actualizado en rows
-    const updatedDoc = rows.find(row => row.id === doc.id)
-
-    // Actualiza el estado de doc con el documento actualizado
-    if (updatedDoc) {
-      setDoc(updatedDoc)
-    }
-  }, [rows]) */
 
   useEffect(() => {
     const fetchProyectistas = async () => {
@@ -152,14 +170,14 @@ const TableGabinete = ({ rows, role, roleData }) => {
       }
     },
     {
-      field: 'ot',
+      field: 'revision',
       headerName: 'REVISION',
       flex: 0.2,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
 
-        return <div>{row.ot || 'N/A'}</div>
+        return <div>{row.revision || 'N/A'}</div>
       }
     },
     {
@@ -174,36 +192,49 @@ const TableGabinete = ({ rows, role, roleData }) => {
       }
     },
     {
-      field: 'plant',
+      field: 'description',
       headerName: 'DESCRIPCION',
       flex: 0.4,
       minWidth: 120,
+      editable: true,
       renderCell: params => {
         const { row } = params
 
-        return <div>{row.plant || 'N/A'}</div>
+        if (!row.description) {
+          return (
+            <TextField label='Describir' id='size-small' value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />
+
+          );
+        }
+
+        return <div>{row.description || 'N/A'}</div>
+      }
+    },
+    {
+      field: 'start',
+      headerName: 'CARGAR ARCHIVO',
+      flex: 0.1,
+      minWidth: 90,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <IconButton onClick={() => handleOpenUploadDialog(row)}>
+            <CloudUploadOutlinedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        )
+
       }
     },
     {
       field: 'date',
-      headerName: 'CARGAR ARCHIVO',
+      headerName: 'Inicio',
       flex: 0.3,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
 
         return <div>{unixToDate(row.date.seconds)[0]}</div>
-      }
-    },
-    {
-      field: 'start',
-      headerName: 'Inicio',
-      flex: 0.1,
-      minWidth: 90,
-      renderCell: params => {
-        const { row } = params
-
-        return <div>{'Pendiente'}</div>
       }
     },
     {
@@ -214,10 +245,19 @@ const TableGabinete = ({ rows, role, roleData }) => {
       renderCell: params => {
         const { row } = params
 
+        if (descriptions[row.id]) {
+          return (
+              <button onClick={() => handleSubmit(rowData.id)}>
+                  Actualizar
+              </button>
+          );
+        }
+
         return <div>{'Pendiente'}</div>
       }
     },
-    {
+
+    /* {
       field: 'assign',
       headerName: 'Asignar',
       flex: 0.1,
@@ -340,7 +380,7 @@ const TableGabinete = ({ rows, role, roleData }) => {
           </>
         )
       }
-    }
+    } */
   ]
 
   return (
@@ -379,6 +419,16 @@ const TableGabinete = ({ rows, role, roleData }) => {
             doc={doc}
             roleData={roleData}
             editButtonVisible={false}
+          />
+        )}
+        {openUploadDialog && (
+          <UploadBlueprintsDialog
+            open={openUploadDialog}
+            handleClose={handleCloseUploadDialog}
+            doc={doc}
+            roleData={roleData}
+            petitionId={petitionId}
+            setBlueprintGenerated={setBlueprintGenerated}
           />
         )}
 
