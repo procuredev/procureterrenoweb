@@ -278,7 +278,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         {
           condition: approves && emergencyBySupervisor,
           newState: state.draftsman,
-          emergencyApprovedBySupervisor: true,
+          emergencyApprovedByContop: true,
           log: 'Emergencia aprobada por Contract Operator'
         },
         // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 1)
@@ -416,7 +416,7 @@ const updateDocs = async (id, approves, userParam) => {
   }
 
   if (userRole === 7 && newState === 8) {
-    changedFields.emergencyApprovedBySupervisor = prevState === 8 ? true : false
+    changedFields.emergencyApprovedByContop = prevState === 8 ? true : false
   }
 
   changedFields.state = newState

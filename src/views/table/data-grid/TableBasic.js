@@ -30,10 +30,9 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const { updateDocs, authUser } = useFirebase()
 
-  const findCurrentDoc = (rows) => {
+  const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
   }
-
 
   const handleClickOpen = doc => {
     setDoc(doc)
@@ -64,7 +63,13 @@ const TableBasic = ({ rows, role, roleData }) => {
 
     const hasPrevState = row.state === role - 1
     const createdBySupervisor = row.userRole === 7
-    const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === false && createdBySupervisor
+    
+    const isContopEmergency =
+      role === 3 &&
+      row.contop === authUser.displayName &&
+      row.state === 8 &&
+      row.emergencyApprovedByContop === false &&
+      createdBySupervisor
     const isMyRequest = authUser.uid === row.uid
     const isOwnReturned = isMyRequest && row.state === 1
     const hasOTEnd = row.ot && row.end
@@ -82,7 +87,9 @@ const TableBasic = ({ rows, role, roleData }) => {
       },
       3: {
         approve: hasPrevState || isOwnReturned || isContopEmergency,
-        edit: (isOwnReturned || hasPrevState || row.state === 6 || (isMyRequest && row.state === 3)) && !createdBySupervisor,
+        edit:
+          (isOwnReturned || hasPrevState || row.state === 6 || (isMyRequest && row.state === 3)) &&
+          !createdBySupervisor,
         reject: row.state <= 6 && !createdBySupervisor
       },
       4: {
@@ -119,10 +126,11 @@ const TableBasic = ({ rows, role, roleData }) => {
         approve: false,
         edit: false,
         reject: false
-      }}
+      }
+    }
 
     return dictionary[role]
-    }
+  }
 
   const theme = useTheme()
   const sm = useMediaQuery(theme.breakpoints.up('sm'))
@@ -265,7 +273,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Acciones',
       renderCell: params => {
         const { row } = params
-        const permissionsData = permissions(row, role);
+        const permissionsData = permissions(row, role)
         const canApprove = permissionsData.approve
         const canEdit = permissionsData.edit
         const canReject = permissionsData.reject
