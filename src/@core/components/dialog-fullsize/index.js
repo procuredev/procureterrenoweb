@@ -155,6 +155,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [files, setFiles] = useState([])
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
+  const [commentDialog, setCommentDialog] = useState(false)
+  const [comment, setComment] = useState('')
 
   const [hasChanges, setHasChanges] = useState({
     title: false,
@@ -452,7 +454,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     supervisorShift,
     userRole,
     petitioner,
-    fotos
+    fotos,
+    uid
   } = doc
 
   // Verifica estado
@@ -482,6 +485,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           <Box>
             <Box sx={{ position: 'fixed', bottom: '32px', right: '48px' }}>
               <Button
+                onClick={() => setCommentDialog(true)}
                 sx={{ position: 'relative', borderRadius: '50%', height: '64px', width: '64px' }}
                 variant='contained'
               >
@@ -771,6 +775,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
+      <Dialog open={commentDialog}>
+        <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
+        <DialogContent>
+          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline fullWidth />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => console.log('a')}>Enviar comentario</Button>
+          <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={!!message} aria-labelledby='message-dialog-title' aria-describedby='message-dialog-description'>
         <DialogTitle id='message-dialog-title'>Creando solicitud</DialogTitle>
         <DialogContent>
