@@ -173,7 +173,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -465,15 +465,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   return (
     <Dialog
-      sx={{ '& .MuiPaper-root': { maxWidth: '800px' } }}
-      fullScreen={fullScreen}
+      sx={{ '& .MuiPaper-root': { maxWidth: '800px', width: '100%' } }}
       open={open}
       onClose={() => handleClose()}
       TransitionComponent={Transition}
       scroll='body'
     >
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
+      <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
             <Skeleton />
@@ -485,17 +484,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           </Box>
         ) : (
           <Box>
-            <Box sx={{ position: 'fixed', bottom: '32px', right: '48px' }}>
-              <Button
-                onClick={() => setCommentDialog(true)}
-                sx={{ position: 'relative', borderRadius: '50%', height: '64px', width: '64px' }}
-                variant='contained'
-              >
-                <Tooltip placement='left-start' title='Agregar comentario'>
-                  <AddComment />
-                </Tooltip>
-              </Button>
-            </Box>
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
@@ -504,6 +492,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   sx={{ width: 'auto' }}
                 />
                 <Box>
+                  {canComment && (
+                    <Button onClick={() => setCommentDialog(true)} variant='outlined' sx={{ mx: 2 }}>
+                      Agregar Comentario
+                    </Button>
+                  )}
                   {/*Botón para editar*/}
                   {editButtonVisible && !isPlanner ? (
                     <IconButton
@@ -531,6 +524,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.title}
                   onChange={handleInputChange('title')}
                   required={true}
+                  multiline={true}
                 />
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
@@ -542,6 +536,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={areas}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Planta'
                   id='plant'
@@ -550,6 +546,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('plant')}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={
+                    areas
+                      .find(area => area.name === values?.plant)
+                      ?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0]) ||
+                    values?.area ||
+                    []
+                  }
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
@@ -595,10 +599,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {values.fotos ? (
                   <ListItem>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      <Typography component='div' sx={{ width: '30%' }}>
                         Archivos adjuntos
                       </Typography>
-                      <PhotoGallery photos={fotos} />
+                      <Box sx={{ width: '70%', display: 'inline-flex', justifyContent: 'space-between' }}>
+                        <PhotoGallery photos={fotos} />
+                      </Box>
                     </Box>
                   </ListItem>
                 ) : doc.user === authUser.displayName ? (
@@ -617,7 +623,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           >
                             <Box
                               sx={{
-                                pl: 2,
+                                pt: 5,
+                                pb: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: ['center'],
@@ -625,7 +632,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                               }}
                             >
                               <Icon icon='mdi:file-document-outline' />
-                              <Typography sx={{ mt: 5 }} color='textSecondary'>
+                              <Typography sx={{ mt: 5 }} align='center' color='textSecondary'>
                                 <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
                               </Typography>
                             </Box>
@@ -634,14 +641,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                         {files.length ? (
                           <Fragment>
                             <List>{fileList}</List>
-                            <div className='buttons'>
-                              <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
+                            <Box className='buttons' sx={{ alignSelf: 'center', textAlign: 'center' }}>
+                              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
                                 Quitar todo
                               </Button>
-                              <Button color='primary' sx={{ ml: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
+                              <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
                                 Subir archivos
                               </Button>
-                            </div>
+                            </Box>
                           </Fragment>
                         ) : null}
                       </Fragment>
@@ -669,6 +676,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               [2, 3, 4].includes(authUser.role)
                 ? eventData.map(element => {
                     const determineModificationType = element => {
+                      if (!element.newState) return 'Comentarios agregados'
+
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours
                       const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop
@@ -685,7 +694,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       return 'Aprobado'
                     }
 
-                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
+                    const status = element.newState === 0 ? 'Rechazado' : determineModificationType(element)
 
                     const result =
                       element.newState === 5 ? (
@@ -705,7 +714,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                   ? 'Procure'
                                   : element.userName}
                               </Typography>
-                              <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                              <Typography variant='body2'>
+                                {dictionary[element.newState]?.details || element.comment}
+                              </Typography>
                             </TimelineContent>
                           </TimelineItem>
                         </div>
@@ -716,6 +727,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 : // *** Mapea los eventos para los usuarios Procure ***
                   eventData.map(element => {
                     const determineModificationType = element => {
+                      if (!element.newState) return 'Comentarios agregados'
+
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours
                       const hasPreviousDoc = element.prevDoc
@@ -733,7 +746,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       return 'Aprobado'
                     }
 
-                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
+                    const status = element.newState === 0 ? 'Rechazado' : determineModificationType(element)
 
                     return (
                       <div key={element.date}>
@@ -748,7 +761,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                               {status} por {element.userName}
                             </Typography>
                             <Typography variant='body2'>
-                              {dictionary[element.newState]?.details || 'Detalles'}
+                              {dictionary[element.newState]?.details || element.comment}
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>
@@ -777,14 +790,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      <Dialog open={commentDialog}>
+      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>
-          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline fullWidth />
+          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline rows={5} fullWidth />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => console.log('a')}>Enviar comentario</Button>
           <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
+          <Button
+            onClick={() => {
+              setLoading(true), handleSubmitComment()
+            }}
+            disabled={loading}
+          >
+            Enviar comentario
+          </Button>
         </DialogActions>
       </Dialog>
 
