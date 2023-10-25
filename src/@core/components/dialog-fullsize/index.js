@@ -27,6 +27,7 @@ import {
   DialogContentText,
   DialogActions,
   DialogTitle,
+  Tooltip
 } from '@mui/material'
 
 import {
@@ -566,7 +567,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               <Button
               sx={{position:'relative', borderRadius:'50%', height: '64px', width: '64px'}}
               variant="contained">
+                  <Tooltip placement="left-start" title="Agregar comentario" >
                   <AddComment/>
+                  </Tooltip>
               </Button>
             </Box>
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
