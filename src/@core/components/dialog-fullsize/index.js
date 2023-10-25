@@ -171,7 +171,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -667,18 +667,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               [2, 3, 4].includes(authUser.role)
                 ? eventData.map(element => {
                     const determineModificationType = element => {
+                      if (!element.newState) return 'Comentarios agregados'
+
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours
                       const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop
                       const hasPreviousDoc = element.prevDoc
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
                       const isStateDecreased = element.newState < element.prevState
-
-                      if (isModifiedStart || isStateDecreased) return 'Modificado'
-                      if (isDraftmenAssigned) return 'Proyectistas asignados'
-                      if (isHoursEstablished) return 'Levantamiento finalizado'
-                      if (hasPreviousDoc) return 'Modificación aceptada'
-                      if (emergencyApprovedByContop) return 'Emergencia aprobada'
 
                       return 'Aprobado'
                     }
@@ -703,7 +699,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                   ? 'Procure'
                                   : element.userName}
                               </Typography>
-                              <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                              <Typography variant='body2'>
+                                {dictionary[element.newState]?.details || element.comment}
+                              </Typography>
                             </TimelineContent>
                           </TimelineItem>
                         </div>
@@ -714,6 +712,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 : // *** Mapea los eventos para los usuarios Procure ***
                   eventData.map(element => {
                     const determineModificationType = element => {
+                      if (!element.newState) return 'Comentarios agregados'
+
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours
                       const hasPreviousDoc = element.prevDoc
@@ -746,7 +746,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                               {status} por {element.userName}
                             </Typography>
                             <Typography variant='body2'>
-                              {dictionary[element.newState]?.details || 'Detalles'}
+                              {dictionary[element.newState]?.details || element.comment}
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>
@@ -781,7 +781,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           <TextField value={comment} onChange={e => setComment(e.target.value)} multiline fullWidth />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => console.log('a')}>Enviar comentario</Button>
+          <Button onClick={() => addComment(id, comment, authUser)}>Enviar comentario</Button>
           <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>

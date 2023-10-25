@@ -235,6 +235,22 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
   }
 }
 
+const addComment = async (id, comment, userParam) => {
+  let newEvent = {
+    user: userParam.email,
+    userName: userParam.displayName,
+    date: Timestamp.fromDate(new Date()),
+    comment
+  }
+  await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    .then(() => {
+      console.log('Comentario agregado')
+    })
+    .catch(err => {
+      console.error(err)
+    })
+}
+
 function getNextState(role, approves, latestEvent, userRole) {
   const state = {
     returned: 1,
@@ -478,23 +494,21 @@ const useBlueprints = id => {
         const allDocs = []
         setData([])
         docSnapshot.forEach(doc => {
+          const revisions = []
 
-        const revisions = []
-
-        onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
-          revisionSnapshot.forEach(revisionDoc => {
-            revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
+          onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
+            revisionSnapshot.forEach(revisionDoc => {
+              revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
+            })
           })
-        })
 
-        allDocs.push({ id: doc.id, ...doc.data(), revisions })
-        setData(allDocs)
-      })}
-      catch (error) {
+          allDocs.push({ id: doc.id, ...doc.data(), revisions })
+          setData(allDocs)
+        })
+      } catch (error) {
         console.error('Error al obtener los planos:', error)
       }
-    }
-    )
+    })
 
     return () => unsubscribe()
   }, [id])
@@ -523,7 +537,7 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
 
     function formatCount(count) {
       // Convierte el conteo a un string y rellena con ceros a la izquierda hasta que la longitud sea 5
-      return String(count).padStart(5, '0');
+      return String(count).padStart(5, '0')
     }
 
     function getShortDefinition(plantLongDef) {
@@ -648,11 +662,21 @@ const getNextRevision = async (
   approve,
   latestRevision,
   { role, email, displayName, uid },
-  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl, resumeBlueprint, userId, storageHlcDocuments },
+  {
+    revision,
+    description,
+    storageBlueprints,
+    approvedByClient,
+    approvedByContractAdmin,
+    approvedBySupervisor,
+    approvedByDocumentaryControl,
+    resumeBlueprint,
+    userId,
+    storageHlcDocuments
+  },
   remarks,
   hours,
-  investedHours,
-
+  investedHours
 ) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision
@@ -662,14 +686,14 @@ const getNextRevision = async (
 
   const nextChar = String.fromCharCode(nextCharCode)
 
- // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
+  // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
   if (role === 8 && approve) {
     // Define las acciones posibles
     const actions = {
-
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
       keepRevision: {
-        condition: () => revision.charCodeAt(0) >= 48 && approvedByClient === true && approvedByDocumentaryControl === false,
+        condition: () =>
+          revision.charCodeAt(0) >= 48 && approvedByClient === true && approvedByDocumentaryControl === false,
         action: () => (newRevision = revision)
       },
       incrementResume: {
@@ -678,16 +702,15 @@ const getNextRevision = async (
       },
       // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente, se resetea la revisión a '0'
       resetRevision: {
-        condition: () =>
-          revision.charCodeAt(0) >= 66 &&
-          approvedByClient === true,
+        condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === true,
         action: () => (newRevision = '0')
       },
       // * Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
       incrementRevision: {
         condition: () =>
-         (revision.charCodeAt(0) >= 66 || revision.charCodeAt(0) >= 48) &&
-          approvedByClient === false && approvedByDocumentaryControl === true,
+          (revision.charCodeAt(0) >= 66 || revision.charCodeAt(0) >= 48) &&
+          approvedByClient === false &&
+          approvedByDocumentaryControl === true,
         action: () => (newRevision = nextChar)
       },
       startRevision: {
@@ -707,12 +730,12 @@ const getNextRevision = async (
       }
     })
   } else if (role === 7 && approve && userId === uid) {
-     // Define las acciones posibles
-     const actions = {
-
+    // Define las acciones posibles
+    const actions = {
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
       keepRevision: {
-        condition: () => revision.charCodeAt(0) >= 48 && approvedByClient === true && approvedByDocumentaryControl === false,
+        condition: () =>
+          revision.charCodeAt(0) >= 48 && approvedByClient === true && approvedByDocumentaryControl === false,
         action: () => (newRevision = revision)
       },
       incrementResume: {
@@ -721,16 +744,15 @@ const getNextRevision = async (
       },
       // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente, se resetea la revisión a '0'
       resetRevision: {
-        condition: () =>
-          revision.charCodeAt(0) >= 66 &&
-          approvedByClient === true,
+        condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === true,
         action: () => (newRevision = '0')
       },
       // * Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
       incrementRevision: {
         condition: () =>
-         (revision.charCodeAt(0) >= 66 || revision.charCodeAt(0) >= 48) &&
-          approvedByClient === false && approvedByDocumentaryControl === true,
+          (revision.charCodeAt(0) >= 66 || revision.charCodeAt(0) >= 48) &&
+          approvedByClient === false &&
+          approvedByDocumentaryControl === true,
         action: () => (newRevision = nextChar)
       },
       startRevision: {
@@ -773,13 +795,21 @@ const getNextRevision = async (
 const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours, investedHours) => {
   // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
-  const solicitudRef = doc(db, 'solicitudes', petitionID);
+  const solicitudRef = doc(db, 'solicitudes', petitionID)
 
   // Obtiene la última revisión del plano
   const latestRevision = await getLatestRevision(petitionID, blueprint.id)
 
   // Calcula la próxima revisión del plano
-  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks, hours, investedHours)
+  const nextRevision = await getNextRevision(
+    approves,
+    latestRevision,
+    userParam,
+    blueprint,
+    remarks,
+    hours,
+    investedHours
+  )
 
   // Comprueba varias condiciones sobre el plano
   const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
@@ -808,21 +838,25 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
       storageBlueprints: approves ? blueprint.storageBlueprints : null
     }),
     7: (blueprint, authUser) => {
-      return (blueprint.userId === authUser.uid ? ({
-        ...updateData,
-        sentBySupervisor: approves,
-        approvedByContractAdmin: approves && blueprint.revision === 'iniciado'
-      }) : ({
-        ...updateData,
-        sentByDesigner: approves,
-        approvedBySupervisor: approves,
-        storageBlueprints: approves ? blueprint.storageBlueprints : null
-      }))
+      return blueprint.userId === authUser.uid
+        ? {
+            ...updateData,
+            sentBySupervisor: approves,
+            approvedByContractAdmin: approves && blueprint.revision === 'iniciado'
+          }
+        : {
+            ...updateData,
+            sentByDesigner: approves,
+            approvedBySupervisor: approves,
+            storageBlueprints: approves ? blueprint.storageBlueprints : null
+          }
     },
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
-      approvedBySupervisor: approves && blueprint.revision === 'iniciado' || (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl),
+      approvedBySupervisor:
+        (approves && blueprint.revision === 'iniciado') ||
+        (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl)
     }),
     9: () =>
       (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor
@@ -830,22 +864,37 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             ...updateData,
             approvedByClient: blueprint.blueprintCompleted ? false : approves,
             approvedByDocumentaryControl: approves,
-            storageBlueprints: approves && (!blueprint.blueprintCompleted && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  blueprint.storageBlueprints :  null,
-            resumeBlueprint: isApprovedByClient && blueprint.blueprintCompleted || blueprint.resumeBlueprint && blueprint.approvedByDocumentaryControl? true : false,
-            blueprintCompleted: approves && ((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
+            storageBlueprints:
+              approves &&
+              ((!blueprint.blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1))
+                ? blueprint.storageBlueprints
+                : null,
+            resumeBlueprint:
+              (isApprovedByClient && blueprint.blueprintCompleted) ||
+              (blueprint.resumeBlueprint && blueprint.approvedByDocumentaryControl)
+                ? true
+                : false,
+            blueprintCompleted:
+              approves &&
+              (((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient) ||
+                (!isApprovedByClient && isRevisionAtLeast1))
+                ? true
+                : false,
             sentByDesigner: false,
             sentBySupervisor: false,
             remarks: remarks ? true : false,
             storageHlcDocuments: null
           }
-        : isOverResumable ? {
+        : isOverResumable
+        ? {
             ...updateData,
             approvedByClient: false,
             approvedByDocumentaryControl: false,
             storageBlueprints: null,
             sentByDesigner: false,
             remarks: remarks ? true : false
-        } : {
+          }
+        : {
             ...updateData,
             approvedByDocumentaryControl: approves,
             sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0),
@@ -858,7 +907,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Aplica la acción correspondiente al rol del usuario
   updateData = roleActions[userParam.role] ? roleActions[userParam.role](blueprint, userParam) : updateData
 
-
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
 
@@ -866,76 +914,70 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 
   // Lee el documento de la 'solicitud'
-  const solicitudDoc = await getDoc(solicitudRef);
-  const blueprintDoc = await getDoc(blueprintRef);
+  const solicitudDoc = await getDoc(solicitudRef)
+  const blueprintDoc = await getDoc(blueprintRef)
 
   if (blueprintDoc.data().blueprintCompleted && blueprintDoc.data().resumeBlueprint === false) {
-
     // Si el documento no tiene un campo 'counterBlueprintCompleted', créalo
     if (!solicitudDoc.data().counterBlueprintCompleted) {
-      await updateDoc(solicitudRef, {counterBlueprintCompleted: 0});
+      await updateDoc(solicitudRef, { counterBlueprintCompleted: 0 })
     }
 
-    await updateDoc(solicitudRef, {counterBlueprintCompleted: increment(1)});
+    await updateDoc(solicitudRef, { counterBlueprintCompleted: increment(1) })
 
     // Obtiene la subcolección 'blueprints'
-    const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints');
+    const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints')
     // Obtiene todos los documentos de la subcolección
-    const blueprintsSnapshot = await getDocs(blueprintsCollection);
+    const blueprintsSnapshot = await getDocs(blueprintsCollection)
     // Obtiene la cantidad de documentos en la subcolección
-    const numBlueprints = blueprintsSnapshot.size;
+    const numBlueprints = blueprintsSnapshot.size
 
-
-    if(solicitudDoc.data().counterBlueprintCompleted === numBlueprints) {
-      await updateDoc(solicitudRef, {state: 9});
+    if (solicitudDoc.data().counterBlueprintCompleted === numBlueprints) {
+      await updateDoc(solicitudRef, { state: 9 })
     }
   }
-
-
-
-
 }
 
-const generateTransmittalCounter = async (currentPetition) => {
+const generateTransmittalCounter = async currentPetition => {
   try {
     // Referencia al documento de contador para la combinación específica dentro de la subcolección transmittals
-    const counterDocID = `${currentPetition.ot}-counter`;
-    const counterRef = doc(db, 'counters', 'transmittal_CounterByOt');
+    const counterDocID = `${currentPetition.ot}-counter`
+    const counterRef = doc(db, 'counters', 'transmittal_CounterByOt')
 
     // Incrementa el contador dentro de una transacción
     const incrementedCount = await runTransaction(db, async transaction => {
-      const counterSnapshot = await transaction.get(counterRef);
+      const counterSnapshot = await transaction.get(counterRef)
 
-      let currentCount;
+      let currentCount
       if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
-        currentCount = formatCount(1);
-        transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true });
+        currentCount = formatCount(1)
+        transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true })
       } else {
-        currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1);
-        transaction.update(counterRef, { [counterDocID]: { count: currentCount } });
+        currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1)
+        transaction.update(counterRef, { [counterDocID]: { count: currentCount } })
       }
 
-      return currentCount; // Retorna el nuevo contador para usarlo fuera de la transacción
-    });
+      return currentCount // Retorna el nuevo contador para usarlo fuera de la transacción
+    })
 
     const idProject = '21286'
 
     // Ahora, añade este contador al final de tu newCode
-    const newCode = `${idProject}-000-TT-${incrementedCount}`;
+    const newCode = `${idProject}-000-TT-${incrementedCount}`
 
-    return newCode;
+    return newCode
   } catch (error) {
-    console.error('Error al generar Transmittal:', error);
-    throw new Error('Error al generar Transmittal');
+    console.error('Error al generar Transmittal:', error)
+    throw new Error('Error al generar Transmittal')
   }
-};
+}
 
 const updateSelectedDocuments = async (newCode, selected, currentPetition, authUser) => {
   try {
     // Actualiza el campo lastTransmittal en cada uno de los documentos seleccionados
     for (const id of selected) {
-      const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0]);
-      await updateDoc(docRef, { lastTransmittal: newCode });
+      const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0])
+      await updateDoc(docRef, { lastTransmittal: newCode })
 
       const nextRevision = {
         prevRevision: id[1].revision,
@@ -948,17 +990,17 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
         date: Timestamp.fromDate(new Date()),
         remarks: 'transmittal generado',
         lastTransmittal: newCode,
-        storageHlcDocuments: id[1].storageHlcDocuments[0],
+        storageHlcDocuments: id[1].storageHlcDocuments[0]
       }
 
       // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
       await addDoc(collection(db, 'solicitudes', currentPetition.id, 'blueprints', id[0], 'revisions'), nextRevision)
     }
   } catch (error) {
-    console.error('Error al actualizar documentos seleccionados:', error);
-    throw new Error('Error al actualizar documentos seleccionados');
+    console.error('Error al actualizar documentos seleccionados:', error)
+    throw new Error('Error al actualizar documentos seleccionados')
   }
-};
+}
 
 export {
   newDoc,
@@ -972,4 +1014,5 @@ export {
   generateBlueprintCodeClient,
   generateTransmittalCounter,
   updateSelectedDocuments,
+  addComment
 }
