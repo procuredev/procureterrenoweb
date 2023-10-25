@@ -27,8 +27,6 @@ import {
   DialogContentText,
   DialogActions,
   DialogTitle,
-  Edit,
-  Close,
 } from '@mui/material'
 
 import {
@@ -42,7 +40,7 @@ import {
   timelineOppositeContentClasses,
 } from '@mui/lab'
 
-import { Download } from '@mui/icons-material'
+import { Download, Edit, Close } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
