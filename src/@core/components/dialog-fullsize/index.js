@@ -1,34 +1,36 @@
 import React, { Fragment, useState, useEffect } from 'react'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
+
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import Button from '@mui/material/Button'
-import Close from '@mui/icons-material/Close'
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogActions from '@mui/material/DialogActions'
-import DialogTitle from '@mui/material/DialogTitle'
-import Paper from '@mui/material/Paper'
-import Box from '@mui/system/Box'
-import TextField from '@mui/material/TextField'
-import Edit from '@mui/icons-material/Edit'
-import FormControl from '@mui/material/FormControl'
-import Chip from '@mui/material/Chip'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Slide from '@mui/material/Slide'
-import Skeleton from '@mui/material/Skeleton'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import { Download } from '@mui/icons-material'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import Link from '@mui/material/Link'
-import Icon from 'src/@core/components/icon'
-import Grid from '@mui/material/Grid'
-import DialogErrorFile from 'src/@core/components/dialog-errorFile'
-import { useDropzone } from 'react-dropzone'
+import {
+  Button,
+  Paper,
+  Box,
+  TextField,
+  FormControl,
+  Chip,
+  IconButton,
+  Typography,
+  Slide,
+  Skeleton,
+  List,
+  ListItem,
+  Link,
+  Grid,
+  Dialog,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  DialogTitle,
+  Edit,
+  Close,
+} from '@mui/material'
+
 import {
   Timeline,
   TimelineItem,
@@ -37,16 +39,19 @@ import {
   TimelineContent,
   TimelineDot,
   TimelineOppositeContent,
-  timelineOppositeContentClasses
+  timelineOppositeContentClasses,
 } from '@mui/lab'
-import { HeadingTypography } from 'src/@core/components/custom-form/index'
+
+import { Download } from '@mui/icons-material'
+import Icon from 'src/@core/components/icon'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 
-import moment from 'moment-timezone'
-import 'moment/locale/es'
+import { useDropzone } from 'react-dropzone'
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
