@@ -539,6 +539,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   return (
     <Dialog
+      sx={{ '& .MuiPaper-root': { maxWidth: '800px' } }}
       fullScreen={fullScreen}
       open={open}
       onClose={() => handleClose()}
