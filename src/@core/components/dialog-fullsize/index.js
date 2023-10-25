@@ -27,10 +27,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  DialogTitle,
-  Edit,
-  Close,
-  Download
+  DialogTitle
 } from '@mui/material'
 
 import {
