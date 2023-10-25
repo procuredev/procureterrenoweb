@@ -229,6 +229,23 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
   }
 }
 
+const addComment = async (id, comment, userParam) => {
+
+  let newEvent = {
+    user: userParam.email,
+    userName: userParam.displayName,
+    date: Timestamp.fromDate(new Date()),
+    comment
+  }
+  await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+  .then(() => {
+    console.log('Comentario agregado')
+  })
+  .catch((err) => {
+    console.error(err)
+  })
+}
+
 function getNextState(role, approves, latestEvent, userRole) {
   const state = {
     returned: 1,
@@ -455,4 +472,4 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase }
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, addComment }

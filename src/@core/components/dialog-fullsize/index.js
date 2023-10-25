@@ -258,7 +258,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -742,6 +742,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   eventData.map(element => {
 
                     const determineModificationType = (element) => {
+                      if (!element.newState) return 'Comentarios agregados'
+
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
                       const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop;
@@ -773,7 +775,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                         <Typography variant='body1'>
                           {status} por { [0, 1, 6, 10].includes(element.newState) && element.prevState === 5 ? 'Procure' : element.userName}
                         </Typography>
-                        <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                        <Typography variant='body2'>{dictionary[element.newState]?.details || element.comment}</Typography>
                       </TimelineContent>
                     </TimelineItem>
                   </div>
@@ -785,6 +787,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 eventData.map(element => {
 
                   const determineModificationType = (element) => {
+                    if (!element.newState) return 'Comentarios agregados'
+
                     const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
                     const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
                     const hasPreviousDoc = element.prevDoc;
@@ -814,7 +818,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           <Typography variant='body1'>
                             {status} por {element.userName}
                           </Typography>
-                          <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                          <Typography variant='body2'>{dictionary[element.newState]?.details || element.comment}</Typography>
                         </TimelineContent>
                       </TimelineItem>
                     </div>
@@ -853,7 +857,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={()=>console.log('a')}>Enviar comentario</Button>
+          <Button onClick={()=>addComment(id, comment, authUser)}>Enviar comentario</Button>
           <Button onClick={()=>setCommentDialog(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
