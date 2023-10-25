@@ -482,6 +482,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           </Box>
         ) : (
           <Box>
+            <Box sx={{ position: 'fixed', bottom: '32px', right: '48px' }}>
+              <Button
+                sx={{ position: 'relative', borderRadius: '50%', height: '64px', width: '64px' }}
+                variant='contained'
+              >
+                <AddComment />
+              </Button>
+            </Box>
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
