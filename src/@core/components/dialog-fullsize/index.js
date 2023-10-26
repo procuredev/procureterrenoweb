@@ -1,6 +1,7 @@
 import React, { Fragment, useState, useEffect } from 'react'
 import moment from 'moment-timezone'
 import 'moment/locale/es'
+
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -26,8 +27,12 @@ import {
   DialogContentText,
   DialogActions,
   DialogTitle,
-  Tooltip
+  Tooltip,
+  MenuItem,
+  InputLabel,
+  Select
 } from '@mui/material'
+
 import {
   Timeline,
   TimelineItem,
@@ -39,20 +44,149 @@ import {
   timelineOppositeContentClasses
 } from '@mui/lab'
 
-import { Download, Edit, Close, AddComment } from '@mui/icons-material'
+import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-import CustomListItem from 'src/@core/components/custom-list/index'
-import DateListItem from 'src/@core/components/custom-date/index'
 import { useDropzone } from 'react-dropzone'
+import areas from '../plants-areas'
+import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
+import { object } from 'yup'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
+
+const StyledFormControl = props => (
+  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
+)
+
+function CustomListItem({
+  editable,
+  label,
+  id,
+  value,
+  onChange,
+  disabled = false,
+  required = false,
+  multiline = false,
+  selectable = false,
+  options = [],
+  initialValue
+}) {
+  return (
+    <>
+      {editable ? (
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+            {selectable ? (
+              <>
+                <InputLabel variant='standard'>
+                  {label} {required && <span>*</span>}
+                </InputLabel>
+                <Select
+                  id={`${id}-input`}
+                  defaultValue={initialValue}
+                  disabled={disabled}
+                  required={required}
+                  value={value}
+                  size='small'
+                  variant='standard'
+                  fullWidth={true}
+                  onChange={onChange}
+                >
+                  {options &&
+                    options.map(option => {
+                      return (
+                        <MenuItem key={option.name || option} value={option.name || option}>
+                          {option.name || option}
+                        </MenuItem>
+                      )
+                    })}
+                </Select>
+              </>
+            ) : (
+              <TextField
+                onChange={onChange}
+                label={label}
+                id={`${id}-input`}
+                defaultValue={initialValue}
+                disabled={disabled}
+                required={required}
+                value={value}
+                size='small'
+                variant='standard'
+                fullWidth={true}
+                multiline={multiline}
+              />
+            )}
+          </StyledFormControl>
+        </ListItem>
+      ) : (
+        initialValue && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
+      )}
+    </>
+  )
+}
+
+function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
+  return (
+    <>
+      {editable ? (
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+              <DatePicker
+                dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                minDate={customMinDate || moment().subtract(1, 'year')}
+                maxDate={moment().add(1, 'year')}
+                label={label}
+                value={value}
+                onChange={onChange}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    required: true,
+                    variant: 'standard',
+                    fullWidth: true
+                  }
+                }}
+              />
+            </LocalizationProvider>
+          </StyledFormControl>
+        </ListItem>
+      ) : (
+        initialValue &&
+        initialValue.seconds && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue && unixToDate(initialValue.seconds)[0]}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
+      )}
+    </>
+  )
+}
 
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
 function getIconForFileType(filePath) {
@@ -125,25 +259,47 @@ const PhotoItem = ({ photoUrl }) => {
   )
 }
 
-const PhotoGallery = ({ photos }) => (
-  <Box
-    sx={{
-      display: 'flex',
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      overflow: 'auto',
-      height: '140px',
-      width: '70%',
-      justifyContent: 'space-evently'
-    }}
-  >
-    {photos.map((fotoUrl, index) => (
-      <PhotoItem key={index} photoUrl={fotoUrl} />
-    ))}
-  </Box>
-)
+const PhotoGallery = ({ photos }) => {
+  const theme = useTheme()
+  let isOverflowing = document.getElementById('gallery')?.scrollWidth > document.getElementById('gallery')?.clientWidth
 
-export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
+  return (
+    <Box sx={{ display: 'contents' }}>
+      <IconButton
+        sx={{ my: 'auto', display: !isOverflowing && 'none' }}
+        onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}
+      >
+        <ChevronLeft />
+      </IconButton>
+      <Box
+        id='gallery'
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          height: '140px',
+          overflow: 'auto',
+          scrollBehavior: 'smooth',
+          '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
+          '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
+          '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
+        }}
+      >
+        {photos.map((fotoUrl, index) => (
+          <PhotoItem key={index} photoUrl={fotoUrl} />
+        ))}
+      </Box>
+      <IconButton
+        sx={{ my: 'auto', display: !isOverflowing && 'none' }}
+        onClick={() => (document.getElementById('gallery').scrollLeft += 200)}
+      >
+        <ChevronRight />
+      </IconButton>
+    </Box>
+  )
+}
+
+export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
   let isPlanner = roleData && roleData.id === '5'
 
   const [values, setValues] = useState({})
@@ -157,6 +313,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [errorDialog, setErrorDialog] = useState(false)
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const [hasChanges, setHasChanges] = useState({
     title: false,
@@ -172,7 +329,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
-  const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
+  const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
   const PetitionerContactComponent = () => (
@@ -235,9 +392,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         // Ya viene con end u ot
       } else if (end && ot && state === 4) {
+        setLoading(true)
         await updateDocs(id, true, authUser)
-          .then(handleClose())
+          .then(() => {
+            handleClose()
+            setLoading(false)
+          })
           .catch(error => {
+            setLoading(false)
             alert(error), console.log(error)
           })
 
@@ -260,7 +422,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
   }
 
-  const writeCallback = () => {
+  const writeCallback = async () => {
     const newData = {}
 
     for (const key in values) {
@@ -270,7 +432,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
 
     if (Object.keys(newData).length > 0) {
-      updateDocs(id, newData, authUser)
+      setLoading(true)
+      await updateDocs(id, newData, authUser)
+        .then(() => {
+          setLoading(false)
+        })
+        .catch(error => {
+          setLoading(false)
+          alert(error), console.log(error)
+        })
     } else {
       console.log('No se escribió ningún documento')
     }
@@ -284,12 +454,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const handleSubmitComment = async () => {
+    if (loading || !comment) return
     await addComment(id, comment, authUser)
       .then(() => {
+        setLoading(false)
         setComment('')
         setCommentDialog(false)
       })
       .catch(error => {
+        setLoading(false)
         alert(error), console.error(error)
       })
   }
@@ -389,7 +562,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const fileList = (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{ p: 4, justifyContent: 'center' }}>
       {files.map(file => (
         <Grid item key={file.name}>
           <Paper
@@ -474,15 +647,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   return (
     <Dialog
-      sx={{ '& .MuiPaper-root': { maxWidth: '800px' } }}
-      fullScreen={fullScreen}
+      sx={{ '& .MuiPaper-root': { maxWidth: '800px', width: '100%' } }}
       open={open}
       onClose={() => handleClose()}
       TransitionComponent={Transition}
       scroll='body'
     >
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
+      <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
             <Skeleton />
@@ -494,17 +666,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           </Box>
         ) : (
           <Box>
-            <Box sx={{ position: 'fixed', bottom: '32px', right: '48px' }}>
-              <Button
-                onClick={() => setCommentDialog(true)}
-                sx={{ position: 'relative', borderRadius: '50%', height: '64px', width: '64px' }}
-                variant='contained'
-              >
-                <Tooltip placement='left-start' title='Agregar comentario'>
-                  <AddComment />
-                </Tooltip>
-              </Button>
-            </Box>
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
@@ -513,6 +674,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   sx={{ width: 'auto' }}
                 />
                 <Box>
+                  {canComment && (
+                    <Button onClick={() => setCommentDialog(true)} variant='outlined' sx={{ mx: 2 }}>
+                      Agregar Comentario
+                    </Button>
+                  )}
                   {/*Botón para editar*/}
                   {editButtonVisible && !isPlanner ? (
                     <IconButton
@@ -540,6 +706,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.title}
                   onChange={handleInputChange('title')}
                   required={true}
+                  multiline={true}
                 />
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
@@ -551,6 +718,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={areas}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Planta'
                   id='plant'
@@ -559,6 +728,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('plant')}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={
+                    areas
+                      .find(area => area.name === values?.plant)
+                      ?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0]) ||
+                    values?.area ||
+                    []
+                  }
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
@@ -604,10 +781,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {values.fotos ? (
                   <ListItem>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      <Typography component='div' sx={{ width: '30%' }}>
                         Archivos adjuntos
                       </Typography>
-                      <PhotoGallery photos={fotos} />
+                      <Box sx={{ width: '70%', display: 'inline-flex', justifyContent: 'space-between' }}>
+                        <PhotoGallery photos={fotos} />
+                      </Box>
                     </Box>
                   </ListItem>
                 ) : doc.user === authUser.displayName ? (
@@ -626,7 +805,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           >
                             <Box
                               sx={{
-                                pl: 2,
+                                pt: 5,
+                                pb: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: ['center'],
@@ -634,7 +814,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                               }}
                             >
                               <Icon icon='mdi:file-document-outline' />
-                              <Typography sx={{ mt: 5 }} color='textSecondary'>
+                              <Typography sx={{ mt: 5 }} align='center' color='textSecondary'>
                                 <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
                               </Typography>
                             </Box>
@@ -643,14 +823,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                         {files.length ? (
                           <Fragment>
                             <List>{fileList}</List>
-                            <div className='buttons'>
-                              <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
+                            <Box className='buttons' sx={{ alignSelf: 'center', textAlign: 'center' }}>
+                              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
                                 Quitar todo
                               </Button>
-                              <Button color='primary' sx={{ ml: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
+                              <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
                                 Subir archivos
                               </Button>
-                            </div>
+                            </Box>
                           </Fragment>
                         ) : null}
                       </Fragment>
@@ -687,10 +867,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
                       const isStateDecreased = element.newState < element.prevState
 
+                      if (isModifiedStart || isStateDecreased) return 'Modificado'
+                      if (isDraftmenAssigned) return 'Proyectistas asignados'
+                      if (isHoursEstablished) return 'Levantamiento finalizado'
+                      if (hasPreviousDoc) return 'Modificación aceptada'
+                      if (emergencyApprovedByContop) return 'Emergencia aprobada'
+
                       return 'Aprobado'
                     }
 
-                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
+                    const status = element.newState === 0 ? 'Rechazado' : determineModificationType(element)
 
                     const result =
                       element.newState === 5 ? (
@@ -742,7 +928,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       return 'Aprobado'
                     }
 
-                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
+                    const status = element.newState === 0 ? 'Rechazado' : determineModificationType(element)
 
                     return (
                       <div key={element.date}>
@@ -786,14 +972,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      <Dialog open={commentDialog}>
+      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>
-          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline fullWidth />
+          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline rows={5} fullWidth />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => handleSubmitComment()}>Enviar comentario</Button>
           <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
+          <Button
+            onClick={() => {
+              setLoading(true), handleSubmitComment()
+            }}
+            disabled={loading}
+          >
+            Enviar comentario
+          </Button>
         </DialogActions>
       </Dialog>
 
