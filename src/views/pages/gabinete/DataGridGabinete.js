@@ -47,6 +47,8 @@ const DataGridGabinete = () => {
     )
   }
 
+
+
   const handleClickOpenCodeGenerator = doc => {
     setOpenCodeGenerator(true)
   }
@@ -86,16 +88,17 @@ const DataGridGabinete = () => {
       if (blueprintGenerated) {
         const resBlueprints = await getBlueprints(currentPetition.id)
         if (resBlueprints) {
-          console.log("resBlueprints", resBlueprints)
           setBlueprints(resBlueprints)
           // Reset flags
           setBlueprintGenerated(false)
         }
+
       }
 
       if (currentPetition) {
         const resBlueprints = await getBlueprints(currentPetition.id)
-        setBlueprints(resBlueprints)
+        const filteredBlueprints = resBlueprints.filter(item => item.sendByDesigner === true)
+        authUser.role === 9 ? setBlueprints(filteredBlueprints) : setBlueprints(resBlueprints)
       }
     }
     fetchData()

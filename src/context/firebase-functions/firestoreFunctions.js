@@ -556,7 +556,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
 
  const updateBlueprint = async (petitionID, blueprintId, description, approve, userParam) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprintId)
-  await updateDoc(ref, { description:description, sended: true, sendedTime: Timestamp.fromDate(new Date()) })
+  await updateDoc(ref, { description:description, sendByDesigner: true, sendedTime: Timestamp.fromDate(new Date()) })
  }
 
 export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints, updateBlueprint }

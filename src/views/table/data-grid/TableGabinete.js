@@ -282,7 +282,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
                     <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
                   </Button>
                 </>
-              ) : row.sended === true ? (
+              ) : row.sendByDesigner === true ? (
                 'Enviado'
               ) : (
                 'Pendiente'
@@ -313,7 +313,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
                   </Container>
                 </Select>
               </>
-            ) : row.sended === true ? (
+            ) : row.sendByDesigner === true ? (
               'Enviado'
             ) : (
               'Pendiente'
