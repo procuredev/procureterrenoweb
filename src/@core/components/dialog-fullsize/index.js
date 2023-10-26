@@ -285,6 +285,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     setEditable(false)
   }
 
+  const handleSubmitComment = async () => {
+    await addComment(id, comment, authUser)
+      .then(() => {
+        setComment('')
+        setCommentDialog(false)
+      })
+      .catch(error => {
+        alert(error), console.error(error)
+      })
+  }
+
   // Función onchange utilizando currying
   const handleInputChange = field => event => {
     const fieldValue = event.target.value
