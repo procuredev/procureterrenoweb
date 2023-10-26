@@ -63,7 +63,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
     const hasPrevState = row.state === role - 1
     const createdBySupervisor = row.userRole === 7
-    
+
     const isContopEmergency =
       role === 3 &&
       row.contop === authUser.displayName &&
@@ -386,6 +386,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             doc={findCurrentDoc(rows)}
             roleData={roleData}
             editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
+            canComment={authUser.role === 7}
           />
         )}
       </Box>
