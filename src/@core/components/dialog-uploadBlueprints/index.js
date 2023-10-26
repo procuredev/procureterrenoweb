@@ -391,13 +391,13 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
     try {
       await uploadFilesToFirebaseStorage(files, doc.id, 'blueprints', petitionId)
       setBlueprintGenerated(true)
+      setFiles([])
     } catch (error) {
       console.log(error)
     }
   }
 
   const handleRemoveAllFiles = () => {
-    setFiles
     setFiles([])
   }
 
@@ -442,15 +442,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                 onChange={handleInputChange('id')}
                 required={true}
               />
-              <CustomListItem
-                editable={true}
-                label='Descripción'
-                id='desc'
-                initialValue={description}
-                value={values.description}
-                onChange={handleInputChange('description')}
-                multiline={true}
-              />
+
 
               {doc.storageBlueprints ? (
                 <>

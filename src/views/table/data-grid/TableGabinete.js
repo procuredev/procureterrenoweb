@@ -52,6 +52,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const [approve, setApprove] = useState(true)
   const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
   const [descriptions, setDescriptions] = useState({});
+  const [currentRow, setCurrentRow] = useState(null);
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -70,14 +71,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     });
   }
 
-  const handleClickOpen = doc => {
+   const handleClickOpen = doc => {
 
     setDoc(doc)
     setOpen(true)
   }
 
   const handleOpenUploadDialog = doc => {
-
+    setCurrentRow(doc.id)
     setDoc(doc)
     setOpenUploadDialog(true)
   }
@@ -129,6 +130,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
 
     fetchProyectistas()
   }, [authUser.shift])
+
+  useEffect(() => {
+    if(currentRow){
+      const filterRow = rows.find(rows => rows.id === currentRow)
+      setDoc(filterRow)
+      setOpenUploadDialog(true)
+    }
+  }, [rows])
 
 
   const columns = [
@@ -196,13 +205,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
       headerName: 'DESCRIPCION',
       flex: 0.4,
       minWidth: 120,
-      editable: true,
+      //editable: true,
       renderCell: params => {
         const { row } = params
 
         if (!row.description) {
           return (
-            <TextField label='Describir' id='size-small' value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />
+            <TextField label='Describir' id='size-small' disabled={row.userId !== authUser.uid} value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />
 
           );
         }
@@ -212,15 +221,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     },
     {
       field: 'start',
-      headerName: 'CARGAR ARCHIVO',
+      headerName: 'CARGAR ENTREGABLE',
       flex: 0.1,
-      minWidth: 90,
+      minWidth: 150,
       renderCell: params => {
         const { row } = params
 
         return (
-          <IconButton onClick={() => handleOpenUploadDialog(row)}>
-            <CloudUploadOutlinedIcon sx={{ fontSize: 18 }} />
+          <IconButton onClick={row.userId === authUser.uid ? () => handleOpenUploadDialog(row) : null}>
+            <CloudUploadOutlinedIcon color={row.storageBlueprints ? 'primary' :'secondary'} sx={{ fontSize: 18 }} />
           </IconButton>
         )
 

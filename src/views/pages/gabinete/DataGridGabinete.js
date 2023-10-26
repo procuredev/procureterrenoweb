@@ -43,7 +43,7 @@ const DataGridGabinete = () => {
 
   if (authUser.role === 8) {
     petitions = petitions.filter(petition =>
-      petition.designerReview?.map(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
+      petition.designerReview?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
     )
   }
 
@@ -92,13 +92,14 @@ const DataGridGabinete = () => {
           setBlueprintGenerated(false)
         }
       }
+
       if (currentPetition) {
         const resBlueprints = await getBlueprints(currentPetition.id)
         setBlueprints(resBlueprints)
       }
     }
     fetchData()
-  }, [blueprintGenerated, currentPetition])
+  }, [blueprintGenerated, currentPetition,])
 
   return (
     <Box display={'flex'}>

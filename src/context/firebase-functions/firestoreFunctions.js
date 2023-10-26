@@ -542,7 +542,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
 
       const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode);
       const docSnapshot = await getDoc(docRef);
-      await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, storageBlueprints:[], revision: 'iniciado', description:'', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
+      await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, revision: 'iniciado', description:'', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
 
       console.log("newCode:", newCode)
 
