@@ -457,6 +457,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             doc={findCurrentDoc(rows)}
             roleData={roleData}
             editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
+            canComment={authUser.role === 7}
           />
         )}
       </Box>
