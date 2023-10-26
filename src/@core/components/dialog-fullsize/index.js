@@ -283,6 +283,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     setEditable(false)
   }
 
+  const handleSubmitComment = async () => {
+    await addComment(id, comment, authUser)
+      .then(() => {
+        setComment('')
+        setCommentDialog(false)
+      })
+      .catch(error => {
+        alert(error), console.error(error)
+      })
+  }
+
   // Función onchange utilizando currying
   const handleInputChange = field => event => {
     const fieldValue = event.target.value
@@ -781,7 +792,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           <TextField value={comment} onChange={e => setComment(e.target.value)} multiline fullWidth />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => addComment(id, comment, authUser)}>Enviar comentario</Button>
+          <Button onClick={() => handleSubmitComment()}>Enviar comentario</Button>
           <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
