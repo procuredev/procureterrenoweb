@@ -230,7 +230,7 @@ const PhotoGallery = ({ photos }) => (
   </Box>
 )
 
-export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
+export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment=false }) => {
   let isPlanner = roleData && roleData.id === '5'
 
   const [values, setValues] = useState({})
@@ -577,7 +577,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           </Box>
         ) : (
           <Box>
-            <Box sx={{position:'fixed', bottom:'32px', right:'48px'}}>
+            {canComment && <Box sx={{position:'fixed', bottom:'32px', right:'48px'}}>
               <Button
               onClick={() => setCommentDialog(true)}
               sx={{position:'relative', borderRadius:'50%', height: '64px', width: '64px'}}
@@ -586,7 +586,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   <AddComment/>
                   </Tooltip>
               </Button>
-            </Box>
+            </Box>}
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
