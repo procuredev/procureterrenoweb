@@ -23,7 +23,7 @@ import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import CloudDownloadOutlinedIcon from '@mui/icons-material/CloudDownloadOutlined';
 import { Container } from '@mui/system'
-import AlertDialog from 'src/@core/components/dialog-warning'
+import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import TextField from '@mui/material/TextField'
 
@@ -39,6 +39,7 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import TableSpanning from 'src/views/table/mui/TableSpanning'
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
+import { async } from '@firebase/util'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated }) => {
   const [options, setOptions] = useState('')
@@ -50,7 +51,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
+  const { updateDocs, authUser, getUserData, getUserProyectistas, updateBlueprint } = useFirebase()
   const [descriptions, setDescriptions] = useState({});
   const [currentRow, setCurrentRow] = useState(null);
 
@@ -107,9 +108,23 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     setApprove(isApproved)
   }
 
-  const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
+  const handleClickOpenDone = doc => {
+
+    setDoc(doc)
+    setOpenDone(true)
+  }
+  console.log("descriptions: ", descriptions)
+
+  const writeCallback = async () => {
+    await updateBlueprint(petitionId, doc.id, descriptions[doc.id], approve, authUser)
     setOpenAlert(false)
+    setDescriptions(prev => {
+      const newState = { ...prev };
+      delete newState[doc.id];
+
+      return newState;
+  });
+    setBlueprintGenerated(true)
   }
 
   const handleCloseAlert = () => {
@@ -210,10 +225,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
         const { row } = params
 
         if (!row.description) {
-          return (
-            <TextField label='Describir' id='size-small' disabled={row.userId !== authUser.uid} value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />
+          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />) : ('')
 
-          );
+          return isEditableField;
         }
 
         return <div>{row.description || 'N/A'}</div>
@@ -254,15 +268,58 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
       renderCell: params => {
         const { row } = params
 
-        if (descriptions[row.id]) {
-          return (
-              <button onClick={() => handleSubmit(rowData.id)}>
-                  Actualizar
-              </button>
-          );
-        }
-
-        return <div>{'Pendiente'}</div>
+        return (
+          <>
+            {md ? (
+              row.userId === authUser.uid && (descriptions[row.id] && descriptions[row.id].length > 6) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+                <>
+                  <Button
+                    onClick={role === 8 ? () => handleClickOpenAlert(row, true) : null}
+                    variant='contained'
+                    color='success'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
+                  </Button>
+                </>
+              ) : row.sended === true ? (
+                'Enviado'
+              ) : (
+                'Pendiente'
+              )
+            ) : row.userId === authUser.uid && descriptions[row.id].length > 6 && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+              <>
+                <Select
+                  labelId='demo-simple-select-label'
+                  id='demo-simple-select'
+                  size='small'
+                  IconComponent={() => <MoreHorizIcon />}
+                  sx={{
+                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                  }}
+                >
+                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Button
+                      onClick={role === 8 ? () => handleClickOpenAlert(row, true) : null}
+                      variant='contained'
+                      color='success'
+                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                    >
+                      <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
+                    </Button>
+                  </Container>
+                </Select>
+              </>
+            ) : row.sended === true ? (
+              'Enviado'
+            ) : (
+              'Pendiente'
+            )}
+          </>
+        )
       }
     },
 
@@ -410,12 +467,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           sortingModel={defaultSortingModel}
         />
-        <AlertDialog
+        <AlertDialogGabinete
           open={openAlert}
           handleClose={handleCloseAlert}
           callback={writeCallback}
           approves={approve}
-        ></AlertDialog>
+        ></AlertDialogGabinete>
         {loadingProyectistas ? (
           <p>Loading...</p>
         ) : (

@@ -21,6 +21,8 @@ import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 import { getUnixTime } from 'date-fns'
+import { async } from '@firebase/util'
+import { timestamp } from '@antfu/utils'
 
 // ** Librería para manejar fechas
 const moment = require('moment')
@@ -552,4 +554,9 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     }
 }
 
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints }
+ const updateBlueprint = async (petitionID, blueprintId, description, approve, userParam) => {
+  const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprintId)
+  await updateDoc(ref, { description:description, sended: true, sendedTime: Timestamp.fromDate(new Date()) })
+ }
+
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints, updateBlueprint }

@@ -25,6 +25,7 @@ import {
   blockDayInDatabase,
   generateBlueprint,
   getBlueprints,
+  updateBlueprint,
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -104,7 +105,8 @@ const FirebaseContextProvider = props => {
     generateBlueprint,
     getBlueprints,
     fetchPetitionById,
-    fetchPlaneProperties
+    fetchPlaneProperties,
+    updateBlueprint,
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
