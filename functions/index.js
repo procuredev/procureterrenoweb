@@ -278,13 +278,6 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
           .where('role', '==', 7)
           .get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
 
-        console.log("Turno: " + typeof(supervisorWork.supervisorShift))
-        console.log("Turno: " + supervisorWork.supervisorShift)
-        console.log("Turno: " + supervisorWork.supervisorShift[0])
-        console.log(supervisorSnapshot)
-        console.log("Supervisores:" + supervisorSnapshot.docs)
-        console.log("Supervisor: " + supervisorSnapshot.docs[0])
-        console.log("Datos Sueprvisor:" + supervisorSnapshot? supervisorSnapshot.docs[0].data() : "asdasdsa")
         const supervisorData = supervisorSnapshot.docs[0].data() // Se almacena en una constante los datos del Supervisor
         const supervisorEmail = supervisorData.email // Se almacena el e-mail del Supervisor
         const supervisorName = supervisorData.name // Se almacena el e-mail del Supervisor
