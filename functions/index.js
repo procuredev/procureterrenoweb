@@ -30,7 +30,7 @@ admin.initializeApp()
 
 const getSupervisorData = async shift => {
   // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', '==', shift))
+  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', 'array-contains', shift))
 
   try {
     const querySnapshot = await getDocs(q)
@@ -131,13 +131,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub
 
               // Se almacenan las constantes a usar en el email
               const userName = requirementData.user
-              const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString('es-CL', {
-                timeZone: 'America/Santiago'
-              })} a las ${fechaCompleta.toLocaleTimeString('es-CL', {
-                timeZone: 'America/Santiago'
-              })}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${
-                requirementData.contop
-              } modificó la fecha del levantamiento`
+              const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString('es-CL', {timeZone: 'America/Santiago'})} a las ${fechaCompleta.toLocaleTimeString('es-CL', {timeZone: 'America/Santiago'})}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${requirementData.contop} modificó la fecha del levantamiento`
               const requestNumber = requirementData.n_request
               const title = requirementData.title
               const engineering = requirementData.engineering ? 'Si' : 'No'
@@ -147,10 +141,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub
               const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString('es-CL') : 'Por definir'
               const plant = requirementData.plant
               const area = requirementData.area ? requirementData.area : 'No indicado'
-              const functionalLocation =
-                requirementData.fnlocation && requirementData.fnlocation !== ''
-                  ? requirementData.fnlocation
-                  : 'No indicado'
+              const functionalLocation = requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
               const contractOperator = requirementData.contop
               const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
               const sapNumber = requirementData.sap && requirementData.sap !== '' ? requirementData.sap : 'No indicado'
@@ -213,8 +204,8 @@ exports.checkDatabaseEveryOneHour = functions.pubsub
   })
 
 // * Función que revisa la base de datos todos los días a las 8AM
-exports.sendInfoToSupervisorAt8AM = functions.pubsub
-  .schedule('every day 07:45')
+exports.sendInfoToSupervisorAt5PM = functions.pubsub
+  .schedule('every day 17:00')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
@@ -222,10 +213,11 @@ exports.sendInfoToSupervisorAt8AM = functions.pubsub
     const today = new Date(now) // Se almacena la fecha de hoy, ajustando la hora a medianoche
     today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000) // Se almacena la fecha de mañana, ajustando la fecha al día siguiente
+    const afterTomorrow = new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) // Se almacena la fecha de mañana, ajustando la fecha al día siguiente
 
     const requestsRef = admin.firestore().collection('solicitudes') // Se llama a la referencia de Solicitudes
 
-    const requestsSnapshot = await requestsRef.where('start', '>=', today).where('start', '<', tomorrow).get() // Busca documentos cuya fecha de inicio sea hoy
+    const requestsSnapshot = await requestsRef.where('start', '>=', tomorrow).where('start', '<', afterTomorrow).get() // Busca documentos cuya fecha de inicio sea hoy
 
     const requestsDocs = requestsSnapshot.docs
       .filter(doc => 'supervisorShift' in doc.data())
@@ -282,15 +274,23 @@ exports.sendInfoToSupervisorAt8AM = functions.pubsub
         const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
 
         const supervisorSnapshot = await usersRef
-          .where('shift', '==', supervisorWork.supervisorShift)
+          .where('shift', 'array-contains', supervisorWork.supervisorShift)
           .where('role', '==', 7)
           .get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
+
+        console.log("Turno: " + typeof(supervisorWork.supervisorShift))
+        console.log("Turno: " + supervisorWork.supervisorShift)
+        console.log("Turno: " + supervisorWork.supervisorShift[0])
+        console.log(supervisorSnapshot)
+        console.log("Supervisores:" + supervisorSnapshot.docs)
+        console.log("Supervisor: " + supervisorSnapshot.docs[0])
+        console.log("Datos Sueprvisor:" + supervisorSnapshot? supervisorSnapshot.docs[0].data() : "asdasdsa")
         const supervisorData = supervisorSnapshot.docs[0].data() // Se almacena en una constante los datos del Supervisor
         const supervisorEmail = supervisorData.email // Se almacena el e-mail del Supervisor
         const supervisorName = supervisorData.name // Se almacena el e-mail del Supervisor
 
         const drawmansSnapshot = await usersRef
-          .where('shift', '==', supervisorWork.supervisorShift)
+          .where('shift', 'array-contains', supervisorWork.supervisorShift)
           .where('role', '==', 8)
           .get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
         const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
@@ -337,10 +337,10 @@ exports.sendInfoToSupervisorAt8AM = functions.pubsub
           date: now,
           emailType: 'supervisorDailyTasks',
           message: {
-            subject: `Resumen de hoy ${today.toLocaleDateString('es-CL')} - ${supervisorName}`,
+            subject: `Resumen de mañana ${today.toLocaleDateString('es-CL')} - ${supervisorName}`,
             html: `
               <h2>Estimad@ ${supervisorName}:</h2>
-              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para hoy. A continuación se presenta el detalle de cada una de ellos:</p>
+              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para mañana. A continuación se presenta el detalle de cada una de ellos:</p>
                 ${tasksHtml}
               <p>Para mayor información revise la solicitud en nuestra página web</p>
               <p>Saludos,<br>Prosite</p>
