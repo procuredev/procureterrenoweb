@@ -492,6 +492,10 @@ const getBlueprints = async id => {
   return allBlueprints
 }
 
+function formatCount(count) {
+  return String(count).padStart(3, '0');
+}
+
 const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
     try {
       const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
@@ -529,10 +533,10 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
         const counterSnapshot = await transaction.get(counterRef);
         let newCount;
         if (!counterSnapshot.exists()) {
-          newCount = 1;
+          newCount = formatCount(1);
           transaction.set(counterRef, { count: newCount });
         } else {
-          newCount = counterSnapshot.data().count + 1;
+          newCount = formatCount(Number(counterSnapshot.data().count) + 1);
           transaction.update(counterRef, { count: newCount });
         }
 
