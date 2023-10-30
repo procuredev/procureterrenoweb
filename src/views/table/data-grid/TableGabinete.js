@@ -32,6 +32,7 @@ import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
 import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import EngineeringIcon from '@mui/icons-material/Engineering'
 import InputLabel from '@mui/material/InputLabel'
@@ -58,18 +59,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
   const handleDescriptionChange = (id, value) => {
+    if (row.description) {
+    } prev = row.description
     setDescriptions(prev => ({ ...prev, [id]: value }));
-  }
-
-  const handleSubmit = (id) => {
-    // Aquí debo implementar la lógica para actualizar el documento 'row' con el nuevo campo 'description'
-    // Una vez hecho eso, poder resetear la descripción para ese 'id'
-    setDescriptions(prev => {
-        const newState = { ...prev };
-        delete newState[id];
-
-        return newState;
-    });
   }
 
    const handleClickOpen = doc => {
@@ -108,13 +100,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     setApprove(isApproved)
   }
 
-  const handleClickOpenDone = doc => {
-
-    setDoc(doc)
-    setOpenDone(true)
-  }
-
   const writeCallback = async () => {
+    authUser.role === 9 ? await updateBlueprint(petitionId, doc, null, approve, authUser) :
     await updateBlueprint(petitionId, doc, descriptions[doc.id], approve, authUser)
     setOpenAlert(false)
     setDescriptions(prev => {
@@ -216,7 +203,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     },
     {
       field: 'description',
-      headerName: 'DESCRIPCION',
+      headerName: 'DESCRIPCIÓN',
       flex: 0.4,
       minWidth: 120,
       //editable: true,
@@ -229,19 +216,25 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
           return isEditableField;
         }
 
+        if (row.sendedByDocumentaryControl) {
+          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={row.description || ''} defaultValue={row.description || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />) : ('')
+
+          return isEditableField;
+        }
+
         return <div>{row.description || 'N/A'}</div>
       }
     },
     {
       field: 'start',
-      headerName: 'CARGAR ENTREGABLE',
+      headerName: 'ENTREGABLE',
       flex: 0.1,
-      minWidth: 150,
+      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
         return (
-          <IconButton onClick={row.userId === authUser.uid ? () => handleOpenUploadDialog(row) : null}>
+          <IconButton onClick={row.userId === authUser.uid || (authUser.role === 7 || authUser.role === 9) ? () => handleOpenUploadDialog(row) : null}>
             <CloudUploadOutlinedIcon color={row.storageBlueprints ? 'primary' :'secondary'} sx={{ fontSize: 18 }} />
           </IconButton>
         )
@@ -251,7 +244,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
@@ -263,14 +256,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
       field: 'end',
       headerName: 'Fin',
       flex: 0.1,
-      minWidth: 90,
+      minWidth: 150,
       renderCell: params => {
         const { row } = params
 
         return (
           <>
             {md ? (
-             (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (descriptions[row.id] && descriptions[row.id].length > 6) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+             (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.description || (descriptions[row.id] && descriptions[row.id].length > 6)) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
                 <>
                   <Button
                     onClick={ () => handleClickOpenAlert(row, true) }
@@ -280,6 +273,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
                   >
                     <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
                   </Button>
+                  {authUser.role === 9 || authUser.role === 7 ?
+                  <Button
+                    onClick={ () => handleClickOpenAlert(row, false) }
+                    variant='contained'
+                    color='error'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <CancelOutlinedIcon sx={{ fontSize: 18 }} />
+                  </Button>
+                  : null}
                 </>
               ) : row.sendByDesigner === true ? (
                 'Enviado'
@@ -309,6 +312,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
                     >
                       <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
                     </Button>
+                    {authUser.role === 9 || authUser.role === 7 ?
+                      <Button
+                        onClick={ () => handleClickOpenAlert(row, false) }
+                        variant='contained'
+                        color='error'
+                        sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                      >
+                        <CancelOutlinedIcon sx={{ fontSize: 18 }} />
+                      </Button>
+                      : null}
                   </Container>
                 </Select>
               </>
@@ -321,131 +334,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
         )
       }
     },
-
-    /* {
-      field: 'assign',
-      headerName: 'Asignar',
-      flex: 0.1,
-      minWidth: md ? 90 : 80,
-      renderCell: params => {
-        const { row } = params
-
-        return (
-          <>
-            {md ? (
-              row.state === 6 ? (
-                <>
-                  <Button
-                    onClick={role === 7 ? () => handleClickOpen(row) : null}
-                    variant='contained'
-                    color='secondary'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <EngineeringIcon sx={{ fontSize: 18 }} />
-                  </Button>
-                </>
-              ) : row.state === 7 ? (
-                'Asignado'
-              ) : (
-                'Terminado'
-              )
-            ) : row.state === 6 ? (
-              <>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  size='small'
-                  IconComponent={() => <MoreHorizIcon />}
-                  sx={{
-                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                  }}
-                >
-                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Button
-                      onClick={role === 7 ? () => handleClickOpen(row) : null}
-                      variant='contained'
-                      color='secondary'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <EngineeringIcon sx={{ fontSize: 18 }} />
-                    </Button>
-                  </Container>
-                </Select>
-              </>
-            ) : row.state === 7 ? (
-              'Asignado'
-            ) : (
-              'Terminado'
-            )}
-          </>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: md ? 110 : 80,
-      field: 'done',
-      headerName: 'Terminar',
-      renderCell: params => {
-        const { row } = params
-
-        return (
-          <>
-            {md ? (
-              row.state === 7 ? (
-                <>
-                  <Button
-                    onClick={role === 7 ? () => handleClickOpenDone(row) : null}
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                  </Button>
-                </>
-              ) : row.state === 6 ? (
-                'Sin asignar'
-              ) : (
-                'Terminado'
-              )
-            ) : row.state === 7 ? (
-              <>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  size='small'
-                  IconComponent={() => <MoreHorizIcon />}
-                  sx={{
-                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                  }}
-                >
-                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Button
-                      onClick={role === 7 ? () => handleClickOpenDone(row) : null}
-                      variant='contained'
-                      color='success'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                    </Button>
-                  </Container>
-                </Select>
-              </>
-            ) : row.state === 6 ? (
-              'Sin asignar'
-            ) : (
-              'Terminado'
-            )}
-          </>
-        )
-      }
-    } */
   ]
 
   return (

@@ -556,9 +556,9 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
 
  const updateBlueprint = async (petitionID, blueprint, description, approve, userParam) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
-  await updateDoc(ref, { description:description, sendByDesigner: true, sendedTime: Timestamp.fromDate(new Date()) })
 
-  const newDocRevision = {
+  let newDocRevision = {
+    prevRevision: blueprint.revision,
     newRevision: blueprint.revision,
     description: description,
     storageBlueprints: blueprint.storageBlueprints,
@@ -568,9 +568,28 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     date: Timestamp.fromDate(new Date()),
   }
 
-  await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+  if(userParam.role === 8) {
+    await updateDoc(ref, { description:description, sendedByDesigner: true, sendedTime: Timestamp.fromDate(new Date()) })
+    await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+  } else if (userParam.role === 9) {
+    if(approve){
+      await updateDoc(ref, { revision: 'A', storageBlueprints: null, sendedByDesigner: false, sendedByDocumentaryControl: true, sendedTime: Timestamp.fromDate(new Date()) })
+      newDocRevision.newRevision = 'A'
+      newDocRevision.description = blueprint.description
+      newDocRevision.userEmail = userParam.email
+      newDocRevision.userName = userParam.displayName
+      newDocRevision.userId = userParam.uid
+      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+    } else {
+      await updateDoc(ref, { storageBlueprints: null, sendedByDesigner: false, sendedByDocumentaryControl: true, sendedTime: Timestamp.fromDate(new Date()) })
+      newDocRevision.description = blueprint.description
+      newDocRevision.userEmail = userParam.email
+      newDocRevision.userName = userParam.displayName
+      newDocRevision.userId = userParam.uid
+      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+    }
+  }
 
-  console.log("userParam: ", userParam)
  }
 
 export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints, updateBlueprint }
