@@ -554,9 +554,23 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     }
 }
 
- const updateBlueprint = async (petitionID, blueprintId, description, approve, userParam) => {
-  const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprintId)
+ const updateBlueprint = async (petitionID, blueprint, description, approve, userParam) => {
+  const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
   await updateDoc(ref, { description:description, sendByDesigner: true, sendedTime: Timestamp.fromDate(new Date()) })
+
+  const newDocRevision = {
+    newRevision: blueprint.revision,
+    description: description,
+    storageBlueprints: blueprint.storageBlueprints,
+    userEmail: blueprint.userEmail,
+    userName: blueprint.userName,
+    userId: blueprint.userId,
+    date: Timestamp.fromDate(new Date()),
+  }
+
+  await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+
+  console.log("userParam: ", userParam)
  }
 
 export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints, updateBlueprint }

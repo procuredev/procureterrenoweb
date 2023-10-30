@@ -98,7 +98,7 @@ const DataGridGabinete = () => {
       if (currentPetition) {
         const resBlueprints = await getBlueprints(currentPetition.id)
         const filteredBlueprints = resBlueprints.filter(item => item.sendByDesigner === true)
-        authUser.role === 9 ? setBlueprints(filteredBlueprints) : setBlueprints(resBlueprints)
+        authUser.role === 9 || authUser.role === 7 ? setBlueprints(filteredBlueprints) : setBlueprints(resBlueprints)
       }
     }
     fetchData()

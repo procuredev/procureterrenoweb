@@ -113,10 +113,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     setDoc(doc)
     setOpenDone(true)
   }
-  console.log("descriptions: ", descriptions)
 
   const writeCallback = async () => {
-    await updateBlueprint(petitionId, doc.id, descriptions[doc.id], approve, authUser)
+    await updateBlueprint(petitionId, doc, descriptions[doc.id], approve, authUser)
     setOpenAlert(false)
     setDescriptions(prev => {
       const newState = { ...prev };
@@ -271,10 +270,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
         return (
           <>
             {md ? (
-              row.userId === authUser.uid && (descriptions[row.id] && descriptions[row.id].length > 6) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+             (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (descriptions[row.id] && descriptions[row.id].length > 6) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
                 <>
                   <Button
-                    onClick={role === 8 ? () => handleClickOpenAlert(row, true) : null}
+                    onClick={ () => handleClickOpenAlert(row, true) }
                     variant='contained'
                     color='success'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -287,7 +286,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
               ) : (
                 'Pendiente'
               )
-            ) : row.userId === authUser.uid && descriptions[row.id].length > 6 && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (descriptions[row.id] && descriptions[row.id].length > 6)&& (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
               <>
                 <Select
                   labelId='demo-simple-select-label'
@@ -303,7 +302,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Button
-                      onClick={role === 8 ? () => handleClickOpenAlert(row, true) : null}
+                      onClick={ () => handleClickOpenAlert(row, true) }
                       variant='contained'
                       color='success'
                       sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
