@@ -548,7 +548,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
 
       const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode);
       const docSnapshot = await getDoc(docRef);
-      await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, revision: 'iniciado', description:'', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
+      await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, revision: 'iniciado', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
 
       console.log("newCode:", newCode)
 
@@ -571,6 +571,8 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     userId: blueprint.userId,
     date: Timestamp.fromDate(new Date()),
   }
+  console.log("description: ", description)
+  console.log("newDocRevision.description: ", newDocRevision.description)
 
   if(userParam.role === 8) {
     await updateDoc(ref, { description:description, sendedByDesigner: true, sendedTime: Timestamp.fromDate(new Date()) })
@@ -586,6 +588,23 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
     } else {
       await updateDoc(ref, { storageBlueprints: null, sendedByDesigner: false, sendedByDocumentaryControl: true, sendedTime: Timestamp.fromDate(new Date()) })
+      newDocRevision.description = blueprint.description
+      newDocRevision.userEmail = userParam.email
+      newDocRevision.userName = userParam.displayName
+      newDocRevision.userId = userParam.uid
+      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+    }
+  } else {
+    console.log("userParam.role ===", userParam.role)
+    if(approve){
+      await updateDoc(ref, { storageBlueprints: null, sendedBySupervisor: true, sendedTime: Timestamp.fromDate(new Date()) })
+      newDocRevision.description = blueprint.description
+      newDocRevision.userEmail = userParam.email
+      newDocRevision.userName = userParam.displayName
+      newDocRevision.userId = userParam.uid
+      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+    } else {
+      await updateDoc(ref, { storageBlueprints: null, sendedByDesigner: false, sendedBySupervisor: true, sendedTime: Timestamp.fromDate(new Date()) })
       newDocRevision.description = blueprint.description
       newDocRevision.userEmail = userParam.email
       newDocRevision.userName = userParam.displayName

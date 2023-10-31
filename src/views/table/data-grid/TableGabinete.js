@@ -60,10 +60,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
 
   const handleDescriptionChange = (row, value) => {
     if (row.description) {
-      prev = row.description
+      setDescriptions(prev => ({ ...prev, [row.id]: row.description }));
     }
     setDescriptions(prev => ({ ...prev, [row.id]: value }));
   }
+
+  console.log(descriptions)
 
    const handleClickOpen = doc => {
 
@@ -102,6 +104,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   }
 
   const writeCallback = async () => {
+    console.log("descriptions[doc.id]: ", descriptions[doc.id])
     authUser.role === 9 ? await updateBlueprint(petitionId, doc, null, approve, authUser) :
     await updateBlueprint(petitionId, doc, descriptions[doc.id], approve, authUser)
     setOpenAlert(false)
@@ -134,7 +137,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   }, [authUser.shift])
 
   useEffect(() => {
-    if(currentRow){
+    if(openUploadDialog){
       const filterRow = rows.find(rows => rows.id === currentRow)
       setDoc(filterRow)
       setOpenUploadDialog(true)
@@ -161,9 +164,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
             TransitionProps={{ timeout: 0 }}
           >
             <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-              {/* <IconButton onClick={() => handleClickOpenEvents(row)}>
-                <OpenInNewOutlined sx={{ fontSize: 18 }} />
-              </IconButton> */}
 
               <Typography sx={{
                   textDecoration: 'none',
@@ -217,8 +217,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
           return isEditableField;
         }
 
-        if (row.sendedByDocumentaryControl) {
-          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={row.description || ''} defaultValue={row.description || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
+        if (row.sendedByDocumentaryControl || row.sendedBySupervisor) {
+
+          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={/* descriptions[row.id] */ row.description || ''} defaultValue={/* descriptions[row.id] */ row.description || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
 
           return isEditableField;
         }
