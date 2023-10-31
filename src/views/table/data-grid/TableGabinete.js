@@ -148,7 +148,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const columns = [
     {
       field: 'title',
-      headerName: 'Código de entregable',
+      headerName: 'Código Procure',
       flex: 0.7,
       minWidth: 220,
       renderCell: params => {

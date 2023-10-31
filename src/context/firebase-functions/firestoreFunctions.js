@@ -520,13 +520,14 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       const {ot, plant, area, id } = petition
 
       const idProject = '21286'
-      const otNumber = `OT${ot}`
-      const instalacion = getShortDefinition(plant)
-      const areaNumber = area.slice(0, 4)
+      //****/ const otNumber = `OT${ot}`
+      //****/ const instalacion = getShortDefinition(plant)
+      //****/ const areaNumber = area.slice(0, 4)
 
       // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
       const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`;
-      const counterRef = doc(db, 'solicitudes', id, 'codeGeneratorCount', counterDocID);
+      //****/ const counterRef = doc(db, 'counters', id, 'codeGeneratorCount', counterDocID);
+      const counterRef = doc(db, 'counters', counterDocID);
 
       // Incrementa el contador dentro de una transacción
       const incrementedCount = await runTransaction(db, async (transaction) => {
@@ -544,7 +545,8 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       });
 
       // Ahora, añade este contador al final de tu newCode
-      const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
+      //****/ const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
+      const newCode = `${idProject}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
 
       const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode);
       const docSnapshot = await getDoc(docRef);
