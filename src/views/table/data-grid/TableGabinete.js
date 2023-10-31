@@ -58,10 +58,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
-  const handleDescriptionChange = (id, value) => {
+  const handleDescriptionChange = (row, value) => {
     if (row.description) {
-    } prev = row.description
-    setDescriptions(prev => ({ ...prev, [id]: value }));
+      prev = row.description
+    }
+    setDescriptions(prev => ({ ...prev, [row.id]: value }));
   }
 
    const handleClickOpen = doc => {
@@ -211,13 +212,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
         const { row } = params
 
         if (!row.description) {
-          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />) : ('')
+          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
 
           return isEditableField;
         }
 
         if (row.sendedByDocumentaryControl) {
-          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={row.description || ''} defaultValue={row.description || ''} onChange={(e) => handleDescriptionChange(row.id, e.target.value)} size='small' />) : ('')
+          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={row.description || ''} defaultValue={row.description || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
 
           return isEditableField;
         }
