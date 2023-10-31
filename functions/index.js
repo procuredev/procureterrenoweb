@@ -28,24 +28,27 @@ const getEmailTemplate = require('./emailTemplate').getEmailTemplate
 // Se inicializa el SDK admin de Firebase
 admin.initializeApp()
 
-const getSupervisorData = async shift => {
-  // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', 'array-contains', shift))
+const getSupervisorData = async (shift) => {
+
+  // Se llama a la referencia de la colección 'users'
+  const usersRef = admin.firestore().collection('users')
 
   try {
-    const querySnapshot = await getDocs(q)
+    // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
+    const supervisorSnapshot = await usersRef.where('shift', 'array-contains', shift).where('role', '==', 7).get()
 
-    if (querySnapshot.empty) {
+    if (supervisorSnapshot.empty) {
       console.log(`No se encontró ningún supervisor para el turno ${shift}`)
 
       return null
     } else {
       // Accede al UID de la solicitud encontrada
-      const uid = querySnapshot.docs[0].id
-      const name = querySnapshot.docs[0].data().name
-      const email = querySnapshot.docs[0].data().email
+      const data = supervisorSnapshot.docs[0].data()
+      const uid = data.id
+      const name = data.name
+      const email = data.email
 
-      return { uid: uid, name: name, email: email }
+      return {uid: uid, name: name, email: email}
     }
   } catch (error) {
     console.log('Error al buscar la solicitud: ', error)
@@ -330,7 +333,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
           date: now,
           emailType: 'supervisorDailyTasks',
           message: {
-            subject: `Resumen de mañana ${today.toLocaleDateString('es-CL')} - ${supervisorName}`,
+            subject: `Resumen de mañana ${tomorrow.toLocaleDateString('es-CL')} - ${supervisorName}`,
             html: `
               <h2>Estimad@ ${supervisorName}:</h2>
               <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para mañana. A continuación se presenta el detalle de cada una de ellos:</p>
@@ -341,6 +344,135 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
           }
         })
         console.log('E-mail de tareas diarias al Supervisor enviado con éxito.')
+      } catch (error) {
+        console.error('Error al enviar email:', error)
+        throw error
+      }
+    }
+
+    return null
+  })
+
+
+// * Función que revisa la base de datos todos los días a las 8AM y le avisa al Solicitante que debe limpiar el área donde se ejecutará el levantamiento
+exports.cleanAreaWarning = functions.pubsub
+  .schedule('every day 09:53')
+  .timeZone('Chile/Continental')
+  .onRun(async context => {
+
+    const now = new Date() // Se almacena la fecha instantánea
+    now.toLocaleString('es-CL', { timeZone: 'Chile/Continental' })
+    const today = new Date(now) // Se almacena la fecha de hoy, ajustando la hora a medianoche
+    today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000) // Se almacena la fecha de mañana, ajustando la fecha al día siguiente
+    const afterTomorrow = new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) // Se almacena la fecha de mañana, ajustando la fecha al día siguiente
+
+    const requestsRef = admin.firestore().collection('solicitudes') // Se llama a la referencia de Solicitudes
+
+    const requestsSnapshot = await requestsRef.where('start', '>=', tomorrow).where('start', '<', afterTomorrow).get() // Busca documentos cuya fecha de inicio sea mañana
+
+    // Se revisa para cada uno de los supervisores que tienen trabajos hoy (teóricamente solo debería haber 1 supervisor)
+    for (let i = 0; i < requestsSnapshot.docs.length; i++) {
+
+      const requirementData = requestsSnapshot.docs[i].data()
+
+      // ** Empezamos a definir el e-mail
+      // Se envía el email a cada uno de los Solicitante que han solicitado un levantamiento para Mañana
+      try {
+        const newDoc = {} // Se genera un elemento vacío
+        const emailsRef = admin.firestore().collection('mail') // Se llama a la colección de datos 'mail' en Firestore
+        const newEmailRef = await emailsRef.add(newDoc) // Se agrega este elemento vacío a la colección mail
+        const mailId = newEmailRef.id // Se obtiene el id del elemento recién agregado
+
+        const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
+
+        const reqContractOperatorName = requirementData.contop // Se almacena el nombre del Contract Operator de la solicitud
+        const reqContractOperatorSnapshot = await usersRef.where('name', '==', reqContractOperatorName).get() // Se llama sólo al que cumple con la condición de que su name es igual al del contop del usuario que generó la solicitud
+        const reqContractOperatorData = reqContractOperatorSnapshot.docs[0].data() // Se almacena en una constante los datos del Contract Operator
+        const reqContractOperatorEmail = reqContractOperatorData.email // Se almacena el e-mail del Contract Operator
+
+        const contractOwnerSnapshot = await usersRef.where('role', '==', 4).get() // Se llama sólo al que cumple con la condición de que su rol es 4 (Contract Owner)
+        const contractOwnerData = contractOwnerSnapshot.docs[0].data() // Se almacena en una constante los datos del Contract Owner
+        const contractOwnerEmail = contractOwnerData.email // Se almacena el e-mail del Contract Owner
+
+        const petitionerFieldName = requirementData.petitioner
+        const petitionerFieldSnapshot = await usersRef.where('name', '==', petitionerFieldName).get() // Se llama sólo al que cumple con la condición de que su name es igual al del Petitioner indicado en el formulario
+        const petitionerFieldData = petitionerFieldSnapshot.docs[0].data() // Se almacena en una constante los datos del Petitioner
+        const petitionerFieldEmail = petitionerFieldData.email // Se almacena el e-mail del Petitioner
+
+        const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
+        const plannerData = plannerSnapshot.docs[0].data() // Se almacena en una constante los datos del Planificador
+        const plannerEmail = plannerData.email // Se almacena el e-mail del Planificador
+
+        const admContratoSnapshot = await usersRef.where('role', '==', 6).get() // Se llama sólo al que cumple con la condición de que su rol es 6 (Administrador de Contrato)
+        const admContratoData = admContratoSnapshot.docs[0].data() // Se almacena en una constante los datos del Administrador de Contrato
+        const admContratoEmail = admContratoData.email // Se almacena el e-mail del Administrador de Contrato
+
+        const supervisorData = requirementData.supervisorShift ? await getSupervisorData(requirementData.supervisorShift) : ''
+        const supervisorEmail = supervisorData ? supervisorData.email : ''
+
+        // Se almacenan las constantes a usar en el email
+        const userName = requirementData.user
+        const mainMessage = `Usted tiene un levantamiento agendado para el día de mañana ${requirementData.start.toDate().toLocaleDateString('es-CL')}. <b>Se requiere que usted gestione la limpieza del lugar para que nuestro equipo ejecute su labor lo más rápido posible</b>`
+        const requestNumber = requirementData.n_request
+        const title = requirementData.title
+        const engineering = requirementData.engineering ? 'Si' : 'No'
+        const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
+        const supervisor = requirementData.supervisor ? requirementData.supervisor : 'Por definir'
+        const start = requirementData.start.toDate().toLocaleDateString('es-CL')
+        const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString('es-CL') : 'Por definir'
+        const plant = requirementData.plant
+        const area = requirementData.area ? requirementData.area : 'No indicado'
+        const functionalLocation = requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
+        const contractOperator = requirementData.contop
+        const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
+        const sapNumber = requirementData.sap && requirementData.sap !== '' ? requirementData.sap : 'No indicado'
+        const operationalType = requirementData.type ? requirementData.type : 'No indicado'
+        const machineDetention = requirementData.detention ? requirementData.detention : 'No indicado'
+        const jobType = requirementData.objective
+        const deliverable = requirementData.deliverable.join(', ')
+        const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
+        const description = requirementData.description
+        const lastMessage = ''
+
+        // Llamada al html del email con las constantes previamente indicadads
+        const emailHtml = getEmailTemplate(
+          userName,
+          mainMessage,
+          requestNumber,
+          title,
+          engineering,
+          otProcure,
+          supervisor,
+          start,
+          end,
+          plant,
+          area,
+          functionalLocation,
+          contractOperator,
+          petitioner,
+          sapNumber,
+          operationalType,
+          machineDetention,
+          jobType,
+          deliverable,
+          receiver,
+          description,
+          lastMessage
+        )
+
+        // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
+        await emailsRef.doc(mailId).update({
+          to: requirementData.userEmail,
+          cc: [reqContractOperatorEmail, contractOwnerEmail, petitionerFieldEmail,plannerEmail,admContratoEmail, supervisorEmail],
+          date: now,
+          emailType: 'clanAreaWarning',
+          message: {
+            subject: `Limpieza de Área para mañana ${tomorrow.toLocaleDateString('es-CL')} - Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+            html: emailHtml
+          }
+        })
+        console.log('E-mail de aviso de limpieza enviado con éxito.')
       } catch (error) {
         console.error('Error al enviar email:', error)
         throw error
