@@ -145,8 +145,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const columns = [
     {
       field: 'title',
-      headerName: 'Solicitud',
-      flex: 0.6,
+      headerName: 'Código de entregable',
+      flex: 0.7,
       minWidth: 220,
       renderCell: params => {
         const { row } = params
@@ -161,9 +161,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
             TransitionProps={{ timeout: 0 }}
           >
             <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-              <IconButton onClick={() => handleClickOpenEvents(row)}>
+              {/* <IconButton onClick={() => handleClickOpenEvents(row)}>
                 <OpenInNewOutlined sx={{ fontSize: 18 }} />
-              </IconButton>
+              </IconButton> */}
 
               <Typography sx={{
                   textDecoration: 'none',
