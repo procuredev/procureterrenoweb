@@ -5,7 +5,17 @@ export function solicitudValidator(values) {
     'Planta Concentradora Laguna Seca | Línea 2',
     'Chancado y Correas',
     'Puerto Coloso',
-    'Instalaciones Cátodo'
+    'Instalaciones Cátodo',
+    'Instalaciones Mina',
+    'Instalaciones Lixiviación Sulfuros',
+    'Instalaciones Escondida Water Supply',
+    'Instalaciones Concentraducto',
+    'Instalaciones Monturaqui',
+    'Instalaciones Auxiliares',
+    'Subestaciones Eléctricas',
+    'Tranque y Relaves',
+    'Campamento Villa San Lorenzo',
+    'Campamento Villa Cerro Alegre'
   ]
 
   const valPlantLosColorados = [
@@ -429,7 +439,7 @@ export function solicitudValidator(values) {
     '5400 - Modificaciones Villa San Lorenzo'
   ]
 
-  const valVillaCerroAlegre = [
+  const valCampamentoVillaCerroAlegre = [
     '5410 - Modificaciones de Campamento 2000'
   ]
 
@@ -491,6 +501,26 @@ export function solicitudValidator(values) {
           return valPlantPuertoColoso.includes(value)
         } else if (values.plant === 'Instalaciones Cátodo') {
           return valPlantInstalacionesCatodo.includes(value)
+        } else if (values.plant === 'Instalaciones Mina') {
+          return valInstalacionesMina.includes(value)
+        } else if (values.plant === 'Instalaciones Lixiviación Sulfuros') {
+          return valInstalacionesLixiviacionSulfuros.includes(value)
+        } else if (values.plant === 'Instalaciones Escondida Water Supply') {
+          return valIEWS.includes(value)
+        } else if (values.plant === 'Instalaciones Concentraducto') {
+          return valInstalacionesConcentraducto.includes(value)
+        } else if (values.plant === 'Instalaciones Monturaqui') {
+          return valInstalacionesMonturaqui.includes(value)
+        } else if (values.plant === 'Instalaciones Auxiliares') {
+          return valInstalacionesAuxiliares.includes(value)
+        } else if (values.plant === 'Subestaciones Eléctricas') {
+          return valSubestacionesElectricas.includes(value)
+        } else if (values.plant === 'Tranque y Relaves') {
+          return valTranqueYRelaves.includes(value)
+        } else if (values.plant === 'Campamento Villa San Lorenzo') {
+          return valCampamentoVillaSanLorenzo.includes(value)
+        } else if (values.plant === 'Campamento Villa Cerro Alegre') {
+          return valCampamentoVillaCerroAlegre.includes(value)
         }
 
         return false
