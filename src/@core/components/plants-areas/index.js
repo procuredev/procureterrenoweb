@@ -223,54 +223,54 @@ const areas = [
     ]
   },
 
-  {
-    name: 'Instalaciones Mina',
-    allAreas: [
-      {'0632': 'Taller de Bulldozers | TKS'},
-      {'0850': 'Taller de Mantención'},
-      {'0869': 'Expansión Taller de Camiones'},
-      {'5100': 'Instalaciones de Mina'}
-    ]
-  },
+  // {
+  //   name: 'Instalaciones Mina',
+  //   allAreas: [
+  //     {'0632': 'Taller de Bulldozers | TKS'},
+  //     {'0850': 'Taller de Mantención'},
+  //     {'0869': 'Expansión Taller de Camiones'},
+  //     {'5100': 'Instalaciones de Mina'}
+  //   ]
+  // },
 
-  {
-    name: 'Instalaciones Lixiviación Sulfuros',
-    allAreas: [
-      {'0000': 'Generalidades'},
-      {'3100': 'Pilas de Lixiviación'},
-      {'3200': 'Piscinas de Emergencia'},
-      {'3300': 'Piscinas PLS/Refino y Estaciones de Bombeo'},
-      {'3350': 'Cañerías Entre Plantas'},
-      {'3400': 'Extracción Por Solventes Sx'},
-      {'3410': 'Extracción Por Solventes Tren E'},
-      {'3420': 'Extracción Por Solventes Tren F'},
-      {'3500': 'Patio de Estanques Sx Y Reactivos'},
-      {'3600': 'Patio de Estanques Ew Y Reactivos'},
-      {'3700': 'Electro Obtención'},
-      {'3800': 'Modificaciones de La Planta de Óxido'},
-      {'4100': 'Almacenamiento Y Distribución de Ácido Sx'},
-      {'4110': 'Almacenamiento Y Distribución de Ácido Ew'},
-      {'4200': 'Agua de Alimentación Planta'},
-      {'4210': 'Sistema de Agua Para Sx'},
-      {'4220': 'Sistema de Agua Para Ew'},
-      {'4240': 'Sistema de Aguas Servidas'},
-      {'4400': 'Sistema de Combustible Sx'},
-      {'4410': 'Sistema de Combustible Ew'},
-      {'4600': 'Suministro de Energía'},
-      {'4610': 'Modificaciones A La Subestación de Planta Óxido'},
-      {'4800': 'Comunicaciones'},
-      {'5100': 'Desarrollo de Terrenos Varios'},
-      {'5200': 'Caminos de Acceso Y de La Planta'},
-      {'5250': 'Caminos de Transporte de La Mina'},
-      {'5310': 'Bodega'},
-      {'5320': 'Edificio de Administración Y Laboratorio'},
-      {'5330': 'Casa de Cambio'},
-      {'5500': 'Desvío Ferroviario'},
-      {'7100': 'Instalaciones Provisorias'},
-      {'7200': 'Servicios Temporales En Terreno'},
-      {'60010': 'Nodo de Comunicaciones'},
-    ]
-  },
+  // {
+  //   name: 'Instalaciones Lixiviación Sulfuros',
+  //   allAreas: [
+  //     {'0000': 'Generalidades'},
+  //     {'3100': 'Pilas de Lixiviación'},
+  //     {'3200': 'Piscinas de Emergencia'},
+  //     {'3300': 'Piscinas PLS/Refino y Estaciones de Bombeo'},
+  //     {'3350': 'Cañerías Entre Plantas'},
+  //     {'3400': 'Extracción Por Solventes Sx'},
+  //     {'3410': 'Extracción Por Solventes Tren E'},
+  //     {'3420': 'Extracción Por Solventes Tren F'},
+  //     {'3500': 'Patio de Estanques Sx Y Reactivos'},
+  //     {'3600': 'Patio de Estanques Ew Y Reactivos'},
+  //     {'3700': 'Electro Obtención'},
+  //     {'3800': 'Modificaciones de La Planta de Óxido'},
+  //     {'4100': 'Almacenamiento Y Distribución de Ácido Sx'},
+  //     {'4110': 'Almacenamiento Y Distribución de Ácido Ew'},
+  //     {'4200': 'Agua de Alimentación Planta'},
+  //     {'4210': 'Sistema de Agua Para Sx'},
+  //     {'4220': 'Sistema de Agua Para Ew'},
+  //     {'4240': 'Sistema de Aguas Servidas'},
+  //     {'4400': 'Sistema de Combustible Sx'},
+  //     {'4410': 'Sistema de Combustible Ew'},
+  //     {'4600': 'Suministro de Energía'},
+  //     {'4610': 'Modificaciones A La Subestación de Planta Óxido'},
+  //     {'4800': 'Comunicaciones'},
+  //     {'5100': 'Desarrollo de Terrenos Varios'},
+  //     {'5200': 'Caminos de Acceso Y de La Planta'},
+  //     {'5250': 'Caminos de Transporte de La Mina'},
+  //     {'5310': 'Bodega'},
+  //     {'5320': 'Edificio de Administración Y Laboratorio'},
+  //     {'5330': 'Casa de Cambio'},
+  //     {'5500': 'Desvío Ferroviario'},
+  //     {'7100': 'Instalaciones Provisorias'},
+  //     {'7200': 'Servicios Temporales En Terreno'},
+  //     {'60010': 'Nodo de Comunicaciones'},
+  //   ]
+  // },
 
   {
     name: 'Instalaciones Escondida Water Supply',
@@ -351,124 +351,124 @@ const areas = [
     ]
   },
 
-  {
-    name: 'Instalaciones Monturaqui',
-    allAreas: [
-      {'0720': 'Suministro de Agua Fresca'}
-    ]
-  },
+  // {
+  //   name: 'Instalaciones Monturaqui',
+  //   allAreas: [
+  //     {'0720': 'Suministro de Agua Fresca'}
+  //   ]
+  // },
 
-  {
-    name: 'Instalaciones Auxiliares',
-    allAreas: [
-      {'0400': 'Camino Acceso a Zaldívar'},
-      {'0411': 'Camino Acceso Superior'},
-      {'0412': 'Camino Acceso Inferior'},
-      {'0640': 'Edificios y Otras Construcciones'},
-      {'0641': 'Edificio de Administración y Capacitación'},
-      {'0642': 'Laboratorio de Ensayos CLC'},
-      {'0643': 'Casino Contratistas'},
-      {'0644': 'Campamento Escondida FIII'},
-      {'0700': 'Servicios Generales'},
-      {'0800': 'Instalaciones Infraestructura y Patios'},
-      {'0820': 'Casa de Cambio | Bodega | Poli | Comedor'},
-      {'0830': 'Laboratorio (Ampliación existente) - Muestrera'},
-      {'0840': 'Bodega | Casa de Cambio | Poli'},
-      {'0870': 'Control de acceso'},
-      {'0900': 'Instalaciones Auxiliares'},
-      {'0910': 'Preparación del Terreno'},
-      {'0920': 'Agua | Almacenamiento y Distribución | Agua Sello | Red Incendio | Agua Enfriamiento'},
-      {'0930': 'Planta de tratamiento de agua | Alcantarillado'},
-      {'0980': 'Planta de Equipo Móvil'},
-      {'0990': 'Repuestos'},
-      {'1700': 'Infraestructura y Patio de Servicios'},
-      {'1710': 'Caminos de Acceso a Obra'},
-      {'1720': 'Sistema de Distribución de Agua'},
-      {'1730': 'Sistema de Alcantarillado'},
-      {'1750': 'Sistema de Detección y Protección contra Incendios'},
-      {'1760': 'Comunicaciones de Planta'},
-      {'1770': 'Equipo Móvil de Planta'},
-      {'7100': 'Instalaciones Temporales'},
-      {'7200': 'Soporte Construcción'}
-    ]
-  },
+  // {
+  //   name: 'Instalaciones Auxiliares',
+  //   allAreas: [
+  //     {'0400': 'Camino Acceso a Zaldívar'},
+  //     {'0411': 'Camino Acceso Superior'},
+  //     {'0412': 'Camino Acceso Inferior'},
+  //     {'0640': 'Edificios y Otras Construcciones'},
+  //     {'0641': 'Edificio de Administración y Capacitación'},
+  //     {'0642': 'Laboratorio de Ensayos CLC'},
+  //     {'0643': 'Casino Contratistas'},
+  //     {'0644': 'Campamento Escondida FIII'},
+  //     {'0700': 'Servicios Generales'},
+  //     {'0800': 'Instalaciones Infraestructura y Patios'},
+  //     {'0820': 'Casa de Cambio | Bodega | Poli | Comedor'},
+  //     {'0830': 'Laboratorio (Ampliación existente) - Muestrera'},
+  //     {'0840': 'Bodega | Casa de Cambio | Poli'},
+  //     {'0870': 'Control de acceso'},
+  //     {'0900': 'Instalaciones Auxiliares'},
+  //     {'0910': 'Preparación del Terreno'},
+  //     {'0920': 'Agua | Almacenamiento y Distribución | Agua Sello | Red Incendio | Agua Enfriamiento'},
+  //     {'0930': 'Planta de tratamiento de agua | Alcantarillado'},
+  //     {'0980': 'Planta de Equipo Móvil'},
+  //     {'0990': 'Repuestos'},
+  //     {'1700': 'Infraestructura y Patio de Servicios'},
+  //     {'1710': 'Caminos de Acceso a Obra'},
+  //     {'1720': 'Sistema de Distribución de Agua'},
+  //     {'1730': 'Sistema de Alcantarillado'},
+  //     {'1750': 'Sistema de Detección y Protección contra Incendios'},
+  //     {'1760': 'Comunicaciones de Planta'},
+  //     {'1770': 'Equipo Móvil de Planta'},
+  //     {'7100': 'Instalaciones Temporales'},
+  //     {'7200': 'Soporte Construcción'}
+  //   ]
+  // },
 
-  {
-    name: 'Subestaciones Eléctricas',
-    allAreas: [
-      {'0420': 'Línea de Transmisión'},
-      {'0421': 'Línea Crucero | Zaldívar 220 KV'},
-      {'0424': 'Sub Estación Mejillones'},
-      {'0427': 'Sub Estación OHiggins | Patio Deriv | 9206 | ESEDEI'},
-      {'0428': 'Sub Estación OHiggins | Coloso'},
-      {'0429': 'Sub Estación Coloso'},
-      {'0710': 'Ruta de Acceso | Líneas aéreas de 13,8 KV'},
-      {'0730': 'Suministro de Energía | S. Estación de Perla Negra'},
-      {'0760': 'Línea 69KV'},
-      {'0761': 'Subestación Escondida Norte'},
-      {'0765': 'Línea 13,8 KV Pre-mina'},
-      {'0766': 'Línea 13,8 KV Anillo año 15'},
-      {'0767': 'Línea 13,8 KV Chancador Primario'},
-      {'0768': 'Línea 13,8 KV Plataforma Camiones'},
-      {'0940': 'Distribución Eléctrica | Sub estación Domeyko | Línea'},
-      {'0950': 'Sub Estación Principal'},
-      {'1740': 'Sistema de Distribución de Energía'},
-      {'1741': 'Subestación Eléctrica Principal LS-L2'},
-      {'1742': 'Patio de Distribución Eléctrica'},
-      {'3400': 'Línea de Transmisión y Sub Estaciones (LS-L2)'},
-      {'4000': 'General | Suministro de Energía'},
-      {'4100': '220 KV Línea de Transmisión para Concentrador'},
-      {'4200': '69 KV Línea de Transmisión para Correas LS-L2'},
-      {'4500': '69 KV Otras Subestaciones'},
-      {'5400': 'Sistema de Subestación y Distribución de Energía'},
-      {'512200': 'Subestaciones EWS'},
-      {'512201': 'Coloso Substation Expansion (GIS)'},
-      {'512202': 'OHiggins Substation Expansion (AIS) and Tap Off to Atacama-Domeyko'},
-      {'512203': 'HPPS2 Substation'},
-      {'512204': 'HPPS3 Substation'},
-      {'512205': 'HPPS4 Substation'},
-      {'512207': 'Laguna Seca Substation Expansion'},
-      {'512400': 'Líneas de Transmisión'},
-      {'512401': 'OHiggins to Coloso T-Line'},
-      {'512402': 'Tap at HPPS2'},
-      {'512403': 'Tap at HPPS3'},
-      {'512404': 'Tap at HPPS4'}
-    ]
-  },
+  // {
+  //   name: 'Subestaciones Eléctricas',
+  //   allAreas: [
+  //     {'0420': 'Línea de Transmisión'},
+  //     {'0421': 'Línea Crucero | Zaldívar 220 KV'},
+  //     {'0424': 'Sub Estación Mejillones'},
+  //     {'0427': 'Sub Estación OHiggins | Patio Deriv | 9206 | ESEDEI'},
+  //     {'0428': 'Sub Estación OHiggins | Coloso'},
+  //     {'0429': 'Sub Estación Coloso'},
+  //     {'0710': 'Ruta de Acceso | Líneas aéreas de 13,8 KV'},
+  //     {'0730': 'Suministro de Energía | S. Estación de Perla Negra'},
+  //     {'0760': 'Línea 69KV'},
+  //     {'0761': 'Subestación Escondida Norte'},
+  //     {'0765': 'Línea 13,8 KV Pre-mina'},
+  //     {'0766': 'Línea 13,8 KV Anillo año 15'},
+  //     {'0767': 'Línea 13,8 KV Chancador Primario'},
+  //     {'0768': 'Línea 13,8 KV Plataforma Camiones'},
+  //     {'0940': 'Distribución Eléctrica | Sub estación Domeyko | Línea'},
+  //     {'0950': 'Sub Estación Principal'},
+  //     {'1740': 'Sistema de Distribución de Energía'},
+  //     {'1741': 'Subestación Eléctrica Principal LS-L2'},
+  //     {'1742': 'Patio de Distribución Eléctrica'},
+  //     {'3400': 'Línea de Transmisión y Sub Estaciones (LS-L2)'},
+  //     {'4000': 'General | Suministro de Energía'},
+  //     {'4100': '220 KV Línea de Transmisión para Concentrador'},
+  //     {'4200': '69 KV Línea de Transmisión para Correas LS-L2'},
+  //     {'4500': '69 KV Otras Subestaciones'},
+  //     {'5400': 'Sistema de Subestación y Distribución de Energía'},
+  //     {'512200': 'Subestaciones EWS'},
+  //     {'512201': 'Coloso Substation Expansion (GIS)'},
+  //     {'512202': 'OHiggins Substation Expansion (AIS) and Tap Off to Atacama-Domeyko'},
+  //     {'512203': 'HPPS2 Substation'},
+  //     {'512204': 'HPPS3 Substation'},
+  //     {'512205': 'HPPS4 Substation'},
+  //     {'512207': 'Laguna Seca Substation Expansion'},
+  //     {'512400': 'Líneas de Transmisión'},
+  //     {'512401': 'OHiggins to Coloso T-Line'},
+  //     {'512402': 'Tap at HPPS2'},
+  //     {'512403': 'Tap at HPPS3'},
+  //     {'512404': 'Tap at HPPS4'}
+  //   ]
+  // },
 
-  {
-    name: 'Tranque y Relaves',
-    allAreas: [
-      {'0600': 'Relaves y Aguas Recuperadas'},
-      {'0610': 'Ductos de Relaves'},
-      {'0620': 'Distribución Laguna Seca | Manejo de Relaves | Embalse'},
-      {'0630': 'Sistema de Recuperación de Agua | Estación de Bombeo Balsas | Estación Booster'},
-      {'0640': 'Sistema de Bombeo de Relaves | Mod. C.'},
-      {'0650': 'Líneas de relave existentes-extensión'},
-      {'0660': 'Recuperación de agua existente-expansión'},
-      {'1600': 'Relaves'},
-      {'1610': 'Ducto de Relaves'},
-      {'1620': 'Depósito y Distribución de Relaves'},
-      {'1630': 'Agua Recuperada de Relaves'},
-      {'1690': 'Sistema de Recolección de Drenaje de Represa'}
-    ]
-  },
+  // {
+  //   name: 'Tranque y Relaves',
+  //   allAreas: [
+  //     {'0600': 'Relaves y Aguas Recuperadas'},
+  //     {'0610': 'Ductos de Relaves'},
+  //     {'0620': 'Distribución Laguna Seca | Manejo de Relaves | Embalse'},
+  //     {'0630': 'Sistema de Recuperación de Agua | Estación de Bombeo Balsas | Estación Booster'},
+  //     {'0640': 'Sistema de Bombeo de Relaves | Mod. C.'},
+  //     {'0650': 'Líneas de relave existentes-extensión'},
+  //     {'0660': 'Recuperación de agua existente-expansión'},
+  //     {'1600': 'Relaves'},
+  //     {'1610': 'Ducto de Relaves'},
+  //     {'1620': 'Depósito y Distribución de Relaves'},
+  //     {'1630': 'Agua Recuperada de Relaves'},
+  //     {'1690': 'Sistema de Recolección de Drenaje de Represa'}
+  //   ]
+  // },
 
-  {
-    name: 'Campamento Villa San Lorenzo',
-    allAreas: [
-      {'2000': 'General Campamento y Construcción'},
-      {'2100': 'Villa San Lorenzo Fase III'},
-      {'5400': 'Modificaciones Villa San Lorenzo'}
-    ]
-  },
+  // {
+  //   name: 'Campamento Villa San Lorenzo',
+  //   allAreas: [
+  //     {'2000': 'General Campamento y Construcción'},
+  //     {'2100': 'Villa San Lorenzo Fase III'},
+  //     {'5400': 'Modificaciones Villa San Lorenzo'}
+  //   ]
+  // },
 
-  {
-    name: 'Campamento Villa Cerro Alegre',
-    allAreas: [
-      {'5410': 'Modificaciones de Campamento 2000'}
-    ]
-  },
+  // {
+  //   name: 'Campamento Villa Cerro Alegre',
+  //   allAreas: [
+  //     {'5410': 'Modificaciones de Campamento 2000'}
+  //   ]
+  // }
 ]
 
 export default areas
