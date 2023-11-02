@@ -356,7 +356,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
 // * Función que revisa la base de datos todos los días a las 8AM y le avisa al Solicitante que debe limpiar el área donde se ejecutará el levantamiento
 exports.cleanAreaWarning = functions.pubsub
-  .schedule('every day 09:53')
+  .schedule('every day 08:00')
   .timeZone('Chile/Continental')
   .onRun(async context => {
 
