@@ -273,7 +273,7 @@ const AppCalendar = () => {
     fixedWeekCount: false,
     dateClick: async function (info) {
       const result = await consultBlockDayInDB(new Date(info.date).getTime())
-      if (result.blocked) {
+      if (result.blocked || authUser.role === 5) {
         setConsultationResult(result)
         setDayDialogOpen(info.date)
       }

@@ -16,7 +16,17 @@ export function registerValidator(values) {
     'Chancado y Correas',
     'Puerto Coloso',
     'Instalaciones Cátodo',
-    'Sucursal Santiago'
+    'Sucursal Santiago',
+    'Instalaciones Mina',
+    'Instalaciones Lixiviación Sulfuros',
+    'Instalaciones Escondida Water Supply',
+    'Instalaciones Concentraducto',
+    'Instalaciones Monturaqui',
+    'Instalaciones Auxiliares',
+    'Subestaciones Eléctricas',
+    'Tranque y Relaves',
+    'Campamento Villa San Lorenzo',
+    'Campamento Villa Cerro Alegre'
   ]
 
   const validations = {

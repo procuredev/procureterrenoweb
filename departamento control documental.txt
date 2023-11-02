@@ -1,7 +1,0 @@
-*******CONTROL DOCUMENTAL*******
-
-entregables
-cuantos deben ser por ot.
-cada entregable tiene una revision y un código.
-disciplina (mecanica, civil, ...)
-observasion por revision.

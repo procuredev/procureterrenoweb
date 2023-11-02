@@ -11,6 +11,7 @@ import {
   getDocs,
   onSnapshot,
   where,
+  or,
   orderBy,
   getCountFromServer,
   documentId
@@ -63,9 +64,7 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
 
   useEffect(() => {
     if (userParam) {
-      let q = query(collection(db, 'solicitudes'))
-
-      const getAllDocs = [1, 4, 5, 6, 7, 9]
+      let q = query(collection(db, 'solicitudes'), where('state', '>=', 0))
 
       if (datagrid) {
         switch (userParam.role) {
@@ -76,14 +75,14 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
             q = query(collection(db, 'solicitudes'), where('plant', 'in', userParam.plant))
             break
           case 5:
-            q = query(collection(db, 'solicitudes'), where('state', '>=', userParam.role - 2))
+            q = query(collection(db, 'solicitudes'), or(where('state', '>=', userParam.role - 2), where('state', '==', 0)))
             break
           case 7:
-            q = query(collection(db, 'solicitudes'), where('state', '>=', 6))
+            q = query(collection(db, 'solicitudes'), or(where('state', '>=', 6), where('state', '==', 0)))
             break
           default:
-            if (getAllDocs.includes(userParam.role) && ![1, 9].includes(userParam.role)) {
-              q = query(collection(db, 'solicitudes'), where('state', '>=', userParam.role - 1))
+            if ([4, 6].includes(userParam.role)) {
+              q = query(collection(db, 'solicitudes'), or(where('state', '>=', userParam.role - 1), where('state', '==', 0)))
             }
             break
         }
