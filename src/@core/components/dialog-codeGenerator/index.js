@@ -69,7 +69,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
 
   const onsubmit = async id => {
     if (typeOfDiscipline && typeOfDocument) {
-      await generateBlueprint(typeOfDiscipline, typeOfDocument, doc, authUser)
+      await generateBlueprint(typeOfDiscipline, typeOfDocument, doc, authUser, false)
       setBlueprintGenerated(true)
       handleClose();
     } else {

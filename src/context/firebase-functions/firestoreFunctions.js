@@ -497,60 +497,88 @@ function formatCount(count) {
   return String(count).padStart(3, '0');
 }
 
-const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
+const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam, clientCode) => {
     try {
-      const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
-
-      const valPlant = [
-        'Planta Concentradora Los Colorados',
-        'Planta Concentradora Laguna Seca | Línea 1',
-        'Planta Concentradora Laguna Seca | Línea 2',
-        'Chancado y Correas',
-        'Puerto Coloso',
-        'Instalaciones Cátodo'
-      ]
-
-      function getShortDefinition(plantLongDef) {
-        const index = valPlant.indexOf(plantLongDef);
-        if (index !== -1) {
-            return shortPlants[index];
-        } else {
-            return 'No se encontró definición corta para esta planta';
-        }
-      }
-      const {ot, plant, area, id } = petition
-
       const idProject = '21286'
-      //****/ const otNumber = `OT${ot}`
-      //****/ const instalacion = getShortDefinition(plant)
-      //****/ const areaNumber = area.slice(0, 4)
+      if(clientCode) {
+        const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
+
+        const valPlant = [
+          'Planta Concentradora Los Colorados',
+          'Planta Concentradora Laguna Seca | Línea 1',
+          'Planta Concentradora Laguna Seca | Línea 2',
+          'Chancado y Correas',
+          'Puerto Coloso',
+          'Instalaciones Cátodo'
+        ]
+
+        function getShortDefinition(plantLongDef) {
+          const index = valPlant.indexOf(plantLongDef);
+          if (index !== -1) {
+              return shortPlants[index];
+          } else {
+              return 'No se encontró definición corta para esta planta';
+          }
+        }
+        const {ot, plant, area, id } = petition
+
+        const otNumber = `OT${ot}`
+        const instalacion = getShortDefinition(plant)
+        const areaNumber = area.slice(0, 4)
+
+        // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
+        const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`;
+        const counterRef = doc(db, 'solicitudes', id, 'codeGeneratorCount', counterDocID);
+
+        // Incrementa el contador dentro de una transacción
+        const incrementedCount = await runTransaction(db, async (transaction) => {
+          const counterSnapshot = await transaction.get(counterRef);
+          let newCount;
+          if (!counterSnapshot.exists()) {
+            newCount = formatCount(1);
+            transaction.set(counterRef, { count: newCount });
+          } else {
+            newCount = formatCount(Number(counterSnapshot.data().count) + 1);
+            transaction.update(counterRef, { count: newCount });
+          }
+
+          return newCount; // Retorna el nuevo contador para usarlo fuera de la transacción
+        });
+
+        // Ahora, añade este contador al final de tu newCode
+        const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
+
+        const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode);
+        await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, revision: 'iniciado', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
+
+        console.log("newCode:", newCode)
+
+      }
 
       // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
       const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`;
-      //****/ const counterRef = doc(db, 'counters', id, 'codeGeneratorCount', counterDocID);
-      const counterRef = doc(db, 'counters', counterDocID);
+      const counterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter');
 
       // Incrementa el contador dentro de una transacción
       const incrementedCount = await runTransaction(db, async (transaction) => {
         const counterSnapshot = await transaction.get(counterRef);
-        let newCount;
-        if (!counterSnapshot.exists()) {
-          newCount = formatCount(1);
-          transaction.set(counterRef, { count: newCount });
+
+        let currentCount;
+        if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
+          currentCount = formatCount(1);
+          transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true });
         } else {
-          newCount = formatCount(Number(counterSnapshot.data().count) + 1);
-          transaction.update(counterRef, { count: newCount });
+          currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1);
+          transaction.update(counterRef, { [counterDocID]: { count: currentCount } });
         }
 
-        return newCount; // Retorna el nuevo contador para usarlo fuera de la transacción
+        return currentCount; // Retorna el nuevo contador para usarlo fuera de la transacción
       });
 
       // Ahora, añade este contador al final de tu newCode
-      //****/ const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
       const newCode = `${idProject}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
 
-      const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode);
-      const docSnapshot = await getDoc(docRef);
+      const docRef = doc(collection(db, 'solicitudes', petition.id, 'blueprints'), newCode);
       await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, revision: 'iniciado', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
 
       console.log("newCode:", newCode)
