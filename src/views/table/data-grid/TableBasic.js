@@ -102,9 +102,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   }
 
   const handleMiDivClick = (event) => {
-    separatorRef.current = event.srcElement.parentElement
-    const index = event.srcElement.parentNode.parentElement.attributes[3] ? event.srcElement.parentNode.parentElement.attributes[3].nodeValue : 0
-    separatorRef.current = event.srcElement.parentElement
+    separatorRef.current = event.srcElement.parentElement.parentNode.parentElement
+    const index = event.srcElement.parentElement.parentNode.parentElement.attributes[3] ? event.srcElement.parentElement.parentNode.parentElement.attributes[3].nodeValue : 0
     isResizing.current = index;
     setCursorDocument(true);
   };
@@ -129,10 +128,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   useEffect(() => {
     if (!loading) {
-
-
-      // Selecciona todos los divs con la clase 'MuiDataGrid-columnSeparator' y agrega event listeners
-      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
+      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator path')
 
       if (miDivs) {
         miDivs.forEach((div) => {
@@ -143,7 +139,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
 
     return () => {
-      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator');
+      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator path');
       miDivs.forEach((div) => {
         div.removeEventListener('click', handleMiDivClick);
       });}
@@ -361,7 +357,11 @@ const TableBasic = ({ rows, role, roleData }) => {
           disableColumnSelector
           disableRowSelectionOnClick
           disableColumnFilter
-          sx={{ '.MuiDataGrid-columnSeparator:hover': { cursor: 'col-resize' } }}
+          sx={{
+            '.MuiDataGrid-iconSeparator': {
+              '& path:hover': { cursor: 'col-resize', strokeWidth: '3px', stroke: theme.palette.divider },
+            }
+          }}
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
