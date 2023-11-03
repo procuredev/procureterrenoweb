@@ -89,7 +89,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     let newWidth =
       width > maxWidth ? maxWidth : width < minWidth ? minWidth : width;
 
-      // Selecciona todos los elementos con colindex=2
+      // Selecciona todos los elementos de la columna
       const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`);
 
       // Itera sobre los elementos y ajusta su estilo
