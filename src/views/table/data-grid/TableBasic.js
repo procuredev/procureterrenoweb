@@ -424,8 +424,12 @@ const TableBasic = ({ rows, role, roleData }) => {
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGridPro
-          resizeable
+        <DataGrid
+          disableColumnMenu
+          disableColumnSelector
+          disableRowSelectionOnClick
+          disableColumnFilter
+          sx={{ '.MuiDataGrid-columnSeparator:hover': { cursor: 'col-resize' } }}
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
