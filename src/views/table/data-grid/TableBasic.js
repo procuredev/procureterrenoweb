@@ -17,6 +17,7 @@ import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import { DataGridPro, esES } from '@mui/x-data-grid-pro'
+import { DataGrid } from '@mui/x-data-grid'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -178,6 +179,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const handleMiDivClick = event => {
     separatorRef.current = event.srcElement.parentElement
+
     const index = event.srcElement.parentNode.parentElement.attributes[3]
       ? event.srcElement.parentNode.parentElement.attributes[3].nodeValue
       : 0
