@@ -47,7 +47,7 @@ const DataGridGabinete = () => {
     )
   }
 
-
+console.log("blueprints: ", blueprints)
 
   const handleClickOpenCodeGenerator = doc => {
     setOpenCodeGenerator(true)

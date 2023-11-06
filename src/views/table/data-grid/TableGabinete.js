@@ -149,8 +149,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     {
       field: 'title',
       headerName: 'Código Procure',
-      flex: 0.7,
-      minWidth: 220,
+      flex: 0.3,
+      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
@@ -195,7 +195,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
       field: 'userName',
       headerName: 'CREADO POR',
       minWidth: 120,
-      flex: 0.3,
+      flex: 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -219,7 +219,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
 
         if (row.sendedByDocumentaryControl || row.sendedBySupervisor) {
 
-          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={/* descriptions[row.id] */ row.description || ''} defaultValue={/* descriptions[row.id] */ row.description || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
+          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={ row.description || ''} defaultValue={ row.description || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
 
           return isEditableField;
         }
@@ -230,7 +230,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     {
       field: 'start',
       headerName: 'ENTREGABLE',
-      flex: 0.1,
+      flex: 0.2,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
