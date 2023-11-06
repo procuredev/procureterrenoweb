@@ -216,18 +216,18 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
 
     let newEvent = {}
 
-    if(changedFields.designerReview && changedFields.designerReview.length > 0) {
+    if (changedFields.designerReview && changedFields.designerReview.length > 0) {
       // 1. Obtener el documento actual desde Firestore
-      const currentDocSnapshot = await getDoc(ref);
+      const currentDocSnapshot = await getDoc(ref)
       if (currentDocSnapshot.exists()) {
-        const currentDocData = currentDocSnapshot.data();
+        const currentDocData = currentDocSnapshot.data()
         // 2. Combinar el designerReview actual con el nuevo designerReview
-        const combinedDesignerReview = [...(currentDocData.designerReview || []), ...changedFields.designerReview];
+        const combinedDesignerReview = [...(currentDocData.designerReview || []), ...changedFields.designerReview]
         // Actualizar changedFields con el designerReview combinado
-        changedFields.designerReview = combinedDesignerReview;
+        changedFields.designerReview = combinedDesignerReview
       }
 
-      await updateDoc(ref, changedFields);
+      await updateDoc(ref, changedFields)
     } else {
       newEvent = {
         prevState,
@@ -494,108 +494,117 @@ const getBlueprints = async id => {
 }
 
 function formatCount(count) {
-  return String(count).padStart(3, '0');
+  return String(count).padStart(3, '0')
 }
 
 const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam, clientCode) => {
-    try {
-      const idProject = '21286'
-      if(clientCode) {
-        const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
+  try {
+    const idProject = '21286'
+    if (clientCode) {
+      const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
 
-        const valPlant = [
-          'Planta Concentradora Los Colorados',
-          'Planta Concentradora Laguna Seca | Línea 1',
-          'Planta Concentradora Laguna Seca | Línea 2',
-          'Chancado y Correas',
-          'Puerto Coloso',
-          'Instalaciones Cátodo'
-        ]
+      const valPlant = [
+        'Planta Concentradora Los Colorados',
+        'Planta Concentradora Laguna Seca | Línea 1',
+        'Planta Concentradora Laguna Seca | Línea 2',
+        'Chancado y Correas',
+        'Puerto Coloso',
+        'Instalaciones Cátodo'
+      ]
 
-        function getShortDefinition(plantLongDef) {
-          const index = valPlant.indexOf(plantLongDef);
-          if (index !== -1) {
-              return shortPlants[index];
-          } else {
-              return 'No se encontró definición corta para esta planta';
-          }
+      function getShortDefinition(plantLongDef) {
+        const index = valPlant.indexOf(plantLongDef)
+        if (index !== -1) {
+          return shortPlants[index]
+        } else {
+          return 'No se encontró definición corta para esta planta'
         }
-        const {ot, plant, area, id } = petition
-
-        const otNumber = `OT${ot}`
-        const instalacion = getShortDefinition(plant)
-        const areaNumber = area.slice(0, 4)
-
-        // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
-        const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`;
-        const counterRef = doc(db, 'solicitudes', id, 'codeGeneratorCount', counterDocID);
-
-        // Incrementa el contador dentro de una transacción
-        const incrementedCount = await runTransaction(db, async (transaction) => {
-          const counterSnapshot = await transaction.get(counterRef);
-          let newCount;
-          if (!counterSnapshot.exists()) {
-            newCount = formatCount(1);
-            transaction.set(counterRef, { count: newCount });
-          } else {
-            newCount = formatCount(Number(counterSnapshot.data().count) + 1);
-            transaction.update(counterRef, { count: newCount });
-          }
-
-          return newCount; // Retorna el nuevo contador para usarlo fuera de la transacción
-        });
-
-        // Ahora, añade este contador al final de tu newCode
-        const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
-
-        const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode);
-        await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, revision: 'iniciado', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
-
-        console.log("newCode:", newCode)
-
       }
+      const { ot, plant, area, id } = petition
+
+      const otNumber = `OT${ot}`
+      const instalacion = getShortDefinition(plant)
+      const areaNumber = area.slice(0, 4)
 
       // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
-      const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`;
-      const counterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter');
+      const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`
+      const counterRef = doc(db, 'solicitudes', id, 'codeGeneratorCount', counterDocID)
 
       // Incrementa el contador dentro de una transacción
-      const incrementedCount = await runTransaction(db, async (transaction) => {
-        const counterSnapshot = await transaction.get(counterRef);
-
-        let currentCount;
-        if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
-          currentCount = formatCount(1);
-          transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true });
+      const incrementedCount = await runTransaction(db, async transaction => {
+        const counterSnapshot = await transaction.get(counterRef)
+        let newCount
+        if (!counterSnapshot.exists()) {
+          newCount = formatCount(1)
+          transaction.set(counterRef, { count: newCount })
         } else {
-          currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1);
-          transaction.update(counterRef, { [counterDocID]: { count: currentCount } });
+          newCount = formatCount(Number(counterSnapshot.data().count) + 1)
+          transaction.update(counterRef, { count: newCount })
         }
 
-        return currentCount; // Retorna el nuevo contador para usarlo fuera de la transacción
-      });
+        return newCount // Retorna el nuevo contador para usarlo fuera de la transacción
+      })
 
       // Ahora, añade este contador al final de tu newCode
-      const newCode = `${idProject}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`;
+      const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
 
-      const docRef = doc(collection(db, 'solicitudes', petition.id, 'blueprints'), newCode);
-      await setDoc(docRef, {userId:userParam.uid, userName:userParam.displayName, revision: 'iniciado', userEmail:userParam.email, date: Timestamp.fromDate(new Date())});
+      const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode)
+      await setDoc(docRef, {
+        userId: userParam.uid,
+        userName: userParam.displayName,
+        revision: 'iniciado',
+        userEmail: userParam.email,
+        date: Timestamp.fromDate(new Date())
+      })
 
-      console.log("newCode:", newCode)
-
-    } catch (error) {
-      console.error('Error al generar Blueprint:', error)
-      throw new Error('Error al generar Blueprint')
+      console.log('newCode:', newCode)
     }
+
+    // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
+    const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`
+    const counterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+
+    // Incrementa el contador dentro de una transacción
+    const incrementedCount = await runTransaction(db, async transaction => {
+      const counterSnapshot = await transaction.get(counterRef)
+
+      let currentCount
+      if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
+        currentCount = formatCount(1)
+        transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true })
+      } else {
+        currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1)
+        transaction.update(counterRef, { [counterDocID]: { count: currentCount } })
+      }
+
+      return currentCount // Retorna el nuevo contador para usarlo fuera de la transacción
+    })
+
+    // Ahora, añade este contador al final de tu newCode
+    const newCode = `${idProject}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
+
+    const docRef = doc(collection(db, 'solicitudes', petition.id, 'blueprints'), newCode)
+    await setDoc(docRef, {
+      userId: userParam.uid,
+      userName: userParam.displayName,
+      revision: 'iniciado',
+      userEmail: userParam.email,
+      date: Timestamp.fromDate(new Date())
+    })
+
+    console.log('newCode:', newCode)
+  } catch (error) {
+    console.error('Error al generar Blueprint:', error)
+    throw new Error('Error al generar Blueprint')
+  }
 }
 
-  const addDescription = async (petitionID, blueprint, description) => {
-    const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint)
-    updateDoc(ref, {description})
-  }
+const addDescription = async (petitionID, blueprint, description) => {
+  const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint)
+  updateDoc(ref, { description })
+}
 
-
- const updateBlueprint = async (petitionID, blueprint, description, approve, userParam) => {
+const updateBlueprint = async (petitionID, blueprint, description, approve, userParam) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
 
   let newDocRevision = {
@@ -606,17 +615,23 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     userEmail: blueprint.userEmail,
     userName: blueprint.userName,
     userId: blueprint.userId,
-    date: Timestamp.fromDate(new Date()),
+    date: Timestamp.fromDate(new Date())
   }
-  console.log("description: ", description)
-  console.log("newDocRevision.description: ", newDocRevision.description)
+  console.log('description: ', description)
+  console.log('newDocRevision.description: ', newDocRevision.description)
 
-  if(userParam.role === 8) {
-    await updateDoc(ref, { description:description, sendedByDesigner: true, sendedTime: Timestamp.fromDate(new Date()) })
+  if (userParam.role === 8) {
+    await updateDoc(ref, { description: description, sentByDesigner: true, sentTime: Timestamp.fromDate(new Date()) })
     await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
   } else if (userParam.role === 9) {
-    if(approve){
-      await updateDoc(ref, { revision: 'A', storageBlueprints: null, sendedByDesigner: false, sendedByDocumentaryControl: true, sendedTime: Timestamp.fromDate(new Date()) })
+    if (approve) {
+      await updateDoc(ref, {
+        revision: 'A',
+        storageBlueprints: null,
+        sentByDesigner: false,
+        sentByDocumentaryControl: true,
+        sentTime: Timestamp.fromDate(new Date())
+      })
       newDocRevision.newRevision = 'A'
       newDocRevision.description = blueprint.description
       newDocRevision.userEmail = userParam.email
@@ -624,7 +639,12 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       newDocRevision.userId = userParam.uid
       await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
     } else {
-      await updateDoc(ref, { storageBlueprints: null, sendedByDesigner: false, sendedByDocumentaryControl: true, sendedTime: Timestamp.fromDate(new Date()) })
+      await updateDoc(ref, {
+        storageBlueprints: null,
+        sentByDesigner: false,
+        sentByDocumentaryControl: true,
+        sentTime: Timestamp.fromDate(new Date())
+      })
       newDocRevision.description = blueprint.description
       newDocRevision.userEmail = userParam.email
       newDocRevision.userName = userParam.displayName
@@ -632,16 +652,25 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
     }
   } else {
-    console.log("userParam.role ===", userParam.role)
-    if(approve){
-      await updateDoc(ref, { storageBlueprints: null, sendedBySupervisor: true, sendedTime: Timestamp.fromDate(new Date()) })
+    console.log('userParam.role ===', userParam.role)
+    if (approve) {
+      await updateDoc(ref, {
+        storageBlueprints: null,
+        sentBySupervisor: true,
+        sentTime: Timestamp.fromDate(new Date())
+      })
       newDocRevision.description = blueprint.description
       newDocRevision.userEmail = userParam.email
       newDocRevision.userName = userParam.displayName
       newDocRevision.userId = userParam.uid
       await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
     } else {
-      await updateDoc(ref, { storageBlueprints: null, sendedByDesigner: false, sendedBySupervisor: true, sendedTime: Timestamp.fromDate(new Date()) })
+      await updateDoc(ref, {
+        storageBlueprints: null,
+        sentByDesigner: false,
+        sentBySupervisor: true,
+        sentTime: Timestamp.fromDate(new Date())
+      })
       newDocRevision.description = blueprint.description
       newDocRevision.userEmail = userParam.email
       newDocRevision.userName = userParam.displayName
@@ -649,7 +678,15 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
     }
   }
+}
 
- }
-
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints, updateBlueprint, addDescription }
+export {
+  newDoc,
+  updateDocs,
+  updateUserPhone,
+  blockDayInDatabase,
+  generateBlueprint,
+  getBlueprints,
+  updateBlueprint,
+  addDescription
+}

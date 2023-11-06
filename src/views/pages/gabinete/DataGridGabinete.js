@@ -84,23 +84,25 @@ const DataGridGabinete = () => {
           // Reset flags
           setBlueprintGenerated(false)
         }
-
       }
 
       if (currentPetition) {
         const resBlueprints = await getBlueprints(currentPetition.id)
-        const filteredBlueprints = resBlueprints && resBlueprints.filter(item => item.sendedByDesigner === true || item.sendedByDocumentaryControl === true)
+        
+        const filteredBlueprints =
+          resBlueprints &&
+          resBlueprints.filter(item => item.sentByDesigner === true || item.sentByDocumentaryControl === true)
         authUser.role === 9 || authUser.role === 7 ? setBlueprints(filteredBlueprints) : setBlueprints(resBlueprints)
       }
     }
     fetchData()
-  }, [blueprintGenerated, currentPetition,])
+  }, [blueprintGenerated, currentPetition])
 
   return (
     <Box display={'flex'}>
-      <Box sx={{maxWidth: '20%'}}>
-      <Button onClick={() => setMenuOpen(prev => !prev)}>OT</Button>
-        <Paper sx={{ display: menuOpen ? 'block' : 'none', height:'100%'}}>
+      <Box sx={{ maxWidth: '20%' }}>
+        <Button onClick={() => setMenuOpen(prev => !prev)}>OT</Button>
+        <Paper sx={{ display: menuOpen ? 'block' : 'none', height: '100%' }}>
           <MenuList
             dense
             id='basic-menu'
@@ -117,36 +119,34 @@ const DataGridGabinete = () => {
             ))}
           </MenuList>
         </Paper>
-        </Box>
+      </Box>
 
-
-      <Box sx={{m:5}}>
-        <Box sx={{ py: 5, display: 'flex'}}>
-        {authUser.role === 7 ?
-            (<Button
-            variant='contained'
-            onClick={() => currentPetition && handleClickOpen(currentPetition)}
-            >Asignar proyectista</Button>)
-            : (<Button
-            variant='contained'
-            onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
-            >Generar nuevo documento
-          </Button>)}
+      <Box sx={{ m: 5 }}>
+        <Box sx={{ py: 5, display: 'flex' }}>
+          {authUser.role === 7 ? (
+            <Button variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
+              Asignar proyectista
+            </Button>
+          ) : (
+            <Button
+              variant='contained'
+              onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
+            >
+              Generar nuevo documento
+            </Button>
+          )}
 
           <Autocomplete
             multiple
-            sx={{m:2.5}}
-            value={currentOT && petitions.find(doc => doc.ot == currentOT)?.designerReview?.map(item => item.name) || []}
+            sx={{ m: 2.5 }}
+            value={
+              (currentOT && petitions.find(doc => doc.ot == currentOT)?.designerReview?.map(item => item.name)) || []
+            }
             options={[]}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label='Proyectistas asignados'
-              />
-            )}
+            renderInput={params => <TextField {...params} label='Proyectistas asignados' />}
           />
           <TextField
-          sx={{m:2.5}}
+            sx={{ m: 2.5 }}
             label='Título'
             multiline
             value={currentPetition ? currentPetition.title : ''}
@@ -154,21 +154,27 @@ const DataGridGabinete = () => {
             InputProps={{ readOnly: true }}
           />
           <TextField
-            sx={{m:2.5}}
+            sx={{ m: 2.5 }}
             label='Tipo de levantamiento'
             value={currentPetition ? currentPetition.objective : ''}
             id='form-props-read-only-input'
             InputProps={{ readOnly: true }}
           />
           <TextField
-          sx={{m:2.5}}
+            sx={{ m: 2.5 }}
             label='Entregable'
             value={currentPetition ? currentPetition.deliverable.map(item => item) : ''}
             id='form-props-read-only-input'
             InputProps={{ readOnly: true }}
           />
         </Box>
-        <TableGabinete rows={blueprints ? blueprints : []} roleData={roleData} role={authUser.role} petitionId={currentPetition? currentPetition.id : null} setBlueprintGenerated={setBlueprintGenerated} />
+        <TableGabinete
+          rows={blueprints ? blueprints : []}
+          roleData={roleData}
+          role={authUser.role}
+          petitionId={currentPetition ? currentPetition.id : null}
+          setBlueprintGenerated={setBlueprintGenerated}
+        />
       </Box>
 
       <DialogAssignDesigner
