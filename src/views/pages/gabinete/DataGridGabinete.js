@@ -5,17 +5,12 @@ import { useState, useEffect } from 'react'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
-import TabContext from '@mui/lab/TabContext'
-import TabPanel from '@mui/lab/TabPanel'
 
-import { Chip, MenuList, MenuItem, Paper, Autocomplete } from '@mui/material'
+import { MenuList, MenuItem, Paper, Autocomplete } from '@mui/material'
 
 // ** Custom Components Imports
 
-import InputLabel from '@mui/material/InputLabel'
-import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
@@ -25,7 +20,6 @@ import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
 
 const DataGridGabinete = () => {
-  const [value, setValue] = useState('1')
   const [menuOpen, setMenuOpen] = useState(true)
   const [currentPetition, setCurrentPetition] = useState('')
   const [currentOT, setCurrentOT] = useState('')
@@ -33,7 +27,6 @@ const DataGridGabinete = () => {
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
   const [proyectistas, setProyectistas] = useState([])
-  const [selectedPetition, setSelectedPetition] = useState('')
   const [blueprints, setBlueprints] = useState([])
   const [openCodeGenerator, setOpenCodeGenerator] = useState(false)
   const [blueprintGenerated, setBlueprintGenerated] = useState(false)
@@ -47,8 +40,6 @@ const DataGridGabinete = () => {
       petition.designerReview?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
     )
   }
-
-console.log("blueprints: ", blueprints)
 
   const handleClickOpenCodeGenerator = doc => {
     setOpenCodeGenerator(true)
@@ -127,27 +118,6 @@ console.log("blueprints: ", blueprints)
           </MenuList>
         </Paper>
         </Box>
-      {/* <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-            <InputLabel id="demo-select-small-label">OT</InputLabel>
-            <Select
-              value={currentPetition ? currentPetition.ot : ''}
-              label='OT'
-              id='controlled-select'
-              onChange={handleChange}
-              labelId='controlled-select-label'
-            >
-              <MenuItem value=''>
-                  <em>None</em>
-              </MenuItem>
-              {petitions.map((petitionItem, index) => (
-                <MenuItem key={index} value={petitionItem.ot}>
-                    OT: {petitionItem.ot}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-         */}
 
 
       <Box sx={{m:5}}>

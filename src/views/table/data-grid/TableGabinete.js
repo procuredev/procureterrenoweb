@@ -6,10 +6,9 @@ import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
-import EditIcon from '@mui/icons-material/Edit';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
-import { Typography, IconButton, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from '@mui/material'
+import { Typography, IconButton, Dialog, DialogTitle, DialogActions, DialogContent} from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -29,10 +28,8 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 import Edit from '@mui/icons-material/Edit'
-import { addDescription } from 'src/context/firebase-functions/firestoreFunctions'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated }) => {
-  const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
@@ -41,7 +38,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, getUserProyectistas, updateBlueprint, addDescription } = useFirebase()
+  const { authUser, getUserData, updateBlueprint, addDescription } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null);
   const [newDescription, setNewDescription] = useState(false)
 
