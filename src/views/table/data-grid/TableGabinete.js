@@ -3,25 +3,18 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useFirebase } from 'src/context/useFirebase'
-import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
-import CustomChip from 'src/@core/components/mui/chip'
 import { Typography, IconButton } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import CardHeader from '@mui/material/CardHeader'
-import { DateRangePicker } from '@mui/lab'
-import { date } from 'yup/lib/locale'
-import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import CloudDownloadOutlinedIcon from '@mui/icons-material/CloudDownloadOutlined';
 import { Container } from '@mui/system'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
@@ -29,18 +22,11 @@ import TextField from '@mui/material/TextField'
 
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
-import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
-import EngineeringIcon from '@mui/icons-material/Engineering'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import TableSpanning from 'src/views/table/mui/TableSpanning'
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
-import { async } from '@firebase/util'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated }) => {
   const [options, setOptions] = useState('')
