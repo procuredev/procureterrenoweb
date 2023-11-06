@@ -22,6 +22,12 @@
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 
+//Llamada a Firestore
+const firestore = require('@google-cloud/firestore')
+
+//Llamada al 'client' administrador de Firestore
+const client = new firestore.v1.FirestoreAdminClient()
+
 // Llamada a template de e-mail:
 const getEmailTemplate = require('./emailTemplate').getEmailTemplate
 
@@ -481,3 +487,32 @@ exports.cleanAreaWarning = functions.pubsub
 
     return null
   })
+
+
+// * Función para Guardar en un Bucket de Google Cloud la Base de Datos de Firestore todos los días a cierta hora
+// Los datos serán almacenados en el bucket en un formato estándar usado en Google Cloud (metadatos)
+exports.scheduledFirestoreExport = functions.pubsub
+  .schedule('every day 21:00')
+  .timeZone('Chile/Continental')
+  .onRun((context) => {
+
+  const projectId = 'procureterrenoweb' //process.env.GCP_PROJECT
+  const databaseName = client.databasePath(projectId, '(default)')
+
+  return client.exportDocuments({
+    name: databaseName,
+    outputUriPrefix: 'gs://firestore-procureterrenoweb-backup',
+    // Leave collectionIds empty to export all collections
+    // or set to a list of collection IDs to export,
+    // collectionIds: ['users', 'posts']
+    collectionIds: []
+  })
+  .then(responses => {
+    const response = responses[0]
+    console.log(`Operation Name: ${response['name']}`)
+  })
+  .catch(err => {
+    console.error('Error when trying to export:', err)
+    throw new Error('Export operation failed')
+  })
+})
