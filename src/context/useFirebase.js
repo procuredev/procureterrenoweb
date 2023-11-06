@@ -26,6 +26,7 @@ import {
   generateBlueprint,
   getBlueprints,
   updateBlueprint,
+  addDescription
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -107,6 +108,7 @@ const FirebaseContextProvider = props => {
     fetchPetitionById,
     fetchPlaneProperties,
     updateBlueprint,
+    addDescription
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

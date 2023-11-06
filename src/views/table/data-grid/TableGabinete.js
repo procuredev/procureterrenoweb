@@ -6,9 +6,10 @@ import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
+import EditIcon from '@mui/icons-material/Edit';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
-import { Typography, IconButton } from '@mui/material'
+import { Typography, IconButton, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -27,6 +28,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
+import Edit from '@mui/icons-material/Edit'
+import { addDescription } from 'src/context/firebase-functions/firestoreFunctions'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated }) => {
   const [options, setOptions] = useState('')
@@ -38,25 +41,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, getUserProyectistas, updateBlueprint } = useFirebase()
-  const [descriptions, setDescriptions] = useState({});
+  const { updateDocs, authUser, getUserData, getUserProyectistas, updateBlueprint, addDescription } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null);
+  const [newDescription, setNewDescription] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
-  const handleDescriptionChange = (row, value) => {
-    if (row.description) {
-      setDescriptions(prev => ({ ...prev, [row.id]: row.description }));
-    }
-    setDescriptions(prev => ({ ...prev, [row.id]: value }));
-  }
-
-  console.log(descriptions)
-
-   const handleClickOpen = doc => {
-
-    setDoc(doc)
-    setOpen(true)
+  const handleDescriptionChange = (value) => {
+    setNewDescription(value)
   }
 
   const handleOpenUploadDialog = doc => {
@@ -89,18 +81,24 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
     setApprove(isApproved)
   }
 
-  const writeCallback = async () => {
-    console.log("descriptions[doc.id]: ", descriptions[doc.id])
-    authUser.role === 9 ? await updateBlueprint(petitionId, doc, null, approve, authUser) :
-    await updateBlueprint(petitionId, doc, descriptions[doc.id], approve, authUser)
-    setOpenAlert(false)
-    setDescriptions(prev => {
-      const newState = { ...prev };
-      delete newState[doc.id];
+  const submitDescription = async () => {
+    await addDescription(petitionId, currentRow, newDescription)
+    .then(()=>setNewDescription(false))
+    .catch((err)=>console.error(err))
+  }
 
-      return newState;
-  });
+  const writeCallback = async () => {
+    authUser.role === 9 ? await updateBlueprint(petitionId, doc, null, approve, authUser) :
+    await updateBlueprint(petitionId, doc, newDescription, approve, authUser)
+    .then(
+    setOpenAlert(false),
+    setNewDescription(false),
     setBlueprintGenerated(true)
+    )
+    .catch(err =>
+    console.error(err),
+    setOpenAlert(false),
+    setNewDescription(false),)
   }
 
   const handleCloseAlert = () => {
@@ -196,21 +194,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
       //editable: true,
       renderCell: params => {
         const { row } = params
+        let description = row.description || true
 
-        if (!row.description) {
-          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={descriptions[row.id] || ''} defaultValue={descriptions[row.id] || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
-
-          return isEditableField;
-        }
-
-        if (row.sendedByDocumentaryControl || row.sendedBySupervisor) {
-
-          const isEditableField = row.userId === authUser.uid ? (<TextField label='Describir' id='size-small' value={ row.description || ''} defaultValue={ row.description || ''} onChange={(e) => handleDescriptionChange(row, e.target.value)} size='small' />) : ('')
-
-          return isEditableField;
-        }
-
-        return <div>{row.description || 'N/A'}</div>
+        return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between'}}>
+          <Typography sx={{overflow:'hidden'}}>
+          {row.description || 'Sin descripción'}
+          </Typography>
+          <Edit fontSize='small' sx={{ml:2}} onClick={()=>{setNewDescription(description); setCurrentRow(row.id)}}></Edit>
+          </Box>
       }
     },
     {
@@ -251,7 +242,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
         return (
           <>
             {md ? (
-             (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.description || (descriptions[row.id] && descriptions[row.id].length > 6)) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+             (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
                 <>
                   <Button
                     onClick={ () => handleClickOpenAlert(row, true) }
@@ -372,7 +363,34 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
             setBlueprintGenerated={setBlueprintGenerated}
           />
         )}
+        {newDescription && (
+          <Dialog
+            sx={{ '.MuiDialog-paper': { width: '100%' } }}
+            open={!!newDescription}
+            onClose={()=>setNewDescription(false)}
+            aria-labelledby='alert-dialog-title'
+            aria-describedby='alert-dialog-description'
+          >
+            <DialogTitle id='alert-dialog-title'>{'Descripción'}</DialogTitle>
+            <DialogContent>
 
+                <TextField
+                  sx={{ width: '100%', mt:3 }}
+                  id='outlined-multiline-static'
+                  label='Descripción'
+                  multiline
+                  value={typeof newDescription === 'string' ? newDescription : ''}
+                  onChange={(e)=>handleDescriptionChange(e.target.value)}
+                  rows={4}
+                />
+
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={()=>setNewDescription(false)}>Cancelar</Button>
+              <Button onClick={()=>submitDescription()}>Enviar</Button>
+            </DialogActions>
+          </Dialog>)
+        }
       </Box>
     </Card>
   )

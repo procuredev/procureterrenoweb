@@ -589,6 +589,12 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     }
 }
 
+  const addDescription = async (petitionID, blueprint, description) => {
+    const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint)
+    updateDoc(ref, {description})
+  }
+
+
  const updateBlueprint = async (petitionID, blueprint, description, approve, userParam) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
 
@@ -646,4 +652,4 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
 
  }
 
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints, updateBlueprint }
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, generateBlueprint, getBlueprints, updateBlueprint, addDescription }
