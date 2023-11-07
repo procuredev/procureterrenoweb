@@ -539,6 +539,7 @@ const handleGPRSelected = () => {
             {authUser.role === 7 && (
               <>
                 <CustomTextField
+                  required
                   label='OT'
                   value={values.ot}
                   onChange={handleChange('ot')}
@@ -548,6 +549,7 @@ const handleGPRSelected = () => {
                 />
 
                 <CustomSelect
+                  required
                   options={['Urgencia', 'Emergencia', 'Oportunidad']}
                   label='Tipo de urgencia'
                   value={values.urgency}
@@ -590,7 +592,7 @@ const handleGPRSelected = () => {
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
-                      label='Fecha de inicio'
+                      label='Fecha de inicio *'
                       value={values.start}
                       onChange={date => handleChange('start')(date)}
                       InputLabelProps={{ shrink: true, required: true }}
@@ -619,7 +621,7 @@ const handleGPRSelected = () => {
                         dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                         minDate={moment().subtract(1, 'year')}
                         maxDate={moment().add(1, 'year')}
-                        label='Fecha de término'
+                        label='Fecha de término *'
                         value={values.end}
                         onChange={date => handleChange('end')(date)}
                         InputLabelProps={{ shrink: true, required: true }}
@@ -640,6 +642,7 @@ const handleGPRSelected = () => {
             )}
 
             <CustomSelect
+            required
               options={
                 authUser.role === 7 ||
                 (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
@@ -659,6 +662,7 @@ const handleGPRSelected = () => {
             />
 
             <CustomSelect
+            required
               options={areas}
               label='Área'
               value={values.area}
@@ -680,6 +684,7 @@ const handleGPRSelected = () => {
             </Grid>
 
             <CustomSelect
+              required
               options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
               label='Contract Operator'
               value={values.contop}
@@ -711,6 +716,7 @@ const handleGPRSelected = () => {
             />
 
             <CustomSelect
+            required
               options={
                 (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
                   ? petitioners.map(item => ({ name: item.name }))
@@ -743,6 +749,7 @@ const handleGPRSelected = () => {
             />
 
             <CustomSelect
+              required
               options={['Normal', 'Outage', 'Shutdown']}
               label='Estado Operacional Planta'
               value={values.type}
@@ -753,6 +760,7 @@ const handleGPRSelected = () => {
             />
 
             <CustomSelect
+              required
               options={['Sí', 'No', 'No aplica']}
               label='¿Estará la máquina detenida?'
               value={values.detention}
@@ -763,7 +771,6 @@ const handleGPRSelected = () => {
             />
 
             <CustomTextField
-              required
               type='text'
               label='Número SAP'
               value={values.sap}
@@ -775,6 +782,7 @@ const handleGPRSelected = () => {
             />
 
             <CustomSelect
+              required
               options={[
                 'Análisis fotogramétrico',
                 'Análisis GPR',
@@ -792,6 +800,7 @@ const handleGPRSelected = () => {
             />
 
             <CustomAutocomplete
+              required
               options={[
                 'Sketch',
                 'Plano de Fabricación',
@@ -808,6 +817,7 @@ const handleGPRSelected = () => {
             />
 
             <CustomAutocomplete
+              required
               isOptionEqualToValue={(option, value) => (option.name === value.name)}
               options={allUsers}
               label='Destinatarios'
