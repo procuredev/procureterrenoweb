@@ -458,7 +458,8 @@ export function solicitudValidator(values) {
     'Plano de Diseño',
     'Memoria de Cálculo',
     'Informe',
-    'Nube de Puntos'
+    'Nube de Puntos',
+    'Ortofotografía'
   ]
 
   const valType = ['Normal', 'Outage', 'Shutdown', 'Oportunidad']

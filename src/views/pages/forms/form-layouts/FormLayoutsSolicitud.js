@@ -807,7 +807,8 @@ const handleGPRSelected = () => {
                 'Plano de Diseño',
                 'Memoria de Cálculo',
                 'Informe',
-                'Nube de Puntos'
+                'Nube de Puntos',
+                'Ortofotografía'
               ]}
               label='Entregables del levantamiento'
               value={values.deliverable}
