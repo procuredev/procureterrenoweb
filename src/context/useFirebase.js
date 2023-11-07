@@ -26,7 +26,8 @@ import {
   generateBlueprint,
   getBlueprints,
   updateBlueprint,
-  addDescription
+  addDescription,
+  generateBlueprintCodeClient
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -42,7 +43,9 @@ import {
   consultObjetives,
   getUsersWithSolicitudes,
   fetchPetitionById,
-  fetchPlaneProperties
+  fetchPlaneProperties,
+  fetchMelDisciplines,
+  fetchMelDeliverableType
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -108,7 +111,10 @@ const FirebaseContextProvider = props => {
     fetchPetitionById,
     fetchPlaneProperties,
     updateBlueprint,
-    addDescription
+    addDescription,
+    fetchMelDisciplines,
+    fetchMelDeliverableType,
+    generateBlueprintCodeClient
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

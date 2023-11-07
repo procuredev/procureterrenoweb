@@ -22,14 +22,14 @@ import TextField from '@mui/material/TextField'
 
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
-
+import { DialogClientCodeGenerator } from 'src/@core/components/dialog-clientCodeGenerator'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 import Edit from '@mui/icons-material/Edit'
 
-const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated }) => {
+const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
@@ -41,6 +41,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
   const { authUser, getUserData, updateBlueprint, addDescription } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null);
   const [newDescription, setNewDescription] = useState(false)
+  const [generateClientCode, setGenerateClientCode] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -66,6 +67,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
 
   const handleCloseEvents = () => {
     setOpenEvents(false)
+  }
+
+  const handleCloseClientCodeGenerator = () => {
+    setGenerateClientCode(false)
   }
 
   const handleClose = () => {
@@ -159,6 +164,29 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
           </Tooltip>
 
         )
+      }
+    },
+    {
+      field: 'clientCode',
+      headerName: 'Código MEL',
+      flex: 0.4,
+      minWidth: 120,
+      renderCell: params => {
+        const { row } = params
+
+        if (row.clientCode) {
+          return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between'}}>
+          <Typography sx={{overflow:'hidden'}}>
+          {row.clientCode || 'Sin descripción'}
+          </Typography>
+          </Box>
+        } else {
+          return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between'}}>
+          <Edit fontSize='small' sx={{ml:2}} onClick={()=>{setGenerateClientCode(true); setCurrentRow(row.id)}}></Edit>
+          </Box>
+        }
+
+
       }
     },
     {
@@ -388,6 +416,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, setBlueprintGenerated
             </DialogActions>
           </Dialog>)
         }
+        {generateClientCode && (
+        <DialogClientCodeGenerator
+          open={generateClientCode}
+          handleClose={handleCloseClientCodeGenerator}
+          petition={petition}
+          blueprint={currentRow}
+          roleData={roleData}
+          setBlueprintGenerated={setBlueprintGenerated}
+        />
+      )}
       </Box>
     </Card>
   )

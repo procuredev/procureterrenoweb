@@ -506,6 +506,60 @@ const fetchPlaneProperties = async () => {
   }
 };
 
+const fetchMelDisciplines = async () => {
+  const docRef = doc(db, 'domain', 'blueprintMelProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const resDisciplines = await docSnap.data().disciplines
+
+    return resDisciplines
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
+const fetchMelDeliverableType = async (discipline) => {
+  const shortDeliverableType = ['AR', 'BS', 'CL', 'EL', 'GN', 'IC', 'ME', 'PP', 'PR', 'ST', 'TC', 'VE']
+
+  const longDeliverableType = [
+    'arquitectura',
+    'hvca',
+    'civil',
+    'electrica',
+    'multi-disciplina',
+    'instrumentacion y control',
+    'mecanica',
+    'cañeria',
+    'proceso',
+    'estructura',
+    'comunicaciones',
+    'vendor'
+  ]
+
+  function getLongDefinition(item) {
+    const index = shortDeliverableType.indexOf(item)
+    if (index !== -1) {
+      return longDeliverableType[index]
+    } else {
+      return 'No se encontró definición corta para este tipo'
+    }
+  }
+
+  const deliverableType = getLongDefinition(discipline)
+
+  const docRef = doc(db, 'domain', 'blueprintMelProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists() && discipline) {
+    const resDeliverableType = await docSnap.data()[deliverableType]
+
+    return resDeliverableType
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
 const fetchPetitionById = async id => {
   const docRef = doc(db, 'solicitudes', id)
   const docSnap = await getDoc(docRef)
@@ -700,5 +754,7 @@ export {
   consultObjetives,
   getUsersWithSolicitudes,
   fetchPetitionById,
-  fetchPlaneProperties
+  fetchPlaneProperties,
+  fetchMelDisciplines,
+  fetchMelDeliverableType
 }

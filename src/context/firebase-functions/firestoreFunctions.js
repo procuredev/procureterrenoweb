@@ -497,68 +497,70 @@ function formatCount(count) {
   return String(count).padStart(3, '0')
 }
 
-const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam, clientCode) => {
+const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, petition, blueprintId, userParam) => {
   try {
     const idProject = '21286'
-    if (clientCode) {
-      const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
 
-      const valPlant = [
-        'Planta Concentradora Los Colorados',
-        'Planta Concentradora Laguna Seca | Línea 1',
-        'Planta Concentradora Laguna Seca | Línea 2',
-        'Chancado y Correas',
-        'Puerto Coloso',
-        'Instalaciones Cátodo'
-      ]
+    const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
 
-      function getShortDefinition(plantLongDef) {
-        const index = valPlant.indexOf(plantLongDef)
-        if (index !== -1) {
-          return shortPlants[index]
-        } else {
-          return 'No se encontró definición corta para esta planta'
-        }
+    const valPlant = [
+      'Planta Concentradora Los Colorados',
+      'Planta Concentradora Laguna Seca | Línea 1',
+      'Planta Concentradora Laguna Seca | Línea 2',
+      'Chancado y Correas',
+      'Puerto Coloso',
+      'Instalaciones Cátodo'
+    ]
+
+    function getShortDefinition(plantLongDef) {
+      const index = valPlant.indexOf(plantLongDef)
+      if (index !== -1) {
+        return shortPlants[index]
+      } else {
+        return 'No se encontró definición corta para esta planta'
       }
-      const { ot, plant, area, id } = petition
-
-      const otNumber = `OT${ot}`
-      const instalacion = getShortDefinition(plant)
-      const areaNumber = area.slice(0, 4)
-
-      // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
-      const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`
-      const counterRef = doc(db, 'solicitudes', id, 'codeGeneratorCount', counterDocID)
-
-      // Incrementa el contador dentro de una transacción
-      const incrementedCount = await runTransaction(db, async transaction => {
-        const counterSnapshot = await transaction.get(counterRef)
-        let newCount
-        if (!counterSnapshot.exists()) {
-          newCount = formatCount(1)
-          transaction.set(counterRef, { count: newCount })
-        } else {
-          newCount = formatCount(Number(counterSnapshot.data().count) + 1)
-          transaction.update(counterRef, { count: newCount })
-        }
-
-        return newCount // Retorna el nuevo contador para usarlo fuera de la transacción
-      })
-
-      // Ahora, añade este contador al final de tu newCode
-      const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
-
-      const docRef = doc(collection(db, 'solicitudes', id, 'blueprints'), newCode)
-      await setDoc(docRef, {
-        userId: userParam.uid,
-        userName: userParam.displayName,
-        revision: 'iniciado',
-        userEmail: userParam.email,
-        date: Timestamp.fromDate(new Date())
-      })
-
-      console.log('newCode:', newCode)
     }
+    const { ot, plant, area, id } = petition
+
+    const otNumber = `OT${ot}`
+    const instalacion = getShortDefinition(plant)
+    const areaNumber = area.slice(0, 4)
+
+    // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
+    const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`
+    const counterRef = doc(db, 'solicitudes', id, 'clientCodeGeneratorCount', counterDocID)
+
+    // Incrementa el contador dentro de una transacción
+    const incrementedCount = await runTransaction(db, async transaction => {
+      const counterSnapshot = await transaction.get(counterRef)
+      let newCount
+      if (!counterSnapshot.exists()) {
+        newCount = formatCount(1)
+        transaction.set(counterRef, { count: newCount })
+      } else {
+        newCount = formatCount(Number(counterSnapshot.data().count) + 1)
+        transaction.update(counterRef, { count: newCount })
+      }
+
+      return newCount // Retorna el nuevo contador para usarlo fuera de la transacción
+    })
+
+    // Ahora, añade este contador al final de tu newCode
+    const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
+
+    const ref = doc(db, 'solicitudes', id, 'blueprints', blueprintId)
+    updateDoc(ref, { clientCode: newCode })
+
+    console.log('newCode:', newCode)
+  } catch (error) {
+    console.error('Error al generar clientCode:', error)
+    throw new Error('Error al generar clientCode')
+  }
+}
+
+const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
+  try {
+    const idProject = '21286'
 
     // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
     const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`
@@ -688,5 +690,6 @@ export {
   generateBlueprint,
   getBlueprints,
   updateBlueprint,
-  addDescription
+  addDescription,
+  generateBlueprintCodeClient
 }

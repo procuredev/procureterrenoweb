@@ -88,7 +88,7 @@ const DataGridGabinete = () => {
 
       if (currentPetition) {
         const resBlueprints = await getBlueprints(currentPetition.id)
-        
+
         const filteredBlueprints =
           resBlueprints &&
           resBlueprints.filter(item => item.sentByDesigner === true || item.sentByDocumentaryControl === true)
@@ -173,6 +173,7 @@ const DataGridGabinete = () => {
           roleData={roleData}
           role={authUser.role}
           petitionId={currentPetition ? currentPetition.id : null}
+          petition={currentPetition ? currentPetition : null}
           setBlueprintGenerated={setBlueprintGenerated}
         />
       </Box>

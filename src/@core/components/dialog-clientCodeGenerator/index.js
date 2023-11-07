@@ -26,7 +26,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenerated }) => {
+export const DialogClientCodeGenerator = ({ open, handleClose, petition, blueprint, setBlueprintGenerated }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
@@ -36,9 +36,10 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
   const [typeOfDocument, setTypeOfDocument] = useState('')
   const [disciplines, setDisciplines] = useState([]);
   const [deliverables, setDeliverables] = useState([]);
+  const [currentDiscipline, setCurrentDiscipline] = useState('')
 
   // ** Hooks
-  const { updateDocs, authUser, generateBlueprint, fetchPlaneProperties } = useFirebase()
+  const { authUser, generateBlueprintCodeClient, fetchMelDisciplines, fetchMelDeliverableType } = useFirebase()
 
   const handleChangeTypeOfDiscipline = (event) => {
     setTypeOfDiscipline(event.target.value);
@@ -50,11 +51,13 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
 
 
 
-  const onsubmit = async id => {
+  const onsubmit = async (doc, blueprintId) => {
     if (typeOfDiscipline && typeOfDocument) {
-      await generateBlueprint(typeOfDiscipline, typeOfDocument, doc, authUser)
-      setBlueprintGenerated(true)
+      //console.log( "DOC: ", petition, "blueprint: ", blueprint,)
+
+      await generateBlueprintCodeClient(typeOfDiscipline, typeOfDocument, petition, blueprint, authUser)
       handleClose();
+      setBlueprintGenerated(true)
     } else {
       setError('Por favor, indique tipo de disciplina y tipo de documento.');
     }
@@ -62,13 +65,26 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
 
   useEffect(() => {
     const fetchData = async () => {
-      let {resDeliverables,resDisciplines} = await fetchPlaneProperties()
+      let resDisciplines = await fetchMelDisciplines()
       setDisciplines(resDisciplines)
-      setDeliverables(resDeliverables)
+      //setDeliverables(resDeliverables)
     };
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if ( typeOfDiscipline ) {
+
+      const fetchData = async () => {
+        let resDeliverableTypes = await fetchMelDeliverableType(typeOfDiscipline)
+        setDeliverables(resDeliverableTypes)
+      };
+
+      fetchData();
+    }
+
+  }, [typeOfDiscipline]);
 
   return (
     <Dialog
@@ -111,9 +127,8 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
                 </MenuItem>
 
                 { Object.entries(disciplines).map(([key, value]) => (
-
-                  <MenuItem key={key} value={value}>
-                  <em>{key}</em>
+                  <MenuItem key={key} value={key}>
+                  <em>{value}</em>
                   </MenuItem>
                   ))
                 }
@@ -135,10 +150,10 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
                 <MenuItem value=''>
                     <em>None</em>
                 </MenuItem>
-                { Object.entries(deliverables).map(([key, value]) => (
+                { deliverables && Object.entries(deliverables).map(([key, value]) => (
 
-                  <MenuItem key={key} value={value}>
-                  <em>{key}</em>
+                  <MenuItem key={key} value={key}>
+                  <em>{value}</em>
                   </MenuItem>
                   ))
                   }
@@ -150,7 +165,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
 
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
+          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={(petition, blueprint) => onsubmit(petition, blueprint)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Crear código
           </Button>
