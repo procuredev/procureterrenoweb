@@ -81,24 +81,38 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
+  const [userInputMC, setUserInputMC] = useState("")
+  const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false);
 
-const handleGPRSelected = () => {
-  const currentWeek = moment().isoWeek()
-  const startDate = moment(values.start)
-  const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
-  const weeksDifference = startDate.diff(currentDate, 'weeks')
+  const handleCloseDialogMC = () => {
+    setIsDialogOpenMC(false)
+  };
 
-  const inTenWeeks = moment()
-    .locale('es')
-    .isoWeeks(currentWeek + 10)
-    .format('LL')
+  const handleConfirmDialogMC = () => {
+    console.log("El usuario ingresó:", userInputMC)
+    // Puedes hacer algo más con userInput aquí, como enviarlo al backend o a otro componente.
+    setIsDialogOpenMC(false)
+  }
 
-  if (weeksDifference < 10) {
-    setErrors(prevErrors => ({
-      ...prevErrors,
-      objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
-    }))
-  }}
+  const handleGPRSelected = () => {
+    const currentWeek = moment().isoWeek()
+    const startDate = moment(values.start)
+    const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+    const weeksDifference = startDate.diff(currentDate, 'weeks')
+
+    const inTenWeeks = moment()
+      .locale('es')
+      .isoWeeks(currentWeek + 10)
+      .format('LL')
+
+    if (weeksDifference < 10) {
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
+      }))
+    }
+  }
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
@@ -138,10 +152,15 @@ const handleGPRSelected = () => {
       case autoFields.includes(prop): {
         newValue = prop === 'receiver' ? [...fixed, ...data.filter(option => fixed.indexOf(option) === -1)] : data
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-        if (prop === 'deliverable' && newValue.includes('Memoria de Cálculo')) {
-          setAlertMessage(
-            'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello.'
-          )
+        if (prop === 'deliverable') {
+          const isMemoriaDeCalculoSelected = newValue.includes('Memoria de Cálculo')
+
+          if (isMemoriaDeCalculoSelected && !hasDialogMCBeenShown) {
+            setIsDialogOpenMC(true)
+            setHasDialogMCBeenShown(true)
+          } else if (!isMemoriaDeCalculoSelected) {
+            setHasDialogMCBeenShown(false)
+  }
         }
         break
       }
@@ -373,7 +392,9 @@ const handleGPRSelected = () => {
               return rest
             }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null
+            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
+            mcDescription: userInputMC ? userInputMC : null
+
           },
           authUser
         )
@@ -536,8 +557,10 @@ const handleGPRSelected = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
 
+            {/* Datos exclusivos para cuando el Supervisor ingresa la Solicitud */}
             {authUser.role === 7 && (
               <>
+                {/* Número de OT Procure */}
                 <CustomTextField
                   required
                   label='OT'
@@ -548,6 +571,7 @@ const handleGPRSelected = () => {
                   helper='Ingresa el número de OT.'
                 />
 
+                {/* Tipo de Urgencia */}
                 <CustomSelect
                   required
                   options={['Urgencia', 'Emergencia', 'Oportunidad']}
@@ -561,6 +585,7 @@ const handleGPRSelected = () => {
               </>
             )}
 
+            {/* Título */}
             <CustomTextField
               required
               type='text'
@@ -572,6 +597,7 @@ const handleGPRSelected = () => {
               helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
             />
 
+            {/* Descripción */}
             <CustomTextField
               required
               type='text'
@@ -641,6 +667,7 @@ const handleGPRSelected = () => {
               </Grid>
             )}
 
+            {/* Planta */}
             <CustomSelect
             required
               options={
@@ -661,6 +688,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Área */}
             <CustomSelect
             required
               options={areas}
@@ -683,6 +711,7 @@ const handleGPRSelected = () => {
               </Typography>
             </Grid>
 
+            {/* Contract Operator */}
             <CustomSelect
               required
               options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
@@ -695,6 +724,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Functional Location */}
             <CustomTextField
               type='text'
               label='Functional Location'
@@ -705,6 +735,7 @@ const handleGPRSelected = () => {
               helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
             />
 
+            {/* TAG */}
             <CustomTextField
               type='text'
               label='TAG'
@@ -715,6 +746,7 @@ const handleGPRSelected = () => {
               helper='Ingresa el código TAG para identificar el equipo.'
             />
 
+            {/* Solicitante */}
             <CustomSelect
             required
               options={
@@ -733,6 +765,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Contraturno */}
             <CustomSelect
               options={
                 (authUser.role === 7 || authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
@@ -748,6 +781,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Estado Operacional */}
             <CustomSelect
               required
               options={['Normal', 'Outage', 'Shutdown']}
@@ -759,6 +793,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Máquina Detenida */}
             <CustomSelect
               required
               options={['Sí', 'No', 'No aplica']}
@@ -770,6 +805,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* SAP */}
             <CustomTextField
               type='text'
               label='Número SAP'
@@ -781,6 +817,7 @@ const handleGPRSelected = () => {
               helper='Rellena este campo sólo si conoces el número SAP'
             />
 
+            {/* Tipo de Levantamiento */}
             <CustomSelect
               required
               options={[
@@ -799,6 +836,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Entregables */}
             <CustomAutocomplete
               required
               options={[
@@ -817,6 +855,32 @@ const handleGPRSelected = () => {
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
             />
 
+            {/* Dialog Memoria de Cálculo */}
+            <Dialog open={isDialogOpenMC} onClose={handleCloseDialogMC} aria-labelledby="form-dialog-title">
+              <DialogTitle id="form-dialog-title">Memoria de Cálculo</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:
+                </DialogContentText>
+                <CustomTextField
+                  margin='dense'
+                  type='text'
+                  value={userInputMC}
+                  onChange={(e) => setUserInputMC(e.target.value)}
+                  helper='Ingresa acá una explicación lo más adecuado posible del porqué necesitas una Memoria de Cálculo. Con esto Procure podrá generar un presupuesto acertado.'
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseDialogMC}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleConfirmDialogMC}>
+                  Confirmar
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Destinatarios */}
             <CustomAutocomplete
               required
               isOptionEqualToValue={(option, value) => (option.name === value.name)}

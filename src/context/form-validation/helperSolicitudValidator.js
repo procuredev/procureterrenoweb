@@ -586,7 +586,7 @@ export function solicitudValidator(values) {
 
   for (const key in values) {
     let keyStringName = keyMap[key] || [key]
-    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag', 'end', 'ot', 'urgency']
+    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag', 'end', 'ot', 'urgency', 'mcDescription']
 
     if (typeof values[key] === 'string' && !nonRequiredFields.includes(key)) {
       if (values[key].trim() === '') {
@@ -599,7 +599,7 @@ export function solicitudValidator(values) {
       }
     }
 
-    if (!['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end'].includes(key) && typeof values[key] !== 'string') {
+    if (!['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'mcDescription'].includes(key) && typeof values[key] !== 'string') {
       console.log(`El campo ${key} debe ser en formato texto.`)
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
