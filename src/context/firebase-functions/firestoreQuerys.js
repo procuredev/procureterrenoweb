@@ -296,6 +296,34 @@ const consultBlockDayInDB = async date => {
   }
 }
 
+// Función para conocer el estado de una Solicitud
+const requestState = (state) => {
+  let stateString
+  if (state == 0) {
+    stateString = 'Cancelado'
+  } else if (state == 1) {
+    stateString = 'Pendiente de revisión del Solicitante'
+  } else if (state == 2) {
+    stateString = 'Pendiente de revisión del Contract Operator'
+  } else if (state == 3) {
+    stateString = 'Pendiente de revisión de Procure'
+  } else if (state == 4) {
+    stateString = 'Pendiente de revisión de Procure'
+  } else if (state == 5) {
+    stateString = 'Pendiente de revisión de Procure'
+  } else if (state == 6) {
+    stateString = 'Agendado para Levantamiento'
+  } else if (state == 7) {
+    stateString = 'Levantamiento iniciado'
+  } else if (state == 8) {
+    stateString = 'Levantamiento finalizado'
+  } else {
+    stateString = 'Levantamiento finalizado'
+  }
+
+  return stateString
+}
+
 // Consultar si existe un número SAP en la base de datos de solicitudes
 const consultSAP = async sap => {
   // Definir la consulta con una condición de igualdad en el campo 'sap' y ordenar por fecha descendente
@@ -319,26 +347,32 @@ const consultSAP = async sap => {
     await Promise.all(
       sapDocs.map(async docItem => {
         // Obtener la referencia del usuario asociado al documento
-        const userRef = doc(db, 'users', docItem.data().uid)
+        const docItemData = await docItem.data()
+        const userRef = doc(db, 'users', docItemData.uid)
         const userQuerySnapshot = await getDoc(userRef)
         const author = userQuerySnapshot.data().name
+        const reqState = requestState(docItemData.state)
 
         if (docItem.data().ot) {
           // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
           sapWithOt.push({
-            title: docItem.data().title,
+            title: docItemData.title,
             author,
-            ot: docItem.data().ot,
-            date: unixToDate(docItem.data().date.seconds)[0],
-            objective: docItem.data().objective
+            ot: docItemData.ot,
+            date: unixToDate(docItemData.date.seconds)[0],
+            start: unixToDate(docItemData.start.seconds)[0],
+            objective: docItemData.objective,
+            state: reqState
           })
         } else {
           // Si el documento no tiene una OT asignada, agregarlo al arreglo 'sap'
           sap.push({
-            title: docItem.data().title,
+            title: docItemData.title,
             author,
-            date: unixToDate(docItem.data().date.seconds)[0],
-            objective: docItem.data().objective
+            date: unixToDate(docItemData.date.seconds)[0],
+            start: unixToDate(docItemData.start.seconds)[0],
+            objective: docItemData.objective,
+            state: reqState
           })
         }
       })
@@ -349,7 +383,7 @@ const consultSAP = async sap => {
       messages = sap
         .map(
           item =>
-            `Título: ${item.title}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
+            `Título: ${item.title}\n N° OT Procure: Por definir\n Solicitante: ${item.author}\n Fecha de ingreso de solicitud: ${item.date}\n Fecha de inicio del Levantamiento: ${item.start}\n Estado del Levantamiento: ${item.state}\n Tipo de Levantamiento: ${item.objective}\n`
 
           // Si todas las solicitudes están en revisión sin OT asignada, retornar un objeto con información detallada
         )
@@ -360,9 +394,32 @@ const consultSAP = async sap => {
       otMessages = sapWithOt
         .map(
           item =>
-            `Título: ${item.title}\n OT: ${item.ot}\n Solicitante: ${item.author}\n Fecha de solicitud: ${item.date}\n Tipo de Levantamiento: ${item.objective}\n`
+            `Título: ${item.title}\n N° OT Procure: ${item.ot}\n Solicitante: ${item.author}\n Fecha de ingreso de solicitud: ${item.date}\n Fecha de inicio del Levantamiento: ${item.start}\n Estado del Levantamiento: ${item.state}\n Tipo de Levantamiento: ${item.objective}\n`
         )
         .join('\n')
+    }
+
+    const messageParameters = (length) => {
+      let existen
+      let solicitudes
+      let tienen
+
+      if (length == 1) {
+        existen = 'Existe'
+        solicitudes = 'solicitud'
+        tienen = 'tiene'
+      } else if (length > 1) {
+        existen = 'Existen'
+        solicitudes = 'solicitudes'
+        tienen = 'tienen'
+      } else {
+        existen = 'Existe'
+        solicitudes = 'solicitud'
+        tienen = 'tiene'
+      }
+
+      return {existe: existen, solicitud: solicitudes, tiene: tienen}
+
     }
 
     if (sapWithOt.length > 0 && sap.length > 0) {
@@ -371,28 +428,20 @@ const consultSAP = async sap => {
         sap,
         sapWithOt,
         msj:
-          `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cuales ${
-            sapWithOt.length
-          } tienen OT asignadas y ${sap.length} están en revisión:\n\n` +
-          otMessages +
-          `\n` +
-          messages
+          `${messageParameters(sap.length + sapWithOt.length).existe} ${sap.length + sapWithOt.length} ${messageParameters(sap.length + sapWithOt.length).solicitud} con este número SAP. A continuación le entregamos mayor detalle:\n\n` + otMessages + `\n` + messages + `\n` + 'Le recomendamos comunicarse con el Solicitante original del Levantamiento.'
       }
     } else if (sapWithOt.length > 0 && sap.length === 0) {
       return {
         exist: true,
         sapWithOt,
-        msj: `Existen ${sap.length + sapWithOt.length} solicitudes con este número SAP, de las cuales ${
-          sapWithOt.length
-        } tienen OT asignadas:\n\n` + otMessages
+        msj: `${messageParameters(sap.length + sapWithOt.length).existe} ${sap.length + sapWithOt.length} ${messageParameters(sap.length + sapWithOt.length).solicitud} con este número SAP. A continuación le entregamos mayor detalle:\n\n` + otMessages + `\n` + 'Le recomendamos comunicarse con el Solicitante original del Levantamiento.'
       }
     } else {
       return {
         exist: true,
         sap,
         msj:
-          `Existen ${sap.length} solicitudes con este número SAP que se encuentran en revisión para ser aprobadas:\n\n` +
-          messages
+          `${messageParameters(sap.length).existe} ${sap.length} ${messageParameters(sap.length + sapWithOt.length).solicitud} con este número SAP. A continuación le entregamos mayor detalle:\n\n` + messages + `\n` + 'Le recomendamos comunicarse con el Solicitante original del Levantamiento.'
       }
     }
   } else {
