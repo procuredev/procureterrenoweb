@@ -93,6 +93,7 @@ const FormLayoutsSolicitud = () => {
     console.log("El usuario ingresó:", userInputMC)
     // Puedes hacer algo más con userInput aquí, como enviarlo al backend o a otro componente.
     setIsDialogOpenMC(false)
+    setHasDialogMCBeenShown(true)
   }
 
   const handleGPRSelected = () => {
@@ -152,15 +153,16 @@ const FormLayoutsSolicitud = () => {
       case autoFields.includes(prop): {
         newValue = prop === 'receiver' ? [...fixed, ...data.filter(option => fixed.indexOf(option) === -1)] : data
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-        if (prop === 'deliverable') {
-          const isMemoriaDeCalculoSelected = newValue.includes('Memoria de Cálculo')
-
-          if (isMemoriaDeCalculoSelected && !hasDialogMCBeenShown) {
+        if (prop === 'deliverable' && newValue.includes('Memoria de Cálculo')) {
+          // Solo abre el diálogo si no se ha confirmado previamente
+          if (!hasDialogMCBeenShown) {
             setIsDialogOpenMC(true)
-            setHasDialogMCBeenShown(true)
-          } else if (!isMemoriaDeCalculoSelected) {
+          }
+        } else {
+          // Si 'Memoria de Cálculo' se deselecciona y el diálogo ya se ha mostrado, reinicia el indicador
+          if (hasDialogMCBeenShown) {
             setHasDialogMCBeenShown(false)
-  }
+          }
         }
         break
       }
