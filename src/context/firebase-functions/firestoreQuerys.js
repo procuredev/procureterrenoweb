@@ -492,7 +492,7 @@ const consultDocs = async (type, options = {}) => {
 };
 
 const fetchPlaneProperties = async () => {
-  const docRef = doc(db, 'domain', 'planeProperties');
+  const docRef = doc(db, 'domain', 'blueprintProcureProperties');
   const docSnap = await getDoc(docRef);
 
   if (docSnap.exists()) {
