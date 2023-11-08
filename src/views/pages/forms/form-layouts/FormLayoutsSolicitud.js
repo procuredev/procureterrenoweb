@@ -395,7 +395,12 @@ const FormLayoutsSolicitud = () => {
             receiver: values.receiver.map(option => {
               const { disabled, ...rest } = option
 
-              return rest
+              return {
+                id: option.id,
+                name: option.name,
+                email: option.email,
+                phone: option.phone
+              }
             }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
             end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
