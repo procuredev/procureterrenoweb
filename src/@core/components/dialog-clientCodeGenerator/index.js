@@ -67,7 +67,6 @@ export const DialogClientCodeGenerator = ({ open, handleClose, petition, bluepri
     const fetchData = async () => {
       let resDisciplines = await fetchMelDisciplines()
       setDisciplines(resDisciplines)
-      //setDeliverables(resDeliverables)
     };
 
     fetchData();
@@ -106,7 +105,7 @@ export const DialogClientCodeGenerator = ({ open, handleClose, petition, bluepri
         </IconButton>
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
-            Generar nuevo documento
+            Generar código MEL
           </Typography>
           <Typography variant='body2'>Establece parámetros para crear el código</Typography>
         </Box>
