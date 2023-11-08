@@ -90,7 +90,7 @@ const FormLayoutsSolicitud = () => {
   };
 
   const handleConfirmDialogMC = () => {
-    console.log("El usuario ingresó:", userInputMC)
+    // console.log("El usuario ingresó:", userInputMC)
     // Puedes hacer algo más con userInput aquí, como enviarlo al backend o a otro componente.
     setIsDialogOpenMC(false)
     setHasDialogMCBeenShown(true)

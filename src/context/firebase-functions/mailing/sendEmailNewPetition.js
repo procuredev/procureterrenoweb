@@ -186,7 +186,8 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         const procureUsersEmail = emailCalculationReportData.emails // Se selecciona el email de quienes exista en el array
         arrayCC = arrayCC.concat(procureUsersEmail)
 
-        let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". Procure procederá a generar una presupuesto especial para el caso indicado.`
+        let mcDescription = values.mcDescription ? values.mcDescription : ''
+        let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` + `<p></p>` + mcDescription + `<p></p>` + `Procure procederá a generar una presupuesto especial para el caso indicado.`
         lastMessage = specialMessage + ' ' + lastMessage
         emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
 
