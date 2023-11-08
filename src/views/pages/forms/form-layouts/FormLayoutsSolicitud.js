@@ -90,10 +90,14 @@ const FormLayoutsSolicitud = () => {
   };
 
   const handleConfirmDialogMC = () => {
-    // console.log("El usuario ingresó:", userInputMC)
-    // Puedes hacer algo más con userInput aquí, como enviarlo al backend o a otro componente.
+    if (values.deliverable.includes('Memoria de Cálculo')) {
+      // Procesa userInput solo si 'Memoria de Cálculo' está seleccionado
+      //console.log("El usuario confirmó Memoria de Cálculo con descripción:", userInputMC)
+    } else {
+      setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' no está seleccionado
+    }
     setIsDialogOpenMC(false)
-    setHasDialogMCBeenShown(true)
+    setHasDialogMCBeenShown(true) // Asume que el usuario terminó con este diálogo
   }
 
   const handleGPRSelected = () => {
@@ -153,15 +157,15 @@ const FormLayoutsSolicitud = () => {
       case autoFields.includes(prop): {
         newValue = prop === 'receiver' ? [...fixed, ...data.filter(option => fixed.indexOf(option) === -1)] : data
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-        if (prop === 'deliverable' && newValue.includes('Memoria de Cálculo')) {
-          // Solo abre el diálogo si no se ha confirmado previamente
-          if (!hasDialogMCBeenShown) {
-            setIsDialogOpenMC(true)
-          }
-        } else {
-          // Si 'Memoria de Cálculo' se deselecciona y el diálogo ya se ha mostrado, reinicia el indicador
-          if (hasDialogMCBeenShown) {
-            setHasDialogMCBeenShown(false)
+
+        const isMCSelected = newValue.includes('Memoria de Cálculo')
+
+        if (prop === 'deliverable') {
+          if (isMCSelected && !hasDialogMCBeenShown) {
+            setIsDialogOpenMC(true) // Muestra el diálogo solo si 'Memoria de Cálculo' está seleccionado
+          } else if (!isMCSelected) {
+            setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' se deselecciona
+            setHasDialogMCBeenShown(false) // Permite que el diálogo se muestre de nuevo si se vuelve a seleccionar
           }
         }
         break
