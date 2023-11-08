@@ -371,7 +371,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   ]
 
   return (
-    <Card>
+    <Card sx={{height:'100%'}}>
         <DataGrid
           hideFooterSelectedRowCount
           rows={rows}

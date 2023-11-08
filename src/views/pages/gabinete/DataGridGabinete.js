@@ -99,10 +99,10 @@ const DataGridGabinete = () => {
   }, [blueprintGenerated, currentPetition])
 
   return (
-    <Box display={'flex'}>
+    <Box key='main' sx={{display:'flex', width:'100%', height: '600px'}}>
       <Box sx={{ maxWidth: '20%' }}>
         <Button onClick={() => setMenuOpen(prev => !prev)}>OT</Button>
-        <Paper sx={{ display: menuOpen ? 'block' : 'none', height: '100%' }}>
+        <Paper sx={{ display: menuOpen ? 'block' : 'none' }}>
           <MenuList
             dense
             id='basic-menu'
