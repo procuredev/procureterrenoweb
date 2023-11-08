@@ -27,7 +27,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
-import Edit from '@mui/icons-material/Edit'
+import { Edit, Upload, AttachFile } from '@mui/icons-material'
+import { getMetadata, getStorage, ref, list } from 'firebase/storage'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
   const [open, setOpen] = useState(false)
@@ -42,6 +43,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [currentRow, setCurrentRow] = useState(null);
   const [newDescription, setNewDescription] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
+  const [fileNames, setFileNames] = useState({})
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -106,6 +108,28 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const handleCloseAlert = () => {
     setOpenAlert(false)
   }
+
+  const storage = getStorage();
+
+  const getBlueprintName = async (id) => {
+    const blueprintRef = ref(storage, `/uploadedBlueprints/${id}/blueprints`);
+    try {
+      const res = await list(blueprintRef);
+
+      return res?.items[0]?.name || 'Sin Entregables';
+    } catch (err) {
+      console.error(err);
+
+      return 'Error al obtener el nombre del entregable';
+    }
+  }
+
+  useEffect(() => {
+        rows.map(async (row) => {
+        const blueprintName = await getBlueprintName(row.id);
+        setFileNames((prevNames) => ({ ...prevNames, [row.id]: blueprintName }));
+      });
+  }, [rows]);
 
   const theme = useTheme()
   const sm = useMediaQuery(theme.breakpoints.up('sm'))
@@ -221,11 +245,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
         let description = row.description || true
 
-        return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between'}}>
-          <Typography sx={{overflow:'hidden'}}>
+        return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center'}}>
+          <Typography sx={{overflow:'hidden', my:'auto'}}>
           {row.description || 'Sin descripción'}
           </Typography>
-          <Edit fontSize='small' sx={{ml:2}} onClick={()=>{setNewDescription(description); setCurrentRow(row.id)}}></Edit>
+          <IconButton sx={{ml:2}} onClick={()=>{setNewDescription(description); setCurrentRow(row.id)}}>
+          <Edit/>
+          </IconButton>
           </Box>
       }
     },
@@ -238,11 +264,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <IconButton onClick={row.userId === authUser.uid || (authUser.role === 7 || authUser.role === 9) ? () => handleOpenUploadDialog(row) : null}>
-            <CloudUploadOutlinedIcon color={row.storageBlueprints ? 'primary' :'secondary'} sx={{ fontSize: 18 }} />
+          <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center'}}>
+          <Typography sx={{overflow:'hidden', my:'auto'}}>
+          {fileNames[row.id] || 'Sin entregable'}
+          </Typography>
+          <IconButton sx={{my:'auto', ml:2}} onClick={row.userId === authUser.uid || (authUser.role === 7 || authUser.role === 9) ? () => handleOpenUploadDialog(row) : null}>
+            {row.storageBlueprints ? <AttachFile/> : <Upload />}
           </IconButton>
+          </Box>
         )
-
       }
     },
     {
@@ -342,7 +372,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   return (
     <Card>
-      <Box sx={{ height: 500 }}>
         <DataGrid
           hideFooterSelectedRowCount
           rows={rows}
@@ -426,7 +455,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           setBlueprintGenerated={setBlueprintGenerated}
         />
       )}
-      </Box>
     </Card>
   )
 }
