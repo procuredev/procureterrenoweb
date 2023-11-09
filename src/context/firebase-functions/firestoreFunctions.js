@@ -591,6 +591,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       userName: userParam.displayName,
       revision: 'iniciado',
       userEmail: userParam.email,
+      sentByDesigner: false,
       date: Timestamp.fromDate(new Date())
     })
 

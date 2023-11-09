@@ -92,13 +92,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const writeCallback = async () => {
-    authUser.role === 9 ? await updateBlueprint(petitionId, doc, null, approve, authUser) :
+    authUser.role === 9 ? await updateBlueprint(petitionId, doc, approve, authUser) :
     await updateBlueprint(petitionId, doc, approve, authUser)
-    .then(
+    .then(() => {
     setOpenAlert(false),
     setNewDescription(false),
     setBlueprintGenerated(true)
-    )
+  })
     .catch(err =>
     console.error(err),
     setOpenAlert(false),
@@ -122,6 +122,57 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
       return 'Error al obtener el nombre del entregable';
     }
+  }
+
+  function permissions(row, role, authUser) {
+    if (!row) {
+      return undefined;
+    }
+
+    const isMyBlueprint = row.userId === authUser.uid
+    const hasRequiredFields = row.description && row.clientCode && (row.storageBlueprints && row.storageBlueprints.length >= 1)
+
+
+    const dictionary = {
+      1: {
+        approve: false,
+        reject: false
+      },
+      2: {
+        approve: false,
+        reject: false
+      },
+      3: {
+        approve: false,
+        reject: false
+      },
+      4: {
+        approve: false,
+        reject: false
+      },
+      5: {
+        approve: false,
+        reject: false
+      },
+      6: {
+        approve: role === 6 && row.revision === 'A' && row.sentByDesigner === true,
+        reject: role === 6  && row.revision === 'A' && row.sentByDesigner === true
+      },
+      7: {
+        approve: role === 7 && row.revision === 'A' && row.sentByDesigner === true,
+        reject: role === 7  && row.revision === 'A' && row.sentByDesigner === true
+      },
+      8: {
+        approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false,
+        reject: false
+      },
+      9: {
+        approve: role === 9 && row.sentByDesigner === true,
+        reject: role === 9 && row.sentByDesigner === true
+      }
+    };
+
+    return dictionary[role];
   }
 
   useEffect(() => {
@@ -293,40 +344,43 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       minWidth: 150,
       renderCell: params => {
         const { row } = params
+        const permissionsData = permissions(row, role, authUser)
+        const canApprove = permissionsData.approve
+        const canReject = permissionsData.reject
+
+        const flexDirection = md ? 'row' : 'column'
+
+        const renderButtons = (
+          <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
+            {canApprove && (
+              <Button
+                onClick={() => handleClickOpenAlert(row, true)}
+                variant='contained'
+                color='success'
+                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
+              </Button>
+            )}
+            {canReject && (
+              <Button
+                onClick={() => handleClickOpenAlert(row, false)}
+                variant='contained'
+                color='error'
+                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                 <CancelOutlinedIcon sx={{ fontSize: 18 }} />
+              </Button>
+            )}
+          </Container>
+        )
 
         return (
-          <>
-            {md ? (
-             row.sentByDesigner === true ? (
-              'Enviado'
-            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && row.description && row.clientCode && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
-                <>
-                  <Button
-                    onClick={ () => handleClickOpenAlert(row, true) }
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                  </Button>
-                  {authUser.role === 9 || authUser.role === 7 ?
-                  <Button
-                    onClick={ () => handleClickOpenAlert(row, false) }
-                    variant='contained'
-                    color='error'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CancelOutlinedIcon sx={{ fontSize: 18 }} />
-                  </Button>
-                  : null}
-                </>
+<>
+            {(canApprove || canReject) ? (
+              md ? (
+                renderButtons
               ) : (
-                'Pendiente'
-              )
-            ) : row.sentByDesigner === true ? (
-              'Enviado'
-            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && row.description && row.clientCode && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
-              <>
                 <Select
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
@@ -339,28 +393,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
                   }}
                 >
-                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Button
-                      onClick={ () => handleClickOpenAlert(row, true) }
-                      variant='contained'
-                      color='success'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                    </Button>
-                    {authUser.role === 9 || authUser.role === 7 ?
-                      <Button
-                        onClick={ () => handleClickOpenAlert(row, false) }
-                        variant='contained'
-                        color='error'
-                        sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                      >
-                        <CancelOutlinedIcon sx={{ fontSize: 18 }} />
-                      </Button>
-                      : null}
-                  </Container>
+                  {renderButtons}
                 </Select>
-              </>
+              )
+            ) : row.sentByDesigner === true ? (
+              'Enviado'
             ) : (
               'Pendiente'
             )}

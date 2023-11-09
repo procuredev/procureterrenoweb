@@ -21,7 +21,7 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            ¿Estás segur@ de que quieres {(approves === undefined) ? 'modificar' : (approves ? 'enviar' : 'rechazar')} los entregables?
+            ¿Estás segur@ de que quieres {(approves ? 'enviar' : 'rechazar')} los entregables?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
