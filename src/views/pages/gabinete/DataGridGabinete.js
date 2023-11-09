@@ -7,7 +7,8 @@ import { useFirebase } from 'src/context/useFirebase'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 
-import { MenuList, MenuItem, Paper, Autocomplete } from '@mui/material'
+import { MenuList, MenuItem, Paper, Autocomplete, IconButton, Typography } from '@mui/material'
+import {KeyboardDoubleArrowRight, KeyboardDoubleArrowLeft} from '@mui/icons-material';
 
 // ** Custom Components Imports
 
@@ -99,10 +100,26 @@ const DataGridGabinete = () => {
   }, [blueprintGenerated, currentPetition])
 
   return (
-    <Box key='main' sx={{display:'flex', width:'100%', height: '600px'}}>
-      <Box sx={{ maxWidth: '20%' }}>
-        <Button onClick={() => setMenuOpen(prev => !prev)}>OT</Button>
-        <Paper sx={{ display: menuOpen ? 'block' : 'none' }}>
+    <Box id='main' sx={{ display: 'flex', width: '100%', height: '600px' }}>
+      <Paper
+      elevation={3}
+      sx={{
+        maxWidth: '20%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        backgroundColor: !menuOpen && 'transparent',
+        m: menuOpen ? 4 : 0,
+        p: menuOpen && 5,
+        boxShadow: !menuOpen && 'none !important',
+      }}>
+        <Box sx={{ display: 'flex', mb: 4, alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          {menuOpen && <Typography variant='button'>Solicitudes</Typography>}
+          <IconButton onClick={() => setMenuOpen(prev => !prev)}>
+            {menuOpen ? <KeyboardDoubleArrowLeft /> : <KeyboardDoubleArrowRight />}
+          </IconButton>
+        </Box>
+        <Box sx={{ display: menuOpen ? 'block' : 'none', height: '100%', width: '100%' }}>
           <MenuList
             dense
             id='basic-menu'
@@ -110,7 +127,7 @@ const DataGridGabinete = () => {
             MenuListProps={{
               'aria-labelledby': 'basic-button'
             }}
-            sx={{ overflow: 'hidden', m: 5 }}
+            sx={{ overflow: 'hidden' }}
           >
             {petitions?.map((petitionItem, index) => (
               <MenuItem key={index} onClick={e => handleChange(e)} value={petitionItem.ot}>
@@ -118,33 +135,11 @@ const DataGridGabinete = () => {
               </MenuItem>
             ))}
           </MenuList>
-        </Paper>
-      </Box>
+        </Box>
+      </Paper>
 
-      <Box sx={{ m: 5 }}>
-        <Box sx={{ py: 5, display: 'flex' }}>
-          {authUser.role === 7 ? (
-            <Button variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
-              Asignar proyectista
-            </Button>
-          ) : (
-            <Button
-              variant='contained'
-              onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
-            >
-              Generar nuevo documento
-            </Button>
-          )}
-
-          <Autocomplete
-            multiple
-            sx={{ m: 2.5 }}
-            value={
-              (currentOT && petitions.find(doc => doc.ot == currentOT)?.designerReview?.map(item => item.name)) || []
-            }
-            options={[]}
-            renderInput={params => <TextField {...params} label='Proyectistas asignados' />}
-          />
+      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Box sx={{ m: 4, display: 'flex' }}>
           <TextField
             sx={{ m: 2.5 }}
             label='Título'
@@ -167,15 +162,39 @@ const DataGridGabinete = () => {
             id='form-props-read-only-input'
             InputProps={{ readOnly: true }}
           />
+          <Autocomplete
+            multiple
+            readOnly
+            sx={{ m: 2.5, width: '25%'  }}
+            value={
+              (currentOT && petitions.find(doc => doc.ot == currentOT)?.designerReview?.map(item => item.name)) || []
+            }
+            options={[]}
+            renderInput={params => <TextField {...params} label='Proyectistas asignados' readOnly={true} sx={{ '& .MuiInputBase-inputAdornedStart': {display:'none'} }}/>}
+          />
+           {authUser.role === 7 ? (
+            <Button variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
+              Asignar proyectista
+            </Button>
+          ) : (
+            <Button
+              variant='contained'
+              onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
+            >
+              Generar nuevo documento
+            </Button>
+          )}
         </Box>
-        <TableGabinete
-          rows={blueprints ? blueprints : []}
-          roleData={roleData}
-          role={authUser.role}
-          petitionId={currentPetition ? currentPetition.id : null}
-          petition={currentPetition ? currentPetition : null}
-          setBlueprintGenerated={setBlueprintGenerated}
-        />
+        <Box sx={{ m: 4, height: '100%' }}>
+          <TableGabinete
+            rows={blueprints ? blueprints : []}
+            roleData={roleData}
+            role={authUser.role}
+            petitionId={currentPetition ? currentPetition.id : null}
+            petition={currentPetition ? currentPetition : null}
+            setBlueprintGenerated={setBlueprintGenerated}
+          />
+        </Box>
       </Box>
 
       <DialogAssignDesigner
