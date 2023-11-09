@@ -87,7 +87,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const submitDescription = async () => {
     await addDescription(petitionId, currentRow, newDescription)
-    .then(()=>setNewDescription(false))
+    .then(()=>{setNewDescription(false); setBlueprintGenerated(true)})
     .catch((err)=>console.error(err))
   }
 
@@ -299,7 +299,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             {md ? (
              row.sentByDesigner === true ? (
               'Enviado'
-            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.description && row.description.length >= 1) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && row.description && row.clientCode && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
                 <>
                   <Button
                     onClick={ () => handleClickOpenAlert(row, true) }
@@ -325,7 +325,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               )
             ) : row.sentByDesigner === true ? (
               'Enviado'
-            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.description && row.description.length >= 1) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && row.description && row.clientCode && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
               <>
                 <Select
                   labelId='demo-simple-select-label'
