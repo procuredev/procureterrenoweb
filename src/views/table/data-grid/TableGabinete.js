@@ -93,7 +93,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const writeCallback = async () => {
     authUser.role === 9 ? await updateBlueprint(petitionId, doc, null, approve, authUser) :
-    await updateBlueprint(petitionId, doc, newDescription, approve, authUser)
+    await updateBlueprint(petitionId, doc, approve, authUser)
     .then(
     setOpenAlert(false),
     setNewDescription(false),
@@ -297,7 +297,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         return (
           <>
             {md ? (
-             (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+             row.sentByDesigner === true ? (
+              'Enviado'
+            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.description && row.description.length >= 1) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
                 <>
                   <Button
                     onClick={ () => handleClickOpenAlert(row, true) }
@@ -318,12 +320,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Button>
                   : null}
                 </>
-              ) : row.sendByDesigner === true ? (
-                'Enviado'
               ) : (
                 'Pendiente'
               )
-            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (descriptions[row.id] && descriptions[row.id].length > 6)&& (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
+            ) : row.sentByDesigner === true ? (
+              'Enviado'
+            ) : (authUser.role === 9 || authUser.role === 7) || row.userId === authUser.uid && (row.description && row.description.length >= 1) && (row.storageBlueprints && row.storageBlueprints.length >= 1) ? (
               <>
                 <Select
                   labelId='demo-simple-select-label'
@@ -359,8 +361,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Container>
                 </Select>
               </>
-            ) : row.sendByDesigner === true ? (
-              'Enviado'
             ) : (
               'Pendiente'
             )}

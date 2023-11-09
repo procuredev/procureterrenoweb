@@ -606,24 +606,21 @@ const addDescription = async (petitionID, blueprint, description) => {
   updateDoc(ref, { description })
 }
 
-const updateBlueprint = async (petitionID, blueprint, description, approve, userParam) => {
+const updateBlueprint = async (petitionID, blueprint, approve, userParam) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
 
   let newDocRevision = {
     prevRevision: blueprint.revision,
     newRevision: blueprint.revision,
-    description: description,
     storageBlueprints: blueprint.storageBlueprints,
     userEmail: blueprint.userEmail,
     userName: blueprint.userName,
     userId: blueprint.userId,
     date: Timestamp.fromDate(new Date())
   }
-  console.log('description: ', description)
-  console.log('newDocRevision.description: ', newDocRevision.description)
 
   if (userParam.role === 8) {
-    await updateDoc(ref, { description: description, sentByDesigner: true, sentTime: Timestamp.fromDate(new Date()) })
+    await updateDoc(ref, { sentByDesigner: true, sentTime: Timestamp.fromDate(new Date()) })
     await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
   } else if (userParam.role === 9) {
     if (approve) {
