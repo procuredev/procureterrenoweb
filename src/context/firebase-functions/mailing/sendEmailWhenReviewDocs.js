@@ -435,16 +435,6 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
   const supervisorEmail = supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.email) : ''
   const cOperatorEmail = cOperatorData.filter(doc => doc.enabled != false).map(data => data.email)
 
-  console.log(requesterEmail)
-  console.log(requesterRole)
-  console.log(requesterRole[0])
-  console.log(cOwnerEmail)
-  console.log(plannerEmail)
-  console.log(admContEmail)
-  console.log(petitionerEmail)
-  console.log(supervisorEmail)
-  console.log(cOperatorEmail)
-
   const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
     user,
     requesterRole[0],
