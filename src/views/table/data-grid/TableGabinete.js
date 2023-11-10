@@ -1,37 +1,37 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
+
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import { DataGrid, esES } from '@mui/x-data-grid'
+import { Container } from '@mui/system'
+import { Edit, Upload, AttachFile, CheckCircleOutline, CancelOutlined } from '@mui/icons-material'
+import {
+  Button,
+  Select,
+  Box,
+  Card,
+  Tooltip,
+  TextField,
+  Typography,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogActions,
+  DialogContent
+} from '@mui/material'
+
 import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
-
-// ** MUI Imports
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import Select from '@mui/material/Select'
-import { Typography, IconButton, Dialog, DialogTitle, DialogActions, DialogContent, List, ListItem} from '@mui/material'
-import { Button } from '@mui/material'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import Tooltip from '@mui/material/Tooltip'
-import { DataGrid, esES } from '@mui/x-data-grid'
-import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import { Container } from '@mui/system'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
-import TextField from '@mui/material/TextField'
-import { TableBody, TableCell, TableRow, Table, TableHead } from '@mui/material'
-import Collapse from '@mui/material/Collapse'
-
-
-
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
 import { DialogClientCodeGenerator } from 'src/@core/components/dialog-clientCodeGenerator'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
-import { Edit, Upload, AttachFile } from '@mui/icons-material'
-import { getMetadata, getStorage, ref, list } from 'firebase/storage'
+
+// TODO: Move to firebase-functions
+import { getStorage, ref, list } from 'firebase/storage'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
   const [open, setOpen] = useState(false)
@@ -43,14 +43,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
   const { authUser, getUserData, updateBlueprint, addDescription } = useFirebase()
-  const [currentRow, setCurrentRow] = useState(null);
+  const [currentRow, setCurrentRow] = useState(null)
   const [newDescription, setNewDescription] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
-  const handleDescriptionChange = (value) => {
+  const handleDescriptionChange = value => {
     setNewDescription(value)
   }
 
@@ -65,7 +65,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const handleClickOpenEvents = doc => {
-
     setDoc(doc)
     setOpenEvents(true)
   }
@@ -90,51 +89,51 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const submitDescription = async () => {
     await addDescription(petitionId, currentRow, newDescription)
-    .then(()=>{setNewDescription(false); setBlueprintGenerated(true)})
-    .catch((err)=>console.error(err))
+      .then(() => {
+        setNewDescription(false)
+        setBlueprintGenerated(true)
+      })
+      .catch(err => console.error(err))
   }
 
   const writeCallback = async () => {
-    authUser.role === 9 ? await updateBlueprint(petitionId, doc, approve, authUser) :
-    await updateBlueprint(petitionId, doc, approve, authUser)
-    .then(() => {
-    setOpenAlert(false),
-    setNewDescription(false),
-    setBlueprintGenerated(true)
-  })
-    .catch(err =>
-    console.error(err),
-    setOpenAlert(false),
-    setNewDescription(false),)
+    authUser.role === 9
+      ? await updateBlueprint(petitionId, doc, approve, authUser)
+      : await updateBlueprint(petitionId, doc, approve, authUser)
+          .then(() => {
+            setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true)
+          })
+          .catch(err => console.error(err), setOpenAlert(false), setNewDescription(false))
   }
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
   }
 
-  const storage = getStorage();
+  const storage = getStorage()
 
-  const getBlueprintName = async (id) => {
-    const blueprintRef = ref(storage, `/uploadedBlueprints/${id}/blueprints`);
+  const getBlueprintName = async id => {
+    const blueprintRef = ref(storage, `/uploadedBlueprints/${id}/blueprints`)
     try {
-      const res = await list(blueprintRef);
+      const res = await list(blueprintRef)
 
-      return res?.items[0]?.name || 'Sin Entregables';
+      return res?.items[0]?.name || 'Sin Entregables'
     } catch (err) {
-      console.error(err);
+      console.error(err)
 
-      return 'Error al obtener el nombre del entregable';
+      return 'Error al obtener el nombre del entregable'
     }
   }
 
   function permissions(row, role, authUser) {
     if (!row) {
-      return undefined;
+      return undefined
     }
 
     const isMyBlueprint = row.userId === authUser.uid
-    const hasRequiredFields = row.description && row.clientCode && (row.storageBlueprints && row.storageBlueprints.length >= 1)
-
+    
+    const hasRequiredFields =
+      row.description && row.clientCode && row.storageBlueprints && row.storageBlueprints.length >= 1
 
     const dictionary = {
       1: {
@@ -159,11 +158,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       },
       6: {
         approve: role === 6 && row.revision === 'A' && row.sentByDesigner === true,
-        reject: role === 6  && row.revision === 'A' && row.sentByDesigner === true
+        reject: role === 6 && row.revision === 'A' && row.sentByDesigner === true
       },
       7: {
         approve: role === 7 && row.revision === 'A' && row.sentByDesigner === true,
-        reject: role === 7  && row.revision === 'A' && row.sentByDesigner === true
+        reject: role === 7 && row.revision === 'A' && row.sentByDesigner === true
       },
       8: {
         approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false,
@@ -173,17 +172,17 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         approve: role === 9 && row.sentByDesigner === true,
         reject: role === 9 && row.sentByDesigner === true
       }
-    };
+    }
 
-    return dictionary[role];
+    return dictionary[role]
   }
 
   useEffect(() => {
-        rows.map(async (row) => {
-        const blueprintName = await getBlueprintName(row.id);
-        setFileNames((prevNames) => ({ ...prevNames, [row.id]: blueprintName }));
-      });
-  }, [rows]);
+    rows.map(async row => {
+      const blueprintName = await getBlueprintName(row.id)
+      setFileNames(prevNames => ({ ...prevNames, [row.id]: blueprintName }))
+    })
+  }, [rows])
 
   const theme = useTheme()
   const sm = useMediaQuery(theme.breakpoints.up('sm'))
@@ -201,22 +200,22 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }, [authUser.shift])
 
   useEffect(() => {
-    if(openUploadDialog){
+    if (openUploadDialog) {
       const filterRow = rows.find(rows => rows.id === currentRow)
       setDoc(filterRow)
       setOpenUploadDialog(true)
     }
   }, [rows])
 
-  const RevisionComponent = ({row, field}) => {
+  const RevisionComponent = ({ row, field }) => {
     return (
-      currentRow === row.id &&
-        <Box sx={{overflow:'hidden'}}>
+      currentRow === row.id && (
+        <Box sx={{ overflow: 'hidden' }}>
           <Typography>{row[field] || 'test'}</Typography>
         </Box>
+      )
     )
   }
-
 
   const columns = [
     {
@@ -227,28 +226,39 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (<>
-             <Tooltip
-            title={row.id}
-            placement='bottom-end'
-            key={row.id}
-            leaveTouchDelay={0}
-            //TransitionComponent={Fade}
-            TransitionProps={{ timeout: 0 }}
-          >
-            <Box sx={{  display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width:'inherit'}}>
-              <IconButton sx={{p:0}} id={row.id} onClick={(e)=>{setCurrentRow((prev)=> prev === row.id ? false : e.target.id)}}>+</IconButton>
-              <Typography sx={{
-                  textDecoration: 'none',
-                  transition: 'text-decoration 0.2s',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-                >{row.id}
+        return (
+          <>
+            <Tooltip
+              title={row.id}
+              placement='bottom-end'
+              key={row.id}
+              leaveTouchDelay={0}
+              //TransitionComponent={Fade}
+              TransitionProps={{ timeout: 0 }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
+                <IconButton
+                  sx={{ p: 0 }}
+                  id={row.id}
+                  onClick={e => {
+                    setCurrentRow(prev => (prev === row.id ? false : e.target.id))
+                  }}
+                >
+                  +
+                </IconButton>
+                <Typography
+                  sx={{
+                    textDecoration: 'none',
+                    transition: 'text-decoration 0.2s',
+                    '&:hover': {
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  {row.id}
                 </Typography>
-            </Box>
-          </Tooltip>
+              </Box>
+            </Tooltip>
           </>
         )
       }
@@ -262,18 +272,25 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         if (row.clientCode) {
-          return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between'}}>
-          <Typography sx={{overflow:'hidden'}}>
-          {row.clientCode || 'Sin descripción'}
-          </Typography>
-          </Box>
+          return (
+            <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+              <Typography sx={{ overflow: 'hidden' }}>{row.clientCode || 'Sin descripción'}</Typography>
+            </Box>
+          )
         } else {
-          return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between'}}>
-          <Edit fontSize='small' sx={{ml:2}} onClick={()=>{setGenerateClientCode(true); setCurrentRow(row.id)}}></Edit>
-          </Box>
+          return (
+            <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+              <Edit
+                fontSize='small'
+                sx={{ ml: 2 }}
+                onClick={() => {
+                  setGenerateClientCode(true)
+                  setCurrentRow(row.id)
+                }}
+              ></Edit>
+            </Box>
+          )
         }
-
-
       }
     },
     {
@@ -284,10 +301,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return <div>
-          {row.revision || 'N/A'}
-          <RevisionComponent row={row} field={'id'}/>
-        </div>
+        return (
+          <div>
+            {row.revision || 'N/A'}
+            <RevisionComponent row={row} field={'id'} />
+          </div>
+        )
       }
     },
     {
@@ -298,8 +317,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return <div>{row.userName || 'N/A'}
-        <RevisionComponent row={row} field={'id'}/></div>
+        return (
+          <div>
+            {row.userName || 'N/A'}
+            <RevisionComponent row={row} field={'id'} />
+          </div>
+        )
       }
     },
     {
@@ -312,17 +335,31 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
         let description = row.description || true
 
-        return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center', flexDirection:'column'}}>
-          <Box display='inline-flex'>
-          <Typography sx={{overflow:'hidden', my:'auto'}}>
-          {row.description || 'Sin descripción'}
-          </Typography>
-          <IconButton sx={{ml:2, p:0}} onClick={()=>{setNewDescription(description); setCurrentRow(row.id)}}>
-          <Edit/>
-          </IconButton>
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignContent: 'center',
+              flexDirection: 'column'
+            }}
+          >
+            <Box display='inline-flex'>
+              <Typography sx={{ overflow: 'hidden', my: 'auto' }}>{row.description || 'Sin descripción'}</Typography>
+              <IconButton
+                sx={{ ml: 2, p: 0 }}
+                onClick={() => {
+                  setNewDescription(description)
+                  setCurrentRow(row.id)
+                }}
+              >
+                <Edit />
+              </IconButton>
+            </Box>
+            <RevisionComponent row={row} field={'id'} />
           </Box>
-          <RevisionComponent row={row} field={'id'}/>
-          </Box>
+        )
       }
     },
     {
@@ -334,18 +371,30 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center', flexDirection:'column'}}>
-          <Box display='inline-flex'>
-          <Typography sx={{overflow:'hidden', my:'auto'}}>
-          {fileNames[row.id] || 'Sin entregable'}
-          </Typography>
-          <IconButton sx={{my:'auto', ml:2, p:0}} onClick={row.userId === authUser.uid || (authUser.role === 7 || authUser.role === 9) ? () => handleOpenUploadDialog(row) : null}>
-            {row.storageBlueprints ? <AttachFile/> : <Upload />}
-          </IconButton>
+          <Box
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignContent: 'center',
+              flexDirection: 'column'
+            }}
+          >
+            <Box display='inline-flex'>
+              <Typography sx={{ overflow: 'hidden', my: 'auto' }}>{fileNames[row.id] || 'Sin entregable'}</Typography>
+              <IconButton
+                sx={{ my: 'auto', ml: 2, p: 0 }}
+                onClick={
+                  row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                    ? () => handleOpenUploadDialog(row)
+                    : null
+                }
+              >
+                {row.storageBlueprints ? <AttachFile /> : <Upload />}
+              </IconButton>
+            </Box>
+            <RevisionComponent row={row} field={'id'} />
           </Box>
-          <RevisionComponent row={row} field={'id'}/>
-          </Box>
-
         )
       }
     },
@@ -357,8 +406,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return <div>{unixToDate(row.date.seconds)[0]}
-        <RevisionComponent row={row} field={'id'}/></div>
+        return (
+          <div>
+            {unixToDate(row.date.seconds)[0]}
+            <RevisionComponent row={row} field={'id'} />
+          </div>
+        )
       }
     },
     {
@@ -383,7 +436,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 color='success'
                 sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
               >
-                <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
+                <CheckCircleOutline sx={{ fontSize: 18 }} />
               </Button>
             )}
             {canReject && (
@@ -393,15 +446,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 color='error'
                 sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
               >
-                 <CancelOutlinedIcon sx={{ fontSize: 18 }} />
+                <CancelOutlined sx={{ fontSize: 18 }} />
               </Button>
             )}
           </Container>
         )
 
         return (
-<>
-            {(canApprove || canReject) ? (
+          <>
+            {canApprove || canReject ? (
               md ? (
                 renderButtons
               ) : (
@@ -428,91 +481,90 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           </>
         )
       }
-    },
+    }
   ]
 
   return (
-    <Card sx={{height:'inherit'}}>
-        <DataGrid
-          sx={{ height: '100%', width: '100%',
+    <Card sx={{ height: 'inherit' }}>
+      <DataGrid
+        sx={{
+          height: '100%',
+          width: '100%',
           '& .MuiDataGrid-cell--withRenderer': {
-            alignItems:'baseline'
+            alignItems: 'baseline'
           }
         }}
-          hideFooterSelectedRowCount
-          rows={rows}
-          columns={columns}
-          columnVisibilityModel={{
-            ot: md,
-            end: md,
-            assign: md,
-            done: md,
-
-            actions: roleData.canApprove
-          }}
-          localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-          sortingModel={defaultSortingModel}
-          getRowHeight={(row)=>row.id === currentRow ? 100 : 50}
+        hideFooterSelectedRowCount
+        rows={rows}
+        columns={columns}
+        columnVisibilityModel={{
+          ot: md,
+          end: md,
+          assign: md,
+          done: md,
+          actions: roleData.canApprove
+        }}
+        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+        sortingModel={defaultSortingModel}
+        getRowHeight={row => (row.id === currentRow ? 100 : 50)}
+      />
+      <AlertDialogGabinete
+        open={openAlert}
+        handleClose={handleCloseAlert}
+        callback={writeCallback}
+        approves={approve}
+      ></AlertDialogGabinete>
+      {loadingProyectistas ? (
+        <p>Loading...</p>
+      ) : (
+        <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
+      )}
+      {openEvents && (
+        <FullScreenDialog
+          open={openEvents}
+          handleClose={handleCloseEvents}
+          doc={doc}
+          roleData={roleData}
+          editButtonVisible={false}
         />
-        <AlertDialogGabinete
-          open={openAlert}
-          handleClose={handleCloseAlert}
-          callback={writeCallback}
-          approves={approve}
-        ></AlertDialogGabinete>
-        {loadingProyectistas ? (
-          <p>Loading...</p>
-        ) : (
-          <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
-        )}
-        {openEvents && (
-          <FullScreenDialog
-            open={openEvents}
-            handleClose={handleCloseEvents}
-            doc={doc}
-            roleData={roleData}
-            editButtonVisible={false}
-          />
-        )}
-        {openUploadDialog && (
-          <UploadBlueprintsDialog
-            open={openUploadDialog}
-            handleClose={handleCloseUploadDialog}
-            doc={doc}
-            roleData={roleData}
-            petitionId={petitionId}
-            setBlueprintGenerated={setBlueprintGenerated}
-          />
-        )}
-        {newDescription && (
-          <Dialog
-            sx={{ '.MuiDialog-paper': { width: '100%' } }}
-            open={!!newDescription}
-            onClose={()=>setNewDescription(false)}
-            aria-labelledby='alert-dialog-title'
-            aria-describedby='alert-dialog-description'
-          >
-            <DialogTitle id='alert-dialog-title'>{'Descripción'}</DialogTitle>
-            <DialogContent>
-
-                <TextField
-                  sx={{ width: '100%', mt:3 }}
-                  id='outlined-multiline-static'
-                  label='Descripción'
-                  multiline
-                  value={typeof newDescription === 'string' ? newDescription : ''}
-                  onChange={(e)=>handleDescriptionChange(e.target.value)}
-                  rows={4}
-                />
-
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={()=>setNewDescription(false)}>Cancelar</Button>
-              <Button onClick={()=>submitDescription()}>Enviar</Button>
-            </DialogActions>
-          </Dialog>)
-        }
-        {generateClientCode && (
+      )}
+      {openUploadDialog && (
+        <UploadBlueprintsDialog
+          open={openUploadDialog}
+          handleClose={handleCloseUploadDialog}
+          doc={doc}
+          roleData={roleData}
+          petitionId={petitionId}
+          setBlueprintGenerated={setBlueprintGenerated}
+        />
+      )}
+      {newDescription && (
+        <Dialog
+          sx={{ '.MuiDialog-paper': { width: '100%' } }}
+          open={!!newDescription}
+          onClose={() => setNewDescription(false)}
+          aria-labelledby='alert-dialog-title'
+          aria-describedby='alert-dialog-description'
+        >
+          <DialogTitle id='alert-dialog-title'>{'Descripción'}</DialogTitle>
+          <DialogContent>
+            <TextField
+              sx={{ width: '100%', mt: 3 }}
+              id='outlined-multiline-static'
+              label='Descripción'
+              multiline
+              value={typeof newDescription === 'string' ? newDescription : ''}
+              onChange={e => handleDescriptionChange(e.target.value)}
+              rows={4}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setNewDescription(false)}>Cancelar</Button>
+            <Button onClick={() => submitDescription()}>Enviar</Button>
+          </DialogActions>
+        </Dialog>
+      )}
+      {generateClientCode && (
         <DialogClientCodeGenerator
           open={generateClientCode}
           handleClose={handleCloseClientCodeGenerator}
