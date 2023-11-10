@@ -24,13 +24,13 @@ import { capitalize } from 'lodash'
 
 const moment = require('moment')
 
-// ** Trae colección de eventos
-const useEvents = (id, userParam) => {
+// ** Trae subcolecciones
+const useEvents = (id, userParam, path='events') => {
   const [data, setData] = useState([])
 
   useEffect(() => {
     if (userParam && id) {
-      const q = query(collection(db, 'solicitudes', id, 'events'), orderBy('date', 'desc'))
+      const q = query(collection(db, 'solicitudes', id, path), orderBy('date', 'desc'))
 
       const unsubscribe = onSnapshot(q, querySnapshot => {
         try {
@@ -53,7 +53,7 @@ const useEvents = (id, userParam) => {
       // Devuelve una función de limpieza que se ejecuta al desmontar el componente
       return () => unsubscribe()
     }
-  }, [userParam, id])
+  }, [userParam, id, path])
 
   return data
 }

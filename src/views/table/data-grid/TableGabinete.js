@@ -42,13 +42,18 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { authUser, getUserData, updateBlueprint, addDescription } = useFirebase()
+  const { authUser, getUserData, updateBlueprint, addDescription, useEvents } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null)
   const [newDescription, setNewDescription] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
+
+
+
+  const revisions = useEvents(petitionId, authUser, `blueprints/${currentRow}/revisions`)
+
 
   const handleDescriptionChange = value => {
     setNewDescription(value)
@@ -131,7 +136,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     }
 
     const isMyBlueprint = row.userId === authUser.uid
-    
+
     const hasRequiredFields =
       row.description && row.clientCode && row.storageBlueprints && row.storageBlueprints.length >= 1
 
@@ -211,7 +216,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     return (
       currentRow === row.id && (
         <Box sx={{ overflow: 'hidden' }}>
-          <Typography>{row[field] || 'test'}</Typography>
+          {revisions.map(revision => {
+            return (
+              <Typography sx={{my:5}} key={revision.id}>
+                {field==='date'? unixToDate(revision[field].seconds)[0] :
+                revision[field]|| 'aaa'}
+              </Typography>
+            )
+          })}
         </Box>
       )
     )
@@ -304,7 +316,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         return (
           <div>
             {row.revision || 'N/A'}
-            <RevisionComponent row={row} field={'id'} />
+            <RevisionComponent row={row} field={'newRevision'} />
           </div>
         )
       }
@@ -357,7 +369,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 <Edit />
               </IconButton>
             </Box>
-            <RevisionComponent row={row} field={'id'} />
+            <RevisionComponent row={row} field={'description'} />
           </Box>
         )
       }
@@ -393,7 +405,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 {row.storageBlueprints ? <AttachFile /> : <Upload />}
               </IconButton>
             </Box>
-            <RevisionComponent row={row} field={'id'} />
+            <RevisionComponent row={row} field={'storageBlueprints'} />
           </Box>
         )
       }
@@ -409,7 +421,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         return (
           <div>
             {unixToDate(row.date.seconds)[0]}
-            <RevisionComponent row={row} field={'id'} />
+            <RevisionComponent row={row} field={'date'} />
           </div>
         )
       }
@@ -506,7 +518,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         }}
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
-        getRowHeight={row => (row.id === currentRow ? 100 : 50)}
+        getRowHeight={row => (row.id === currentRow ? 200 : 50)}
       />
       <AlertDialogGabinete
         open={openAlert}
