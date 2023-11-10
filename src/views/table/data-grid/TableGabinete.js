@@ -8,7 +8,7 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 // ** MUI Imports
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
-import { Typography, IconButton, Dialog, DialogTitle, DialogActions, DialogContent} from '@mui/material'
+import { Typography, IconButton, Dialog, DialogTitle, DialogActions, DialogContent, List, ListItem} from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -19,6 +19,9 @@ import { Container } from '@mui/system'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import TextField from '@mui/material/TextField'
+import { TableBody, TableCell, TableRow, Table, TableHead } from '@mui/material'
+import Collapse from '@mui/material/Collapse'
+
 
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
@@ -205,6 +208,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     }
   }, [rows])
 
+  const RevisionComponent = ({row, field}) => {
+    return (
+      currentRow === row.id &&
+        <Box sx={{overflow:'hidden'}}>
+          <Typography>{row[field] || 'test'}</Typography>
+        </Box>
+    )
+  }
+
 
   const columns = [
     {
@@ -215,8 +227,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (
-          <Tooltip
+        return (<>
+             <Tooltip
             title={row.id}
             placement='bottom-end'
             key={row.id}
@@ -224,8 +236,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             //TransitionComponent={Fade}
             TransitionProps={{ timeout: 0 }}
           >
-            <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-
+            <Box sx={{  display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width:'inherit'}}>
+              <IconButton sx={{p:0}} id={row.id} onClick={(e)=>{setCurrentRow((prev)=> prev === row.id ? false : e.target.id)}}>+</IconButton>
               <Typography sx={{
                   textDecoration: 'none',
                   transition: 'text-decoration 0.2s',
@@ -233,11 +245,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     textDecoration: 'underline'
                   }
                 }}
-                variant='string'>{row.id}
+                >{row.id}
                 </Typography>
             </Box>
           </Tooltip>
-
+          </>
         )
       }
     },
@@ -272,7 +284,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return <div>{row.revision || 'N/A'}</div>
+        return <div>
+          {row.revision || 'N/A'}
+          <RevisionComponent row={row} field={'id'}/>
+        </div>
       }
     },
     {
@@ -283,7 +298,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return <div>{row.userName || 'N/A'}</div>
+        return <div>{row.userName || 'N/A'}
+        <RevisionComponent row={row} field={'id'}/></div>
       }
     },
     {
@@ -296,13 +312,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
         let description = row.description || true
 
-        return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center'}}>
+        return <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center', flexDirection:'column'}}>
+          <Box display='inline-flex'>
           <Typography sx={{overflow:'hidden', my:'auto'}}>
           {row.description || 'Sin descripción'}
           </Typography>
-          <IconButton sx={{ml:2}} onClick={()=>{setNewDescription(description); setCurrentRow(row.id)}}>
+          <IconButton sx={{ml:2, p:0}} onClick={()=>{setNewDescription(description); setCurrentRow(row.id)}}>
           <Edit/>
           </IconButton>
+          </Box>
+          <RevisionComponent row={row} field={'id'}/>
           </Box>
       }
     },
@@ -315,14 +334,18 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center'}}>
+          <Box sx={{display:'flex', width:'100%',justifyContent: 'space-between', alignContent: 'center', flexDirection:'column'}}>
+          <Box display='inline-flex'>
           <Typography sx={{overflow:'hidden', my:'auto'}}>
           {fileNames[row.id] || 'Sin entregable'}
           </Typography>
-          <IconButton sx={{my:'auto', ml:2}} onClick={row.userId === authUser.uid || (authUser.role === 7 || authUser.role === 9) ? () => handleOpenUploadDialog(row) : null}>
+          <IconButton sx={{my:'auto', ml:2, p:0}} onClick={row.userId === authUser.uid || (authUser.role === 7 || authUser.role === 9) ? () => handleOpenUploadDialog(row) : null}>
             {row.storageBlueprints ? <AttachFile/> : <Upload />}
           </IconButton>
           </Box>
+          <RevisionComponent row={row} field={'id'}/>
+          </Box>
+
         )
       }
     },
@@ -334,7 +357,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return <div>{unixToDate(row.date.seconds)[0]}</div>
+        return <div>{unixToDate(row.date.seconds)[0]}
+        <RevisionComponent row={row} field={'id'}/></div>
       }
     },
     {
@@ -410,7 +434,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   return (
     <Card sx={{height:'inherit'}}>
         <DataGrid
-          sx={{ height: '100%', width: '100%' }}
+          sx={{ height: '100%', width: '100%',
+          '& .MuiDataGrid-cell--withRenderer': {
+            alignItems:'baseline'
+          }
+        }}
           hideFooterSelectedRowCount
           rows={rows}
           columns={columns}
@@ -424,6 +452,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           sortingModel={defaultSortingModel}
+          getRowHeight={(row)=>row.id === currentRow ? 100 : 50}
         />
         <AlertDialogGabinete
           open={openAlert}
