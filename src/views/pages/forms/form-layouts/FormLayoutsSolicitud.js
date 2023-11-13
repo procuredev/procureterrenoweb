@@ -1,6 +1,6 @@
 import 'moment/locale/es'
 import moment from 'moment-timezone'
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
@@ -39,6 +39,7 @@ import {
   HeadingTypography,
   FileList
 } from 'src/@core/components/custom-form/index'
+import { set } from 'lodash'
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -84,6 +85,7 @@ const FormLayoutsSolicitud = () => {
   const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
   const [userInputMC, setUserInputMC] = useState("")
   const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false);
+  const [buttonDisabled, setButtonDisabled] = useState(false)
 
   const handleCloseDialogMC = () => {
     setIsDialogOpenMC(false)
@@ -374,6 +376,7 @@ const FormLayoutsSolicitud = () => {
 
   const onSubmit = async event => {
     event.preventDefault()
+    setButtonDisabled(true)
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
@@ -410,19 +413,18 @@ const FormLayoutsSolicitud = () => {
           authUser
         )
 
-        await uploadFilesToFirebaseStorage(files, solicitud.id)
-
-        // Luego de completar la carga, puedes ocultar el spinner
-        setIsUploading(false)
-
-        // Se envía el mensaje de éxito
-        setAlertMessage('Documento creado exitosamente')
-        handleRemoveAllFiles()
-        setValues(initialValues)
+        await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
+        setIsUploading(false),
+        setButtonDisabled(false),
+        handleRemoveAllFiles(),
+        setAlertMessage('Documento creado exitosamente'),
+        setValues(initialValues),
         setErrors({})
+      })
       } catch (error) {
         setAlertMessage(error.message)
         setIsUploading(false) // Se cierra el spinner en caso de error
+        setButtonDisabled(false)
       }
     } else {
       if (
@@ -434,6 +436,7 @@ const FormLayoutsSolicitud = () => {
       ) {
         setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
       }
+      setButtonDisabled(false)
       setIsUploading(false)
       setErrors(formErrors)
     }
@@ -956,7 +959,7 @@ const FormLayoutsSolicitud = () => {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button type='submit' variant='contained' size='large'>
+                <Button type='submit' variant='contained' size='large' disabled={!!buttonDisabled}>
                   Enviar Solicitud
                 </Button>
                 {isUploading && (
