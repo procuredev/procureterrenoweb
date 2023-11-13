@@ -87,7 +87,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   }
 
 
-  const onsubmit = id => {
+  const onSubmit = id => {
     if (hours.total !== '') {
       updateDocs(id, { hours: hours.total }, authUser); // Utiliza directamente el estado hours.total
       handleClose();
@@ -290,7 +290,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           })}
         </List>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
+          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={() => onSubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar
           </Button>
