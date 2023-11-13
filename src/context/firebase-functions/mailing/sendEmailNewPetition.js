@@ -11,11 +11,10 @@ const getUserData = async ids => {
     const docRef = doc(db, 'users', id)
     const docSnap = await getDoc(docRef)
 
-    if (docSnap.exists()) {
+    if (docSnap) {
       usersData.push(docSnap.data())
-    } else {
-      return undefined
     }
+
   }
 
   return usersData
