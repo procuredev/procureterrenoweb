@@ -390,23 +390,10 @@ const consultSAP = async sap => {
     }
 
     const messageParameters = (length) => {
-      let existen
-      let solicitudes
-      let tienen
 
-      if (length == 1) {
-        existen = 'Existe'
-        solicitudes = 'solicitud'
-        tienen = 'tiene'
-      } else if (length > 1) {
-        existen = 'Existen'
-        solicitudes = 'solicitudes'
-        tienen = 'tienen'
-      } else {
-        existen = 'Existe'
-        solicitudes = 'solicitud'
-        tienen = 'tiene'
-      }
+      const existen = length === 1 ? 'Existe' : 'Existen'
+      const solicitudes = length === 1 ? 'solicitud' : 'solicitudes'
+      const tienen = length === 1 ? 'tiene' : 'tienen'
 
       return {existe: existen, solicitud: solicitudes, tiene: tienen}
 
