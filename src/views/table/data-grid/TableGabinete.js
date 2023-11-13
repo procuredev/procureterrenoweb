@@ -332,7 +332,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         return (
           <div>
             {row.userName || 'N/A'}
-            <RevisionComponent row={row} field={'id'} />
+            <RevisionComponent row={row} field={'userName'} />
           </div>
         )
       }
