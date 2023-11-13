@@ -64,7 +64,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     }
   }
 
-  const onsubmit = id => {
+  const onSubmit = id => {
     if (draftmen.length > 0) {
       updateDocs(id, {draftmen}, authUser)
       setDraftmen([])
@@ -200,7 +200,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
           })}
         </List>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
+          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onSubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Asignar Proyectistas
           </Button>
