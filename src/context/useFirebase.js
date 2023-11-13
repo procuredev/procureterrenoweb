@@ -37,6 +37,7 @@ import {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
+  getPlantsData
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -96,7 +97,8 @@ const FirebaseContextProvider = props => {
     consultDocs,
     consultObjetives,
     getUsersWithSolicitudes,
-    signGoogle
+    signGoogle,
+    getPlantsData
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

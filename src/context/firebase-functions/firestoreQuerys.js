@@ -696,6 +696,22 @@ const getUsersWithSolicitudes = async () => {
   return usersWithProperties
 }
 
+// Función para obtener datos de las Plantas en la colection 'domain'/'plants'
+// El parámetro 'plant' será opcional
+// Si se indica el parámetro plant, solo se devolverá la información de esa planta
+const getPlantsData = async (plant) => {
+
+  const plantsRef = doc(db, 'domain', 'plants')
+  const plantsSnapshot = await getDoc(plantsRef)
+  const plantsData = plantsSnapshot.data()
+
+  if (plant) {
+    return plantsData[plant]
+  } else {
+    return plantsData
+  }
+}
+
 export {
   useEvents,
   useSnapshot,
@@ -707,5 +723,6 @@ export {
   consultUserEmailInDB,
   consultDocs,
   consultObjetives,
-  getUsersWithSolicitudes
+  getUsersWithSolicitudes,
+  getPlantsData
 }

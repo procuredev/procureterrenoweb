@@ -59,9 +59,38 @@ const FormLayoutsBasic = () => {
   const [opShiftOptions, setOpShiftOptions] = useState([])
   const [oldEmail, setOldEmail] = useState('')
   const [newUID, setNewUID] = useState('')
+  const [plantsNames, setPlantsNames] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, getPlantsData } = useFirebase()
+
+  // Acá se define en una constante los nombres de las plantas como un array
+  // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
+
+  const getPlantNames = async () => {
+    const plants = await getPlantsData()
+    let plantsNamesArray = []
+    for (const plantName in plants) {
+      plantsNamesArray.push(plantName)
+    }
+
+    return [...plantsNamesArray, 'Sucursal Santiago']
+  }
+
+  // Obtener los nombres de las plantas cuando el componente se monta
+  useEffect(() => {
+    const fetchPlantNames = async () => {
+      try {
+        const names = await getPlantNames()
+        names.sort()
+        setPlantsNames(names)
+      } catch (error) {
+        console.error('Error al obtener los nombres de las plantas:', error)
+      }
+    };
+
+    fetchPlantNames();
+  }, []);
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -139,9 +168,7 @@ const FormLayoutsBasic = () => {
     }
   }
 
-  const santiago = 'Sucursal Santiago'
-  let names = areas.map(plant => plant.name)
-  names = names.concat(santiago)
+
 
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
@@ -157,7 +184,7 @@ const FormLayoutsBasic = () => {
     const newErrors = {}
 
     switch (true) {
-      case values.role === 2 && !values.plant.includes(santiago):
+      case values.role === 2 && !values.plant.includes('Sucursal Santiago'):
         requiredKeys.push('shift', 'plant') // Utilizamos push para agregar elementos al array
         break
       case values.role === 3:
@@ -454,7 +481,7 @@ const FormLayoutsBasic = () => {
                   <Autocomplete
                     multiple={true} //{values.role === 3}
                     fullWidth
-                    options={names}
+                    options={plantsNames}
                     value={values.plant}
                     onChange={handleChange('plant')}
                     renderInput={params => (
@@ -472,7 +499,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Ingeniería Integrada */}
-            {values.company === 'MEL' && values.role === 2 && values.plant.includes(santiago) && (
+            {values.company === 'MEL' && values.role === 2 && values.plant.includes('Sucursal Santiago') && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Ingeniería integrada</InputLabel>
@@ -491,7 +518,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Turno */}
-            {[2, 7, 8].includes(values.role) && !values.plant.includes(santiago) && (
+            {[2, 7, 8].includes(values.role) && !values.plant.includes('Sucursal Santiago') && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Turno</InputLabel>
@@ -516,7 +543,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Contraturno */}
-            {values.company === 'MEL' && values.role === 2 && !values.plant.includes(santiago) && (
+            {values.company === 'MEL' && values.role === 2 && !values.plant.includes('Sucursal Santiago') && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Contraturno</InputLabel>
