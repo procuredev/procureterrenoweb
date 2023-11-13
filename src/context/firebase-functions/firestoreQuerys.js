@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 
+// Se importa dictionary
+import dictionary from 'src/@core/components/dictionary'
+
 // ** Firebase Imports
 import { db } from 'src/configs/firebase'
 import {
@@ -311,34 +314,6 @@ const consultBlockDayInDB = async date => {
   }
 }
 
-// Función para conocer el estado de una Solicitud
-const requestState = (state) => {
-  let stateString
-  if (state == 0) {
-    stateString = 'Cancelado'
-  } else if (state == 1) {
-    stateString = 'Pendiente de revisión del Solicitante'
-  } else if (state == 2) {
-    stateString = 'Pendiente de revisión del Contract Operator'
-  } else if (state == 3) {
-    stateString = 'Pendiente de revisión de Procure'
-  } else if (state == 4) {
-    stateString = 'Pendiente de revisión de Procure'
-  } else if (state == 5) {
-    stateString = 'Pendiente de revisión de Procure'
-  } else if (state == 6) {
-    stateString = 'Agendado para Levantamiento'
-  } else if (state == 7) {
-    stateString = 'Levantamiento iniciado'
-  } else if (state == 8) {
-    stateString = 'Levantamiento finalizado'
-  } else {
-    stateString = 'Levantamiento finalizado'
-  }
-
-  return stateString
-}
-
 // Consultar si existe un número SAP en la base de datos de solicitudes
 const consultSAP = async sap => {
   // Definir la consulta con una condición de igualdad en el campo 'sap' y ordenar por fecha descendente
@@ -366,7 +341,7 @@ const consultSAP = async sap => {
         const userRef = doc(db, 'users', docItemData.uid)
         const userQuerySnapshot = await getDoc(userRef)
         const author = userQuerySnapshot.data().name
-        const reqState = requestState(docItemData.state)
+        const reqState = dictionary[docItemData.state].longTitle
 
         if (docItem.data().ot) {
           // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
