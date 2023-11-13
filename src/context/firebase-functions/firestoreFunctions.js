@@ -607,78 +607,102 @@ const addDescription = async (petitionID, blueprint, description) => {
   updateDoc(ref, { description })
 }
 
-const updateBlueprint = async (petitionID, blueprint, approve, userParam) => {
-  const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
-
-  let newDocRevision = {
-    prevRevision: blueprint.revision,
-    newRevision: blueprint.revision,
-    storageBlueprints: blueprint.storageBlueprints,
-    userEmail: blueprint.userEmail,
-    userName: blueprint.userName,
-    userId: blueprint.userId,
-    date: Timestamp.fromDate(new Date())
+const getLatestRevision = async (petitionID, blueprintID) => {
+  const revisionsRef = collection(db, 'solicitudes', petitionID, 'blueprints', blueprintID, 'revisions');
+  const revisionsSnapshot = await getDocs(query(revisionsRef, orderBy('date', 'desc'), limit(1)));
+  if (revisionsSnapshot.docs.length === 0) {
+    return null;
   }
+  const latestRevision = revisionsSnapshot.docs[0].data();
 
-  if (userParam.role === 8) {
-    await updateDoc(ref, { sentByDesigner: true, sentTime: Timestamp.fromDate(new Date()) })
-    await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
-  } else if (userParam.role === 9) {
-    if (approve) {
-      await updateDoc(ref, {
-        revision: 'A',
-        storageBlueprints: null,
-        sentByDesigner: false,
-        sentByDocumentaryControl: true,
-        sentTime: Timestamp.fromDate(new Date())
-      })
-      newDocRevision.newRevision = 'A'
-      newDocRevision.description = blueprint.description
-      newDocRevision.userEmail = userParam.email
-      newDocRevision.userName = userParam.displayName
-      newDocRevision.userId = userParam.uid
-      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
-    } else {
-      await updateDoc(ref, {
-        storageBlueprints: null,
-        sentByDesigner: false,
-        sentByDocumentaryControl: true,
-        sentTime: Timestamp.fromDate(new Date())
-      })
-      newDocRevision.description = blueprint.description
-      newDocRevision.userEmail = userParam.email
-      newDocRevision.userName = userParam.displayName
-      newDocRevision.userId = userParam.uid
-      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+  return latestRevision;
+};
+
+const getNextRevision = async (approve, latestRevision, userParam, blueprint) => {
+  let newRevision;
+  if (latestRevision && Object.keys(latestRevision).length === 0) {
+    if (userParam.role === 8) {
+      newRevision = blueprint.revision;
     }
   } else {
-    console.log('userParam.role ===', userParam.role)
-    if (approve) {
-      await updateDoc(ref, {
-        storageBlueprints: null,
-        sentBySupervisor: true,
-        sentTime: Timestamp.fromDate(new Date())
-      })
-      newDocRevision.description = blueprint.description
-      newDocRevision.userEmail = userParam.email
-      newDocRevision.userName = userParam.displayName
-      newDocRevision.userId = userParam.uid
-      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+    if (userParam.role === 8) {
+      newRevision = blueprint.revision;
+    } else if (userParam.role === 9) {
+      if (approve) {
+        newRevision = 'A';
+      } else {
+        newRevision = blueprint.revision;
+      }
     } else {
-      await updateDoc(ref, {
-        storageBlueprints: null,
-        sentByDesigner: false,
-        sentBySupervisor: true,
-        sentTime: Timestamp.fromDate(new Date())
-      })
-      newDocRevision.description = blueprint.description
-      newDocRevision.userEmail = userParam.email
-      newDocRevision.userName = userParam.displayName
-      newDocRevision.userId = userParam.uid
-      await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), newDocRevision)
+      newRevision = blueprint.revision;
     }
   }
-}
+
+  const nextRevision = {
+    prevRevision: latestRevision && Object.keys(latestRevision).length === 0? latestRevision.newRevision : blueprint.revision,
+    newRevision: newRevision,
+    description: blueprint.description,
+    storageBlueprints: blueprint.storageBlueprints,
+    userEmail: userParam.email,
+    userName: userParam.displayName,
+    userId: userParam.uid,
+    date: Timestamp.fromDate(new Date())
+  };
+
+  return nextRevision;
+};
+
+const updateBlueprint = async (petitionID, blueprint, approves, userParam) => {
+  const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id);
+  const revisionsRef = collection(blueprintRef, 'revisions');
+  const latestRevision = await getLatestRevision(petitionID, blueprint.id);
+  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint);
+
+
+  if (userParam.role === 8) {
+    await updateDoc(blueprintRef, { sentByDesigner: true, revision: nextRevision.newRevision, sentTime: Timestamp.fromDate(new Date()) })
+  } else if (userParam.role === 9) {
+
+    if (approves) {
+      await updateDoc(blueprintRef, {
+        revision: nextRevision.newRevision,
+        storageBlueprints: null,
+        sentByDesigner: false,
+        sentBySupervisor: false,
+        sentByDocumentaryControl: true,
+        sentTime: Timestamp.fromDate(new Date())
+      })
+    }
+    await updateDoc(blueprintRef, {
+      revision: nextRevision.newRevision,
+      storageBlueprints: null,
+      sentByDesigner: false,
+      sentBySupervisor: false,
+      sentByDocumentaryControl: true,
+      sentTime: Timestamp.fromDate(new Date())
+    })
+  } else {
+    if (approves) {
+      await updateDoc(blueprintRef, {
+        revision: nextRevision.newRevision,
+        sentByDesigner: true,
+        sentBySupervisor: true,
+        sentTime: Timestamp.fromDate(new Date())
+      })
+    }
+    await updateDoc(blueprintRef, {
+      revision: nextRevision.newRevision,
+      storageBlueprints: null,
+      sentByDesigner: false,
+      sentBySupervisor: true,
+      sentByDocumentaryControl: false,
+      sentTime: Timestamp.fromDate(new Date())
+    })
+  }
+
+  await updateDoc(blueprintRef, {revision: nextRevision.newRevision});
+  await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision);
+};
 
 export {
   newDoc,
