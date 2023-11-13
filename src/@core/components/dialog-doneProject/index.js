@@ -47,31 +47,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
 
-  const workDayStart = new Date(0, 0, 0, 8, 0) // Hora de inicio de la jornada laboral (08:00 AM)
-  const workDayEnd = new Date(0, 0, 0, 20, 0) // Hora de finalización de la jornada laboral (08:00 PM)
-
-  const handleClickDelete = name => {
-    // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
-    const updatedDraftmen = draftmen.filter(draftman => draftman.name !== name)
-
-    // Actualizamos el estado con el nuevo array actualizado
-    setDraftmen(updatedDraftmen)
-  }
-
-  const handleInputChange = e => {
-    const inputValue = e.target.value
-
-    // Verifica si el valor ingresado es un número y si es mayor a 1
-    if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHours(inputValue)
-      setError('') // Limpia el mensaje de error si existe
-    } else {
-      setHours('')
-      setError('Por favor, ingrese un número mayor a 1.')
-    }
-  }
-
-  const onSubmit = id => {
+  const onsubmit = id => {
     if (hours.total !== '') {
       updateDocs(id, { hours: hours.total, investedHours: hours.investedHours }, authUser) // Utiliza directamente el estado hours.total proporcionar msj string al frontend
       handleClose()
@@ -239,7 +215,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
             disabled={isSubmitDisabled}
-            onClick={() => onSubmit(doc.id)}
+            onClick={() => onsubmit(doc.id)}
           >
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar
