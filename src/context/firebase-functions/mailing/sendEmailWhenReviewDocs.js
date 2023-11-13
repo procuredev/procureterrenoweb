@@ -2,8 +2,6 @@
 import { db } from 'src/configs/firebase'
 import { collection, doc, addDoc, query, getDoc, getDocs, updateDoc, where } from 'firebase/firestore'
 import { getEmailTemplate } from './emailTemplate'
-import { exists } from 'i18next'
-import { forEach } from 'lodash'
 
 // Importación de los datos del usuario según el id indicado
 const getUserData = async ids => {
@@ -13,11 +11,10 @@ const getUserData = async ids => {
     const docRef = doc(db, 'users', id)
     const docSnap = await getDoc(docRef)
 
-    if (docSnap.exists()) {
+    if (docSnap) {
       usersData.push(docSnap.data())
-    } else {
-      return undefined
     }
+
   }
 
   return usersData
