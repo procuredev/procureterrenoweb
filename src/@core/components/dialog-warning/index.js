@@ -5,8 +5,9 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { CircularProgress } from '@mui/material';
 
-export default function AlertDialog({open, handleClose, callback, approves}) {
+export default function AlertDialog({open, handleClose, callback, approves, loading=false}) {
 
   return (
 
@@ -20,9 +21,10 @@ export default function AlertDialog({open, handleClose, callback, approves}) {
           Modificar estado de la solicitud
         </DialogTitle>
         <DialogContent>
+          {loading ? <CircularProgress /> :
           <DialogContentText id="alert-dialog-description">
             ¿Estás segur@ de que quieres {(approves === undefined) ? 'modificar' : (approves ? 'aprobar' : 'rechazar')} la solicitud?
-          </DialogContentText>
+          </DialogContentText> }
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>No</Button>
