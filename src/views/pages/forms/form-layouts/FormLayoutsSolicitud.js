@@ -82,25 +82,8 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
-  const [userInputMC, setUserInputMC] = useState("")
-  const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false);
+  const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
-
-  const handleCloseDialogMC = () => {
-    setIsDialogOpenMC(false)
-  };
-
-  const handleConfirmDialogMC = () => {
-    if (values.deliverable.includes('Memoria de Cálculo')) {
-      // Procesa userInput solo si 'Memoria de Cálculo' está seleccionado
-      //console.log("El usuario confirmó Memoria de Cálculo con descripción:", userInputMC)
-    } else {
-      setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' no está seleccionado
-    }
-    setIsDialogOpenMC(false)
-    setHasDialogMCBeenShown(true) // Asume que el usuario terminó con este diálogo
-  }
 
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
@@ -122,7 +105,7 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'mcDescription']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
@@ -159,15 +142,21 @@ const FormLayoutsSolicitud = () => {
       case autoFields.includes(prop): {
         newValue = prop === 'receiver' ? [...fixed, ...data.filter(option => fixed.indexOf(option) === -1)] : data
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-
-        const isMCSelected = newValue.includes('Memoria de Cálculo')
-
         if (prop === 'deliverable') {
-          if (isMCSelected && !hasDialogMCBeenShown) {
-            setIsDialogOpenMC(true) // Muestra el diálogo solo si 'Memoria de Cálculo' está seleccionado
-          } else if (!isMCSelected) {
-            setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' se deselecciona
-            setHasDialogMCBeenShown(false) // Permite que el diálogo se muestre de nuevo si se vuelve a seleccionar
+          // Verificar si 'Memoria de Cálculo' se ha seleccionado
+          if (newValue.includes('Memoria de Cálculo')) {
+            if (!hasShownDialog) {
+              // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
+              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:')
+
+              // Actualizar el estado para indicar que el dialog ya se ha mostrado
+              setHasShownDialog(true)
+            }
+          } else {
+            // Si 'Memoria de Cálculo' se ha deseleccionado, restablecer hasShownDialog a false
+            if (hasShownDialog) {
+              setHasShownDialog(false)
+            }
           }
         }
         break
@@ -383,6 +372,12 @@ const FormLayoutsSolicitud = () => {
     const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
+
+    // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
+    if (!values.deliverable.includes('Memoria de Cálculo')) {
+      values.mcDescription = '' // Restablecer mcDescription si 'Memoria de Cálculo' no está seleccionado
+    }
+
     if (
       Object.keys(formErrors).length === 0 &&
       areFieldsValid === true &&
@@ -407,7 +402,7 @@ const FormLayoutsSolicitud = () => {
             }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
             end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
-            mcDescription: userInputMC ? userInputMC : null
+            mcDescription: values.mcDescription ? values.mcDescription : null
 
           },
           authUser
@@ -869,30 +864,21 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
             />
 
-            {/* Dialog Memoria de Cálculo */}
-            <Dialog open={isDialogOpenMC} onClose={handleCloseDialogMC} aria-labelledby="form-dialog-title">
-              <DialogTitle id="form-dialog-title">Memoria de Cálculo</DialogTitle>
-              <DialogContent>
-                <DialogContentText>
-                  Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:
-                </DialogContentText>
+            {values.deliverable.includes('Memoria de Cálculo') && (
+              <>
+                {/* Descripción */}
                 <CustomTextField
-                  margin='dense'
+                  required
                   type='text'
-                  value={userInputMC}
-                  onChange={(e) => setUserInputMC(e.target.value)}
+                  label='Descripción Memoria de Cálculo'
+                  value={values.mcDescription}
+                  onChange={handleChange('mcDescription')}
+                  error={errors.mcDescription}
+                  inputProps={{ maxLength: 1000 }}
                   helper='Ingresa acá una explicación lo más adecuado posible del porqué necesitas una Memoria de Cálculo. Con esto Procure podrá generar un presupuesto acertado.'
                 />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseDialogMC}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleConfirmDialogMC}>
-                  Confirmar
-                </Button>
-              </DialogActions>
-            </Dialog>
+              </>
+            )}
 
             {/* Destinatarios */}
             <CustomAutocomplete
