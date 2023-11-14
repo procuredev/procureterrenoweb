@@ -71,7 +71,8 @@ const newDoc = async (values, userParam) => {
     description,
     ot,
     end,
-    urgency
+    urgency,
+    mcDescription
   } = values
 
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
@@ -105,7 +106,8 @@ const newDoc = async (values, userParam) => {
       engineering,
       ...(urgency && { urgency }),
       ...(ot && { ot }),
-      ...(end && { end })
+      ...(end && { end }),
+      ...(mcDescription && {mcDescription})
     })
 
     const adjustedDate = moment(values.start).subtract(1, 'day')
