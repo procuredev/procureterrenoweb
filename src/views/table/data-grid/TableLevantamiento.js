@@ -398,6 +398,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             doc={doc}
             roleData={roleData}
             editButtonVisible={false}
+            canComment={authUser.role === 7}
           />
         )}
         {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} />}
