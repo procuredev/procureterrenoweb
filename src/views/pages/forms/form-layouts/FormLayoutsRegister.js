@@ -66,7 +66,6 @@ const FormLayoutsBasic = () => {
 
   // Acá se define en una constante los nombres de las plantas como un array
   // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
-
   const getPlantNames = async () => {
     const plants = await getPlantsData()
     let plantsNamesArray = []
@@ -87,10 +86,10 @@ const FormLayoutsBasic = () => {
       } catch (error) {
         console.error('Error al obtener los nombres de las plantas:', error)
       }
-    };
+    }
 
-    fetchPlantNames();
-  }, []);
+    fetchPlantNames()
+  }, [])
 
   const handleChange = prop => (event, data) => {
     let newValue
