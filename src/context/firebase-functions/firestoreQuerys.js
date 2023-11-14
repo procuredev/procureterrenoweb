@@ -122,6 +122,12 @@ const useSnapshot = (datagrid = false, userParam) => {
 }
 
 // Obtener los datos de un rol
+// TODO: Agregar parámetro "collection" o "path" para indicar qué colección consultar dentro de domain
+// TODO: Para consultar un rol, habría que pasar otro parámetro que sea "subcollection" o "subpath" para indicar la subcolección
+// Parámetro subcollection será opcional (puede venir false o null)
+// https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Functions/Default_parameters
+
+
 const getRoleData = async role => {
   const docRef = doc(db, 'roles', role)
   const docSnap = await getDoc(docRef)
