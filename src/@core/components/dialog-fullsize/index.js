@@ -1,34 +1,35 @@
 import React, { Fragment, useState, useEffect } from 'react'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
+
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import Button from '@mui/material/Button'
-import Close from '@mui/icons-material/Close'
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogActions from '@mui/material/DialogActions'
-import DialogTitle from '@mui/material/DialogTitle'
-import Paper from '@mui/material/Paper'
-import Box from '@mui/system/Box'
-import TextField from '@mui/material/TextField'
-import Edit from '@mui/icons-material/Edit'
-import FormControl from '@mui/material/FormControl'
-import Chip from '@mui/material/Chip'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Slide from '@mui/material/Slide'
-import Skeleton from '@mui/material/Skeleton'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import { Download } from '@mui/icons-material'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import Link from '@mui/material/Link'
-import Icon from 'src/@core/components/icon'
-import Grid from '@mui/material/Grid'
-import DialogErrorFile from 'src/@core/components/dialog-errorFile'
-import { useDropzone } from 'react-dropzone'
+import {
+  Button,
+  Paper,
+  Box,
+  TextField,
+  FormControl,
+  Chip,
+  IconButton,
+  Typography,
+  Slide,
+  Skeleton,
+  List,
+  ListItem,
+  Link,
+  Grid,
+  Dialog,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  DialogTitle,
+  Tooltip
+} from '@mui/material'
+
 import {
   Timeline,
   TimelineItem,
@@ -37,16 +38,19 @@ import {
   TimelineContent,
   TimelineDot,
   TimelineOppositeContent,
-  timelineOppositeContentClasses
+  timelineOppositeContentClasses,
 } from '@mui/lab'
-import { HeadingTypography } from 'src/@core/components/custom-form/index'
+
+import { Download, Edit, Close, AddComment } from '@mui/icons-material'
+import Icon from 'src/@core/components/icon'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 
-import moment from 'moment-timezone'
-import 'moment/locale/es'
+import { useDropzone } from 'react-dropzone'
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -226,7 +230,7 @@ const PhotoGallery = ({ photos }) => (
   </Box>
 )
 
-export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible }) => {
+export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment=false }) => {
   let isPlanner = roleData && roleData.id === '5'
 
   const [values, setValues] = useState({})
@@ -238,6 +242,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [files, setFiles] = useState([])
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
+  const [commentDialog, setCommentDialog] = useState(false)
+  const [comment, setComment] = useState('')
 
   const [hasChanges, setHasChanges] = useState({
     title: false,
@@ -252,7 +258,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -361,6 +367,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleCloseAlert = () => {
     setOpenAlert(false)
     setEditable(false)
+  }
+
+  const handleSubmitComment = async () => {
+    await addComment(id, comment, authUser)
+      .then(() => {
+        setComment('')
+        setCommentDialog(false)
+      })
+      .catch(error => {
+        alert(error), console.error(error)
+      })
   }
 
   // Función onchange utilizando currying
@@ -531,7 +548,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     supervisorShift,
     userRole,
     petitioner,
-    fotos
+    fotos,
+    uid
   } = doc
 
   // Verifica estado
@@ -559,6 +577,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           </Box>
         ) : (
           <Box>
+            {canComment && <Box sx={{position:'fixed', bottom:'32px', right:'48px'}}>
+              <Button
+              onClick={() => setCommentDialog(true)}
+              sx={{position:'relative', borderRadius:'50%', height: '64px', width: '64px'}}
+              variant="contained">
+                  <Tooltip placement="left-start" title="Agregar comentario" >
+                  <AddComment/>
+                  </Tooltip>
+              </Button>
+            </Box>}
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
@@ -725,6 +753,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   eventData.map(element => {
 
                     const determineModificationType = (element) => {
+                      if (!element.newState) return 'Comentarios agregados'
+
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
                       const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop;
@@ -756,7 +786,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                         <Typography variant='body1'>
                           {status} por { [0, 1, 6, 10].includes(element.newState) && element.prevState === 5 ? 'Procure' : element.userName}
                         </Typography>
-                        <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                        <Typography variant='body2'>{dictionary[element.newState]?.details || element.comment}</Typography>
                       </TimelineContent>
                     </TimelineItem>
                   </div>
@@ -768,6 +798,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 eventData.map(element => {
 
                   const determineModificationType = (element) => {
+                    if (!element.newState) return 'Comentarios agregados'
+
                     const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
                     const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
                     const hasPreviousDoc = element.prevDoc;
@@ -797,7 +829,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           <Typography variant='body1'>
                             {status} por {element.userName}
                           </Typography>
-                          <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                          <Typography variant='body2'>{dictionary[element.newState]?.details || element.comment}</Typography>
                         </TimelineContent>
                       </TimelineItem>
                     </div>
@@ -825,6 +857,22 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
+      <Dialog open={commentDialog}>
+        <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
+        <DialogContent>
+          <TextField
+          value={comment}
+          onChange={(e)=>setComment(e.target.value)}
+          multiline
+          fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={()=>handleSubmitComment()}>Enviar comentario</Button>
+          <Button onClick={()=>setCommentDialog(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={!!message} aria-labelledby='message-dialog-title' aria-describedby='message-dialog-description'>
         <DialogTitle id='message-dialog-title'>Creando solicitud</DialogTitle>
         <DialogContent>
