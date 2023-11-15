@@ -62,12 +62,12 @@ const FormLayoutsBasic = () => {
   const [plantsNames, setPlantsNames] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, getPlantsData } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, getDomainData } = useFirebase()
 
   // Acá se define en una constante los nombres de las plantas como un array
   // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
   const getPlantNames = async () => {
-    const plants = await getPlantsData()
+    const plants = await getDomainData('plants')
     let plantsNamesArray = []
     for (const plantName in plants) {
       plantsNamesArray.push(plantName)

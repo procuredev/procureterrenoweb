@@ -59,7 +59,7 @@ const AppCalendar = () => {
 
   // ** Vars
   const { skin, direction } = settings
-  const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
+  const { authUser, useSnapshot, getDomainData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
   const data = useSnapshot(false, authUser)
   const theme = useTheme()
 
@@ -94,7 +94,7 @@ const AppCalendar = () => {
   useEffect(() => {
     const role = async () => {
       if (authUser) {
-        const role = await getRoleData(authUser.role.toString())
+        const role = await getDomainData(authUser.role.toString())
         setRoleData(role)
       }
     }

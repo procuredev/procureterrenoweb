@@ -29,15 +29,14 @@ import {
   useEvents,
   useSnapshot,
   getData,
-  getRoleData,
+  getDomainData,
   getUserData,
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,
   consultDocs,
   consultObjetives,
-  getUsersWithSolicitudes,
-  getPlantsData
+  getUsersWithSolicitudes
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -86,7 +85,7 @@ const FirebaseContextProvider = props => {
     updateUserPhone,
     useSnapshot,
     signAdminFailure,
-    getRoleData,
+    getDomainData,
     getData,
     getUserData,
     uploadFilesToFirebaseStorage,
@@ -97,8 +96,7 @@ const FirebaseContextProvider = props => {
     consultDocs,
     consultObjetives,
     getUsersWithSolicitudes,
-    signGoogle,
-    getPlantsData
+    signGoogle
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

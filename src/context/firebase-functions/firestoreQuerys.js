@@ -121,20 +121,24 @@ const useSnapshot = (datagrid = false, userParam) => {
   return data
 }
 
-// Obtener los datos de un rol
-// TODO: Agregar parámetro "collection" o "path" para indicar qué colección consultar dentro de domain
-// TODO: Para consultar un rol, habría que pasar otro parámetro que sea "subcollection" o "subpath" para indicar la subcolección
-// Parámetro subcollection será opcional (puede venir false o null)
-// https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Functions/Default_parameters
+// Función para obtener los datos de un documento de la colección 'domain'
+// Se pedirá como parámetro obligatorio el documento que quiere obtener (plants, roles, deliverables, etc)
+// Como parámetro opcional se ingresará el campo que quiere obtener de ese documento
+// Si no se indica el parámetro field, se retornarán todos los campos existentes en ese documento
+const getDomainData = async (document, field=null) => {
 
-
-const getRoleData = async role => {
-  const docRef = doc(db, 'roles', role)
+  let returnedData
+  const docRef = doc(db, 'domain', document)
   const docSnap = await getDoc(docRef)
-  let data = docSnap.data()
-  data.id = docSnap.id
+  const docData = docSnap.data()
 
-  return data
+  if (field != null) {
+    returnedData = docData[field]
+  } else {
+    returnedData = docData
+  }
+
+  return returnedData
 }
 
 const getData = async id => {
@@ -702,33 +706,16 @@ const getUsersWithSolicitudes = async () => {
   return usersWithProperties
 }
 
-// Función para obtener datos de las Plantas en la colection 'domain'/'plants'
-// El parámetro 'plant' será opcional
-// Si se indica el parámetro plant, solo se devolverá la información de esa planta
-const getPlantsData = async (plant) => {
-
-  const plantsRef = doc(db, 'domain', 'plants')
-  const plantsSnapshot = await getDoc(plantsRef)
-  const plantsData = plantsSnapshot.data()
-
-  if (plant) {
-    return plantsData[plant]
-  } else {
-    return plantsData
-  }
-}
-
 export {
   useEvents,
   useSnapshot,
   getData,
   getUserData,
-  getRoleData,
+  getDomainData,
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,
   consultDocs,
   consultObjetives,
-  getUsersWithSolicitudes,
-  getPlantsData
+  getUsersWithSolicitudes
 }
