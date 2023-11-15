@@ -4,7 +4,6 @@ import 'moment/locale/es'
 
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { useDropzone } from 'react-dropzone'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -51,6 +50,8 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 import CustomListItem from 'src/@core/components/custom-list/index'
 import DateListItem from 'src/@core/components/custom-date/index'
+
+import { useDropzone } from 'react-dropzone'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -637,7 +638,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {values.fotos ? (
                   <ListItem>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography component='div' sx={{ width: '30%' }}>
+                      <Typography component='div' sx={{ width: '30%', pr: 2 }}>
                         Archivos adjuntos
                       </Typography>
                       <Box sx={{ width: '70%', display: 'inline-flex', justifyContent: 'space-between' }}>
