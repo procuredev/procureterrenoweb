@@ -18,25 +18,11 @@ const Navigation = () => {
       authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 10]
     },
     {
-      title: 'Nuestro Equipo',
-      path: '/nuestro-equipo',
-      icon: 'mdi:account-group',
-      subject: 'nuestro-equipo',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    },
-    {
-      title: 'Mapa',
-      path: '/mapa',
-      icon: 'mdi:map-outline',
-      subject: 'mapa',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    },
-    {
-      title: 'Calendario',
-      path: '/calendario',
-      icon: 'mdi:calendar-month-outline',
-      subject: 'calendario',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      title: 'Nueva Solicitud',
+      path: '/nueva-solicitud',
+      icon: 'mdi:email-outline',
+      subject: 'nueva-solicitud',
+      authorizedRoles: [1, 2, 3, 7]
     },
     {
       path: '/solicitudes',
@@ -46,30 +32,11 @@ const Navigation = () => {
       authorizedRoles: [1, 2, 3, 4, 5, 6, 7]
     },
     {
-      title: 'Nueva Solicitud',
-      path: '/nueva-solicitud',
-      icon: 'mdi:email-outline',
-      subject: 'nueva-solicitud',
-      authorizedRoles: [1, 2, 3, 7]
-    },
-    {
-      title: 'Documentos',
-      path: '/documentos',
-      icon: 'mdi:file-document-outline',
-      subject: 'documentos',
-      authorizedRoles: [1]
-    },
-    {
-      title: 'Administración',
-      icon: 'mdi:shield-account-outline',
-      children: [
-        {
-          title: 'Nuevo Usuario',
-          path: '/nuevo-usuario',
-          subject: 'nuevo-usuario'
-        }
-      ],
-      authorizedRoles: [1]
+      title: 'Calendario',
+      path: '/calendario',
+      icon: 'mdi:calendar-month-outline',
+      subject: 'calendario',
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     },
     {
       title: 'Supervisor',
@@ -83,6 +50,39 @@ const Navigation = () => {
       ],
 
       authorizedRoles: [1, 7]
+    },
+    {
+      title: 'Documentos',
+      path: '/documentos',
+      icon: 'mdi:file-document-outline',
+      subject: 'documentos',
+      authorizedRoles: [1]
+    },
+    {
+      title: 'Mapa',
+      path: '/mapa',
+      icon: 'mdi:map-outline',
+      subject: 'mapa',
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    },
+    {
+      title: 'Nuestro Equipo',
+      path: '/nuestro-equipo',
+      icon: 'mdi:account-group',
+      subject: 'nuestro-equipo',
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    },
+    {
+      title: 'Administración',
+      icon: 'mdi:shield-account-outline',
+      children: [
+        {
+          title: 'Nuevo Usuario',
+          path: '/nuevo-usuario',
+          subject: 'nuevo-usuario'
+        }
+      ],
+      authorizedRoles: [1]
     }
   ]
 
