@@ -41,7 +41,7 @@ import {
   timelineOppositeContentClasses,
 } from '@mui/lab'
 
-import { Download, Edit, Close, AddComment } from '@mui/icons-material'
+import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -222,13 +222,31 @@ const PhotoItem = ({ photoUrl }) => {
   )
 }
 
-const PhotoGallery = ({ photos }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', overflow: 'auto', height: '140px', width: '70%', justifyContent: 'space-evently' }}>
+const PhotoGallery = ({ photos }) =>{
+const theme = useTheme()
+
+return (<Box sx={{display: 'contents'  }}>
+    <IconButton sx={{margin:'auto'}} onClick={()=>document.getElementById("gallery").scrollLeft -= 200}>
+      <ChevronLeft/>
+    </IconButton>
+    <Box id="gallery"
+    sx={{display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    height: '140px',
+    overflow:'auto',
+    '::-webkit-scrollbar':{height:'4px', backgroundColor: theme.palette.background.default},
+    '::-webkit-scrollbar-thumb': {backgroundColor: theme.palette.divider    },
+    '::-webkit-scrollbar-track': {backgroundColor: theme.palette.divider    }}}>
     {photos.map((fotoUrl, index) => (
       <PhotoItem key={index} photoUrl={fotoUrl} />
     ))}
+    </Box>
+    <IconButton sx={{margin:'auto'}}onClick={()=>document.getElementById("gallery").scrollLeft += 200}>
+    <ChevronRight/>
+    </IconButton>
   </Box>
-)
+)}
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment=false }) => {
   let isPlanner = roleData && roleData.id === '5'
