@@ -629,7 +629,7 @@ const getNextRevision = async (approve, latestRevision, userParam, blueprint) =>
       newRevision = blueprint.revision;
     } else if (userParam.role === 9) {
       if (approve) {
-        newRevision = 'A';
+        newRevision = blueprint.revision === 'A' ? 'B' : blueprint.revision === 'B' ? 'C' : 'A';
       } else {
         newRevision = blueprint.revision;
       }
@@ -654,53 +654,41 @@ const getNextRevision = async (approve, latestRevision, userParam, blueprint) =>
 
 const updateBlueprint = async (petitionID, blueprint, approves, userParam) => {
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id);
-  const revisionsRef = collection(blueprintRef, 'revisions');
   const latestRevision = await getLatestRevision(petitionID, blueprint.id);
   const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint);
 
+  let updateData = {
+    revision: nextRevision.newRevision,
+    sentByDesigner: false,
+    approvedByContractAdmin: false,
+    approvedBySupervisor: false,
+    approvedByDocumentaryControl: false,
+    sentTime: Timestamp.fromDate(new Date())
+  };
 
-  if (userParam.role === 8) {
-    await updateDoc(blueprintRef, { sentByDesigner: true, revision: nextRevision.newRevision, sentTime: Timestamp.fromDate(new Date()) })
-  } else if (userParam.role === 9) {
-
+  if (userParam.role === 6 || userParam.role === 7) {
     if (approves) {
-      await updateDoc(blueprintRef, {
-        revision: nextRevision.newRevision,
-        storageBlueprints: null,
-        sentByDesigner: false,
-        sentBySupervisor: false,
-        sentByDocumentaryControl: true,
-        sentTime: Timestamp.fromDate(new Date())
-      })
+      updateData.sentByDesigner = true;
+      updateData.approvedByContractAdmin = userParam.role === 6;
+      updateData.approvedBySupervisor = userParam.role === 7;
+    } else {
+      updateData.storageBlueprints = null;
+      updateData.sentByDesigner = false;
+      updateData.approvedByContractAdmin = userParam.role === 6;
+      updateData.approvedBySupervisor = userParam.role === 7;
     }
-    await updateDoc(blueprintRef, {
-      revision: nextRevision.newRevision,
-      storageBlueprints: null,
-      sentByDesigner: false,
-      sentBySupervisor: false,
-      sentByDocumentaryControl: true,
-      sentTime: Timestamp.fromDate(new Date())
-    })
+
+  } else if (userParam.role === 8) {
+    if (approves) {
+      updateData.sentByDesigner = true;
+      updateData.approvedBySupervisor = blueprint.revision === 'iniciado';
+    }
   } else {
-    if (approves) {
-      await updateDoc(blueprintRef, {
-        revision: nextRevision.newRevision,
-        sentByDesigner: true,
-        sentBySupervisor: true,
-        sentTime: Timestamp.fromDate(new Date())
-      })
-    }
-    await updateDoc(blueprintRef, {
-      revision: nextRevision.newRevision,
-      storageBlueprints: null,
-      sentByDesigner: false,
-      sentBySupervisor: true,
-      sentByDocumentaryControl: false,
-      sentTime: Timestamp.fromDate(new Date())
-    })
+     updateData.approvedByDocumentaryControl = true;
+     updateData.storageBlueprints = null;
   }
 
-  await updateDoc(blueprintRef, {revision: nextRevision.newRevision});
+  await updateDoc(blueprintRef, updateData);
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision);
 };
 

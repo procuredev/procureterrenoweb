@@ -104,6 +104,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const writeCallback = async () => {
     authUser.role === 9
       ? await updateBlueprint(petitionId, doc, approve, authUser)
+      .then(() => {
+        setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true)
+      })
+      .catch(err => console.error(err), setOpenAlert(false), setNewDescription(false))
       : await updateBlueprint(petitionId, doc, approve, authUser)
           .then(() => {
             setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true)
@@ -162,20 +166,20 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         reject: false
       },
       6: {
-        approve: role === 6 && row.revision === 'A' && row.sentByDesigner === true,
-        reject: role === 6 && row.revision === 'A' && row.sentByDesigner === true
+        approve: role === 6 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false,
+        reject: role === 6 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false
       },
       7: {
-        approve: role === 7 && row.revision === 'A' && row.sentByDesigner === true,
-        reject: role === 7 && row.revision === 'A' && row.sentByDesigner === true
+        approve: role === 7 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false,
+        reject: role === 7 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false
       },
       8: {
         approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false,
         reject: false
       },
       9: {
-        approve: role === 9 && row.sentByDesigner === true,
-        reject: role === 9 && row.sentByDesigner === true
+        approve: row.revision === 'iniciado' ? role === 9 && row.sentByDesigner === true : role === 9 && row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true),
+        reject: row.revision === 'iniciado' ? role === 9 && row.sentByDesigner === true : role === 9 && row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)
       }
     }
 
@@ -485,8 +489,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   {renderButtons}
                 </Select>
               )
-            ) : row.sentByDesigner === true ? (
+            ) : row.sentByDesigner === true || row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ? (
               'Enviado'
+            ) : row.sentByDesigner === false && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ? (
+              'Devolución'
             ) : (
               'Pendiente'
             )}
