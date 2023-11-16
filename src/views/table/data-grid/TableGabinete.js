@@ -103,7 +103,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const writeCallback = async () => {
     authUser.role === 9
-      ? await updateBlueprint(petitionId, doc, approve, authUser)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, null)
       .then(() => {
         setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true)
       })
@@ -470,6 +470,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <>
+          <Box
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignContent: 'center',
+              flexDirection: 'column'
+            }}
+          >
             {canApprove || canReject ? (
               md ? (
                 renderButtons
@@ -491,11 +500,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               )
             ) : row.sentByDesigner === true || row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ? (
               'Enviado'
-            ) : row.sentByDesigner === false && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ? (
+            ) : row.sentByDesigner === false && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ||
+            row.revision !== 'iniciado' && row.sentByDesigner === false && row.approvedByDocumentaryControl === false? (
               'Devolución'
             ) : (
               'Pendiente'
             )}
+            <RevisionComponent row={row} field={'devolutionRemarks'} />
+
+          </Box>
+
           </>
         )
       }

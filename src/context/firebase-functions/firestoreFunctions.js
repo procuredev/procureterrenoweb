@@ -211,7 +211,7 @@ const processFieldChanges = (incomingFields, currentDoc) => {
 }
 
 const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc, requesterId, id, prevState) => {
-  if (Object.keys(changedFields).length > 0) {
+  if (changedFields && Object.keys(changedFields).length > 0) {
     const { email, displayName } = userParam
 
     let newEvent = {}
@@ -466,7 +466,7 @@ const blockDayInDatabase = async (date, cause = '') => {
     if (isBlocked) {
       await setDoc(docRef, { blocked: false })
       console.log('Día desbloqueado')
-    } else if (cause.length > 0) {
+    } else if (cause && cause.length > 0) {
       await setDoc(docRef, { blocked: true, cause })
       console.log('Día bloqueado')
     } else {
@@ -486,7 +486,7 @@ const getBlueprints = async id => {
     // doc.data() is never undefined for query doc snapshots
     allBlueprints.push({ ...doc.data(), id: doc.id })
   })
-  if (allBlueprints.length === 0) {
+  if (allBlueprints && allBlueprints.length === 0) {
     return
   }
 
@@ -610,7 +610,7 @@ const addDescription = async (petitionID, blueprint, description) => {
 const getLatestRevision = async (petitionID, blueprintID) => {
   const revisionsRef = collection(db, 'solicitudes', petitionID, 'blueprints', blueprintID, 'revisions');
   const revisionsSnapshot = await getDocs(query(revisionsRef, orderBy('date', 'desc'), limit(1)));
-  if (revisionsSnapshot.docs.length === 0) {
+  if (revisionsSnapshot.docs && revisionsSnapshot.docs.length === 0) {
     return null;
   }
   const latestRevision = revisionsSnapshot.docs[0].data();
@@ -618,7 +618,7 @@ const getLatestRevision = async (petitionID, blueprintID) => {
   return latestRevision;
 };
 
-const getNextRevision = async (approve, latestRevision, userParam, blueprint) => {
+const getNextRevision = async (approve, latestRevision, userParam, blueprint, devolutionRemarks) => {
   let newRevision;
   if (latestRevision && Object.keys(latestRevision).length === 0) {
     if (userParam.role === 8) {
@@ -646,16 +646,17 @@ const getNextRevision = async (approve, latestRevision, userParam, blueprint) =>
     userEmail: userParam.email,
     userName: userParam.displayName,
     userId: userParam.uid,
-    date: Timestamp.fromDate(new Date())
+    date: Timestamp.fromDate(new Date()),
+    devolutionRemarks: devolutionRemarks || 'sin observaciones'
   };
 
   return nextRevision;
 };
 
-const updateBlueprint = async (petitionID, blueprint, approves, userParam) => {
+const updateBlueprint = async (petitionID, blueprint, approves, userParam, devolutionRemarks) => {
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id);
   const latestRevision = await getLatestRevision(petitionID, blueprint.id);
-  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint);
+  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, devolutionRemarks);
 
   let updateData = {
     revision: nextRevision.newRevision,
@@ -667,25 +668,25 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam) => {
   };
 
   if (userParam.role === 6 || userParam.role === 7) {
-    if (approves) {
-      updateData.sentByDesigner = true;
-      updateData.approvedByContractAdmin = userParam.role === 6;
-      updateData.approvedBySupervisor = userParam.role === 7;
-    } else {
-      updateData.storageBlueprints = null;
-      updateData.sentByDesigner = false;
-      updateData.approvedByContractAdmin = userParam.role === 6;
-      updateData.approvedBySupervisor = userParam.role === 7;
-    }
-
+    updateData = {
+      ...updateData,
+      sentByDesigner: approves,
+      approvedByContractAdmin: approves && userParam.role === 6,
+      approvedBySupervisor: approves && userParam.role === 7,
+      storageBlueprints: approves ? blueprint.storageBlueprints : null
+    };
   } else if (userParam.role === 8) {
-    if (approves) {
-      updateData.sentByDesigner = true;
-      updateData.approvedBySupervisor = blueprint.revision === 'iniciado';
-    }
+    updateData = {
+      ...updateData,
+      sentByDesigner: approves,
+      approvedBySupervisor: approves && blueprint.revision === 'iniciado'
+    };
   } else {
-     updateData.approvedByDocumentaryControl = true;
-     updateData.storageBlueprints = null;
+    updateData = {
+      ...updateData,
+      approvedByDocumentaryControl: approves,
+      storageBlueprints: null
+    };
   }
 
   await updateDoc(blueprintRef, updateData);
