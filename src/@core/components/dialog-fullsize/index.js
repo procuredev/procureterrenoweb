@@ -144,7 +144,7 @@ const PhotoGallery = ({ photos }) => {
           flexWrap: 'nowrap',
           height: '140px',
           overflow: 'auto',
-          scrollBehavior:'smooth',
+          scrollBehavior: 'smooth',
           '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
           '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
           '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
@@ -191,6 +191,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
+  const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
   const PetitionerContactComponent = () => (
