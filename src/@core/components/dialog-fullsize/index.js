@@ -240,6 +240,7 @@ const PhotoGallery = ({ photos }) => {
           flexWrap: 'nowrap',
           height: '140px',
           overflow: 'auto',
+          scrollBehavior:'smooth',
           '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
           '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
           '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
@@ -849,7 +850,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours
                       const hasPreviousDoc = element.prevDoc
-                      
+
                       const OTEndAdded =
                         element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
