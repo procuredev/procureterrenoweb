@@ -23,6 +23,7 @@ import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 import { getUnixTime } from 'date-fns'
 import { async } from '@firebase/util'
 import { timestamp } from '@antfu/utils'
+import { blue } from '@mui/material/colors'
 
 // ** Librería para manejar fechas
 const moment = require('moment')
@@ -618,36 +619,26 @@ const getLatestRevision = async (petitionID, blueprintID) => {
   return latestRevision;
 };
 
-const getNextRevision = async (approve, latestRevision, userParam, blueprint, devolutionRemarks) => {
-  let newRevision;
-  if (latestRevision && Object.keys(latestRevision).length === 0) {
-    if (userParam.role === 8) {
-      newRevision = blueprint.revision;
-    }
-  } else {
-    if (userParam.role === 8) {
-      newRevision = blueprint.revision;
-    } else if (userParam.role === 9) {
-      if (approve) {
-        newRevision = blueprint.revision === 'A' ? 'B' : blueprint.revision === 'B' ? 'C' : 'A';
-      } else {
-        newRevision = blueprint.revision;
-      }
-    } else {
-      newRevision = blueprint.revision;
-    }
+const getNextRevision = async (approve, latestRevision, { role, email, displayName, uid }, { revision, description, storageBlueprints }, devolutionRemarks = false) => {
+  let newRevision = revision;
+
+  // Devuelve siguiente letra
+  if (role === 9 && approve) {
+    const nextCharCode = revision.charCodeAt(0) + 1;
+    newRevision = String.fromCharCode(nextCharCode);
   }
 
+  // Usa parámetros destructurados para crear el objeto de la siguiente revisión
   const nextRevision = {
-    prevRevision: latestRevision && Object.keys(latestRevision).length === 0? latestRevision.newRevision : blueprint.revision,
-    newRevision: newRevision,
-    description: blueprint.description,
-    storageBlueprints: blueprint.storageBlueprints,
-    userEmail: userParam.email,
-    userName: userParam.displayName,
-    userId: userParam.uid,
+    prevRevision: latestRevision && Object.keys(latestRevision).length === 0 ? latestRevision.newRevision : revision,
+    newRevision,
+    description,
+    storageBlueprints,
+    userEmail: email,
+    userName: displayName,
+    userId: uid,
     date: Timestamp.fromDate(new Date()),
-    devolutionRemarks: devolutionRemarks || 'sin observaciones'
+    ...(devolutionRemarks && { devolutionRemarks })
   };
 
   return nextRevision;
@@ -668,25 +659,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, devol
   };
 
   if (userParam.role === 6 || userParam.role === 7) {
-    updateData = {
-      ...updateData,
-      sentByDesigner: approves,
-      approvedByContractAdmin: approves && userParam.role === 6,
-      approvedBySupervisor: approves && userParam.role === 7,
-      storageBlueprints: approves ? blueprint.storageBlueprints : null
-    };
+    updateData.sentByDesigner = approves;
+    updateData.approvedByContractAdmin = approves && userParam.role === 6;
+    updateData.approvedBySupervisor = approves && userParam.role === 7;
+    updateData.storageBlueprints = approves ? blueprint.storageBlueprints : null;
   } else if (userParam.role === 8) {
-    updateData = {
-      ...updateData,
-      sentByDesigner: approves,
-      approvedBySupervisor: approves && blueprint.revision === 'iniciado'
-    };
-  } else {
-    updateData = {
-      ...updateData,
-      approvedByDocumentaryControl: approves,
-      storageBlueprints: null
-    };
+    updateData.sentByDocumentaryControl = approves;
+    updateData.approvedByDocumentaryControl = approves;
   }
 
   await updateDoc(blueprintRef, updateData);
