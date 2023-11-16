@@ -59,6 +59,7 @@ const FormLayoutsBasic = () => {
   const [oldEmail, setOldEmail] = useState('')
   const [newUID, setNewUID] = useState('')
   const [plantsNames, setPlantsNames] = useState([])
+  const [allowableEmails, setAllowableEmails] = useState([])
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, getDomainData } = useFirebase()
@@ -67,27 +68,22 @@ const FormLayoutsBasic = () => {
   // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
   const getPlantNames = async () => {
     const plants = await getDomainData('plants')
-    let plantsNamesArray = []
-    for (const plantName in plants) {
-      plantsNamesArray.push(plantName)
-    }
+    let plantsArray = Object.keys(plants)
+    plantsArray.sort()
+    plantsArray = [...plantsArray, 'Sucursal Santiago']
+    setPlantsNames(plantsArray)
+  }
 
-    return [...plantsNamesArray, 'Sucursal Santiago']
+  const getAllowableEmailDomains = async () => {
+    const domains = await getDomainData('allowableDomains')
+    const array = Object.keys(domains)
+    setAllowableEmails(array)
   }
 
   // Obtener los nombres de las plantas cuando el componente se monta
   useEffect(() => {
-    const fetchPlantNames = async () => {
-      try {
-        const names = await getPlantNames()
-        names.sort()
-        setPlantsNames(names)
-      } catch (error) {
-        console.error('Error al obtener los nombres de las plantas:', error)
-      }
-    }
-
-    fetchPlantNames()
+    getPlantNames()
+    getAllowableEmailDomains()
   }, [])
 
   const handleChange = prop => (event, data) => {
@@ -205,6 +201,15 @@ const FormLayoutsBasic = () => {
 
         // Validaciones específicas para cada clave utilizando switch case
         switch (key) {
+          case 'email':
+            console.log(allowableEmails)
+            const emailParts = values.email.split('@')
+            const emailConcat = allowableEmails.join(' y ')
+            console.log(emailParts)
+            if (!allowableEmails.includes(emailParts[1])) {
+              newErrors['email'] = `Solo se permiten correos de ${emailConcat}`
+            }
+            break
           case 'rut':
             if (isRutLike(values.rut)) {
               values.rut = formatRut(values.rut)
