@@ -27,7 +27,6 @@ import {
 
 // ** Custom Components
 import Icon from 'src/@core/components/icon'
-import plants from 'src/@core/components/plants-areas/index'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 import {
@@ -717,7 +716,7 @@ const FormLayoutsSolicitud = () => {
                 authUser.role === 7 ||
                 (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
 
-                  ? plants
+                  ? [...authUser.plant]
                   : [...authUser.plant]
               }
               label='Planta'

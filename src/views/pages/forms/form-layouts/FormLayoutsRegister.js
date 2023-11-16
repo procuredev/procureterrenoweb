@@ -32,7 +32,6 @@ import DialogActions from '@mui/material/DialogActions'
 
 // **Validar RUT
 import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
-import areas from 'src/@core/components/plants-areas'
 
 const FormLayoutsBasic = () => {
   let initialValues = {
