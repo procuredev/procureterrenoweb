@@ -69,15 +69,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     setOpenUploadDialog(false)
   }
 
-  const handleClickOpenEvents = doc => {
-    setDoc(doc)
-    setOpenEvents(true)
-  }
-
-  const handleCloseEvents = () => {
-    setOpenEvents(false)
-  }
-
   const handleCloseClientCodeGenerator = () => {
     setGenerateClientCode(false)
   }
@@ -103,7 +94,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const writeCallback = async () => {
     authUser.role === 9
-      ? await updateBlueprint(petitionId, doc, approve, authUser, null)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, false)
       .then(() => {
         setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true)
       })
@@ -550,15 +541,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         <p>Loading...</p>
       ) : (
         <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
-      )}
-      {openEvents && (
-        <FullScreenDialog
-          open={openEvents}
-          handleClose={handleCloseEvents}
-          doc={doc}
-          roleData={roleData}
-          editButtonVisible={false}
-        />
       )}
       {openUploadDialog && (
         <UploadBlueprintsDialog
