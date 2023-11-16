@@ -122,9 +122,6 @@ const DataGridGabinete = () => {
             dense
             id='basic-menu'
             open={false}
-            MenuListProps={{
-              'aria-labelledby': 'basic-button'
-            }}
             sx={{ overflow: 'hidden' }}
           >
             {petitions?.map((petitionItem, index) => (
