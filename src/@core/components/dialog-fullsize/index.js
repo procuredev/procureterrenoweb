@@ -287,6 +287,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
+  const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
   const PetitionerContactComponent = () => (
@@ -596,7 +597,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       scroll='body'
     >
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
+      <Paper sx={{ margin: 'auto', padding: small? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
             <Skeleton />
