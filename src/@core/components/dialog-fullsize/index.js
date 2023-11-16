@@ -144,6 +144,7 @@ const PhotoGallery = ({ photos }) => {
           flexWrap: 'nowrap',
           height: '140px',
           overflow: 'auto',
+          scrollBehavior:'smooth',
           '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
           '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
           '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
