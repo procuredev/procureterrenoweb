@@ -556,14 +556,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   return (
     <Dialog
-      sx={{ '& .MuiPaper-root': { maxWidth: '800px' } }}
+      sx={{ '& .MuiPaper-root': { maxWidth: '800px', width:'100%'} }}
       open={open}
       onClose={() => handleClose()}
       TransitionComponent={Transition}
       scroll='body'
     >
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
+      <Paper sx={{ padding: '30px', overflowY: 'hidden'}}>
         {eventData == undefined ? (
           <Box>
             <Skeleton />
@@ -855,19 +855,20 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      <Dialog open={commentDialog}>
+      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width:'100%', height:'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>
           <TextField
           value={comment}
           onChange={(e)=>setComment(e.target.value)}
           multiline
+          rows={5}
           fullWidth
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={()=>handleSubmitComment()}>Enviar comentario</Button>
-          <Button onClick={()=>setCommentDialog(false)}>Cerrar</Button>
+        <Button onClick={()=>setCommentDialog(false)}>Cerrar</Button>
+        <Button onClick={()=>handleSubmitComment()}>Enviar comentario</Button>
         </DialogActions>
       </Dialog>
 
