@@ -38,10 +38,10 @@ import {
   TimelineContent,
   TimelineDot,
   TimelineOppositeContent,
-  timelineOppositeContentClasses,
+  timelineOppositeContentClasses
 } from '@mui/lab'
 
-import { Download, Edit, Close, AddComment } from '@mui/icons-material'
+import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -50,7 +50,6 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 
 import { useDropzone } from 'react-dropzone'
-
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -117,7 +116,7 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
           <StyledFormControl>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
               <DatePicker
-                dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
+                dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                 minDate={customMinDate || moment().subtract(1, 'year')}
                 maxDate={moment().add(1, 'year')}
                 label={label}
@@ -154,83 +153,111 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
   )
 }
 
-
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
 function getIconForFileType(filePath) {
-  const urlWithoutParams = filePath.split('?')[0];
-  const extension = urlWithoutParams.split('.').pop().toLowerCase();
+  const urlWithoutParams = filePath.split('?')[0]
+  const extension = urlWithoutParams.split('.').pop().toLowerCase()
 
   switch (extension) {
     case 'pdf':
-      return '/icons/pdf.png';
+      return '/icons/pdf.png'
     case 'ppt':
     case 'pptx':
-      return '/icons/ppt.png';
+      return '/icons/ppt.png'
     case 'doc':
     case 'docx':
-      return '/icons/doc.png';
+      return '/icons/doc.png'
     case 'xls':
     case 'xlsx':
-      return '/icons/xls.png';
+      return '/icons/xls.png'
     default:
-      return '/icons/default.png';
+      return '/icons/default.png'
   }
 }
 
 //esta función se usa para establecer los iconos de los documentos que se van a adjuntar al documento, previo a cargarlos.
-const getFileIcon = (fileType) => {
+const getFileIcon = fileType => {
   switch (fileType) {
     case 'application/pdf':
-      return 'mdi:file-pdf';
+      return 'mdi:file-pdf'
     case 'application/msword':
     case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-      return 'mdi:file-word';
+      return 'mdi:file-word'
     case 'application/vnd.ms-excel':
     case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-      return 'mdi:file-excel';
+      return 'mdi:file-excel'
     // ... agregar más tipos de archivo según sea necesario
     default:
-      return 'mdi:file-document-outline';
+      return 'mdi:file-document-outline'
   }
-};
+}
 
 // función que renderiza cada elemento adjunto y renderiza la variable 'displaySrc' que usa un condicional en caso que el elemento sea una image muestra el thumbnail, caso contrario muestra el icono según el tipo de archivo
 const PhotoItem = ({ photoUrl }) => {
-  const urlWithoutParams = photoUrl.split('?')[0];
-  const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase());
-  const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl);
-
+  const urlWithoutParams = photoUrl.split('?')[0]
+  const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase())
+  const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl)
 
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
-      <Box component='img' src={displaySrc}  onClick={() => window.open(photoUrl, '_blank')} alt='Photo' style={{ height: 'inherit', cursor: 'pointer' }} />
-        <IconButton
-          href={photoUrl}
-          target='_blank'
-          rel='noopener noreferrer'
-          sx={{
-            position: 'absolute',
-            bottom: '10px',
-            right: '10px',
-            backgroundColor: 'rgba(220, 220, 220, 0.1)'
-          }}
-        >
-          <Download />
-        </IconButton>
-
+      <Box
+        component='img'
+        src={displaySrc}
+        onClick={() => window.open(photoUrl, '_blank')}
+        alt='Photo'
+        style={{ height: 'inherit', cursor: 'pointer' }}
+      />
+      <IconButton
+        href={photoUrl}
+        target='_blank'
+        rel='noopener noreferrer'
+        sx={{
+          position: 'absolute',
+          bottom: '10px',
+          right: '10px',
+          backgroundColor: 'rgba(220, 220, 220, 0.1)'
+        }}
+      >
+        <Download />
+      </IconButton>
     </Box>
   )
 }
 
-const PhotoGallery = ({ photos }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', overflow: 'auto', height: '140px', width: '70%', justifyContent: 'space-evently' }}>
-    {photos.map((fotoUrl, index) => (
-      <PhotoItem key={index} photoUrl={fotoUrl} />
-    ))}
-  </Box>
-)
+const PhotoGallery = ({ photos }) => {
+  const theme = useTheme()
 
-export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment=false }) => {
+  return (
+    <Box sx={{ display: 'contents' }}>
+      <IconButton sx={{ margin: 'auto' }} onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}>
+        <ChevronLeft />
+      </IconButton>
+      <Box
+        id='gallery'
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          height: '140px',
+          overflow: 'auto',
+          scrollBehavior:'smooth',
+          '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
+          '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
+          '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
+        }}
+      >
+        {photos.map((fotoUrl, index) => (
+          <PhotoItem key={index} photoUrl={fotoUrl} />
+        ))}
+      </Box>
+      <IconButton sx={{ margin: 'auto' }} onClick={() => (document.getElementById('gallery').scrollLeft += 200)}>
+        <ChevronRight />
+      </IconButton>
+    </Box>
+  )
+}
+
+export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
   let isPlanner = roleData && roleData.id === '5'
 
   const [values, setValues] = useState({})
@@ -259,6 +286,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
+  const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
   const PetitionerContactComponent = () => (
@@ -273,19 +301,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     </>
   )
 
-  const initialValues = doc ? {
-    title: doc.title,
-    description: doc.description,
-    petitioner: doc.petitioner,
-    plant: doc.plant,
-    area: doc.area,
-    date: moment(doc.date.toDate()),
-    start: doc.start && moment(doc.start.toDate()),
-    ...(doc.ot && { ot: doc.ot }),
-    ...(doc.end && { end: moment(doc.end.toDate()) }),
-    ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
-    ...(doc. fotos && { fotos: doc.fotos })
-  } : {}
+  const initialValues = doc
+    ? {
+        title: doc.title,
+        description: doc.description,
+        petitioner: doc.petitioner,
+        plant: doc.plant,
+        area: doc.area,
+        date: moment(doc.date.toDate()),
+        start: doc.start && moment(doc.start.toDate()),
+        ...(doc.ot && { ot: doc.ot }),
+        ...(doc.end && { end: moment(doc.end.toDate()) }),
+        ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
+        ...(doc.fotos && { fotos: doc.fotos })
+      }
+    : {}
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -351,7 +381,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       if (hasChanges[key]) {
         newData[key] = values[key]
       }
-
     }
 
     if (Object.keys(newData).length > 0) {
@@ -402,10 +431,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       const newStart = date
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
       setValues({ ...values, start: newStart, end: newEnd })
-      setHasChanges({ ...hasChanges, start: !newStart.isSame(initialValues.start), end: !newEnd.isSame(initialValues.end) })
+      setHasChanges({
+        ...hasChanges,
+        start: !newStart.isSame(initialValues.start),
+        end: !newEnd.isSame(initialValues.end)
+      })
     }
   }
-
 
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
@@ -513,7 +545,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     </Grid>
   )
 
-  const handleSubmitAllFiles = async() => {
+  const handleSubmitAllFiles = async () => {
     try {
       await uploadFilesToFirebaseStorage(files, doc.id)
     } catch (error) {
@@ -563,7 +595,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       scroll='body'
     >
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ padding: '30px', overflowY: 'hidden'}}>
+      <Paper sx={{ margin: 'auto', padding: small? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
             <Skeleton />
@@ -575,16 +607,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           </Box>
         ) : (
           <Box>
-            {canComment && <Box sx={{position:'fixed', bottom:'32px', right:'48px'}}>
-              <Button
-              onClick={() => setCommentDialog(true)}
-              sx={{position:'relative', borderRadius:'50%', height: '64px', width: '64px'}}
-              variant="contained">
-                  <Tooltip placement="left-start" title="Agregar comentario" >
-                  <AddComment/>
+            {canComment && (
+              <Box sx={{ position: 'fixed', bottom: '32px', right: '48px' }}>
+                <Button
+                  onClick={() => setCommentDialog(true)}
+                  sx={{ position: 'relative', borderRadius: '50%', height: '64px', width: '64px' }}
+                  variant='contained'
+                >
+                  <Tooltip placement='left-start' title='Agregar comentario'>
+                    <AddComment />
                   </Tooltip>
-              </Button>
-            </Box>}
+                </Button>
+              </Box>
+            )}
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
@@ -684,7 +719,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {values.fotos ? (
                   <ListItem>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography component='div' sx={{ width: '30%', pr:2 }}>
+                      <Typography component='div' sx={{ width: '30%', pr: 2 }}>
                         Archivos adjuntos
                       </Typography>
                       <PhotoGallery photos={fotos} />
@@ -705,7 +740,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                             }}
                           >
                             <Box
-                              sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto' }}
+                              sx={{
+                                pl: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: ['center'],
+                                margin: 'auto'
+                              }}
                             >
                               <Icon icon='mdi:file-document-outline' />
                               <Typography sx={{ mt: 5 }} color='textSecondary'>
@@ -730,7 +771,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       </Fragment>
                     </FormControl>
                   </ListItem>
-                ) : ''}
+                ) : (
+                  ''
+                )}
               </List>
 
               {editable ? (
@@ -745,94 +788,103 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               ) : null}
 
               {eventData !== undefined &&
-                eventData.length > 0 &&
-                // *** Mapea los eventos para los usuarios MEL ***
-                [2,3,4].includes(authUser.role) ? (
-                  eventData.map(element => {
-
-                    const determineModificationType = (element) => {
+              eventData.length > 0 &&
+              // *** Mapea los eventos para los usuarios MEL ***
+              [2, 3, 4].includes(authUser.role)
+                ? eventData.map(element => {
+                    const determineModificationType = element => {
                       if (!element.newState) return 'Comentarios agregados'
 
-                      const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
-                      const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
-                      const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop;
-                      const hasPreviousDoc = element.prevDoc;
-                      const isModifiedStart = hasPreviousDoc && element.prevDoc.start;
-                      const isStateDecreased = element.newState < element.prevState;
+                      const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen
+                      const isHoursEstablished = element.prevDoc && element.prevDoc.hours
+                      const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop
+                      const hasPreviousDoc = element.prevDoc
+                      const isModifiedStart = hasPreviousDoc && element.prevDoc.start
+                      const isStateDecreased = element.newState < element.prevState
 
-                      if (isModifiedStart || isStateDecreased) return 'Modificado';
-                      if (isDraftmenAssigned) return 'Proyectistas asignados';
-                      if (isHoursEstablished) return 'Levantamiento finalizado';
-                      if (hasPreviousDoc) return 'Modificación aceptada';
-                      if (emergencyApprovedByContop) return 'Emergencia aprobada';
+                      if (isModifiedStart || isStateDecreased) return 'Modificado'
+                      if (isDraftmenAssigned) return 'Proyectistas asignados'
+                      if (isHoursEstablished) return 'Levantamiento finalizado'
+                      if (hasPreviousDoc) return 'Modificación aceptada'
+                      if (emergencyApprovedByContop) return 'Emergencia aprobada'
 
+                      return 'Aprobado'
+                    }
 
-                      return 'Aprobado';
-                  };
+                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
 
-                  const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element);
-
-                    const result = element.newState === 5 ? '' :
-                    <div key={element.date}>
-                    <TimelineItem>
-                      <TimelineOppositeContent>{unixToDate(element.date.seconds)}</TimelineOppositeContent>
-                      <TimelineSeparator>
-                        <TimelineDot />
-                        <TimelineConnector />
-                      </TimelineSeparator>
-                      <TimelineContent>
-                        <Typography variant='body1'>
-                          {status} por { [0, 1, 6, 10].includes(element.newState) && element.prevState === 5 ? 'Procure' : element.userName}
-                        </Typography>
-                        <Typography variant='body2'>{dictionary[element.newState]?.details || element.comment}</Typography>
-                      </TimelineContent>
-                    </TimelineItem>
-                  </div>
-
+                    const result =
+                      element.newState === 5 ? (
+                        ''
+                      ) : (
+                        <div key={element.date}>
+                          <TimelineItem>
+                            <TimelineOppositeContent>{unixToDate(element.date.seconds)}</TimelineOppositeContent>
+                            <TimelineSeparator>
+                              <TimelineDot />
+                              <TimelineConnector />
+                            </TimelineSeparator>
+                            <TimelineContent>
+                              <Typography variant='body1'>
+                                {status} por{' '}
+                                {[0, 1, 6, 10].includes(element.newState) && element.prevState === 5
+                                  ? 'Procure'
+                                  : element.userName}
+                              </Typography>
+                              <Typography variant='body2'>
+                                {dictionary[element.newState]?.details || element.comment}
+                              </Typography>
+                            </TimelineContent>
+                          </TimelineItem>
+                        </div>
+                      )
 
                     return result
-                  })) :
-                  // *** Mapea los eventos para los usuarios Procure ***
-                eventData.map(element => {
+                  })
+                : // *** Mapea los eventos para los usuarios Procure ***
+                  eventData.map(element => {
+                    const determineModificationType = element => {
+                      if (!element.newState) return 'Comentarios agregados'
 
-                  const determineModificationType = (element) => {
-                    if (!element.newState) return 'Comentarios agregados'
+                      const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen
+                      const isHoursEstablished = element.prevDoc && element.prevDoc.hours
+                      const hasPreviousDoc = element.prevDoc
 
-                    const isDraftmenAssigned = element.prevDoc && element.prevDoc.draftmen;
-                    const isHoursEstablished = element.prevDoc && element.prevDoc.hours;
-                    const hasPreviousDoc = element.prevDoc;
-                    const OTEndAdded = element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
-                    const isModifiedStart = hasPreviousDoc && element.prevDoc.start;
-                    const isStateDecreased = element.newState < element.prevState;
+                      const OTEndAdded =
+                        element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
+                      const isModifiedStart = hasPreviousDoc && element.prevDoc.start
+                      const isStateDecreased = element.newState < element.prevState
 
-                    if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados';
-                    if (isModifiedStart || isStateDecreased) return 'Modificado';
-                    if (isDraftmenAssigned) return 'Proyectistas asignados';
-                    if (isHoursEstablished) return 'Levantamiento finalizado';
+                      if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
+                      if (isModifiedStart || isStateDecreased) return 'Modificado'
+                      if (isDraftmenAssigned) return 'Proyectistas asignados'
+                      if (isHoursEstablished) return 'Levantamiento finalizado'
 
-                    return 'Aprobado';
-                };
+                      return 'Aprobado'
+                    }
 
-                const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element);
+                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
 
-                  return (
-                    <div key={element.date}>
-                      <TimelineItem>
-                        <TimelineOppositeContent>{unixToDate(element.date.seconds)}</TimelineOppositeContent>
-                        <TimelineSeparator>
-                          <TimelineDot />
-                          <TimelineConnector />
-                        </TimelineSeparator>
-                        <TimelineContent>
-                          <Typography variant='body1'>
-                            {status} por {element.userName}
-                          </Typography>
-                          <Typography variant='body2'>{dictionary[element.newState]?.details || element.comment}</Typography>
-                        </TimelineContent>
-                      </TimelineItem>
-                    </div>
-                  )
-                })}
+                    return (
+                      <div key={element.date}>
+                        <TimelineItem>
+                          <TimelineOppositeContent>{unixToDate(element.date.seconds)}</TimelineOppositeContent>
+                          <TimelineSeparator>
+                            <TimelineDot />
+                            <TimelineConnector />
+                          </TimelineSeparator>
+                          <TimelineContent>
+                            <Typography variant='body1'>
+                              {status} por {element.userName}
+                            </Typography>
+                            <Typography variant='body2'>
+                              {dictionary[element.newState]?.details || element.comment}
+                            </Typography>
+                          </TimelineContent>
+                        </TimelineItem>
+                      </div>
+                    )
+                  })}
               <TimelineItem sx={{ mt: 1 }}>
                 <TimelineOppositeContent>{date && unixToDate(date.seconds)}</TimelineOppositeContent>
                 <TimelineSeparator>
