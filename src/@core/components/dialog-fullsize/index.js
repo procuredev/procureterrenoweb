@@ -259,7 +259,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
-  const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
   const PetitionerContactComponent = () => (
@@ -558,7 +557,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   return (
     <Dialog
       sx={{ '& .MuiPaper-root': { maxWidth: '800px' } }}
-      fullScreen={fullScreen}
       open={open}
       onClose={() => handleClose()}
       TransitionComponent={Transition}
