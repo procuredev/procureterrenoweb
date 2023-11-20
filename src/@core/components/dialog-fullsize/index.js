@@ -419,7 +419,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const fileList = (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{ p: 4, justifyContent: 'center' }}>
       {files.map(file => (
         <Grid item key={file.name}>
           <Paper
