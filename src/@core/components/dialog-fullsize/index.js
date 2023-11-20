@@ -130,10 +130,15 @@ const PhotoItem = ({ photoUrl }) => {
 
 const PhotoGallery = ({ photos }) => {
   const theme = useTheme()
+  const isOverflowing =
+    document.getElementById('gallery')?.scrollWidth > document.getElementById('gallery')?.clientWidth
 
   return (
     <Box sx={{ display: 'contents' }}>
-      <IconButton sx={{ margin: 'auto' }} onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}>
+      <IconButton
+        sx={{ my: 'auto', display: !isOverflowing && 'none' }}
+        onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}
+      >
         <ChevronLeft />
       </IconButton>
       <Box
@@ -154,7 +159,10 @@ const PhotoGallery = ({ photos }) => {
           <PhotoItem key={index} photoUrl={fotoUrl} />
         ))}
       </Box>
-      <IconButton sx={{ margin: 'auto' }} onClick={() => (document.getElementById('gallery').scrollLeft += 200)}>
+      <IconButton
+        sx={{ my: 'auto', display: !isOverflowing && 'none' }}
+        onClick={() => (document.getElementById('gallery').scrollLeft += 200)}
+      >
         <ChevronRight />
       </IconButton>
     </Box>
