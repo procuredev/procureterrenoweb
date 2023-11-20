@@ -35,7 +35,6 @@ import { getStorage, ref, list } from 'firebase/storage'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
   const [open, setOpen] = useState(false)
-  const [openEvents, setOpenEvents] = useState(false)
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState({})
@@ -47,6 +46,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [newDescription, setNewDescription] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
+  const [devolutionRemarks, setDevolutionRemarks] = useState('')
+
+  console.log("devolutionRemarks 2: ", devolutionRemarks)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -93,15 +95,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const writeCallback = async () => {
+    const devolution = devolutionRemarks.length > 0 ? devolutionRemarks : false
     authUser.role === 9
-      ? await updateBlueprint(petitionId, doc, approve, authUser, false)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, devolution)
       .then(() => {
-        setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true)
+        setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true), setDevolutionRemarks('')
       })
       .catch(err => console.error(err), setOpenAlert(false), setNewDescription(false))
-      : await updateBlueprint(petitionId, doc, approve, authUser)
+      : await updateBlueprint(petitionId, doc, approve, authUser, devolution)
           .then(() => {
-            setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true)
+            setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true), setDevolutionRemarks('')
           })
           .catch(err => console.error(err), setOpenAlert(false), setNewDescription(false))
   }
@@ -228,7 +231,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'title',
       headerName: 'Código Procure',
-      flex: 0.3,
+      flex: 0.32,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
@@ -273,7 +276,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientCode',
       headerName: 'Código MEL',
-      flex: 0.4,
+      flex: 0.5,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
@@ -303,7 +306,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      flex: 0.2,
+      flex: 0.1,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
@@ -372,7 +375,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'start',
       headerName: 'ENTREGABLE',
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
@@ -408,7 +411,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: 0.2,
+      flex: 0.1,
       minWidth: 120,
       renderCell: params => {
         const { row } = params
@@ -425,7 +428,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       field: 'end',
       headerName: 'Fin',
       flex: 0.1,
-      minWidth: 150,
+      minWidth: 120,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -441,7 +444,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 onClick={() => handleClickOpenAlert(row, true)}
                 variant='contained'
                 color='success'
-                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
               >
                 <CheckCircleOutline sx={{ fontSize: 18 }} />
               </Button>
@@ -451,7 +454,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 onClick={() => handleClickOpenAlert(row, false)}
                 variant='contained'
                 color='error'
-                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
               >
                 <CancelOutlined sx={{ fontSize: 18 }} />
               </Button>
@@ -536,6 +539,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         handleClose={handleCloseAlert}
         callback={writeCallback}
         approves={approve}
+        authUser={authUser}
+        setDevolutionRemarks = {setDevolutionRemarks}
+        devolutionRemarks={devolutionRemarks}
       ></AlertDialogGabinete>
       {loadingProyectistas ? (
         <p>Loading...</p>
