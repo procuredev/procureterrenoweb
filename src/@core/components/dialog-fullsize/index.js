@@ -130,8 +130,7 @@ const PhotoItem = ({ photoUrl }) => {
 
 const PhotoGallery = ({ photos }) => {
   const theme = useTheme()
-  const isOverflowing =
-    document.getElementById('gallery')?.scrollWidth > document.getElementById('gallery')?.clientWidth
+  let isOverflowing = document.getElementById('gallery')?.scrollWidth > document.getElementById('gallery')?.clientWidth
 
   return (
     <Box sx={{ display: 'contents' }}>
