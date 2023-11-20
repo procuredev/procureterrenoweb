@@ -175,6 +175,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [errorDialog, setErrorDialog] = useState(false)
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const [hasChanges, setHasChanges] = useState({
     title: false,
@@ -303,12 +304,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const handleSubmitComment = async () => {
+    if (loading || !comment) return
     await addComment(id, comment, authUser)
       .then(() => {
+        setLoading(false)
         setComment('')
         setCommentDialog(false)
       })
       .catch(error => {
+        setLoading(false)
         alert(error), console.error(error)
       })
   }
