@@ -508,7 +508,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const fileList = (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{p:4, justifyContent:'center'}}>
       {files.map(file => (
         <Grid item key={file.name}>
           <Paper
@@ -744,7 +744,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           >
                             <Box
                               sx={{
-                                pl: 2,
+                                pt: 5,
+                                pb: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: ['center'],
@@ -752,7 +753,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                               }}
                             >
                               <Icon icon='mdi:file-document-outline' />
-                              <Typography sx={{ mt: 5 }} color='textSecondary'>
+                              <Typography sx={{ mt: 5 }} align='center' color='textSecondary'>
                                 <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
                               </Typography>
                             </Box>
@@ -761,14 +762,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                         {files.length ? (
                           <Fragment>
                             <List>{fileList}</List>
-                            <div className='buttons'>
-                              <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
+                            <Box className='buttons' sx={{alignSelf:'center', textAlign: 'center'}} >
+                              <Button color='error' sx={{m:2}} variant='outlined' onClick={handleRemoveAllFiles}>
                                 Quitar todo
                               </Button>
-                              <Button color='primary' sx={{ ml: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
+                              <Button color='primary' sx={{m:2}} variant='outlined' onClick={handleSubmitAllFiles}>
                                 Subir archivos
                               </Button>
-                            </div>
+                            </Box>
                           </Fragment>
                         ) : null}
                       </Fragment>
