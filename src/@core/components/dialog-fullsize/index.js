@@ -226,10 +226,11 @@ const PhotoItem = ({ photoUrl }) => {
 
 const PhotoGallery = ({ photos }) => {
   const theme = useTheme()
+  const isOverflowing = document.getElementById('gallery')?.scrollWidth > document.getElementById('gallery')?.clientWidth
 
   return (
     <Box sx={{ display: 'contents' }}>
-      <IconButton sx={{ margin: 'auto' }} onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}>
+      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}>
         <ChevronLeft />
       </IconButton>
       <Box
@@ -250,7 +251,7 @@ const PhotoGallery = ({ photos }) => {
           <PhotoItem key={index} photoUrl={fotoUrl} />
         ))}
       </Box>
-      <IconButton sx={{ margin: 'auto' }} onClick={() => (document.getElementById('gallery').scrollLeft += 200)}>
+      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft += 200)}>
         <ChevronRight />
       </IconButton>
     </Box>
@@ -717,13 +718,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
 
                 {values.fotos ? (
-                  <ListItem>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography component='div' sx={{ width: '30%', pr: 2 }}>
-                        Archivos adjuntos
-                      </Typography>
+                 <ListItem>
+                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <Typography component='div' sx={{ width: '30%' }}>
+                    Archivos adjuntos
+                  </Typography>
+                  <Box sx={{ width: '70%', display:'inline-flex', justifyContent:'space-between' }}>
                       <PhotoGallery photos={fotos} />
-                    </Box>
+                  </Box>
+                </Box>
                   </ListItem>
                 ) : doc.user === authUser.displayName ? (
                   <ListItem>
