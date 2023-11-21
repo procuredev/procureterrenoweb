@@ -48,8 +48,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [fileNames, setFileNames] = useState({})
   const [devolutionRemarks, setDevolutionRemarks] = useState('')
 
-  console.log("devolutionRemarks 2: ", devolutionRemarks)
-
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
 
