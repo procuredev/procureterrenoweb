@@ -216,7 +216,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         <Box sx={{ overflow: 'hidden' }}>
           {revisions.map(revision => {
             return (
-              <Typography sx={{my:5}} key={revision.id}>
+              <Typography noWrap sx={{mt:4, overflow:'hidden'}} key={revision.id}>
                 {field==='date'? unixToDate(revision[field].seconds)[0] :
                 revision[field]}
               </Typography>
@@ -257,6 +257,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   +
                 </IconButton>
                 <Typography
+                  noWrap
                   sx={{
                     textDecoration: 'none',
                     transition: 'text-decoration 0.2s',
@@ -284,7 +285,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         if (row.clientCode) {
           return (
             <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-              <Typography sx={{ overflow: 'hidden' }}>{row.clientCode || 'Sin descripción'}</Typography>
+              <Typography noWrap sx={{ overflow: 'hidden' }}>{row.clientCode || 'Sin descripción'}</Typography>
             </Box>
           )
         } else {
@@ -313,7 +314,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <div>
-            {row.revision || 'N/A'}
+            <Typography noWrap>{row.revision || 'N/A'}</Typography>
             <RevisionComponent row={row} field={'newRevision'} />
           </div>
         )
@@ -328,10 +329,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <div>
-            {row.userName || 'N/A'}
+          <Box sx={{overflow: 'hidden'}}>
+            <Typography noWrap>{row.userName || 'N/A'}</Typography>
             <RevisionComponent row={row} field={'userName'} />
-          </div>
+          </Box>
         )
       }
     },
@@ -356,7 +357,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }}
           >
             <Box display='inline-flex'>
-              <Typography sx={{ overflow: 'hidden', my: 'auto' }}>{row.description || 'Sin descripción'}</Typography>
+              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto' }}>{row.description || 'Sin descripción'}</Typography>
               <IconButton
                 sx={{ ml: 2, p: 0 }}
                 onClick={() => {
@@ -391,7 +392,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }}
           >
             <Box display='inline-flex'>
-              <Typography sx={{ overflow: 'hidden', my: 'auto' }}>{fileNames[row.id] || 'Sin entregable'}</Typography>
+              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto' }}>{fileNames[row.id] || 'Sin entregable'}</Typography>
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
                 onClick={
@@ -418,7 +419,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <div>
-            {unixToDate(row.date.seconds)[0]}
+            <Typography noWrap>{unixToDate(row.date.seconds)[0]}</Typography>
             <RevisionComponent row={row} field={'date'} />
           </div>
         )
@@ -616,7 +617,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         }}
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
-        getRowHeight={row => (row.id === currentRow ? 200 : 50)}
+        getRowHeight={row => (row.id === currentRow ? 'auto' : 50)}
       />
       <AlertDialogGabinete
         open={openAlert}
