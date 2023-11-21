@@ -160,12 +160,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         reject: false
       },
       6: {
-        approve: role === 6 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false,
-        reject: role === 6 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false
+        approve: role === 6 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false,
+        reject: role === 6 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false
       },
       7: {
-        approve: role === 7 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false,
-        reject: role === 7 && ['A', 'B'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false
+        approve: role === 7 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false,
+        reject: role === 7 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false
       },
       8: {
         approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false,
@@ -218,7 +218,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             return (
               <Typography sx={{my:5}} key={revision.id}>
                 {field==='date'? unixToDate(revision[field].seconds)[0] :
-                revision[field]|| 'aaa'}
+                revision[field]}
               </Typography>
             )
           })}
@@ -507,7 +507,91 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           </>
         )
       }
-    }
+    }, authUser.role === 9 ? {
+      field: 'clientAprove',
+      headerName: 'Cliente',
+      flex: 0.1,
+      minWidth: 120,
+
+      renderCell: params => {
+        const { row } = params
+        const canApprove = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision === 'B'
+        const canReject = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision === 'B'
+
+        const flexDirection = md ? 'row' : 'column'
+
+        const renderButtons = (
+          <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
+            {canApprove && (
+              <Button
+                onClick={() => handleClickOpenAlert(row, true)}
+                variant='contained'
+                color='success'
+                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                <CheckCircleOutline sx={{ fontSize: 18 }} />
+              </Button>
+            )}
+            {canReject && (
+              <Button
+                onClick={() => handleClickOpenAlert(row, false)}
+                variant='contained'
+                color='error'
+                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                <CancelOutlined sx={{ fontSize: 18 }} />
+              </Button>
+            )}
+          </Container>
+        )
+
+        return (
+          <>
+          <Box
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignContent: 'center',
+              flexDirection: 'column'
+            }}
+          >
+            {canApprove || canReject ? (
+              md ? (
+                renderButtons
+              ) : (
+                <Select
+                  labelId='demo-simple-select-label'
+                  id='demo-simple-select'
+                  size='small'
+                  IconComponent={() => <MoreHorizIcon />}
+                  sx={{
+                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                  }}
+                >
+                  {renderButtons}
+                </Select>
+              )
+            ) : row.sentByDesigner === true || row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ? (
+              'Enviado'
+            ) : row.sentByDesigner === false && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ||
+            row.revision !== 'iniciado' && row.sentByDesigner === false && row.approvedByDocumentaryControl === false? (
+              'Devolución'
+            ) : (
+              'Pendiente'
+            )}
+            <RevisionComponent row={row} field={'devolutionRemarks'} />
+
+          </Box>
+
+          </>
+        )
+
+      }
+    } : ''
   ]
 
   return (

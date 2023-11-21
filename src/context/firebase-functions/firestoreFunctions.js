@@ -619,14 +619,36 @@ const getLatestRevision = async (petitionID, blueprintID) => {
   return latestRevision;
 };
 
-const getNextRevision = async (approve, latestRevision, { role, email, displayName, uid }, { revision, description, storageBlueprints }, devolutionRemarks = false) => {
+const getNextRevision = async (approve, latestRevision, { role, email, displayName, uid }, { revision, description, storageBlueprints, approvedByClient, approvedByDocumentaryControl }, devolutionRemarks) => {
+  console.log("revision: ",revision)
   let newRevision = revision;
 
   // Devuelve siguiente letra
-  if (role === 9 && approve) {
-    const nextCharCode = revision.charCodeAt(0) + 1;
+
+  const nextCharCode = revision.charCodeAt(0) + 1;
+
+
+  if (role === 9 && approve && revision.charCodeAt(0) >= 66 && approvedByClient === undefined) {
+
+    newRevision = revision;
+  }
+
+  if (role === 9 && !approve && revision.charCodeAt(0) >= 66 && approvedByDocumentaryControl) {
+
     newRevision = String.fromCharCode(nextCharCode);
   }
+
+  if (role === 9 && approve && revision.charCodeAt(0) >= 66 && approvedByClient) {
+
+    newRevision = '0';
+  }
+
+
+  if (role === 9 && approve && ['iniciado', 'A'].includes(revision)) {
+    newRevision = newRevision === 'iniciado' ? 'A' : String.fromCharCode(nextCharCode);
+  }
+
+
 
   // Usa parámetros destructurados para crear el objeto de la siguiente revisión
   const nextRevision = {
@@ -638,7 +660,7 @@ const getNextRevision = async (approve, latestRevision, { role, email, displayNa
     userName: displayName,
     userId: uid,
     date: Timestamp.fromDate(new Date()),
-    ...(devolutionRemarks && { devolutionRemarks })
+    devolutionRemarks: devolutionRemarks || 'sin observaciones'
   };
 
   return nextRevision;
@@ -659,13 +681,34 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, devol
   };
 
   if (userParam.role === 6 || userParam.role === 7) {
-    updateData.sentByDesigner = approves;
-    updateData.approvedByContractAdmin = approves && userParam.role === 6;
-    updateData.approvedBySupervisor = approves && userParam.role === 7;
-    updateData.storageBlueprints = approves ? blueprint.storageBlueprints : null;
+    updateData = {
+      ...updateData,
+      sentByDesigner : approves,
+      approvedByContractAdmin : approves && userParam.role === 6,
+      approvedBySupervisor : approves && userParam.role === 7,
+      storageBlueprints : approves ? blueprint.storageBlueprints : null,
+    };
+
   } else if (userParam.role === 8) {
-    updateData.sentByDocumentaryControl = approves;
-    updateData.approvedByDocumentaryControl = approves;
+    updateData = {
+      ...updateData,
+      sentByDesigner: approves,
+      approvedBySupervisor : approves && blueprint.revision === 'iniciado',
+    };
+  } else {
+    updateData = blueprint.revision !== 'iniciado' && blueprint.revision.charCodeAt(0) >= 66 && (!blueprint.approvedByContractAdmin || !blueprint.approvedBySupervisor) ? {
+      ...updateData,
+      approvedByClient : approves,
+      approvedByDocumentaryControl : approves,
+      storageBlueprints : null,
+    }
+    :{
+      ...updateData,
+      approvedByDocumentaryControl : approves,
+      sentByDesigner : approves && blueprint.revision === 'A',
+      storageBlueprints : approves && blueprint.revision === 'A' ? blueprint.storageBlueprints : null,
+    }
+
   }
 
   await updateDoc(blueprintRef, updateData);
