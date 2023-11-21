@@ -214,7 +214,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         <Box sx={{ overflow: 'hidden' }}>
           {revisions.map(revision => {
             return (
-              <Typography noWrap sx={{mt:4, overflow:'hidden'}} key={revision.id}>
+              <Typography noWrap sx={{mt:4, textOverflow:'clip'}} key={revision.id}>
                 {field==='date'? unixToDate(revision[field].seconds)[0] :
                 revision[field]}
               </Typography>
@@ -257,6 +257,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 <Typography
                   noWrap
                   sx={{
+                    textOverflow:'clip',
                     textDecoration: 'none',
                     transition: 'text-decoration 0.2s',
                     '&:hover': {
@@ -283,7 +284,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         if (row.clientCode) {
           return (
             <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-              <Typography noWrap sx={{ overflow: 'hidden' }}>{row.clientCode || 'Sin descripción'}</Typography>
+              <Typography noWrap sx={{ overflow: 'hidden', textOverflow:'clip'}}>{row.clientCode || 'Sin descripción'}</Typography>
             </Box>
           )
         } else {
@@ -312,7 +313,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <div>
-            <Typography noWrap>{row.revision || 'N/A'}</Typography>
+            <Typography noWrap sx={{textOverflow:'clip'}}>{row.revision || 'N/A'}</Typography>
             <RevisionComponent row={row} field={'newRevision'} />
           </div>
         )
@@ -328,7 +329,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <Box sx={{overflow: 'hidden'}}>
-            <Typography noWrap>{row.userName || 'N/A'}</Typography>
+            <Typography noWrap sx={{textOverflow:'clip'}}>{row.userName || 'N/A'}</Typography>
             <RevisionComponent row={row} field={'userName'} />
           </Box>
         )
@@ -355,7 +356,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }}
           >
             <Box display='inline-flex'>
-              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto' }}>{row.description || 'Sin descripción'}</Typography>
+              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto',textOverflow:'clip' }}>{row.description || 'Sin descripción'}</Typography>
               <IconButton
                 sx={{ ml: 2, p: 0 }}
                 onClick={() => {
@@ -390,7 +391,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }}
           >
             <Box display='inline-flex'>
-              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto' }}>{fileNames[row.id] || 'Sin entregable'}</Typography>
+              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow:'clip'}}>{fileNames[row.id] || 'Sin entregable'}</Typography>
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
                 onClick={
@@ -417,7 +418,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <div>
-            <Typography noWrap>{unixToDate(row.date.seconds)[0]}</Typography>
+            <Typography noWrap sx={{textOverflow:'clip'}}>{unixToDate(row.date.seconds)[0]}</Typography>
             <RevisionComponent row={row} field={'date'} />
           </div>
         )
@@ -615,7 +616,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         }}
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
-        getRowHeight={row => (row.id === currentRow ? 'auto' : 50)}
+        getRowHeight={row => (row.id === currentRow ? 'auto' : 60.44)}
       />
       <AlertDialogGabinete
         open={openAlert}
