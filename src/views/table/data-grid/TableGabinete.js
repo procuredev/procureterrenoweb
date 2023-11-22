@@ -33,7 +33,6 @@ import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBluepr
 
 // TODO: Move to firebase-functions
 import { getStorage, ref, list } from 'firebase/storage'
-import { truncate } from 'lodash'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
   const [open, setOpen] = useState(false)
@@ -45,7 +44,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [approve, setApprove] = useState(true)
   const { authUser, getUserData, updateBlueprint, addDescription, useEvents } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null)
-  const [newDescription, setNewDescription] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
   const [devolutionRemarks, setDevolutionRemarks] = useState('')
@@ -53,19 +51,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
-
-
   const revisions = useEvents(petitionId, authUser, `blueprints/${currentRow}/revisions`)
 
-
-  const handleDescriptionChange = value => {
-    setNewDescription(value)
-  }
 
   const handleOpenUploadDialog = doc => {
     setCurrentRow(doc.id)
     setDoc(doc)
     setOpenUploadDialog(true)
+    setOpenDialog(true)
   }
 
   const handleCloseUploadDialog = () => {
@@ -86,28 +79,19 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     setApprove(isApproved)
   }
 
-  const submitDescription = async () => {
-    await addDescription(petitionId, currentRow, newDescription)
-      .then(() => {
-        setNewDescription(false)
-        setBlueprintGenerated(true)
-      })
-      .catch(err => console.error(err))
-  }
-
   const writeCallback = async () => {
     const devolution = devolutionRemarks.length > 0 ? devolutionRemarks : false
     authUser.role === 9
       ? await updateBlueprint(petitionId, doc, approve, authUser, devolution)
       .then(() => {
-        setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true), setDevolutionRemarks('')
+        setOpenAlert(false), setBlueprintGenerated(true), setDevolutionRemarks('')
       })
-      .catch(err => console.error(err), setOpenAlert(false), setNewDescription(false))
+      .catch(err => console.error(err), setOpenAlert(false))
       : await updateBlueprint(petitionId, doc, approve, authUser, devolution)
           .then(() => {
-            setOpenAlert(false), setNewDescription(false), setBlueprintGenerated(true), setDevolutionRemarks('')
+            setOpenAlert(false), setBlueprintGenerated(true), setDevolutionRemarks('')
           })
-          .catch(err => console.error(err), setOpenAlert(false), setNewDescription(false))
+          .catch(err => console.error(err), setOpenAlert(false))
   }
 
   const handleCloseAlert = () => {
@@ -286,7 +270,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   sx={{ p: 0 }}
                   id={row.id}
                   onClick={e => {
-                    setOpenDialog(true)
+                    handleOpenUploadDialog(row)
                   }}
                 >
                 <OpenInNew/>
@@ -406,8 +390,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               <IconButton
                 sx={{ ml: 2, p: 0 }}
                 onClick={() => {
-                  setOpenDialog(true)
-                  setNewDescription(description)
+                  handleOpenUploadDialog(row)
                   setCurrentRow(row.id)
                 }}
               >
@@ -679,16 +662,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       ) : (
         <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
       )}
-      {openUploadDialog && (
-        <UploadBlueprintsDialog
-          open={openUploadDialog}
-          handleClose={handleCloseUploadDialog}
-          doc={doc}
-          roleData={roleData}
-          petitionId={petitionId}
-          setBlueprintGenerated={setBlueprintGenerated}
-        />
-      )}
       {generateClientCode && (
         <DialogClientCodeGenerator
           open={generateClientCode}
@@ -700,24 +673,22 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         />
       )}
         <Dialog
+        sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width:'100%' } }}
         open={openDialog}>
           <DialogTitle>Detalles</DialogTitle>
-          <DialogContent>
-            <TextField
-              sx={{ width: '100%', mt: 3 }}
-              id='outlined-multiline-static'
-              label='Descripción'
-              multiline
-              value={typeof newDescription === 'string' ? newDescription : ''}
-              onChange={e => handleDescriptionChange(e.target.value)}
-              rows={4}
-            />
-          </DialogContent>
           <DialogActions>
-            <Button onClick={() => setNewDescription(false)}>Borrar</Button>
             <Button onClick={() => submitDescription()}>Enviar</Button>
           </DialogActions>
-
+          <DialogContent>
+          <UploadBlueprintsDialog
+          handleClose={handleCloseUploadDialog}
+          doc={doc}
+          roleData={roleData}
+          petitionId={petitionId}
+          setBlueprintGenerated={setBlueprintGenerated}
+          currentRow={currentRow}
+        />
+          </DialogContent >
           <DialogActions>
             <Button onClick={() => setOpenDialog(false)}>Cerrar</Button>
           </DialogActions>

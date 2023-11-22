@@ -168,7 +168,7 @@ const PhotoGallery = ({ photos }) => (
   </Box>
 )
 
-export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petitionId, setBlueprintGenerated }) => {
+export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petitionId, setBlueprintGenerated, currentRow }) => {
   let isPlanner = roleData && roleData.id === '5'
 
   let {
@@ -192,7 +192,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
 
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage } = useFirebase()
+  const { updateDocs, authUser, addDescription, uploadFilesToFirebaseStorage } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
 
   // Verifica estado
@@ -322,6 +322,15 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
     setErrorDialog(false)
   }
 
+  const submitDescription = async () => {
+    await addDescription(petitionId, currentRow, values.description)
+      .then(() => {
+        setBlueprintGenerated(true)
+      })
+      .catch(err => console.error(err))
+  }
+
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
       const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
@@ -406,32 +415,11 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
   }
 
   return (
-    <Dialog
-      fullScreen={fullScreen}
-      open={open}
-      onClose={() => handleClose()}
-      TransitionComponent={Transition}
-      scroll='body'
-    >
+    <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ margin: 'auto', padding: '30px', overflowY: 'hidden' }}>
+      <Box sx={{ margin: 'auto'}}>
         {
           <Box>
-          <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Chip
-                label={revision ? revision : 'Cargando...'}
-                //color={state || state === 0 ? dictionary[state].color : 'primary'}
-                sx={{ width: 'auto' }}
-              />
-              <Box>
-                <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
-                  {/*este botón debería cerrar y setEditable false*/}
-                  <Close />
-                </IconButton>
-              </Box>
-            </Box>
-
             <List>
               <CustomListItem
                 //editable={editable && roleData && roleData.canEditValues}
@@ -442,6 +430,16 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                 onChange={handleInputChange('id')}
                 required={true}
               />
+              <CustomListItem
+                editable={true}
+                label='Descripción'
+                id='description'
+                initialValue={description}
+                value={values.description}
+                onChange={handleInputChange('description')}
+                required={false}
+              />
+              <Button onClick={()=>submitDescription()}> Guardar descripción </Button>
 
 
               {doc.storageBlueprints ? (
@@ -552,10 +550,9 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
             ) : null}
 
 
-          </Timeline>
         </Box>
         }
-      </Paper>
+      </Box>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
       <Dialog open={!!message} aria-labelledby='message-dialog-title' aria-describedby='message-dialog-description'>
         <DialogTitle id='message-dialog-title'>Creando solicitud</DialogTitle>
@@ -566,6 +563,6 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
           <Button onClick={() => setMessage('')}>Cerrar</Button>
         </DialogActions>
       </Dialog>
-    </Dialog>
+    </Box>
   )
 }
