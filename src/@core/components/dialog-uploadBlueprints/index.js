@@ -367,14 +367,14 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
   return (
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <DialogTitle>
+      <DialogTitle sx={{display:'flex', justifyContent:'space-between'}}>
         {values.id}
+        <Chip label={values.revision} sx={{textTransform:'capitalize'}} color='primary'/>
       </DialogTitle>
       <Box sx={{ margin: 'auto'}}>
         {
           <Box>
             <List>
-
               <CustomListItem
                 editable={true}
                 label='Descripción'
@@ -394,7 +394,24 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                 onChange={handleInputChange('date')}
                 required={false}
               />
-
+              <CustomListItem
+                editable={false}
+                label='Creado por'
+                id='userName'
+                initialValue={userName}
+                value={values.userName}
+                onChange={handleInputChange('userName')}
+                required={false}
+              />
+              <CustomListItem
+                editable={false}
+                label='Contacto'
+                id='userEmail'
+                initialValue={userEmail}
+                value={values.userEmail}
+                onChange={handleInputChange('userEmail')}
+                required={false}
+              />
 
               {doc.storageBlueprints ? (
                 <>
