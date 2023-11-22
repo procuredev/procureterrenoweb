@@ -6,7 +6,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { DataGrid, esES } from '@mui/x-data-grid'
 import { Container } from '@mui/system'
-import { Edit, Upload, AttachFile, CheckCircleOutline, CancelOutlined, ExpandMore, ChevronRight } from '@mui/icons-material'
+import { Edit, Upload, AttachFile, CheckCircleOutline, CancelOutlined, ExpandMore, ChevronRight, OpenInNew } from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -33,6 +33,7 @@ import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBluepr
 
 // TODO: Move to firebase-functions
 import { getStorage, ref, list } from 'firebase/storage'
+import { truncate } from 'lodash'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
   const [open, setOpen] = useState(false)
@@ -48,6 +49,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
   const [devolutionRemarks, setDevolutionRemarks] = useState('')
+  const [openDialog, setOpenDialog] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -280,6 +282,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               TransitionProps={{ timeout: 0 }}
             >
               <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
+              <IconButton
+                  sx={{ p: 0 }}
+                  id={row.id}
+                  onClick={e => {
+                    setOpenDialog(true)
+                  }}
+                >
+                <OpenInNew/>
+                </IconButton>
                 <IconButton
                   sx={{ p: 0 }}
                   id={row.id}
@@ -395,6 +406,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               <IconButton
                 sx={{ ml: 2, p: 0 }}
                 onClick={() => {
+                  setOpenDialog(true)
                   setNewDescription(description)
                   setCurrentRow(row.id)
                 }}
@@ -677,15 +689,19 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           setBlueprintGenerated={setBlueprintGenerated}
         />
       )}
-      {newDescription && (
+      {generateClientCode && (
+        <DialogClientCodeGenerator
+          open={generateClientCode}
+          handleClose={handleCloseClientCodeGenerator}
+          petition={petition}
+          blueprint={currentRow}
+          roleData={roleData}
+          setBlueprintGenerated={setBlueprintGenerated}
+        />
+      )}
         <Dialog
-          sx={{ '.MuiDialog-paper': { width: '100%' } }}
-          open={!!newDescription}
-          onClose={() => setNewDescription(false)}
-          aria-labelledby='alert-dialog-title'
-          aria-describedby='alert-dialog-description'
-        >
-          <DialogTitle id='alert-dialog-title'>{'Descripción'}</DialogTitle>
+        open={openDialog}>
+          <DialogTitle>Detalles</DialogTitle>
           <DialogContent>
             <TextField
               sx={{ width: '100%', mt: 3 }}
@@ -698,21 +714,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setNewDescription(false)}>Cancelar</Button>
+            <Button onClick={() => setNewDescription(false)}>Borrar</Button>
             <Button onClick={() => submitDescription()}>Enviar</Button>
           </DialogActions>
+
+          <DialogActions>
+            <Button onClick={() => setOpenDialog(false)}>Cerrar</Button>
+          </DialogActions>
         </Dialog>
-      )}
-      {generateClientCode && (
-        <DialogClientCodeGenerator
-          open={generateClientCode}
-          handleClose={handleCloseClientCodeGenerator}
-          petition={petition}
-          blueprint={currentRow}
-          roleData={roleData}
-          setBlueprintGenerated={setBlueprintGenerated}
-        />
-      )}
     </Card>
   )
 }
