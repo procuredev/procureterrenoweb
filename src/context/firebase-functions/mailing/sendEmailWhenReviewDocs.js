@@ -495,7 +495,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       req: requirementId,
       emailType: 'reviewDocs',
       message: {
-        subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+        subject: `Solicitud de levantamiento: ${requirementData.title}`,
         html: emailHtml
       }
     })
