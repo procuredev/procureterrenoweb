@@ -35,62 +35,12 @@ import { useFirebase } from 'src/context/useFirebase'
 import moment from 'moment-timezone'
 import 'moment/locale/es'
 
+import CustomListItem from 'src/@core/components/custom-list'
+import DateListItem from 'src/@core/components/custom-date'
+
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
-
-const StyledFormControl = props => (
-  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
-)
-
-function CustomListItem({
-  editable,
-  label,
-  id,
-  value,
-  onChange,
-  disabled = false,
-  required = false,
-  multiline = false,
-  initialValue
-}) {
-  return (
-    <>
-      {editable ? (
-        <ListItem id={`list-${label}`} divider={!editable}>
-          <StyledFormControl>
-            <TextField
-              onChange={onChange}
-              label={label}
-              id={`${id}-input`}
-              defaultValue={initialValue}
-              disabled={disabled}
-              required={required}
-              value={value}
-              size='small'
-              variant='standard'
-              fullWidth={true}
-              multiline={multiline}
-            />
-          </StyledFormControl>
-        </ListItem>
-      ) : (
-        initialValue && (
-          <ListItem id={`list-${label}`} divider={!editable}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
-                {label}
-              </Typography>
-              <Typography component='div' sx={{ width: '70%' }}>
-                {initialValue}
-              </Typography>
-            </Box>
-          </ListItem>
-        )
-      )}
-    </>
-  )
-}
 
 
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
@@ -435,6 +385,15 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                 required={false}
               />
               <Button onClick={()=>submitDescription()}> Guardar descripción </Button>
+              <DateListItem
+                editable={false}
+                label='Fecha'
+                id='date'
+                initialValue={date}
+                value={values.date}
+                onChange={handleInputChange('date')}
+                required={false}
+              />
 
 
               {doc.storageBlueprints ? (
