@@ -119,7 +119,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     try {
       const res = await list(blueprintRef)
 
-      return res?.items[0]?.name || 'Sin Entregables'
+      return res?.items[0]?.name || 'No disponible'
     } catch (err) {
       console.error(err)
 
@@ -231,7 +231,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   rel="noreferrer"
                   variant='body1'
                   noWrap
-                  sx={{mt:4, textOverflow:'clip', cursor: 'pointer', display: 'block',
+                  sx={{mt:4, textOverflow:'clip', cursor: 'pointer', display: 'flex',
                   marginBlockStart: '1em',
                   marginBlockEnd: '1em',
                   marginInlineStart: 0,
@@ -240,7 +240,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   key={revision.id}
                   color='inherit'
                   underline='always'>
-                  <Box sx={{display:'inline-flex'}}>
+                  <Box sx={{display:'inline-flex', justifyContent:'space-between', width:'100%'}}>
                   Archivo
                   <AttachFile sx={{ml:1}}/>
                     </Box>
@@ -390,7 +390,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               flexDirection: 'column'
             }}
           >
-            <Box display='inline-flex'>
+            <Box display='inline-flex' sx={{justifyContent:'space-between'}}>
               <Typography noWrap sx={{ overflow: 'hidden', my: 'auto',textOverflow:'clip' }}>{row.description || 'Sin descripción'}</Typography>
               <IconButton
                 sx={{ ml: 2, p: 0 }}
@@ -425,8 +425,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               flexDirection: 'column'
             }}
           >
-            <Box display='inline-flex'>
-              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow:'clip'}}>{fileNames[row.id] || 'Sin entregable'}</Typography>
+            <Box display='inline-flex' sx={{justifyContent:'space-between'}}>
+              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow:'clip'}}>{row.storageBlueprints ? fileNames[row.id] : 'Sin entregable'}</Typography>
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
                 onClick={
