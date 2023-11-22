@@ -460,8 +460,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     },
     {
-      field: 'end',
-      headerName: 'Fin',
+      field: 'remarks',
+      headerName: 'Observaciones',
       flex: 0.1,
       minWidth: 120,
       renderCell: params => {
