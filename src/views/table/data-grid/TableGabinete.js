@@ -213,10 +213,20 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       currentRow === row.id && (
         <Box sx={{ overflow: 'hidden' }}>
           {revisions.map(revision => {
+
+            let fieldContent = revision[field] || 'aaa'
+
+            if (field === 'date' || field === 'sentTime') {
+              fieldContent = unixToDate(revision[field].seconds)[0]
+            }
+
+            if (field === 'storageBlueprints') {
+              //encontrar el nombre del archivo
+            }
+
             return (
               <Typography noWrap sx={{mt:4, textOverflow:'clip'}} key={revision.id}>
-                {field==='date'? unixToDate(revision[field].seconds)[0] :
-                revision[field]}
+                {fieldContent}
               </Typography>
             )
           })}
