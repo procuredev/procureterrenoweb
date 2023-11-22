@@ -88,10 +88,16 @@ const PhotoItem = ({ photoUrl }) => {
   const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase());
   const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl);
 
+  const onError = () => {
+    const imageRef = document.getElementById(photoUrl)
+    imageRef.src = 'https://fonts.gstatic.com/s/i/materialiconsoutlined/broken_image/v11/24px.svg'
+    imageRef.style.opacity = '0.5'
+    imageRef.nextSibling.style.display = 'none'
+  }
 
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
-      <Box component='img' src={displaySrc}  onClick={() => window.open(photoUrl, '_blank')} alt='Photo' style={{ height: 90, cursor: 'pointer' }} />
+      <Box component='img' id={photoUrl} src={displaySrc} onClick={() => window.open(photoUrl, '_blank')} alt='Photo' style={{ height: 90, cursor: 'pointer' }} onError={onError}/>
         <IconButton
           href={photoUrl}
           target='_blank'
