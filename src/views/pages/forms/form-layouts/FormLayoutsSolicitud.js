@@ -602,7 +602,7 @@ const FormLayoutsSolicitud = () => {
               value={values.title}
               onChange={handleChange('title')}
               error={errors.title}
-              inputProps={{ maxLength: 100 }}
+              inputProps={{ maxLength: 150 }}
               helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
             />
 
@@ -614,7 +614,7 @@ const FormLayoutsSolicitud = () => {
               value={values.description}
               onChange={handleChange('description')}
               error={errors.description}
-              inputProps={{ maxLength: 500 }}
+              inputProps={{ maxLength: 1500 }}
               helper='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'
             />
 
