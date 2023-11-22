@@ -6,7 +6,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { DataGrid, esES } from '@mui/x-data-grid'
 import { Container } from '@mui/system'
-import { Edit, Upload, AttachFile, CheckCircleOutline, CancelOutlined } from '@mui/icons-material'
+import { Edit, Upload, AttachFile, CheckCircleOutline, CancelOutlined, ExpandMore, ChevronRight } from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -284,10 +284,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   sx={{ p: 0 }}
                   id={row.id}
                   onClick={e => {
-                    setCurrentRow(prev => (prev === row.id ? false : e.target.id))
+                    setCurrentRow(prev => (prev === row.id ? false : e.target.parentElement.id))
                   }}
                 >
-                  +
+                <ChevronRight sx={{transform: currentRow === row.id ? 'rotate(90deg)' : ''}}/>
                 </IconButton>
                 <Typography
                   noWrap
