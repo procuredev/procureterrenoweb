@@ -1,0 +1,56 @@
+import React from 'react'
+import { Box, FormControl, ListItem, Typography } from '@mui/material'
+import { DatePicker, LocalizationProvider, AdapterMoment } from '@mui/x-date-pickers'
+import { unixToDate } from 'src/@core/components/unixToDate'
+
+function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
+
+  const StyledFormControl = props => (
+    <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
+  )
+
+  return (
+    <>
+      {editable ? (
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+              <DatePicker
+                dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
+                minDate={customMinDate || moment().subtract(1, 'year')}
+                maxDate={moment().add(1, 'year')}
+                label={label}
+                value={value}
+                onChange={onChange}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    required: true,
+                    variant: 'standard',
+                    fullWidth: true
+                  }
+                }}
+              />
+            </LocalizationProvider>
+          </StyledFormControl>
+        </ListItem>
+      ) : (
+        initialValue &&
+        initialValue.seconds && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue && unixToDate(initialValue.seconds)[0]}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
+      )}
+    </>
+  )
+}
+
+export default DateListItem

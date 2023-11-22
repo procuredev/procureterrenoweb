@@ -44,6 +44,8 @@ import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
+import CustomListItem from 'src/@core/components/custom-list/index'
+import DateListItem from 'src/@core/components/custom-date/index'
 
 import moment from 'moment-timezone'
 import 'moment/locale/es'
@@ -51,104 +53,6 @@ import 'moment/locale/es'
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
-
-const StyledFormControl = props => (
-  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
-)
-
-function CustomListItem({
-  editable,
-  label,
-  id,
-  value,
-  onChange,
-  disabled = false,
-  required = false,
-  multiline = false,
-  initialValue
-}) {
-  return (
-    <>
-      {editable ? (
-        <ListItem id={`list-${label}`} divider={!editable}>
-          <StyledFormControl>
-            <TextField
-              onChange={onChange}
-              label={label}
-              id={`${id}-input`}
-              defaultValue={initialValue}
-              disabled={disabled}
-              required={required}
-              value={value}
-              size='small'
-              variant='standard'
-              fullWidth={true}
-              multiline={multiline}
-            />
-          </StyledFormControl>
-        </ListItem>
-      ) : (
-        initialValue && (
-          <ListItem id={`list-${label}`} divider={!editable}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
-                {label}
-              </Typography>
-              <Typography component='div' sx={{ width: '70%' }}>
-                {initialValue}
-              </Typography>
-            </Box>
-          </ListItem>
-        )
-      )}
-    </>
-  )
-}
-
-function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
-  return (
-    <>
-      {editable ? (
-        <ListItem id={`list-${label}`} divider={!editable}>
-          <StyledFormControl>
-            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-              <DatePicker
-                dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
-                minDate={customMinDate || moment().subtract(1, 'year')}
-                maxDate={moment().add(1, 'year')}
-                label={label}
-                value={value}
-                onChange={onChange}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    required: true,
-                    variant: 'standard',
-                    fullWidth: true
-                  }
-                }}
-              />
-            </LocalizationProvider>
-          </StyledFormControl>
-        </ListItem>
-      ) : (
-        initialValue &&
-        initialValue.seconds && (
-          <ListItem id={`list-${label}`} divider={!editable}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
-                {label}
-              </Typography>
-              <Typography component='div' sx={{ width: '70%' }}>
-                {initialValue && unixToDate(initialValue.seconds)[0]}
-              </Typography>
-            </Box>
-          </ListItem>
-        )
-      )}
-    </>
-  )
-}
 
 
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
@@ -797,7 +701,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           <Typography variant='body1'>
                             {status} por {element.userName}
                           </Typography>
-                          <Typography variant='body2'>{dictionary[element.newState].details}</Typography>
+                          <Typography variant='body2'>{dictionary[element.newState]?.details || 'Detalles'}</Typography>
                         </TimelineContent>
                       </TimelineItem>
                     </div>
