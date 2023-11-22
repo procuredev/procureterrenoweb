@@ -417,19 +417,14 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
   return (
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
+      <DialogTitle>
+        {values.id}
+      </DialogTitle>
       <Box sx={{ margin: 'auto'}}>
         {
           <Box>
             <List>
-              <CustomListItem
-                //editable={editable && roleData && roleData.canEditValues}
-                label='Título'
-                id='title'
-                initialValue={id}
-                value={values.id}
-                onChange={handleInputChange('id')}
-                required={true}
-              />
+
               <CustomListItem
                 editable={true}
                 label='Descripción'

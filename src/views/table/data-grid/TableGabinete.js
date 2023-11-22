@@ -675,10 +675,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         <Dialog
         sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width:'100%' } }}
         open={openDialog}>
-          <DialogTitle>Detalles</DialogTitle>
-          <DialogActions>
-            <Button onClick={() => submitDescription()}>Enviar</Button>
-          </DialogActions>
           <DialogContent>
           <UploadBlueprintsDialog
           handleClose={handleCloseUploadDialog}
