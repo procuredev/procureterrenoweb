@@ -100,6 +100,6 @@ export const getEmailTemplate = (
       </table
       <p>${lastMessage}</p>
       <p>Para mayor información revise la solicitud en nuestra página web</p>
-      <p>Saludos,<br>Prosite</p>
+      <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
       `
 }
