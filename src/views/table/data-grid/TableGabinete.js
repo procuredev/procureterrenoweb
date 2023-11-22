@@ -15,6 +15,7 @@ import {
   Tooltip,
   TextField,
   Typography,
+  Link,
   IconButton,
   Dialog,
   DialogTitle,
@@ -221,12 +222,36 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }
 
             if (field === 'storageBlueprints') {
-              //encontrar el nombre del archivo
+
+              if (fieldContent) {
+                return (
+                  <Link
+                  href={fieldContent}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant='body1'
+                  noWrap
+                  sx={{mt:4, textOverflow:'clip', cursor: 'pointer', display: 'block',
+                  marginBlockStart: '1em',
+                  marginBlockEnd: '1em',
+                  marginInlineStart: 0,
+                  marginInlineEnd: 0,
+                  }}
+                  key={revision.id}
+                  color='inherit'
+                  underline='always'>
+                  <Box sx={{display:'inline-flex'}}>
+                  Archivo
+                  <AttachFile sx={{ml:1}}/>
+                    </Box>
+                  </Link>
+                )
+              }
             }
 
             return (
               <Typography noWrap sx={{mt:4, textOverflow:'clip'}} key={revision.id}>
-                {fieldContent}
+                {fieldContent || 'Sin Datos'}
               </Typography>
             )
           })}
