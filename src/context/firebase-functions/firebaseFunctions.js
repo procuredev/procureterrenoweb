@@ -116,9 +116,7 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
 }
 
 const createUserInDatabase = (values, uid) => {
-  const { name, rut, phone, email, plant, engineering, shift, company, role, opshift, urlFoto } = values
-
-  const photoURL = Firebase.auth().currentUser.photoURL
+  const { name, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -132,8 +130,7 @@ const createUserInDatabase = (values, uid) => {
         ...(plant && { plant }),
         ...(engineering && { engineering }),
         ...(shift && { shift }),
-        ...(opshift && { opshift }),
-        photoURL: photoURL
+        ...(opshift && { opshift })
       })
 
       resolve('Usuario creado exitosamente en la base de datos')

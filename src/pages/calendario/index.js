@@ -273,7 +273,7 @@ const AppCalendar = () => {
     fixedWeekCount: false,
     dateClick: async function (info) {
       const result = await consultBlockDayInDB(new Date(info.date).getTime())
-      if (result.blocked) {
+      if (result.blocked || authUser.role === 5) {
         setConsultationResult(result)
         setDayDialogOpen(info.date)
       }
@@ -344,7 +344,7 @@ const AppCalendar = () => {
           }}
         >
           <FullCalendar {...calendarOptions} />
-          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} />}
+          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} canComment={authUser.role === 7} />}
           {dayDialogOpen && (
             <Dialog sx={{ '.MuiPaper-root': { minWidth: '30%' } }} open={dayDialogOpen}>
               <DialogTitle id='alert-dialog-title'>Información</DialogTitle>

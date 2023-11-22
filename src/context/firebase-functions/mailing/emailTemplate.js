@@ -26,11 +26,7 @@ export const getEmailTemplate = (
       <p>${mainMessage}. A continuación puede encontrar el detalle de la solicitud:</p>
       <table style="width:100%;">
         <tr>
-          <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
-          <td style="text-align:left; width:80%;">${requestNumber}</td>
-        </tr>
-        <tr>
-          <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
+        <td style="text-align:left; padding-left:15px; width:20%;"><strong>Título:</strong></td>
           <td>${title}</td>
         </tr>
         <tr>
@@ -104,6 +100,6 @@ export const getEmailTemplate = (
       </table
       <p>${lastMessage}</p>
       <p>Para mayor información revise la solicitud en nuestra página web</p>
-      <p>Saludos,<br>Prosite</p>
+      <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
       `
 }

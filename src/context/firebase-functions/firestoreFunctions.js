@@ -71,7 +71,8 @@ const newDoc = async (values, userParam) => {
     description,
     ot,
     end,
-    urgency
+    urgency,
+    mcDescription
   } = values
 
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
@@ -105,7 +106,8 @@ const newDoc = async (values, userParam) => {
       engineering,
       ...(urgency && { urgency }),
       ...(ot && { ot }),
-      ...(end && { end })
+      ...(end && { end }),
+      ...(mcDescription && {mcDescription})
     })
 
     const adjustedDate = moment(values.start).subtract(1, 'day')
@@ -227,6 +229,23 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
   } else {
     console.log('No se escribió ningún documento')
   }
+}
+
+const addComment = async (id, comment, userParam) => {
+
+  let newEvent = {
+    user: userParam.email,
+    userName: userParam.displayName,
+    date: Timestamp.fromDate(new Date()),
+    comment
+  }
+  await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+  .then(() => {
+    console.log('Comentario agregado')
+  })
+  .catch((err) => {
+    console.error(err)
+  })
 }
 
 function getNextState(role, approves, latestEvent, userRole) {
@@ -455,4 +474,4 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase }
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, addComment }
