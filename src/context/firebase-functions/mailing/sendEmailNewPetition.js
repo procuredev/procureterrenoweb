@@ -214,7 +214,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         req: reqId,
         emailType: 'NewRequest',
         message: {
-          subject: `Solicitud de levantamiento: N°${requestNumber} - ${values.title}`,
+          subject: `Solicitud de levantamiento: ${values.title}`,
           html: emailHtml
         }
       })
