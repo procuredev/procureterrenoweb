@@ -450,7 +450,11 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                             }}
                           >
                             <Box
-                              sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto' }}
+                              sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto',
+                              backdropFilter: 'contrast(0.8)',
+                              width: '100%',
+                              padding: '20px',
+                              borderRadius: '10px', }}
                             >
                               <Icon icon='mdi:file-document-outline' />
                               <Typography sx={{ mt: 5 }} color='textSecondary'>
