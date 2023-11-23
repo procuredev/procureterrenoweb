@@ -526,9 +526,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               'Enviado'
             ) : row.sentByDesigner === false && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ||
             row.revision !== 'iniciado' && row.sentByDesigner === false && row.approvedByDocumentaryControl === false? (
-              'Devolución'
+              'Rechazado'
             ) : (
-              'Pendiente'
+              'No enviado'
             )}
             <RevisionComponent row={row} field={'devolutionRemarks'} />
 
