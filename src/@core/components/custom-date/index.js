@@ -5,15 +5,11 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 
 function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
 
-  const StyledFormControl = props => (
-    <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
-  )
-
   return (
     <>
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
-          <StyledFormControl>
+          <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
               <DatePicker
                 dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
@@ -32,7 +28,7 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
                 }}
               />
             </LocalizationProvider>
-          </StyledFormControl>
+          </FormControl>
         </ListItem>
       ) : (
         initialValue &&

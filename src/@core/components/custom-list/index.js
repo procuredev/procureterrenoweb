@@ -16,15 +16,11 @@ function CustomListItem({
 
 
 {
-  const StyledFormControl = props => (
-    <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
-  )
-
   return (
     <>
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
-          <StyledFormControl>
+          <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
             <TextField
               onChange={onChange}
               label={label}
@@ -38,7 +34,7 @@ function CustomListItem({
               fullWidth={true}
               multiline={multiline}
             />
-          </StyledFormControl>
+          </FormControl>
         </ListItem>
       ) : (
         initialValue && (
