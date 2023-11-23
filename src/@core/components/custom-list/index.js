@@ -7,6 +7,7 @@ function CustomListItem({
   id,
   value,
   onChange,
+  inputProps,
   disabled = false,
   required = false,
   multiline = false,
@@ -29,6 +30,7 @@ function CustomListItem({
               variant='standard'
               fullWidth={true}
               multiline={multiline}
+              InputProps={inputProps}
             />
           </FormControl>
         </ListItem>

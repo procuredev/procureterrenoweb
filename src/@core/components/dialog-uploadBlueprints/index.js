@@ -34,6 +34,7 @@ import 'moment/locale/es'
 
 import CustomListItem from 'src/@core/components/custom-list'
 import DateListItem from 'src/@core/components/custom-date'
+import { InputAdornment } from '@mui/material'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -403,8 +404,11 @@ export const UploadBlueprintsDialog = ({
                 value={values.description}
                 onChange={handleInputChange('description')}
                 required={false}
+                inputProps={{endAdornment:
+                <InputAdornment position="end">
+                  <Button onClick={() => submitDescription()}> Guardar descripción </Button>
+                </InputAdornment>}}
               />
-              <Button onClick={() => submitDescription()}> Guardar descripción </Button>
               <DateListItem
                 editable={false}
                 label='Fecha'
