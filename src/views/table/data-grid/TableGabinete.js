@@ -607,7 +607,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 </Select>
               )
             ) : ''}
-            <RevisionComponent row={row} field={'devolutionRemarks'} />
 
           </Box>
 

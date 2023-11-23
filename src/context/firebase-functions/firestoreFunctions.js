@@ -654,7 +654,7 @@ const getNextRevision = async (approve, latestRevision, { role, email, displayNa
       },
       // Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
       incrementRevision: {
-        condition: () => ['B','C','D'].includes(revision) && approvedByClient === false && (approvedByContractAdmin === true || approvedBySupervisor === true),
+        condition: () => !['iniciado','A'].includes(revision) && revision.charCodeAt(0) >= 66 && approvedByClient === false && (approvedByContractAdmin === true || approvedBySupervisor === true),
         action: () => newRevision = nextChar
       },
       // Si la revisión es 'iniciado' o 'A', se incrementa la revisión a 'A' o 'B', respectivamente
@@ -743,8 +743,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, devol
     : {
       ...updateData,
       approvedByDocumentaryControl : approves,
-      sentByDesigner : approves && ['A','B','C','D'].includes(blueprint.revision),
-      storageBlueprints : approves && ['A','B','C','D'].includes(blueprint.revision) ? blueprint.storageBlueprints : null,
+      sentByDesigner : approves && blueprint.revision !== 'iniciado' && blueprint.revision.charCodeAt(0) >= 65,
+      storageBlueprints : approves && blueprint.revision !== 'iniciado' && blueprint.revision.charCodeAt(0) >= 65 ? blueprint.storageBlueprints : null,
     }
   };
 
