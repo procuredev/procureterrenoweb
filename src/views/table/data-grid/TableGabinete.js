@@ -124,25 +124,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       row.description && row.clientCode && row.storageBlueprints && row.storageBlueprints.length >= 1
 
     const dictionary = {
-      1: {
-        approve: false,
-        reject: false
-      },
-      2: {
-        approve: false,
-        reject: false
-      },
-      3: {
-        approve: false,
-        reject: false
-      },
       4: {
         approve: role === 6 && ['B', 'C'].includes(row.revision) && row.approvedByContractAdmin === true && row.revision === 'B',
         reject: role === 6 && ['B', 'C'].includes(row.revision) && row.approvedByContractAdmin === true && row.revision === 'B'
-      },
-      5: {
-        approve: false,
-        reject: false
       },
       6: {
         approve: role === 6 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedByContractAdmin === false,
