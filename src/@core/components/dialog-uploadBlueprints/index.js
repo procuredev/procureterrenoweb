@@ -316,7 +316,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
   }
 
   const fileList = (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{justifyContent:'center', m:2}}>
       {files.map(file => (
         <Grid item key={file.name}>
           <Paper
@@ -424,105 +424,51 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                 onChange={handleInputChange('userEmail')}
                 required={false}
               />
-
-              {doc.storageBlueprints ? (
-                <>
-                  <ListItem>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography component='div' sx={{ width: '30%', pr:2 }}>
-                        Archivos adjuntos
-                      </Typography>
-                      <PhotoGallery photos={storageBlueprints} />
-                    </Box>
-                  </ListItem>
-
-                  <ListItem>
-                    <FormControl fullWidth>
-                      <Fragment>
-                        <div {...getRootProps({ className: 'dropzone' })}>
-                          <input {...getInputProps()} />
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              flexDirection: ['column', 'column', 'row'],
-                              alignItems: 'center',
-                              margin: 'auto'
-                            }}
-                          >
-                            <Box
-                              sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto',
-                              backdropFilter: 'contrast(0.8)',
-                              width: '100%',
-                              padding: '20px',
-                              borderRadius: '10px', }}
-                            >
-                              <Icon icon='mdi:file-document-outline' />
-                              <Typography sx={{ mt: 5 }} color='textSecondary'>
-                                <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </div>
-                        {files.length ? (
-                          <Fragment>
-                            <List>{fileList}</List>
-                            <div className='buttons'>
-                              <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
-                                Quitar todo
-                              </Button>
-                              <Button color='primary' sx={{ ml: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
-                                Subir archivos
-                              </Button>
-                            </div>
-                          </Fragment>
-                        ) : null}
-                      </Fragment>
-                    </FormControl>
-                  </ListItem>
-
-                </>
-
-              ) : doc.userName === authUser.displayName ? (
+              {doc.storageBlueprints && doc.storageBlueprints.length > 0 && (
+                <ListItem>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <Typography component='div' sx={{ width: '30%', pr:2 }}>
+                    Archivos adjuntos
+                  </Typography>
+                  <PhotoGallery photos={storageBlueprints} />
+                </Box>
+              </ListItem> )}
+            {/* Aquí true debe reemplazarse por el permiso para subir archivos */}
+              { true && (
                 <ListItem>
                   <FormControl fullWidth>
                     <Fragment>
                       <div {...getRootProps({ className: 'dropzone' })}>
                         <input {...getInputProps()} />
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: ['column', 'column', 'row'],
-                            alignItems: 'center',
-                            margin: 'auto'
-                          }}
-                        >
                           <Box
-                            sx={{ pl: 2, display: 'flex', flexDirection: 'column', alignItems: ['center'], margin: 'auto' }}
+                             sx={{ my:2, mx:'auto', p:5, display: 'flex', flexDirection: 'column', alignItems: ['center'],
+                             backdropFilter: 'contrast(0.8)',
+                             width: '100%',
+                             borderRadius: '10px', justifyContent: 'center' }}
                           >
                             <Icon icon='mdi:file-document-outline' />
                             <Typography sx={{ mt: 5 }} color='textSecondary'>
                               <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
                             </Typography>
                           </Box>
-                        </Box>
                       </div>
-                      {files.length ? (
+                      {files.length > 0 && (
                         <Fragment>
                           <List>{fileList}</List>
-                          <div className='buttons'>
-                            <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
+                          <Box sx={{ display:'flex', justifyContent:'center', mt:1}}>
+                            <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
                               Quitar todo
                             </Button>
-                            <Button color='primary' sx={{ ml: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
+                            <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
                               Subir archivos
                             </Button>
-                          </div>
+                          </Box>
                         </Fragment>
-                      ) : null}
+                      )}
                     </Fragment>
                   </FormControl>
                 </ListItem>
-              ) : ''}
+              )}
             </List>
 
             {editable ? (
