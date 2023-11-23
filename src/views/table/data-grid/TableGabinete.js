@@ -145,12 +145,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         reject: false
       },
       6: {
-        approve: role === 6 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false,
-        reject: role === 6 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedByContractAdmin === false
+        approve: role === 6 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedByContractAdmin === false,
+        reject: role === 6 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedByContractAdmin === false
       },
       7: {
-        approve: role === 7 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false,
-        reject: role === 7 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false
+        approve: role === 7 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false,
+        reject: role === 7 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false
       },
       8: {
         approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && row.revision !== '0',
