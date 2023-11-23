@@ -90,9 +90,15 @@ const PhotoItem = ({ photoUrl }) => {
 
   const onError = () => {
     const imageRef = document.getElementById(photoUrl)
-    imageRef.src = 'https://fonts.gstatic.com/s/i/materialiconsoutlined/broken_image/v11/24px.svg'
-    imageRef.style.opacity = '0.5'
+    imageRef.src = 'https://fonts.gstatic.com/s/i/materialiconsoutlined/error/v20/24px.svg'
+    imageRef.style.filter = 'contrast(0.5) invert(1)'
+    imageRef.style.height = '30px'
+    imageRef.style.marginRight = '5px'
     imageRef.nextSibling.style.display = 'none'
+    imageRef.parentElement.parentElement.style.height='30px'
+    imageRef.parentElement.style.display = 'flex'
+    imageRef.parentElement.style.alignItems = 'center'
+    imageRef.parentElement.append('Error al cargar imagen')
   }
 
   return (
