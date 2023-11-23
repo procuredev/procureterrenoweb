@@ -545,8 +545,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
       renderCell: params => {
         const { row } = params
-        const canApprove = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision === 'B'
-        const canReject = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision === 'B'
+        const canApprove = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
+        const canReject = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
 
         const flexDirection = md ? 'row' : 'column'
 
@@ -605,14 +605,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   {renderButtons}
                 </Select>
               )
-            ) : row.sentByDesigner === true || row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ? (
-              'Enviado'
-            ) : row.sentByDesigner === false && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ||
-            row.revision !== 'iniciado' && row.sentByDesigner === false && row.approvedByDocumentaryControl === false? (
-              'Devolución'
-            ) : (
-              'Pendiente'
-            )}
+            ) : ''}
             <RevisionComponent row={row} field={'devolutionRemarks'} />
 
           </Box>
