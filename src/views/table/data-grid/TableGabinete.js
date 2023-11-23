@@ -6,7 +6,16 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { DataGrid, esES } from '@mui/x-data-grid'
 import { Container } from '@mui/system'
-import { Edit, Upload, AttachFile, CheckCircleOutline, CancelOutlined, ExpandMore, ChevronRight, OpenInNew } from '@mui/icons-material'
+import {
+  Edit,
+  Upload,
+  AttachFile,
+  CheckCircleOutline,
+  CancelOutlined,
+  ExpandMore,
+  ChevronRight,
+  OpenInNew
+} from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -53,7 +62,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const revisions = useEvents(petitionId, authUser, `blueprints/${currentRow}/revisions`)
 
-
   const handleOpenUploadDialog = doc => {
     setCurrentRow(doc.id)
     setDoc(doc)
@@ -83,10 +91,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     const devolution = devolutionRemarks.length > 0 ? devolutionRemarks : false
     authUser.role === 9
       ? await updateBlueprint(petitionId, doc, approve, authUser, devolution)
-      .then(() => {
-        setOpenAlert(false), setBlueprintGenerated(true), setDevolutionRemarks('')
-      })
-      .catch(err => console.error(err), setOpenAlert(false))
+          .then(() => {
+            setOpenAlert(false), setBlueprintGenerated(true), setDevolutionRemarks('')
+          })
+          .catch(err => console.error(err), setOpenAlert(false))
       : await updateBlueprint(petitionId, doc, approve, authUser, devolution)
           .then(() => {
             setOpenAlert(false), setBlueprintGenerated(true), setDevolutionRemarks('')
@@ -125,24 +133,65 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
     const dictionary = {
       4: {
-        approve: role === 6 && ['B', 'C'].includes(row.revision) && row.approvedByContractAdmin === true && row.revision === 'B',
-        reject: role === 6 && ['B', 'C'].includes(row.revision) && row.approvedByContractAdmin === true && row.revision === 'B'
+        approve:
+          role === 6 &&
+          ['B', 'C'].includes(row.revision) &&
+          row.approvedByContractAdmin === true &&
+          row.revision === 'B',
+        reject:
+          role === 6 &&
+          ['B', 'C'].includes(row.revision) &&
+          row.approvedByContractAdmin === true &&
+          row.revision === 'B'
       },
       6: {
-        approve: role === 6 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedByContractAdmin === false,
-        reject: role === 6 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedByContractAdmin === false
+        approve:
+          role === 6 &&
+          row.revision !== 'iniciado' &&
+          row.revision.charCodeAt(0) >= 65 &&
+          row.sentByDesigner === true &&
+          row.approvedByContractAdmin === false,
+        reject:
+          role === 6 &&
+          row.revision !== 'iniciado' &&
+          row.revision.charCodeAt(0) >= 65 &&
+          row.sentByDesigner === true &&
+          row.approvedByContractAdmin === false
       },
       7: {
-        approve: role === 7 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false,
-        reject: role === 7 && row.revision !== 'iniciado' && row.revision.charCodeAt(0) >= 65 && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false
+        approve:
+          role === 7 &&
+          row.revision !== 'iniciado' &&
+          row.revision.charCodeAt(0) >= 65 &&
+          row.sentByDesigner === true &&
+          row.approvedBySupervisor === false &&
+          row.approvedByDocumentaryControl === false,
+        reject:
+          role === 7 &&
+          row.revision !== 'iniciado' &&
+          row.revision.charCodeAt(0) >= 65 &&
+          row.sentByDesigner === true &&
+          row.approvedBySupervisor === false &&
+          row.approvedByDocumentaryControl === false
       },
       8: {
-        approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && row.revision !== '0',
+        approve:
+          role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && row.revision !== '0',
         reject: false
       },
       9: {
-        approve: row.revision === 'iniciado' ? role === 9 && row.sentByDesigner === true : role === 9 && row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true),
-        reject: row.revision === 'iniciado' ? role === 9 && row.sentByDesigner === true : role === 9 && row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)
+        approve:
+          row.revision === 'iniciado'
+            ? role === 9 && row.sentByDesigner === true
+            : role === 9 &&
+              row.sentByDesigner === true &&
+              (row.approvedByContractAdmin === true || row.approvedBySupervisor === true),
+        reject:
+          row.revision === 'iniciado'
+            ? role === 9 && row.sentByDesigner === true
+            : role === 9 &&
+              row.sentByDesigner === true &&
+              (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)
       }
     }
 
@@ -184,7 +233,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       currentRow === row.id && (
         <Box sx={{ overflow: 'hidden' }}>
           {revisions.map(revision => {
-
             let fieldContent = revision[field] || 'aaa'
 
             if (field === 'date' || field === 'sentTime') {
@@ -192,27 +240,31 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }
 
             if (field === 'storageBlueprints') {
-
               if (fieldContent) {
                 return (
                   <Link
-                  href={fieldContent}
-                  target="_blank"
-                  rel="noreferrer"
-                  variant='body1'
-                  noWrap
-                  sx={{mt:4, textOverflow:'clip', cursor: 'pointer', display: 'flex',
-                  marginBlockStart: '1em',
-                  marginBlockEnd: '1em',
-                  marginInlineStart: 0,
-                  marginInlineEnd: 0,
-                  }}
-                  key={revision.id}
-                  color='inherit'
-                  underline='always'>
-                  <Box sx={{display:'inline-flex', justifyContent:'space-between', width:'100%'}}>
-                  Archivo
-                  <AttachFile sx={{ml:1}}/>
+                    href={fieldContent}
+                    target='_blank'
+                    rel='noreferrer'
+                    variant='body1'
+                    noWrap
+                    sx={{
+                      mt: 4,
+                      textOverflow: 'clip',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      marginBlockStart: '1em',
+                      marginBlockEnd: '1em',
+                      marginInlineStart: 0,
+                      marginInlineEnd: 0
+                    }}
+                    key={revision.id}
+                    color='inherit'
+                    underline='always'
+                  >
+                    <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
+                      Archivo
+                      <AttachFile sx={{ ml: 1 }} />
                     </Box>
                   </Link>
                 )
@@ -220,7 +272,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }
 
             return (
-              <Typography noWrap sx={{mt:4, textOverflow:'clip'}} key={revision.id}>
+              <Typography noWrap sx={{ mt: 4, textOverflow: 'clip' }} key={revision.id}>
                 {fieldContent || 'Sin Datos'}
               </Typography>
             )
@@ -250,14 +302,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               TransitionProps={{ timeout: 0 }}
             >
               <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
-              <IconButton
+                <IconButton
                   sx={{ p: 0 }}
                   id={row.id}
                   onClick={e => {
                     handleOpenUploadDialog(row)
                   }}
                 >
-                <OpenInNew/>
+                  <OpenInNew />
                 </IconButton>
                 <IconButton
                   sx={{ p: 0 }}
@@ -266,12 +318,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     setCurrentRow(prev => (prev === row.id ? false : e.target.parentElement.id))
                   }}
                 >
-                <ChevronRight sx={{transform: currentRow === row.id ? 'rotate(90deg)' : ''}}/>
+                  <ChevronRight sx={{ transform: currentRow === row.id ? 'rotate(90deg)' : '' }} />
                 </IconButton>
                 <Typography
                   noWrap
                   sx={{
-                    textOverflow:'clip',
+                    textOverflow: 'clip',
                     textDecoration: 'none',
                     transition: 'text-decoration 0.2s',
                     '&:hover': {
@@ -298,7 +350,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         if (row.clientCode) {
           return (
             <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-              <Typography noWrap sx={{ overflow: 'hidden', textOverflow:'clip'}}>{row.clientCode || 'Sin descripción'}</Typography>
+              <Typography noWrap sx={{ overflow: 'hidden', textOverflow: 'clip' }}>
+                {row.clientCode || 'Sin descripción'}
+              </Typography>
             </Box>
           )
         } else {
@@ -327,7 +381,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <div>
-            <Typography noWrap sx={{textOverflow:'clip'}}>{row.revision || 'N/A'}</Typography>
+            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+              {row.revision || 'N/A'}
+            </Typography>
             <RevisionComponent row={row} field={'newRevision'} />
           </div>
         )
@@ -342,8 +398,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <Box sx={{overflow: 'hidden'}}>
-            <Typography noWrap sx={{textOverflow:'clip'}}>{row.userName || 'N/A'}</Typography>
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+              {row.userName || 'N/A'}
+            </Typography>
             <RevisionComponent row={row} field={'userName'} />
           </Box>
         )
@@ -369,8 +427,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               flexDirection: 'column'
             }}
           >
-            <Box display='inline-flex' sx={{justifyContent:'space-between'}}>
-              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto',textOverflow:'clip' }}>{row.description || 'Sin descripción'}</Typography>
+            <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
+              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                {row.description || 'Sin descripción'}
+              </Typography>
               <IconButton
                 sx={{ ml: 2, p: 0 }}
                 onClick={() => {
@@ -404,8 +464,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               flexDirection: 'column'
             }}
           >
-            <Box display='inline-flex' sx={{justifyContent:'space-between'}}>
-              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow:'clip'}}>{row.storageBlueprints ? fileNames[row.id] : 'Sin entregable'}</Typography>
+            <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
+              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                {row.storageBlueprints ? fileNames[row.id] : 'Sin entregable'}
+              </Typography>
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
                 onClick={
@@ -432,7 +494,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <div>
-            <Typography noWrap sx={{textOverflow:'clip'}}>{unixToDate(row.date.seconds)[0]}</Typography>
+            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+              {unixToDate(row.date.seconds)[0]}
+            </Typography>
             <RevisionComponent row={row} field={'date'} />
           </div>
         )
@@ -478,127 +542,141 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <>
-          <Box
-            sx={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignContent: 'center',
-              flexDirection: 'column'
-            }}
-          >
-            {canApprove || canReject ? (
-              md ? (
-                renderButtons
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column'
+              }}
+            >
+              {canApprove || canReject ? (
+                md ? (
+                  renderButtons
+                ) : (
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    size='small'
+                    IconComponent={() => <MoreHorizIcon />}
+                    sx={{
+                      '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                    }}
+                  >
+                    {renderButtons}
+                  </Select>
+                )
+              ) : row.sentByDesigner === true ||
+                (row.sentByDesigner === true &&
+                  (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)) ? (
+                'Enviado'
+              ) : (row.sentByDesigner === false &&
+                  (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)) ||
+                (row.revision !== 'iniciado' &&
+                  row.sentByDesigner === false &&
+                  row.approvedByDocumentaryControl === false) ? (
+                'Rechazado'
+              ) : row.approvedByClient === true || row.revision === '0' ? (
+                'Aprobado'
               ) : (
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  size='small'
-                  IconComponent={() => <MoreHorizIcon />}
-                  sx={{
-                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                  }}
-                >
-                  {renderButtons}
-                </Select>
-              )
-            ) : row.sentByDesigner === true || row.sentByDesigner === true && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ? (
-              'Enviado'
-            ) : row.sentByDesigner === false && (row.approvedByContractAdmin === true || row.approvedBySupervisor === true) ||
-            row.revision !== 'iniciado' && row.sentByDesigner === false && row.approvedByDocumentaryControl === false? (
-              'Rechazado'
+                'No enviado'
+              )}
+              <RevisionComponent row={row} field={'devolutionRemarks'} />
+            </Box>
+          </>
+        )
+      }
+    },
+    authUser.role === 9
+      ? {
+          field: 'clientAprove',
+          headerName: 'Cliente',
+          flex: 0.1,
+          minWidth: 120,
+
+          renderCell: params => {
+            const { row } = params
+
+            const canApprove =
+              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
+
+              const canReject =
+              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
+
+            const flexDirection = md ? 'row' : 'column'
+
+            const renderButtons = (
+              <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
+                {canApprove && (
+                  <Button
+                    onClick={() => handleClickOpenAlert(row, true)}
+                    variant='contained'
+                    color='success'
+                    sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <CheckCircleOutline sx={{ fontSize: 18 }} />
+                  </Button>
+                )}
+                {canReject && (
+                  <Button
+                    onClick={() => handleClickOpenAlert(row, false)}
+                    variant='contained'
+                    color='error'
+                    sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <CancelOutlined sx={{ fontSize: 18 }} />
+                  </Button>
+                )}
+              </Container>
             )
-            : row.approvedByClient === true || row.revision === '0' ? 'Aprobado' : (
-              'No enviado'
-            )}
-            <RevisionComponent row={row} field={'devolutionRemarks'} />
 
-          </Box>
-
-          </>
-        )
-      }
-    }, authUser.role === 9 ? {
-      field: 'clientAprove',
-      headerName: 'Cliente',
-      flex: 0.1,
-      minWidth: 120,
-
-      renderCell: params => {
-        const { row } = params
-        const canApprove = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
-        const canReject = role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
-
-        const flexDirection = md ? 'row' : 'column'
-
-        const renderButtons = (
-          <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
-            {canApprove && (
-              <Button
-                onClick={() => handleClickOpenAlert(row, true)}
-                variant='contained'
-                color='success'
-                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-              >
-                <CheckCircleOutline sx={{ fontSize: 18 }} />
-              </Button>
-            )}
-            {canReject && (
-              <Button
-                onClick={() => handleClickOpenAlert(row, false)}
-                variant='contained'
-                color='error'
-                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-              >
-                <CancelOutlined sx={{ fontSize: 18 }} />
-              </Button>
-            )}
-          </Container>
-        )
-
-        return (
-          <>
-          <Box
-            sx={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignContent: 'center',
-              flexDirection: 'column'
-            }}
-          >
-            {canApprove || canReject ? (
-              md ? (
-                renderButtons
-              ) : (
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  size='small'
-                  IconComponent={() => <MoreHorizIcon />}
+            return (
+              <>
+                <Box
                   sx={{
-                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                    display: 'flex',
+                    width: '100%',
+                    justifyContent: 'space-between',
+                    alignContent: 'center',
+                    flexDirection: 'column'
                   }}
                 >
-                  {renderButtons}
-                </Select>
-              )
-            ) : ''}
-
-          </Box>
-
-          </>
-        )
-
-      }
-    } : ''
+                  {canApprove || canReject ? (
+                    md ? (
+                      renderButtons
+                    ) : (
+                      <Select
+                        labelId='demo-simple-select-label'
+                        id='demo-simple-select'
+                        size='small'
+                        IconComponent={() => <MoreHorizIcon />}
+                        sx={{
+                          '& .MuiSvgIcon-root': {
+                            position: 'absolute',
+                            margin: '20%',
+                            pointerEvents: 'none !important'
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                          '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                          '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                        }}
+                      >
+                        {renderButtons}
+                      </Select>
+                    )
+                  ) : (
+                    ''
+                  )}
+                </Box>
+              </>
+            )
+          }
+        }
+      : ''
   ]
 
   return (
@@ -631,7 +709,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         callback={writeCallback}
         approves={approve}
         authUser={authUser}
-        setDevolutionRemarks = {setDevolutionRemarks}
+        setDevolutionRemarks={setDevolutionRemarks}
         devolutionRemarks={devolutionRemarks}
       ></AlertDialogGabinete>
       {loadingProyectistas ? (
@@ -649,23 +727,21 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           setBlueprintGenerated={setBlueprintGenerated}
         />
       )}
-        <Dialog
-        sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width:'100%' } }}
-        open={openDialog}>
-          <DialogContent>
+      <Dialog sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width: '100%' } }} open={openDialog}>
+        <DialogContent>
           <UploadBlueprintsDialog
-          handleClose={handleCloseUploadDialog}
-          doc={doc}
-          roleData={roleData}
-          petitionId={petitionId}
-          setBlueprintGenerated={setBlueprintGenerated}
-          currentRow={currentRow}
-        />
-          </DialogContent >
-          <DialogActions>
-            <Button onClick={() => setOpenDialog(false)}>Cerrar</Button>
-          </DialogActions>
-        </Dialog>
+            handleClose={handleCloseUploadDialog}
+            doc={doc}
+            roleData={roleData}
+            petitionId={petitionId}
+            setBlueprintGenerated={setBlueprintGenerated}
+            currentRow={currentRow}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }

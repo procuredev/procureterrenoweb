@@ -25,10 +25,7 @@ import Icon from 'src/@core/components/icon'
 import Grid from '@mui/material/Grid'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import { useDropzone } from 'react-dropzone'
-import {
-  Timeline,
-  timelineOppositeContentClasses
-} from '@mui/lab'
+import { Timeline, timelineOppositeContentClasses } from '@mui/lab'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { useFirebase } from 'src/context/useFirebase'
 
@@ -42,51 +39,50 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
-
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
 function getIconForFileType(filePath) {
-  const urlWithoutParams = filePath.split('?')[0];
-  const extension = urlWithoutParams.split('.').pop().toLowerCase();
+  const urlWithoutParams = filePath.split('?')[0]
+  const extension = urlWithoutParams.split('.').pop().toLowerCase()
 
   switch (extension) {
     case 'pdf':
-      return '/icons/pdf.png';
+      return '/icons/pdf.png'
     case 'ppt':
     case 'pptx':
-      return '/icons/ppt.png';
+      return '/icons/ppt.png'
     case 'doc':
     case 'docx':
-      return '/icons/doc.png';
+      return '/icons/doc.png'
     case 'xls':
     case 'xlsx':
-      return '/icons/xls.png';
+      return '/icons/xls.png'
     default:
-      return '/icons/default.png';
+      return '/icons/default.png'
   }
 }
 
 //esta función se usa para establecer los iconos de los documentos que se van a adjuntar al documento, previo a cargarlos.
-const getFileIcon = (fileType) => {
+const getFileIcon = fileType => {
   switch (fileType) {
     case 'application/pdf':
-      return 'mdi:file-pdf';
+      return 'mdi:file-pdf'
     case 'application/msword':
     case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-      return 'mdi:file-word';
+      return 'mdi:file-word'
     case 'application/vnd.ms-excel':
     case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-      return 'mdi:file-excel';
+      return 'mdi:file-excel'
     // ... agregar más tipos de archivo según sea necesario
     default:
-      return 'mdi:file-document-outline';
+      return 'mdi:file-document-outline'
   }
-};
+}
 
 // función que renderiza cada elemento adjunto y renderiza la variable 'displaySrc' que usa un condicional en caso que el elemento sea una image muestra el thumbnail, caso contrario muestra el icono según el tipo de archivo
 const PhotoItem = ({ photoUrl }) => {
-  const urlWithoutParams = photoUrl.split('?')[0];
-  const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase());
-  const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl);
+  const urlWithoutParams = photoUrl.split('?')[0]
+  const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase())
+  const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl)
 
   const onError = () => {
     const imageRef = document.getElementById(photoUrl)
@@ -95,7 +91,7 @@ const PhotoItem = ({ photoUrl }) => {
     imageRef.style.height = '30px'
     imageRef.style.marginRight = '5px'
     imageRef.nextSibling.style.display = 'none'
-    imageRef.parentElement.parentElement.style.height='30px'
+    imageRef.parentElement.parentElement.style.height = '30px'
     imageRef.parentElement.style.display = 'flex'
     imageRef.parentElement.style.alignItems = 'center'
     imageRef.parentElement.append('Error al cargar imagen')
@@ -103,46 +99,62 @@ const PhotoItem = ({ photoUrl }) => {
 
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
-      <Box component='img' id={photoUrl} src={displaySrc} onClick={() => window.open(photoUrl, '_blank')} alt='Photo' style={{ height: 90, cursor: 'pointer' }} onError={onError}/>
-        <IconButton
-          href={photoUrl}
-          target='_blank'
-          rel='noopener noreferrer'
-          sx={{
-            position: 'absolute',
-            bottom: '10px',
-            right: '10px',
-            backgroundColor: 'rgba(220, 220, 220, 0.1)'
-          }}
-        >
-          <Download />
-        </IconButton>
-
+      <Box
+        component='img'
+        id={photoUrl}
+        src={displaySrc}
+        onClick={() => window.open(photoUrl, '_blank')}
+        alt='Photo'
+        style={{ height: 90, cursor: 'pointer' }}
+        onError={onError}
+      />
+      <IconButton
+        href={photoUrl}
+        target='_blank'
+        rel='noopener noreferrer'
+        sx={{
+          position: 'absolute',
+          bottom: '10px',
+          right: '10px',
+          backgroundColor: 'rgba(220, 220, 220, 0.1)'
+        }}
+      >
+        <Download />
+      </IconButton>
     </Box>
   )
 }
 
 const PhotoGallery = ({ photos }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', overflow: 'auto', height: '140px', width: '70%', justifyContent: 'space-evently' }}>
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      overflow: 'auto',
+      height: '140px',
+      width: '70%',
+      justifyContent: 'space-evently'
+    }}
+  >
     {photos.map((fotoUrl, index) => (
       <PhotoItem key={index} photoUrl={fotoUrl} />
     ))}
   </Box>
 )
 
-export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petitionId, setBlueprintGenerated, currentRow }) => {
+export const UploadBlueprintsDialog = ({
+  open,
+  handleClose,
+  doc,
+  roleData,
+  petitionId,
+  setBlueprintGenerated,
+  currentRow
+}) => {
   let isPlanner = roleData && roleData.id === '5'
 
-  let {
-    id,
-    userId,
-    userName,
-    userEmail,
-    revision,
-    storageBlueprints,
-    description,
-    date,
-  } = doc
+  let { id, userId, userName, userEmail, revision, storageBlueprints, description, date } = doc
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
   const [editable, setEditable] = useState(isPlanner)
@@ -150,8 +162,6 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
   const [files, setFiles] = useState([])
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
-
-
 
   const theme = useTheme()
   const { updateDocs, authUser, addDescription, uploadFilesToFirebaseStorage } = useFirebase()
@@ -168,7 +178,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
     revision,
     storageBlueprints,
     description,
-    date,
+    date
   }
 
   // Actualiza el estado al cambiar de documento, sólo valores obligatorios
@@ -219,7 +229,6 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
       if (hasChanges[key]) {
         newData[key] = values[key]
       }
-
     }
 
     if (Object.keys(newData).length > 0) {
@@ -292,7 +301,6 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
       .catch(err => console.error(err))
   }
 
-
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
       const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
@@ -316,7 +324,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
   }
 
   const fileList = (
-    <Grid container spacing={2} sx={{justifyContent:'center', m:2}}>
+    <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
       {files.map(file => (
         <Grid item key={file.name}>
           <Paper
@@ -358,7 +366,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
     </Grid>
   )
 
-  const handleSubmitAllFiles = async() => {
+  const handleSubmitAllFiles = async () => {
     try {
       await uploadFilesToFirebaseStorage(files, doc.id, 'blueprints', petitionId)
       setBlueprintGenerated(true)
@@ -379,11 +387,11 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
   return (
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <DialogTitle sx={{display:'flex', justifyContent:'space-between'}}>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         {values.id}
-        <Chip label={values.revision} sx={{textTransform:'capitalize'}} color='primary'/>
+        <Chip label={values.revision} sx={{ textTransform: 'capitalize' }} color='primary' />
       </DialogTitle>
-      <Box sx={{ margin: 'auto'}}>
+      <Box sx={{ margin: 'auto' }}>
         {
           <Box>
             <List>
@@ -396,7 +404,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                 onChange={handleInputChange('description')}
                 required={false}
               />
-              <Button onClick={()=>submitDescription()}> Guardar descripción </Button>
+              <Button onClick={() => submitDescription()}> Guardar descripción </Button>
               <DateListItem
                 editable={false}
                 label='Fecha'
@@ -426,36 +434,45 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
               />
               {doc.storageBlueprints && doc.storageBlueprints.length > 0 && (
                 <ListItem>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                  <Typography component='div' sx={{ width: '30%', pr:2 }}>
-                    Archivos adjuntos
-                  </Typography>
-                  <PhotoGallery photos={storageBlueprints} />
-                </Box>
-              </ListItem> )}
-            {/* Aquí true debe reemplazarse por el permiso para subir archivos */}
-              { true && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      Archivos adjuntos
+                    </Typography>
+                    <PhotoGallery photos={storageBlueprints} />
+                  </Box>
+                </ListItem>
+              )}
+              {/* Aquí true debe reemplazarse por el permiso para subir archivos */}
+              {true && (
                 <ListItem>
                   <FormControl fullWidth>
                     <Fragment>
                       <div {...getRootProps({ className: 'dropzone' })}>
                         <input {...getInputProps()} />
-                          <Box
-                             sx={{ my:2, mx:'auto', p:5, display: 'flex', flexDirection: 'column', alignItems: ['center'],
-                             backdropFilter: 'contrast(0.8)',
-                             width: '100%',
-                             borderRadius: '10px', justifyContent: 'center' }}
-                          >
-                            <Icon icon='mdi:file-document-outline' />
-                            <Typography sx={{ mt: 5 }} color='textSecondary'>
-                              <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
-                            </Typography>
-                          </Box>
+                        <Box
+                          sx={{
+                            my: 2,
+                            mx: 'auto',
+                            p: 5,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: ['center'],
+                            backdropFilter: 'contrast(0.8)',
+                            width: '100%',
+                            borderRadius: '10px',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Icon icon='mdi:file-document-outline' />
+                          <Typography sx={{ mt: 5 }} color='textSecondary'>
+                            <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
+                          </Typography>
+                        </Box>
                       </div>
                       {files.length > 0 && (
                         <Fragment>
                           <List>{fileList}</List>
-                          <Box sx={{ display:'flex', justifyContent:'center', mt:1}}>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                             <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
                               Quitar todo
                             </Button>
@@ -481,9 +498,7 @@ export const UploadBlueprintsDialog = ({ open, handleClose, doc, roleData, petit
                 {isPlanner && state <= 4 ? 'Aprobar y guardar' : 'Guardar'}
               </Button>
             ) : null}
-
-
-        </Box>
+          </Box>
         }
       </Box>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}

@@ -11,11 +11,7 @@ function CustomListItem({
   required = false,
   multiline = false,
   initialValue
-})
-
-
-
-{
+}) {
   return (
     <>
       {editable ? (

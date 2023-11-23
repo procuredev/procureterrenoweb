@@ -4,7 +4,6 @@ import { DatePicker, LocalizationProvider, AdapterMoment } from '@mui/x-date-pic
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
-
   return (
     <>
       {editable ? (
@@ -12,7 +11,7 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
           <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
               <DatePicker
-                dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
+                dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                 minDate={customMinDate || moment().subtract(1, 'year')}
                 maxDate={moment().add(1, 'year')}
                 label={label}
