@@ -153,7 +153,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         reject: role === 7 && ['A', 'B', 'C', 'D'].includes(row.revision) && row.sentByDesigner === true && row.approvedBySupervisor === false && row.approvedByDocumentaryControl === false
       },
       8: {
-        approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false,
+        approve: role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && row.revision !== '0',
         reject: false
       },
       9: {
