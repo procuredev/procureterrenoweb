@@ -156,6 +156,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const columns = [
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[1] }},
       field: 'title',
       headerName: 'Solicitud',
       flex: 0.8,
@@ -194,6 +195,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[2] }},
       field: 'state',
       headerName: 'Estado',
       flex: 0.8,
@@ -214,6 +216,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[3] }},
       field: 'date',
       headerName: 'Creación',
       flex: 0.4,
@@ -225,6 +228,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[4] }},
       field: 'start',
       headerName: 'Inicio',
       flex: 0.4,
@@ -236,6 +240,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[5] }},
       field: 'end',
       headerName: 'Término',
       flex: 0.4,
@@ -247,6 +252,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[6] }},
       field: 'supervisorShift',
       maxWidth: 80,
       headerName: 'Turno',
@@ -259,6 +265,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[7] }},
       field: 'ot',
 
       maxWidth: 60,
@@ -272,6 +279,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[8] }},
       field: 'user',
       headerName: 'Autor',
       flex: 0.5,
@@ -280,6 +288,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       flex: 0.3,
       minWidth: md ? 190 : 100,
+      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[9] }},
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
