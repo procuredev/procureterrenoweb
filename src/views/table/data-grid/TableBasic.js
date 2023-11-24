@@ -200,10 +200,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     setCursorDocument(false)
   }
 
-  const setCursorDocument = isResizing => {
-    document.body.style.cursor = isResizing ? 'col-resize' : 'auto'
-  }
-
   useEffect(() => {
     if (!loading) {
       // Selecciona todos los divs con la clase 'MuiDataGrid-columnSeparator' y agrega event listeners
@@ -225,7 +221,6 @@ const TableBasic = ({ rows, role, roleData }) => {
   }, [loading])
 
   useEffect(() => {
-    // loadColumnInfoLocalStorage();
     document.onmousemove = handleMouseMove
     document.onmouseup = handleMouseUp
 
