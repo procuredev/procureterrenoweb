@@ -28,8 +28,9 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
+
   const isResizing = useRef(-1);
   const separatorRef = useRef(null);
 
@@ -58,9 +59,18 @@ const TableBasic = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
-  const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
-    setOpenAlert(false)
+  const writeCallback = async () => {
+    setLoading(true)
+    await updateDocs(doc.id, approve, authUser)
+    .then(() => {
+      setLoading(false)
+      setOpenAlert(false)
+    })
+    .catch(error => {
+      setLoading(false)
+      alert(error), console.log(error)
+    })
+
   }
 
   const handleCloseAlert = () => {
