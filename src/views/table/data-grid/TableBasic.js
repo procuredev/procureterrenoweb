@@ -28,16 +28,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
-  const isResizing = useRef(-1)
-  const separatorRef = useRef(null)
-
-  useEffect(() => {
-    if (rows) {
-      setLoading(false)
-    }
-  }, [rows])
+  const [loading, setLoading] = useState(false)
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -58,9 +50,17 @@ const TableBasic = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
-  const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
-    setOpenAlert(false)
+  const writeCallback = async () => {
+    setLoading(true)
+    await updateDocs(doc.id, approve, authUser)
+      .then(() => {
+        setLoading(false)
+        setOpenAlert(false)
+      })
+      .catch(error => {
+        setLoading(false)
+        alert(error), console.log(error)
+      })
   }
 
   const handleCloseAlert = () => {
@@ -457,7 +457,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             doc={findCurrentDoc(rows)}
             roleData={roleData}
             editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
-            canComment={[5,6,7].includes(authUser.role)}
+            canComment={[5, 6, 7].includes(authUser.role)}
           />
         )}
       </Box>

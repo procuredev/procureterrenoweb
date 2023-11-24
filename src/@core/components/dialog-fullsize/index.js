@@ -262,9 +262,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         // Ya viene con end u ot
       } else if (end && ot && state === 4) {
+        setLoading(true)
         await updateDocs(id, true, authUser)
-          .then(handleClose())
+          .then(() => {
+            handleClose()
+            setLoading(false)
+          })
           .catch(error => {
+            setLoading(false)
             alert(error), console.log(error)
           })
 
@@ -287,7 +292,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
   }
 
-  const writeCallback = () => {
+  const writeCallback = async () => {
     const newData = {}
 
     for (const key in values) {
@@ -297,7 +302,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
 
     if (Object.keys(newData).length > 0) {
-      updateDocs(id, newData, authUser)
+      setLoading(true)
+      await updateDocs(id, newData, authUser)
+      .then(() => {
+        setLoading(false)})
+        handleCloseAlert()
+        .catch(error => {
+          setLoading(false)
+          alert(error), console.log(error)
+        })
     } else {
       console.log('No se escribió ningún documento')
     }
