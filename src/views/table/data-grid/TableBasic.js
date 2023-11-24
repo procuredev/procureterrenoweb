@@ -59,9 +59,17 @@ const TableBasic = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
-  const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
-    setOpenAlert(false)
+  const writeCallback = async () => {
+    setLoading(true)
+    await updateDocs(doc.id, approve, authUser)
+      .then(() => {
+        setLoading(false)
+        setOpenAlert(false)
+      })
+      .catch(error => {
+        setLoading(false)
+        alert(error), console.log(error)
+      })
   }
 
   const handleCloseAlert = () => {
@@ -462,7 +470,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             doc={findCurrentDoc(rows)}
             roleData={roleData}
             editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
-            canComment={[5,6,7].includes(authUser.role)}
+            canComment={[5, 6, 7].includes(authUser.role)}
           />
         )}
       </Box>
