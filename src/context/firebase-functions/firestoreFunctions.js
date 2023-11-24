@@ -71,7 +71,8 @@ const newDoc = async (values, userParam) => {
     description,
     ot,
     end,
-    urgency
+    urgency,
+    mcDescription
   } = values
 
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
@@ -105,7 +106,8 @@ const newDoc = async (values, userParam) => {
       engineering,
       ...(urgency && { urgency }),
       ...(ot && { ot }),
-      ...(end && { end })
+      ...(end && { end }),
+      ...(mcDescription && {mcDescription})
     })
 
     const adjustedDate = moment(values.start).subtract(1, 'day')
@@ -229,17 +231,33 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
   }
 }
 
+const addComment = async (id, comment, userParam) => {
+
+  let newEvent = {
+    user: userParam.email,
+    userName: userParam.displayName,
+    date: Timestamp.fromDate(new Date()),
+    comment
+  }
+  await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+  .then(() => {
+    console.log('Comentario agregado')
+  })
+  .catch((err) => {
+    console.error(err)
+  })
+}
+
 function getNextState(role, approves, latestEvent, userRole) {
   const state = {
-    returnedPetitioner: 0,
-    returnedContOp: 1,
+    returned: 1,
     contOperator: 3,
     contOwner: 4,
     planner: 5,
     contAdmin: 6,
     supervisor: 7,
     draftsman: 8,
-    rejected: 10
+    rejected: 0
   }
 
   // Cambiar la función para que reciba el docSnapshot y compare la fecha original de start con la que estoy modificándolo ahora
@@ -248,26 +266,25 @@ function getNextState(role, approves, latestEvent, userRole) {
   const approveWithChanges = typeof approves === 'object' || typeof approves === 'string'
   const approvedByPlanner = latestEvent.prevState === state.planner
   const emergencyBySupervisor = latestEvent.newState === state.draftsman && userRole === 7
-  const returnedPetitioner = latestEvent.newState === state.returnedPetitioner
-  const returnedContOp = latestEvent.newState === state.returnedContOp
-  const devolutionState = userRole === 2 ? state.returnedPetitioner : state.returnedContOp
+  const returned = latestEvent.newState === state.returned
   const changingStartDate = typeof approves === 'object' && 'start' in approves
+  const modifiedBySameRole = userRole === role
 
   const rules = new Map([
     [
       2,
       [
-        // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 0 --> 6)
+        // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 1 --> 6)
         // No se usó dateHasChanged porque el cambio podría haber pasado en el penúltimo evento
         {
-          condition: approves && approvedByPlanner && returnedPetitioner && !approveWithChanges,
+          condition: approves && approvedByPlanner && returned && !approveWithChanges,
           newState: state.contAdmin,
           log: 'Devuelto por Adm Contrato Procure'
         },
 
-        // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 0 --> 3)
+        // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 1 --> 3)
         {
-          condition: approves && dateHasChanged && returnedPetitioner && !approveWithChanges,
+          condition: approves && dateHasChanged && returned && !approveWithChanges,
           newState: state.contOperator,
           log: 'Devuelto por Cont Operator/Cont Owner MEL'
         }
@@ -280,26 +297,26 @@ function getNextState(role, approves, latestEvent, userRole) {
         {
           condition: approves && emergencyBySupervisor,
           newState: state.draftsman,
-          emergencyApprovedBySupervisor: true,
-          log: 'Emergencia aprobada por Contrac Operator'
+          emergencyApprovedByContop: true,
+          log: 'Emergencia aprobada por Contract Operator'
         },
-        // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 0)
+        // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 1)
         {
-          condition: approves && approveWithChanges && !returnedContOp,
-          newState: state.returnedPetitioner,
+          condition: approves && approveWithChanges && !returned && !modifiedBySameRole,
+          newState: state.returned,
           log: 'Devuelto por Contract Operator hacia Solcitante'
         },
 
         // Si aprueba y viene con estado 5 lo pasa a 6 (5 --> 1 --> 6)
         {
-          condition: approves && approvedByPlanner && returnedContOp && !approveWithChanges,
+          condition: approves && approvedByPlanner && returned && !approveWithChanges,
           newState: state.contAdmin,
           log: 'Devuelto por Adm Contrato Procure'
         },
 
         // Si vuelve a modificar una devolución, pasa al planificador (revisada por contract owner) (3 --> 1 --> 3)
         {
-          condition: approves && !approvedByPlanner && returnedContOp,
+          condition: approves && !approvedByPlanner && returned,
           newState: state.contOperator,
           log: 'Devuelto por Cont Owner MEL'
         }
@@ -308,10 +325,10 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       4,
       [
-        // Si modifica, se le devuelve al autor (3 --> 0/1)
+        // Si modifica, se le devuelve al autor (3 --> 1)
         {
           condition: approveWithChanges,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Aprobado por Planificador'
         }
       ]
@@ -333,21 +350,21 @@ function getNextState(role, approves, latestEvent, userRole) {
         // Planificador modifica, Adm Contrato no modifica
         {
           condition: approves && !approveWithChanges && dateHasChanged,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Aprobada con cambio de fecha'
         },
 
         // Planificador no modifica, Adm Contrato sí
         {
           condition: approves && approveWithChanges && !dateHasChanged,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Modificado por adm contrato'
         },
 
         // Planificador modifica, Adm Contrato sí modifica
         {
           condition: approves && approveWithChanges && dateHasChanged,
-          newState: devolutionState,
+          newState: state.returned,
           log: 'Modificado por adm contrato y planificador'
         }
       ]
@@ -392,7 +409,7 @@ const updateDocs = async (id, approves, userParam) => {
   const { ref, docSnapshot } = await getDocumentAndUser(id)
   const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
   const latestEvent = await getLatestEvent(id)
-  const rejected = 10
+  const rejected = 0
   const role = userParam.role
   let newState = approves ? getNextState(role, approves, latestEvent, userRole) : rejected
   let processedFields = { incomingFields: {}, changedFields: {} }
@@ -417,8 +434,11 @@ const updateDocs = async (id, approves, userParam) => {
     }
   }
 
+  if (userRole === 7 && newState === 8) {
+    changedFields.emergencyApprovedByContop = prevState === 8 ? true : false
+  }
+
   changedFields.state = newState
-  changedFields.emergencyApprovedBySupervisor = prevState === 8 && newState === 8 ? true : false
 
   updateDocumentAndAddEvent(ref, changedFields, userParam, prevDoc, docSnapshot.uid, id, prevState)
 }
@@ -454,4 +474,4 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase }
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, addComment }

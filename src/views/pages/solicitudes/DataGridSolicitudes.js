@@ -47,12 +47,12 @@ const DataGrid = () => {
   const tabContent = authUser
     ? [
         {
-          data: data,
+          data: data.filter(doc => doc.state !== 0),
           label: 'Todas las solicitudes',
           info: 'Todas las solicitudes'
         },
         {
-          data: data.filter(authUser.role === 5 ? doc => doc.state === 3 || 4 : doc => doc.state === authUser.role - 1),
+          data: data.filter(authUser.role === 5 ? doc => doc.state === 3 || 4 : doc => doc.state === authUser.role - 1), //TODO: revisar visibilidad
           label: 'Por aprobar',
           info: 'Solicitudes pendientes de mi aprobación'
         },
@@ -62,7 +62,7 @@ const DataGrid = () => {
           info: 'Solicitudes aprobadas por Procure'
         },
         {
-          data: data.filter(doc => doc.state === 10),
+          data: data.filter(doc => doc.state === 0),
           label: 'Rechazadas',
           info: 'Solicitudes rechazadas'
         }

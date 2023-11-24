@@ -61,7 +61,7 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
   }, [options])
 
   return (
-    <Accordion defaultExpanded={!small} sx={{ mb: 4, borderRadius: '10px' }}>
+    <Accordion defaultExpanded={false} sx={{ mb: 4, borderRadius: '10px' }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls='panel1a-content' id='panel1a-header'>
         <Typography variant='h6'>Filtros</Typography>
       </AccordionSummary>

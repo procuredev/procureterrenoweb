@@ -151,7 +151,9 @@ const NuestroEquipo = () => {
     const fetchUsers = async () => {
       try {
         const users = await getUserData('getAllProcureUsers')
-        setProcureUsers(users)
+        const enabledUsers = users.filter(user => (user.enabled != false))
+
+        setProcureUsers(enabledUsers)
       } catch (error) {
         console.error('Error al obtener los usuarios de Procure:', error)
       }

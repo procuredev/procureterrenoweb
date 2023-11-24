@@ -1,14 +1,32 @@
-export const getEmailTemplate = (userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage) => {
-  return (
-    `<h2>Estimad@ ${userName}:</h2>
+export const getEmailTemplate = (
+  userName,
+  mainMessage,
+  requestNumber,
+  title,
+  engineering,
+  otProcure,
+  supervisor,
+  start,
+  end,
+  plant,
+  area,
+  functionalLocation,
+  contractOperator,
+  petitioner,
+  sapNumber,
+  operationalType,
+  machineDetention,
+  jobType,
+  deliverable,
+  receiver,
+  description,
+  lastMessage
+) => {
+  return `<h2>Estimad@ ${userName}:</h2>
       <p>${mainMessage}. A continuación puede encontrar el detalle de la solicitud:</p>
       <table style="width:100%;">
         <tr>
-          <td style="text-align:left; padding-left:15px; width:20%;"><strong>N° Solicitud:</strong></td>
-          <td style="text-align:left; width:80%;">${requestNumber}</td>
-        </tr>
-        <tr>
-          <td style="text-align:left; padding-left:15px;"><strong>Título:</strong></td>
+        <td style="text-align:left; padding-left:15px; width:20%;"><strong>Título:</strong></td>
           <td>${title}</td>
         </tr>
         <tr>
@@ -82,7 +100,6 @@ export const getEmailTemplate = (userName, mainMessage, requestNumber, title, en
       </table
       <p>${lastMessage}</p>
       <p>Para mayor información revise la solicitud en nuestra página web</p>
-      <p>Saludos,<br>Procure Terreno Web</p>
+      <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
       `
-  )
 }

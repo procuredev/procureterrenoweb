@@ -2,24 +2,29 @@
 import { db } from 'src/configs/firebase'
 import { collection, doc, addDoc, query, getDoc, getDocs, updateDoc, where } from 'firebase/firestore'
 import { getEmailTemplate } from './emailTemplate'
-import { exists } from 'i18next'
 
 // Importación de los datos del usuario según el id indicado
-const getData = async id => {
-  const docRef = doc(db, 'users', id)
-  const docSnap = await getDoc(docRef)
+const getUserData = async ids => {
+  const usersData = []
 
-  if (docSnap.exists()) {
-    return docSnap.data()
-  } else {
-    return undefined
+  for (const id of ids) {
+    const docRef = doc(db, 'users', id)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap) {
+      usersData.push(docSnap.data())
+    }
+
   }
+
+  return usersData
 }
 
 // Función que busca dentro de la colección indicada y según el campo/field que se indique y que el valor/value sea igual al indicado. Esto retornará el UID de la solicitud.
 const searchbyColletionAndField = async (col, field, value) => {
   // Realiza la consulta según el campo proporcionado
   const q = query(collection(db, col), where(field, '==', value))
+  let uid = []
 
   try {
     const querySnapshot = await getDocs(q)
@@ -30,7 +35,10 @@ const searchbyColletionAndField = async (col, field, value) => {
       return null
     } else {
       // Accede al UID de la solicitud encontrada
-      const uid = querySnapshot.docs[0].id
+      const queryDocs = querySnapshot.docs
+      queryDocs.forEach(doc => {
+        uid.push(doc.id)
+      })
 
       return uid
     }
@@ -46,6 +54,8 @@ const searchbyColletionAndField = async (col, field, value) => {
   // Realiza la consulta según el campo proporcionado
   const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', 'array-contains', shift))
 
+  let supervisorArray = []
+
   try {
     const querySnapshot = await getDocs(q)
 
@@ -54,12 +64,12 @@ const searchbyColletionAndField = async (col, field, value) => {
 
       return null
     } else {
-      // Accede al UID de la solicitud encontrada
-      const uid = querySnapshot.docs[0].id
-      const name = querySnapshot.docs[0].data().name
-      const email = querySnapshot.docs[0].data().email
+      const queryDocs = querySnapshot.docs
+      queryDocs.forEach(doc => {
+        supervisorArray.push(doc.data())
+      })
 
-      return {uid: uid, name: name, email: email}
+      return supervisorArray
     }
   } catch (error) {
     console.log('Error al buscar la solicitud: ', error)
@@ -73,6 +83,7 @@ const searchbyColletionAndField = async (col, field, value) => {
 const getUsersOnCopyAndMessage = (
   user,
   requesterRole,
+  requesterEmail,
   prevState,
   newState,
   cOperatorEmail,
@@ -82,6 +93,7 @@ const getUsersOnCopyAndMessage = (
   supervisorEmail,
   petitionerFieldEmail
 ) => {
+  var sendTo = requesterEmail
   var arrayCC = [] // Se inicializa un array vacío
   var message = '' // Se inicializa un string vacío
 
@@ -93,73 +105,148 @@ const getUsersOnCopyAndMessage = (
       switch (stateChange) {
         // && prevState es 2 && newState es 3 -> Solicitud aceptada por C.Operator
         case '2-3':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
           message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 2 && newState es 2 -> Solicitud modificada por Solicitante
+        case '2-2':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
+          message = `la solicitud ha modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 3 && newState es 5 -> Solicitud aceptada por Planificador
         case '3-5':
-          arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
+          sendTo = plannerEmail
+          arrayCC = [...admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador Y Adm.Contrato
+          message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
+        case '4-5':
+          sendTo = plannerEmail
+          arrayCC = [...admContEmail] // Siginifca que hay que mandarle e-mail al Planificador Y Adm.Contrato
           message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
         case '5-6':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 2 && newState es 0 -> Solicitud modificada por C.Operator
-        case '2-0':
-          arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+        // && prevState es 6 && newState es 1 -> Solicitud replanificada por Procure
+        case '6-1':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+          message = `la solicitud ha debido ser replanificada por Procure` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 2 && newState es 1 -> Solicitud modificada por C.Operator
+        case '2-1':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 0 && newState es 3 -> Modificación hecha por C.Operator fue aceptada por Solicitante
-        case '0-3':
-          arrayCC = [ ] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, Planificador y Adm.Contrato
+        // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
+        case '1-2':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 0 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue modificada nuevamente por Solicitante
-        case '0-2':
-          arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
-          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+        // && prevState es 1 && newState es 2 -> Modificación hecha por C.Operator o Procure, fue aceptada por Solicitante
+        case '1-3':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+          message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 3 && newState es 4 -> Solicitud fue aceptada por Contract Owner
+        case '3-4':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+          message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 5 && newState es 0 -> Modificación hecha por Procure
-        case '5-0':
-          arrayCC = [plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
+        case '5-1':
+          sendTo = requesterEmail
+          arrayCC = [...plannerEmail, ...admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Planificador y Adm.Contrato
           message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 0 && newState es 6 -> Modificación hecha por Procure fue aceptada por Solicitante
-        case '0-6':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+        case '1-6':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 2 && newState es 10 -> Solicitud rechazada por C.Operator
-        case '2-10':
-          arrayCC = [cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+        // && prevState es 1 && newState es 0 -> Solicitud rechazada por Solicitante
+        case '1-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
           message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 5 && newState es 10 -> Solicitud rechazada por Adm.Contrato
-        case '5-10':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
-          message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          // && prevState es 2 && newState es 0 -> Solicitud rechazada por Solicitante/C.Operator
+        case '2-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail] // Siginifca que hay que mandarle e-mail al Solicitante y C.Operator
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 3 && newState es 1 -> Solicitud rechazada por Solicitante/C.Operator/C. Owner/Planificador
+        case '3-1':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator y C.Owner
+          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 3 && newState es 0 -> Solicitud rechazada por Solicitante/C.Operator/C. Owner/Planificador
+        case '3-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator y C.Owner
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 4 && newState es 0 -> Solicitud rechazada por Solicitante/C.Operator/C. Owner/Planificador
+        case '4-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator y C.Owner
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 5 && newState es 0 -> Solicitud rechazada por Solicitante/C.Operator/C. Owner/Adm.Cont
+        case '5-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 6 && newState es 0 -> Solicitud rechazada por Solicitante/C.Operator/C. Owner/Adm.Cont
+        case '6-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
         case '6-7':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 7 && newState es 8 -> Supervisor selecciona Proyectistas para el Levantamiento
         case '7-8':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
+          sendTo = requesterEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador y Adm.Contrato
           message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
           break
       }
@@ -171,50 +258,141 @@ const getUsersOnCopyAndMessage = (
 
         // && prevState es 3 && newState es 5 -> Soliciutud aceptada por Planificador
         case '3-5':
-          arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+          sendTo = plannerEmail
+          arrayCC = [...admContEmail] // Siginifca que hay que mandarle e-mail al Planificador y Adm.Contrato
           message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 4 && newState es 5 -> Solicitud aceptada por Planificador
+        case '4-5':
+          sendTo = plannerEmail
+          arrayCC = [...admContEmail] // Siginifca que hay que mandarle e-mail al Planificador Y Adm.Contrato
+          message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}. Ahora también es posible encontrar la fecha de término del levantamiento y el número de OT` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 3 && newState es 1 -> Solicitud rechazada por Solicitante/C.Operator/C. Owner/Planificador
+        case '3-1':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator y C.Owner
+          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 3 && newState es 4 -> Solicitud fue aceptada por Contract Owner
+        case '3-4':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al Solicitante, Contract Owner y Planificador
+          message = `la solicitud ha sido aceptada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 5 && newState es 6 -> Solicitud aceptada por Adm.Contrato
         case '5-6':
-          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...admContEmail, ...petitionerFieldEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 6 && newState es 1 -> Solicitud replanificada por Procure
+        case '6-1':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...admContEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador y Adm.Contrato
+          message = `la solicitud ha debido ser replanificada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 5 && newState es 1 -> Modificación hecha por Procure
         case '5-1':
-          arrayCC = [plannerEmail, admContEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+          sendTo = requesterEmail
+          arrayCC = [...plannerEmail, ...admContEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
           message = `la solicitud ha sido modificada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 1 && newState es 3 -> Modificación hecha por Procure fue modificada por C.Operator
         case '1-3':
-          arrayCC = [cOwnerEmail, plannerEmail, petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner y Planificador
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner y Planificador
           message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 1 && newState es 6 -> Modificación hecha por Procure fue aceptada por C.Operator
         case '1-6':
-          arrayCC = [cOwnerEmail, plannerEmail, admContEmail, petitionerFieldEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...admContEmail, ...petitionerFieldEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `la solicitud ha sido aceptada por ${user.displayName} y por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
-        // && prevState es 5 && newState es 10 -> Solicitud rechazada por Procure
-        case '5-10':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
-          message = `la solicitud ha sido rechazada por nuestro Administrador de Contrato ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+        // && prevState es32 && newState es 3 -> Solicitud modificada por Contract Operator
+        case '3-3':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner y Planificador
+          message = `la solicitud ha modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 3 && newState es 0 -> Solicitud rechazada por C.Operator/C. Owner/Planificador
+        case '3-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator y C.Owner
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 4 && newState es 0 -> Solicitud rechazada por C.Operator/C.Owner/Planificador
+        case '4-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...petitionerFieldEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator y C.Owner
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 5 && newState es 10 -> Solicitud rechazada por C.Operator/C.Owner/Adm.Cont
+        case '5-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...admContEmail, ...petitionerFieldEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 6 && newState es 10 -> Solicitud rechazada por C.Operator/C.Owner/Adm.Cont
+        case '6-0':
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...admContEmail, ...petitionerFieldEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al C.Operator, Planificador y Adm.Contrato
+          message = `la solicitud ha sido rechazada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
         case '6-7':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...admContEmail, ...petitionerFieldEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
           break
 
         // && prevState es 7 && newState es 8 -> Supervisor termina el levantamiento
         case '7-8':
-          arrayCC = [cOperatorEmail, cOwnerEmail, plannerEmail, admContEmail, supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          sendTo = requesterEmail
+          arrayCC = [...cOwnerEmail, ...plannerEmail, ...admContEmail, ...petitionerFieldEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
           message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
+          break
+      }
+      break
+
+    // Si el rol de quien hizo la solicitud es "Supervisor"
+    case 7:
+      switch(stateChange) {
+
+        // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
+        case '6-7':
+          sendTo = petitionerFieldEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `nuestro supervisor ${user.displayName} ha seleccionado el equipo que se hará cargo del levantamiento` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 7 && newState es 8 -> Supervisor termina el levantamiento
+        case '7-8':
+          sendTo = petitionerFieldEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `Procure ha finalizado el levantamiento` // Se agrega mensaje que irá en el e-mail
+          break
+
+        // && prevState es 8 && newState es 8 -> Contract Operator valida el levantamiento
+        case '8-8':
+          sendTo = petitionerFieldEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `la solicitud ha sido validada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
           break
       }
       break
@@ -223,7 +401,7 @@ const getUsersOnCopyAndMessage = (
       break
   }
 
-  return { arrayCC: arrayCC, message: message }
+  return { sendTo: sendTo, arrayCC: arrayCC, message: message }
 }
 
 export const sendEmailWhenReviewDocs = async (user, prevState, newState, requesterId, requirementId) => {
@@ -236,27 +414,28 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
   const requirementData = requirementSnapshot.data()
 
   const [requesterData, cOwnerData, plannerData, admContData, petitionerData, supervisorData, cOperatorData] = await Promise.all([
-    getData(requesterId),
-    getData(await searchbyColletionAndField('users', 'role', 4)),
-    getData(await searchbyColletionAndField('users', 'role', 5)),
-    getData(await searchbyColletionAndField('users', 'role', 6)),
-    getData(await searchbyColletionAndField('users', 'name', requirementData.petitioner)),
+    getUserData([requesterId]),
+    getUserData(await searchbyColletionAndField('users', 'role', 4)),
+    getUserData(await searchbyColletionAndField('users', 'role', 5)),
+    getUserData(await searchbyColletionAndField('users', 'role', 6)),
+    getUserData(await searchbyColletionAndField('users', 'name', requirementData.petitioner)),
     requirementData.supervisorShift ? await getSupervisorData(requirementData.supervisorShift) : '',
-    getData(await searchbyColletionAndField('users', 'name', requirementData.contop))
+    getUserData(await searchbyColletionAndField('users', 'name', requirementData.contop))
   ])
 
-  const requesterEmail = requesterData.email
-  const requesterRole = requesterData.role
-  const cOwnerEmail = cOwnerData.email
-  const plannerEmail = plannerData.email
-  const admContEmail = admContData.email
-  const petitionerEmail = petitionerData.email
-  const supervisorEmail = supervisorData ? supervisorData.email : ''
-  const cOperatorEmail = cOperatorData.email
+  const requesterEmail = requesterData.map(data => data.email)
+  const requesterRole = requesterData.map(data => data.role)
+  const cOwnerEmail = cOwnerData.filter(doc => doc.enabled != false).map(data => data.email)
+  const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
+  const admContEmail = admContData.filter(doc => doc.enabled != false).map(data => data.email)
+  const petitionerEmail = petitionerData.filter(doc => doc.enabled != false).map(data => data.email)
+  const supervisorEmail = supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.email) : ''
+  const cOperatorEmail = cOperatorData.filter(doc => doc.enabled != false).map(data => data.email)
 
   const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
     user,
-    requesterRole,
+    requesterRole[0],
+    requesterEmail,
     prevState,
     newState,
     cOperatorEmail,
@@ -267,6 +446,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     petitionerEmail
   )
 
+  const sendTo = usersOnCopyAndMessage.sendTo
   const onCC = usersOnCopyAndMessage.arrayCC
   const message = usersOnCopyAndMessage.message
 
@@ -309,13 +489,13 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
 
     // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
     updateDoc(docRef, {
-      to: requesterEmail,
+      to: sendTo,
       cc: onCC,
       date: fechaCompleta,
       req: requirementId,
       emailType: 'reviewDocs',
       message: {
-        subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+        subject: `Solicitud de levantamiento: ${requirementData.title}`,
         html: emailHtml
       }
     })

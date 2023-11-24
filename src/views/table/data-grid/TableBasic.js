@@ -39,6 +39,10 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
+  const findCurrentDoc = rows => {
+    return rows.find(row => row.id === doc.id)
+  }
+
   const handleClickOpen = doc => {
     setDoc(doc)
     setOpen(true)
@@ -61,6 +65,80 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
+  }
+
+  const permissions = (row, role) => {
+    if (!row) return
+
+    const hasPrevState = row.state === role - 1
+    const createdBySupervisor = row.userRole === 7
+
+    const isContopEmergency =
+      role === 3 &&
+      row.contop === authUser.displayName &&
+      row.state === 8 &&
+      row.emergencyApprovedByContop === false &&
+      createdBySupervisor
+    const isMyRequest = authUser.uid === row.uid
+    const isOwnReturned = isMyRequest && row.state === 1
+    const hasOTEnd = row.ot && row.end
+
+    const dictionary = {
+      1: {
+        approve: row.state <= 6,
+        edit: row.state <= 6,
+        reject: row.state <= 6
+      },
+      2: {
+        approve: isOwnReturned,
+        edit: isOwnReturned || ([2, 6].includes(row.state) && isMyRequest),
+        reject: isMyRequest && row.state <= 6
+      },
+      3: {
+        approve: hasPrevState || isOwnReturned || isContopEmergency,
+        edit:
+          (isOwnReturned || hasPrevState || row.state === 6 || (isMyRequest && row.state === 3)) &&
+          !createdBySupervisor,
+        reject: row.state <= 6 && !createdBySupervisor
+      },
+      4: {
+        approve: hasPrevState,
+        edit: [3, 6].includes(row.state),
+        reject: row.state <= 6
+      },
+      5: {
+        approve: hasOTEnd && [3, 4].includes(row.state),
+        edit: [3, 4, 6].includes(row.state),
+        reject: [3, 4, 6].includes(row.state)
+      },
+      6: {
+        approve: hasPrevState,
+        edit: hasPrevState,
+        reject: [5, 6].includes(row.state)
+      },
+      7: {
+        approve: false,
+        edit: false,
+        reject: false
+      },
+      8: {
+        approve: hasPrevState,
+        edit: false,
+        reject: false
+      },
+      9: {
+        approve: false,
+        edit: false,
+        reject: false
+      },
+      10: {
+        approve: false,
+        edit: false,
+        reject: false
+      }
+    }
+
+    return dictionary[role]
   }
 
   const theme = useTheme()
@@ -266,18 +344,18 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Acciones',
       renderCell: params => {
         const { row } = params
-        const isPetitioner = role === 2 && row.state === role - 2
-        const hasPrevState = role !== 3 && row.state === role - 1
-        const isContop = role === 3 && row.contop === authUser.displayName && (row.state === 2 || row.state === 1)
-        const isContopEmergency = role === 3 && row.contop === authUser.displayName && row.state === 8 && row.emergencyApprovedBySupervisor === false
-        const isPlanner = role === 5 && (row.state === 3 || row.state === 4)
+        const permissionsData = permissions(row, role)
+        const canApprove = permissionsData.approve
+        const canEdit = permissionsData.edit
+        const canReject = permissionsData.reject
+
+        const approveWithChanges = role === 5 && row.state <= 4 && !canApprove
         const isRevisado = row.state > role
-        const canEdit = hasPrevState || isContop || isPlanner || isPetitioner || isContopEmergency
         const flexDirection = md ? 'row' : 'column'
 
         const renderButtons = (
           <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
-            {!isPlanner && (
+            {canApprove && (
               <Button
                 onClick={() => handleClickOpenAlert(row, true)}
                 variant='contained'
@@ -287,33 +365,32 @@ const TableBasic = ({ rows, role, roleData }) => {
                 <Check sx={{ fontSize: 18 }} />
               </Button>
             )}
-            {!isContopEmergency && (
-              <>
+            {canEdit && (
               <Button
-              onClick={() => handleClickOpen(row)}
-              variant='contained'
-              color={isPlanner ? 'success' : 'secondary'}
-              sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-            >
-              {isPlanner ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
-            </Button>
-            <Button
-              onClick={() => handleClickOpenAlert(row, false)}
-              variant='contained'
-              color='error'
-              sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-            >
-              <Clear sx={{ fontSize: 18 }} />
-            </Button>
-              </>
+                onClick={() => handleClickOpen(row)}
+                variant='contained'
+                color={approveWithChanges ? 'success' : 'secondary'}
+                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                {approveWithChanges ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
+              </Button>
             )}
-
+            {canReject && (
+              <Button
+                onClick={() => handleClickOpenAlert(row, false)}
+                variant='contained'
+                color='error'
+                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                <Clear sx={{ fontSize: 18 }} />
+              </Button>
+            )}
           </Container>
         )
 
         return (
           <>
-            {canEdit ? (
+            {(canApprove || canEdit || canReject) && row.state !== 0 ? (
               md ? (
                 renderButtons
               ) : (
@@ -334,6 +411,8 @@ const TableBasic = ({ rows, role, roleData }) => {
               )
             ) : isRevisado ? (
               'Revisado'
+            ) : row.state === 0 ? (
+              'Rechazado'
             ) : (
               'Pendiente de revisión'
             )}
@@ -342,12 +421,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     }
   ]
-
-  const isPetitioner = role === 2 && doc.state === role - 2
-  const hasPrevState = role !== 3 && doc.state === role - 1
-  const isContop = role === 3 && doc.contop === authUser.displayName && (doc.state === 2 || doc.state === 1)
-  const isPlanner = role === 5 && (doc.state === 3 || doc.state === 4)
-  const canEdit = hasPrevState || isContop || isPlanner || isPetitioner
 
   return (
     <Card>
@@ -387,11 +460,12 @@ const TableBasic = ({ rows, role, roleData }) => {
         ></AlertDialog>
         {open && (
           <FullScreenDialog
-            open={open}
+            open={Boolean(findCurrentDoc(rows), role)}
             handleClose={handleClose}
-            doc={doc}
+            doc={findCurrentDoc(rows)}
             roleData={roleData}
-            editButtonVisible={canEdit}
+            editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
+            canComment={[5,6,7].includes(authUser.role)}
           />
         )}
       </Box>

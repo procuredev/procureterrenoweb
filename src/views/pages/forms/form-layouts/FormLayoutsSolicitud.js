@@ -1,6 +1,6 @@
 import 'moment/locale/es'
 import moment from 'moment-timezone'
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
@@ -39,6 +39,7 @@ import {
   HeadingTypography,
   FileList
 } from 'src/@core/components/custom-form/index'
+import { set } from 'lodash'
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -81,27 +82,30 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [hasShownDialog, setHasShownDialog] = useState(false)
+  const [buttonDisabled, setButtonDisabled] = useState(false)
 
-const handleGPRSelected = () => {
-  const currentWeek = moment().isoWeek()
-  const startDate = moment(values.start)
-  const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
-  const weeksDifference = startDate.diff(currentDate, 'weeks')
+  const handleGPRSelected = () => {
+    const currentWeek = moment().isoWeek()
+    const startDate = moment(values.start)
+    const currentDate = moment().subtract(1, 'days') // se le disminuye un día para que el calculo de weeksDifference coincida con inTenWeeks
+    const weeksDifference = startDate.diff(currentDate, 'weeks')
 
-  const inTenWeeks = moment()
-    .locale('es')
-    .isoWeeks(currentWeek + 10)
-    .format('LL')
+    const inTenWeeks = moment()
+      .locale('es')
+      .isoWeeks(currentWeek + 10)
+      .format('LL')
 
-  if (weeksDifference < 10) {
-    setErrors(prevErrors => ({
-      ...prevErrors,
-      objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
-    }))
-  }}
+    if (weeksDifference < 10) {
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        objective: `El tipo de levantamiento "Análisis GPR" solo está disponible a partir del día ${inTenWeeks}`
+      }))
+    }
+  }
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot']
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'mcDescription']
     const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
@@ -138,10 +142,22 @@ const handleGPRSelected = () => {
       case autoFields.includes(prop): {
         newValue = prop === 'receiver' ? [...fixed, ...data.filter(option => fixed.indexOf(option) === -1)] : data
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-        if (prop === 'deliverable' && newValue.includes('Memoria de Cálculo')) {
-          setAlertMessage(
-            'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello.'
-          )
+        if (prop === 'deliverable') {
+          // Verificar si 'Memoria de Cálculo' se ha seleccionado
+          if (newValue.includes('Memoria de Cálculo')) {
+            if (!hasShownDialog) {
+              // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
+              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:')
+
+              // Actualizar el estado para indicar que el dialog ya se ha mostrado
+              setHasShownDialog(true)
+            }
+          } else {
+            // Si 'Memoria de Cálculo' se ha deseleccionado, restablecer hasShownDialog a false
+            if (hasShownDialog) {
+              setHasShownDialog(false)
+            }
+          }
         }
         break
       }
@@ -349,12 +365,19 @@ const handleGPRSelected = () => {
 
   const onSubmit = async event => {
     event.preventDefault()
+    setButtonDisabled(true)
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
     const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
+
+    // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
+    if (!values.deliverable.includes('Memoria de Cálculo')) {
+      values.mcDescription = '' // Restablecer mcDescription si 'Memoria de Cálculo' no está seleccionado
+    }
+
     if (
       Object.keys(formErrors).length === 0 &&
       areFieldsValid === true &&
@@ -370,27 +393,33 @@ const handleGPRSelected = () => {
             receiver: values.receiver.map(option => {
               const { disabled, ...rest } = option
 
-              return rest
+              return {
+                id: option.id,
+                name: option.name,
+                email: option.email,
+                phone: option.phone
+              }
             }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null
+            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
+            mcDescription: values.mcDescription ? values.mcDescription : null
+
           },
           authUser
         )
 
-        await uploadFilesToFirebaseStorage(files, solicitud.id)
-
-        // Luego de completar la carga, puedes ocultar el spinner
-        setIsUploading(false)
-
-        // Se envía el mensaje de éxito
-        setAlertMessage('Documento creado exitosamente')
-        handleRemoveAllFiles()
-        setValues(initialValues)
+        await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
+        setIsUploading(false),
+        setButtonDisabled(false),
+        handleRemoveAllFiles(),
+        setAlertMessage('Documento creado exitosamente'),
+        setValues(initialValues),
         setErrors({})
+      })
       } catch (error) {
         setAlertMessage(error.message)
         setIsUploading(false) // Se cierra el spinner en caso de error
+        setButtonDisabled(false)
       }
     } else {
       if (
@@ -402,6 +431,7 @@ const handleGPRSelected = () => {
       ) {
         setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
       }
+      setButtonDisabled(false)
       setIsUploading(false)
       setErrors(formErrors)
     }
@@ -536,9 +566,12 @@ const handleGPRSelected = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
 
+            {/* Datos exclusivos para cuando el Supervisor ingresa la Solicitud */}
             {authUser.role === 7 && (
               <>
+                {/* Número de OT Procure */}
                 <CustomTextField
+                  required
                   label='OT'
                   value={values.ot}
                   onChange={handleChange('ot')}
@@ -547,7 +580,9 @@ const handleGPRSelected = () => {
                   helper='Ingresa el número de OT.'
                 />
 
+                {/* Tipo de Urgencia */}
                 <CustomSelect
+                  required
                   options={['Urgencia', 'Emergencia', 'Oportunidad']}
                   label='Tipo de urgencia'
                   value={values.urgency}
@@ -559,6 +594,7 @@ const handleGPRSelected = () => {
               </>
             )}
 
+            {/* Título */}
             <CustomTextField
               required
               type='text'
@@ -566,10 +602,11 @@ const handleGPRSelected = () => {
               value={values.title}
               onChange={handleChange('title')}
               error={errors.title}
-              inputProps={{ maxLength: 100 }}
+              inputProps={{ maxLength: 150 }}
               helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
             />
 
+            {/* Descripción */}
             <CustomTextField
               required
               type='text'
@@ -577,7 +614,7 @@ const handleGPRSelected = () => {
               value={values.description}
               onChange={handleChange('description')}
               error={errors.description}
-              inputProps={{ maxLength: 500 }}
+              inputProps={{ maxLength: 1500 }}
               helper='Rellena este campo con toda la información que consideres importante para que podamos ejecutar de mejor manera el levantamiento.'
             />
 
@@ -590,7 +627,7 @@ const handleGPRSelected = () => {
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
-                      label='Fecha de inicio'
+                      label='Fecha de inicio *'
                       value={values.start}
                       onChange={date => handleChange('start')(date)}
                       InputLabelProps={{ shrink: true, required: true }}
@@ -619,7 +656,7 @@ const handleGPRSelected = () => {
                         dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                         minDate={moment().subtract(1, 'year')}
                         maxDate={moment().add(1, 'year')}
-                        label='Fecha de término'
+                        label='Fecha de término *'
                         value={values.end}
                         onChange={date => handleChange('end')(date)}
                         InputLabelProps={{ shrink: true, required: true }}
@@ -639,7 +676,9 @@ const handleGPRSelected = () => {
               </Grid>
             )}
 
+            {/* Planta */}
             <CustomSelect
+            required
               options={
                 authUser.role === 7 ||
                 (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
@@ -658,7 +697,9 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Área */}
             <CustomSelect
+            required
               options={areas}
               label='Área'
               value={values.area}
@@ -679,7 +720,9 @@ const handleGPRSelected = () => {
               </Typography>
             </Grid>
 
+            {/* Contract Operator */}
             <CustomSelect
+              required
               options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
               label='Contract Operator'
               value={values.contop}
@@ -690,6 +733,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Functional Location */}
             <CustomTextField
               type='text'
               label='Functional Location'
@@ -700,6 +744,7 @@ const handleGPRSelected = () => {
               helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
             />
 
+            {/* TAG */}
             <CustomTextField
               type='text'
               label='TAG'
@@ -710,7 +755,9 @@ const handleGPRSelected = () => {
               helper='Ingresa el código TAG para identificar el equipo.'
             />
 
+            {/* Solicitante */}
             <CustomSelect
+            required
               options={
                 (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
                   ? petitioners.map(item => ({ name: item.name }))
@@ -727,6 +774,7 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Contraturno */}
             <CustomSelect
               options={
                 (authUser.role === 7 || authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
@@ -742,7 +790,9 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Estado Operacional */}
             <CustomSelect
+              required
               options={['Normal', 'Outage', 'Shutdown']}
               label='Estado Operacional Planta'
               value={values.type}
@@ -752,7 +802,9 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Máquina Detenida */}
             <CustomSelect
+              required
               options={['Sí', 'No', 'No aplica']}
               label='¿Estará la máquina detenida?'
               value={values.detention}
@@ -762,8 +814,8 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* SAP */}
             <CustomTextField
-              required
               type='text'
               label='Número SAP'
               value={values.sap}
@@ -774,7 +826,9 @@ const handleGPRSelected = () => {
               helper='Rellena este campo sólo si conoces el número SAP'
             />
 
+            {/* Tipo de Levantamiento */}
             <CustomSelect
+              required
               options={[
                 'Análisis fotogramétrico',
                 'Análisis GPR',
@@ -791,14 +845,17 @@ const handleGPRSelected = () => {
               defaultValue=''
             />
 
+            {/* Entregables */}
             <CustomAutocomplete
+              required
               options={[
                 'Sketch',
                 'Plano de Fabricación',
                 'Plano de Diseño',
                 'Memoria de Cálculo',
                 'Informe',
-                'Nube de Puntos'
+                'Nube de Puntos',
+                'Ortofotografía'
               ]}
               label='Entregables del levantamiento'
               value={values.deliverable}
@@ -807,7 +864,25 @@ const handleGPRSelected = () => {
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
             />
 
+            {values.deliverable.includes('Memoria de Cálculo') && (
+              <>
+                {/* Descripción */}
+                <CustomTextField
+                  required
+                  type='text'
+                  label='Descripción Memoria de Cálculo'
+                  value={values.mcDescription}
+                  onChange={handleChange('mcDescription')}
+                  error={errors.mcDescription}
+                  inputProps={{ maxLength: 1000 }}
+                  helper='Ingresa acá una explicación lo más adecuado posible del porqué necesitas una Memoria de Cálculo. Con esto Procure podrá generar un presupuesto acertado.'
+                />
+              </>
+            )}
+
+            {/* Destinatarios */}
             <CustomAutocomplete
+              required
               isOptionEqualToValue={(option, value) => (option.name === value.name)}
               options={allUsers}
               label='Destinatarios'
@@ -870,7 +945,7 @@ const handleGPRSelected = () => {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button type='submit' variant='contained' size='large'>
+                <Button type='submit' variant='contained' size='large' disabled={!!buttonDisabled}>
                   Enviar Solicitud
                 </Button>
                 {isUploading && (

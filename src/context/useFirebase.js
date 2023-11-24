@@ -22,7 +22,8 @@ import {
   newDoc,
   updateDocs,
   updateUserPhone,
-  blockDayInDatabase
+  blockDayInDatabase,
+  addComment,
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -96,7 +97,8 @@ const FirebaseContextProvider = props => {
     consultDocs,
     consultObjetives,
     getUsersWithSolicitudes,
-    signGoogle
+    signGoogle,
+    addComment,
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
