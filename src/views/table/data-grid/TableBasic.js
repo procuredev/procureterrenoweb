@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
-
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
@@ -211,6 +210,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -220,6 +221,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'start',
       headerName: 'Inicio',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -229,6 +232,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'end',
       headerName: 'Entrega',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -239,6 +244,8 @@ const TableBasic = ({ rows, role, roleData }) => {
       field: 'supervisorShift',
       maxWidth: 80,
       headerName: 'Turno',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -250,6 +257,8 @@ const TableBasic = ({ rows, role, roleData }) => {
 
       maxWidth: 60,
       headerName: 'OT',
+      flex: 0.3,
+      minWidth: 50,
       renderCell: params => {
         const { row } = params
 
@@ -263,6 +272,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       minWidth: 150
     },
     {
+      flex: 0.3,
       minWidth: md ? 190 : 100,
       field: 'actions',
       headerName: 'Acciones',
