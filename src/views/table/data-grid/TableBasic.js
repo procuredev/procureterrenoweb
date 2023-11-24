@@ -204,7 +204,28 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   };
 
+  const saveColumnWidthsLocalStorage = (columnWidths) => {
+    const columnWidthsString = JSON.stringify(columnWidths);
+    localStorage.setItem('columnWidths', columnWidthsString);
+  };
+
+  const getColumnWidths = () => {
+    const columnWidths = {};
+    const columns = document.querySelectorAll('.MuiDataGrid-columnHeader');
+    columns.forEach((column) => {
+      const index = column.attributes[3].nodeValue;
+      const width = column.getBoundingClientRect().width;
+      columnWidths[index] = width;
+    });
+
+    return columnWidths;
+  };
+
   const handleMouseUp = (event) => {
+    if (isResizing.current >= 0) {
+      const columnWidths = getColumnWidths();
+      saveColumnWidthsLocalStorage(columnWidths);
+    }
     isResizing.current = -1;
     separatorRef.current = null;
     setCursorDocument(false);
@@ -235,7 +256,6 @@ const TableBasic = ({ rows, role, roleData }) => {
   }, [loading]);
 
   useEffect(() => {
-    // loadColumnInfoLocalStorage();
     document.onmousemove = handleMouseMove
     document.onmouseup = handleMouseUp
 
