@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useFirebase } from 'src/context/useFirebase'
@@ -28,16 +28,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
-  const isResizing = useRef(-1);
-  const separatorRef = useRef(null);
-
-  useEffect(() => {
-    if (rows) {
-      setLoading(false)
-    }
-  }, [rows])
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -146,7 +137,6 @@ const TableBasic = ({ rows, role, roleData }) => {
   const md = useMediaQuery(theme.breakpoints.up('md'))
   const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
-
   useEffect(() => {
     // Busca el documento actualizado en rows
     const updatedDoc = rows.find(row => row.id === doc.id)
@@ -157,88 +147,12 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
-  const DEFAULT_MIN_WIDTH_CELL = 70;
-  const DEFAULT_MAX_WIDTH_CELL = 800;
-
-  const adjustWidthColumn = (index, width) => {
-    const minWidth = DEFAULT_MIN_WIDTH_CELL;
-    const maxWidth = DEFAULT_MAX_WIDTH_CELL;
-
-    let newWidth =
-      width > maxWidth ? maxWidth : width < minWidth ? minWidth : width;
-
-      // Selecciona todos los elementos de la columna
-      const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`);
-
-      // Itera sobre los elementos y ajusta su estilo
-      columnElements.forEach((element) => {
-        element.style.maxWidth = "none";
-        element.style.minWidth = "none";
-        element.style.width = newWidth + 'px';
-      });
-
-  }
-
-  const handleMiDivClick = (event) => {
-    separatorRef.current = event.srcElement.parentElement.parentNode.parentElement
-    const index = event.srcElement.parentElement.parentNode.parentElement.attributes[3] ? event.srcElement.parentElement.parentNode.parentElement.attributes[3].nodeValue : 0
-    isResizing.current = index;
-    setCursorDocument(true);
-  };
-
-  const handleMouseMove = (event) => {
-    if (isResizing.current >= 0) {
-      const width =  event.clientX - separatorRef.current.getBoundingClientRect().left;
-      adjustWidthColumn(isResizing.current, width);
-    }
-
-  };
-
-  const handleMouseUp = (event) => {
-    isResizing.current = -1;
-    separatorRef.current = null;
-    setCursorDocument(false);
-  };
-
-  const setCursorDocument = (isResizing) => {
-    document.body.style.cursor = isResizing ? "col-resize" : "auto";
-  };
-
-  useEffect(() => {
-    if (!loading) {
-      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator path')
-
-      if (miDivs) {
-        miDivs.forEach((div) => {
-          div.addEventListener('mousedown', handleMiDivClick);
-        });
-      }
-    }
-
-
-    return () => {
-      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator path');
-      miDivs.forEach((div) => {
-        div.removeEventListener('click', handleMiDivClick);
-      });}
-
-  }, [loading]);
-
-  useEffect(() => {
-    // loadColumnInfoLocalStorage();
-    document.onmousemove = handleMouseMove
-    document.onmouseup = handleMouseUp
-
-    return () => {
-      document.onmousemove = null;
-      document.onmouseup = null;
-    };
-  }, []);
-
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
+      flex: 0.8,
+      minWidth: 220,
       renderCell: params => {
         const { row } = params
 
@@ -275,6 +189,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
+      minWidth: 120,
+      flex: 0.4,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -292,6 +208,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -301,6 +219,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'start',
       headerName: 'Inicio',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -310,6 +230,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'end',
       headerName: 'Entrega',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -319,6 +241,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'supervisorShift',
       headerName: 'Turno',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -328,6 +252,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'ot',
       headerName: 'OT',
+      flex: 0.3,
+      minWidth: 50,
       renderCell: params => {
         const { row } = params
 
@@ -337,8 +263,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'user',
       headerName: 'Autor',
+      flex: 0.6,
+      minWidth: 120
     },
     {
+      flex: 0.3,
       minWidth: md ? 190 : 100,
       field: 'actions',
       headerName: 'Acciones',
@@ -426,15 +355,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid
-          disableColumnMenu
-          disableColumnSelector
-          disableRowSelectionOnClick
-          disableColumnFilter
-          sx={{
-            '.MuiDataGrid-iconSeparator': {
-              '& path:hover': { cursor: 'col-resize', strokeWidth: '3px', stroke: theme.palette.divider },
-            }
-          }}
+          disableColumnMenu //disable built-in mui filters
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
