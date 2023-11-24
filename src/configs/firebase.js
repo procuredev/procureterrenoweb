@@ -34,7 +34,7 @@ const firebaseConfigDevelopment = {
 let firebaseConfig
 
 if (typeof window !== 'undefined') {
-  if (window.location.hostname === 'procureterrenoweb.vercel.app') {
+  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
     firebaseConfig = firebaseConfigProduction;
   } else {
     firebaseConfig = firebaseConfigDevelopment
