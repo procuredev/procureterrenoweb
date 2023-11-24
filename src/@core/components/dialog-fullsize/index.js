@@ -306,7 +306,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       await updateDocs(id, newData, authUser)
       .then(() => {
         setLoading(false)})
-        handleCloseAlert()
         .catch(error => {
           setLoading(false)
           alert(error), console.log(error)
