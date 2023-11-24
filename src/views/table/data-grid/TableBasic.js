@@ -1,44 +1,28 @@
 import * as React from 'react'
-import { useState, useEffect, useRef } from 'react'
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { useFirebase } from 'src/context/useFirebase'
+import { useState, useEffect } from 'react'
+
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
+import { useFirebase } from 'src/context/useFirebase'
+// import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
-// ** MUI Imports
-import Fade from '@mui/material/Fade'
-import Tooltip from '@mui/material/Tooltip'
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import Select from '@mui/material/Select'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
+import { DataGrid, esES } from '@mui/x-data-grid'
+import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
+import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
+
 import CustomChip from 'src/@core/components/mui/chip'
-import { Typography, IconButton } from '@mui/material'
-import { Button } from '@mui/material'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import { DataGridPro, esES } from '@mui/x-data-grid-pro'
-import { DataGrid } from '@mui/x-data-grid'
-import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
-import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
-import { Check, Clear, Edit } from '@mui/icons-material'
 
 const TableBasic = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
-  const isResizing = useRef(-1)
-  const separatorRef = useRef(null)
-
-  useEffect(() => {
-    if (rows) {
-      setLoading(false)
-    }
-  }, [rows])
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -71,6 +55,11 @@ const TableBasic = ({ rows, role, roleData }) => {
         alert(error), console.log(error)
       })
   }
+
+  // const writeCallback = () => {
+  //   updateDocs(doc.id, approve, authUser)
+  //   setOpenAlert(false)
+  // }
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
@@ -116,14 +105,14 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: row.state <= 6
       },
       5: {
-        approve: hasOTEnd && [3, 4].includes(row.state),
-        edit: [3, 4, 6].includes(row.state),
-        reject: [3, 4, 6].includes(row.state)
+        approve: hasOTEnd && [3, 4].includes(row.state) && !createdBySupervisor,
+        edit: [3, 4, 6].includes(row.state) && !createdBySupervisor,
+        reject: [3, 4, 6].includes(row.state) && !createdBySupervisor
       },
       6: {
-        approve: hasPrevState,
-        edit: hasPrevState,
-        reject: [5, 6].includes(row.state)
+        approve: hasPrevState && !createdBySupervisor,
+        edit: hasPrevState && !createdBySupervisor,
+        reject: [5, 6].includes(row.state) && !createdBySupervisor
       },
       7: {
         approve: false,
@@ -165,89 +154,12 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
-  const DEFAULT_MIN_WIDTH_CELL = 70
-  const DEFAULT_MAX_WIDTH_CELL = 800
-
-  const adjustWidthColumn = (index, width) => {
-    const minWidth = DEFAULT_MIN_WIDTH_CELL
-    const maxWidth = DEFAULT_MAX_WIDTH_CELL
-
-    let newWidth = width > maxWidth ? maxWidth : width < minWidth ? minWidth : width
-
-    // Selecciona todos los elementos con colindex=2
-    const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`)
-
-    // Itera sobre los elementos y ajusta su estilo
-    columnElements.forEach(element => {
-      element.style.maxWidth = 'none'
-      element.style.minWidth = 'none'
-      element.style.width = newWidth + 'px'
-    })
-  }
-
-  const handleMiDivClick = event => {
-    separatorRef.current = event.srcElement.parentElement
-
-    const index = event.srcElement.parentNode.parentElement.attributes[3]
-      ? event.srcElement.parentNode.parentElement.attributes[3].nodeValue
-      : 0
-    separatorRef.current = event.srcElement.parentElement
-    isResizing.current = index
-    setCursorDocument(true)
-  }
-
-  const handleMouseMove = event => {
-    if (isResizing.current >= 0) {
-      const width = event.clientX - separatorRef.current.getBoundingClientRect().left
-      adjustWidthColumn(isResizing.current, width)
-    }
-  }
-
-  const handleMouseUp = event => {
-    isResizing.current = -1
-    separatorRef.current = null
-    setCursorDocument(false)
-  }
-
-  const setCursorDocument = isResizing => {
-    document.body.style.cursor = isResizing ? 'col-resize' : 'auto'
-  }
-
-  useEffect(() => {
-    if (!loading) {
-      // Selecciona todos los divs con la clase 'MuiDataGrid-columnSeparator' y agrega event listeners
-      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator')
-
-      if (miDivs) {
-        miDivs.forEach(div => {
-          div.addEventListener('mousedown', handleMiDivClick)
-        })
-      }
-    }
-
-    return () => {
-      const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator')
-      miDivs.forEach(div => {
-        div.removeEventListener('click', handleMiDivClick)
-      })
-    }
-  }, [loading])
-
-  useEffect(() => {
-    // loadColumnInfoLocalStorage();
-    document.onmousemove = handleMouseMove
-    document.onmouseup = handleMouseUp
-
-    return () => {
-      document.onmousemove = null
-      document.onmouseup = null
-    }
-  }, [])
-
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
+      flex: 0.8,
+      minWidth: 200,
       renderCell: params => {
         const { row } = params
 
@@ -284,6 +196,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
+      flex: 0.8,
+      minWidth: 100,
+      maxWidth: 200,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -301,6 +216,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -310,6 +227,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'start',
       headerName: 'Inicio',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -318,7 +237,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'end',
-      headerName: 'Entrega',
+      headerName: 'Término',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -327,7 +248,10 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'supervisorShift',
+      maxWidth: 80,
       headerName: 'Turno',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -336,7 +260,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'ot',
+
+      maxWidth: 60,
       headerName: 'OT',
+      flex: 0.3,
+      minWidth: 50,
       renderCell: params => {
         const { row } = params
 
@@ -345,9 +273,12 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'user',
-      headerName: 'Autor'
+      headerName: 'Autor',
+      flex: 0.5,
+      minWidth: 150
     },
     {
+      flex: 0.3,
       minWidth: md ? 190 : 100,
       field: 'actions',
       headerName: 'Acciones',
@@ -435,11 +366,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid
-          disableColumnMenu
-          disableColumnSelector
-          disableRowSelectionOnClick
-          disableColumnFilter
-          sx={{ '.MuiDataGrid-columnSeparator:hover': { cursor: 'col-resize' } }}
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
@@ -449,8 +375,6 @@ const TableBasic = ({ rows, role, roleData }) => {
           rows={rows}
           columns={columns}
           columnVisibilityModel={{
-            ot: md,
-            user: md,
             end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
             supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
             actions: roleData.canApprove
@@ -462,6 +386,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           handleClose={handleCloseAlert}
           callback={writeCallback}
           approves={approve}
+          loading={loading}
         ></AlertDialog>
         {open && (
           <FullScreenDialog
