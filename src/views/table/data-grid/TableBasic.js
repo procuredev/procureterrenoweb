@@ -232,7 +232,6 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const columns = [
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[1] }},
       field: 'title',
       headerName: 'Solicitud',
       renderCell: params => {
@@ -269,7 +268,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[2] }},
       field: 'state',
       headerName: 'Estado',
       renderCell: params => {
@@ -287,7 +285,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[3] }},
       field: 'date',
       headerName: 'Creación',
       renderCell: params => {
@@ -297,7 +294,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[4] }},
       field: 'start',
       headerName: 'Inicio',
       renderCell: params => {
@@ -307,7 +303,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[5] }},
       field: 'end',
       headerName: 'Entrega',
       renderCell: params => {
@@ -317,7 +312,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[6] }},
       field: 'supervisorShift',
       headerName: 'Turno',
       renderCell: params => {
@@ -327,7 +321,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[7] }},
       field: 'ot',
       headerName: 'OT',
       renderCell: params => {
@@ -337,13 +330,11 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[8] }},
       field: 'user',
       headerName: 'Autor'
     },
     {
       minWidth: md ? 190 : 100,
-      ...{...localStorage.getItem('columnWidths') && { width: JSON.parse(localStorage.getItem('columnWidths'))[9] }},
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
