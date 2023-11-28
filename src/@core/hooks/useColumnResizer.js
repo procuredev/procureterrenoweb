@@ -116,12 +116,6 @@ useEffect(() => {
   const columnWidths = JSON.parse(columnWidthsString);
   if (columnWidths) {
     setMinWidths(columnWidths);
-  } else {
-    setMinWidths({...minWidths,
-      '.colIndex-1': {minWidth: '200px !important'},
-      '.colIndex-7': {minWidth: '70px !important'}
-    }
-      )
   }
 }, []);
 
