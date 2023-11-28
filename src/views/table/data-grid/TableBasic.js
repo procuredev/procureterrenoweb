@@ -5,6 +5,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { useFirebase } from 'src/context/useFirebase'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
+import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
 // ** MUI Imports
 import Fade from '@mui/material/Fade'
