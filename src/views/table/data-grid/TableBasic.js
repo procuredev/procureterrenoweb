@@ -1,28 +1,20 @@
 import * as React from 'react'
-import { useState, useEffect, useRef } from 'react'
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { useFirebase } from 'src/context/useFirebase'
+import { useState, useEffect } from 'react'
+
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
+import { useFirebase } from 'src/context/useFirebase'
 import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
-// ** MUI Imports
-import Fade from '@mui/material/Fade'
-import Tooltip from '@mui/material/Tooltip'
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import Select from '@mui/material/Select'
-import CustomChip from 'src/@core/components/mui/chip'
-import { Typography, IconButton } from '@mui/material'
-import { Button } from '@mui/material'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
-import { Container } from '@mui/system'
+import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
+import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
+
+import CustomChip from 'src/@core/components/mui/chip'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
-import { Check, Clear, Edit } from '@mui/icons-material'
 
 const TableBasic = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
@@ -32,7 +24,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
 
-  const minWidths = useColumnResizer(loading)
+  const resizedColumnWidths = useColumnResizer(loading)
 
   useEffect(() => {
     if (rows) {
@@ -386,7 +378,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             '.MuiDataGrid-iconSeparator': {
               '& path:hover': { cursor: 'col-resize', strokeWidth: '3px', stroke: theme.palette.divider },
             },
-            ...{...minWidths},
+            ...{...resizedColumnWidths},
         }}
           initialState={{
             sorting: {
