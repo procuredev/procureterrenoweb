@@ -700,9 +700,10 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, devol
   const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, devolutionRemarks);
 
   // Comprueba varias condiciones sobre el plano
-  const isRevisionStarted = blueprint.revision !== 'iniciado';
+  const revisionIsNotStarted = blueprint.revision !== 'iniciado';
+  const isRevisionAtLeastA = blueprint.revision.charCodeAt(0) >= 65;
   const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66;
-  const isNotApprovedByAdminOrSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor;
+  const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor;
   const isApprovedByClient = blueprint.approvedByClient;
 
   // Inicializa los datos que se van a actualizar
@@ -734,17 +735,19 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, devol
       sentByDesigner: approves,
       approvedBySupervisor : approves && blueprint.revision === 'iniciado',
     }),
-    9: () => isRevisionStarted && isRevisionAtLeastB && (isNotApprovedByAdminOrSupervisor || isApprovedByClient) ? {
+    9: () => revisionIsNotStarted && isRevisionAtLeastB && isNotApprovedByAdminAndSupervisor ? {
       ...updateData,
       approvedByClient : approves,
       approvedByDocumentaryControl : approves,
-      storageBlueprints : null,
+      storageBlueprints : !isApprovedByClient && approves ? blueprint.storageBlueprints : null,
+      canUpdateTo0 : isApprovedByClient? true : false,
+      sentByDesigner : approves && !isApprovedByClient? true : false,
     }
     : {
       ...updateData,
       approvedByDocumentaryControl : approves,
-      sentByDesigner : approves && blueprint.revision !== 'iniciado' && blueprint.revision.charCodeAt(0) >= 65,
-      storageBlueprints : approves && blueprint.revision !== 'iniciado' && blueprint.revision.charCodeAt(0) >= 65 ? blueprint.storageBlueprints : null,
+      sentByDesigner : approves && revisionIsNotStarted && isRevisionAtLeastA,
+      storageBlueprints : approves && revisionIsNotStarted && isRevisionAtLeastA ? blueprint.storageBlueprints : null,
     }
   };
 

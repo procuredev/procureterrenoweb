@@ -570,6 +570,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {renderButtons}
                   </Select>
                 )
+              ) : row.approvedByClient === true && row.sentByDesigner || row.revision === '0' ? (
+                'Aprobado'
               ) : row.sentByDesigner === true ||
                 (row.sentByDesigner === true &&
                   (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)) ? (
@@ -580,9 +582,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   row.sentByDesigner === false &&
                   row.approvedByDocumentaryControl === false) ? (
                 'Rechazado'
-              ) : row.approvedByClient === true || row.revision === '0' ? (
-                'Aprobado'
-              ) : (
+              ) : row.canUpdateTo0 ? 'Revisión 0'  : (
                 'No enviado'
               )}
               <RevisionComponent row={row} field={'devolutionRemarks'} />
@@ -602,10 +602,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             const { row } = params
 
             const canApprove =
-              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
+              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66 && !row.approvedByClient
 
-              const canReject =
-              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66
+            const canReject =
+              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66 && !row.approvedByClient
+
+            const canUpdate =
+              role === 9 && row.approvedByDocumentaryControl && row.approvedByClient && row.revision.charCodeAt(0) >= 66 && row.canUpdateTo0 === false
 
             const flexDirection = md ? 'row' : 'column'
 
@@ -668,7 +671,42 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                         {renderButtons}
                       </Select>
                     )
-                  ) : (
+                  ) : canUpdate ? ( md  ?
+                    (<Button
+                      onClick={() => handleClickOpenAlert(row, true)}
+                      variant='contained'
+                      color='warning'
+                      sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                    >
+                    <CheckCircleOutline sx={{ fontSize: 18 }} />
+                    </Button>) : (
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    size='small'
+                    IconComponent={() => <MoreHorizIcon />}
+                    sx={{
+                      '& .MuiSvgIcon-root': {
+                        position: 'absolute',
+                        margin: '20%',
+                        pointerEvents: 'none !important'
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                    }}
+                  >
+                    <Button
+                      onClick={() => handleClickOpenAlert(row, true)}
+                      variant='contained'
+                      color='warning'
+                      sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                    >
+                      <CheckCircleOutline sx={{ fontSize: 18 }} />
+                    </Button>
+                  </Select>
+                  )
+                    ) : (
                     ''
                   )}
                 </Box>
