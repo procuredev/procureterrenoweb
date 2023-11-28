@@ -29,7 +29,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(true)
-  const [minWidths, setMinWidths] = useState('100px !important')
+  const [minWidths, setMinWidths] = useState({})
   const { updateDocs, authUser } = useFirebase()
 
   const isResizing = useRef(-1);
@@ -39,9 +39,21 @@ const TableBasic = ({ rows, role, roleData }) => {
     const columnWidthsString = localStorage.getItem('columnWidths');
     const columnWidths = JSON.parse(columnWidthsString);
     if (columnWidths) {
+      console.log('from local storage')
       setMinWidths(columnWidths);
+    } else {
+      console.log('from default')
+      setMinWidths({...minWidths,
+        '.colIndex-1': {minWidth: '200px !important'},
+        '.colIndex-7': {minWidth: '70px !important'}
+      }
+        )
     }
   }, []);
+
+  useEffect(() => {
+    console.log(minWidths)
+  }, [minWidths])
 
   useEffect(() => {
     if (rows) {
@@ -196,7 +208,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         element.style.minWidth = "none";
         element.style.width = newWidth + 'px';
       });
-
+      console.log('adjustWidthColumn')
       setMinWidths({...minWidths, [`.colIndex-${index}`]: {minWidth: `${newWidth}px !important`}})
 
   }
@@ -222,6 +234,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   };
 
   const getColumnWidths = () => {
+    console.log('getColumnWidths')
     const columnWidths = {};
     const columns = document.querySelectorAll('.MuiDataGrid-columnHeader');
     columns.forEach((column) => {
@@ -236,6 +249,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const handleMouseUp = (event) => {
     if (isResizing.current >= 0) {
       const columnWidths = getColumnWidths();
+      console.log('handleMouseUp')
       setMinWidths(columnWidths);
       saveColumnWidthsLocalStorage(columnWidths);
     }
@@ -496,10 +510,6 @@ const TableBasic = ({ rows, role, roleData }) => {
               '& path:hover': { cursor: 'col-resize', strokeWidth: '3px', stroke: theme.palette.divider },
             },
             ...{...minWidths},
-
-          /* '.MuiDataGrid-cell': {
-            minWidth: minWidths[1],
-          } */
         }}
           initialState={{
             sorting: {
