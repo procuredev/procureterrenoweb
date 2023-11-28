@@ -24,7 +24,12 @@ const useColumnResizer = (loading) => {
       element.style.width = newWidth + 'px';
     });
 
-    setMinWidths({...minWidths, [`.colIndex-${index}`]: {minWidth: `${newWidth}px !important`}});
+    setMinWidths((prevMinWidths) => {
+      return {
+        ...prevMinWidths,
+        [`.colIndex-${index}`]: { minWidth: `${newWidth}px !important` },
+      };
+    });
 
 
   return adjustWidthColumn;
@@ -52,7 +57,6 @@ const saveColumnWidthsLocalStorage = (columnWidths) => {
 };
 
 const getColumnWidths = () => {
-  console.log('getColumnWidths')
   const columnWidths = {};
   const columns = document.querySelectorAll('.MuiDataGrid-columnHeader');
   columns.forEach((column) => {
@@ -67,8 +71,6 @@ const getColumnWidths = () => {
 const handleMouseUp = (event) => {
   if (isResizing.current >= 0) {
     const columnWidths = getColumnWidths();
-    console.log('handleMouseUp')
-    setMinWidths(columnWidths);
     saveColumnWidthsLocalStorage(columnWidths);
   }
   isResizing.current = -1;
@@ -90,7 +92,6 @@ useEffect(() => {
       });
     }
   }
-
 
   return () => {
     const miDivs = document.querySelectorAll('.MuiDataGrid-columnSeparator path');
@@ -114,10 +115,8 @@ useEffect(() => {
   const columnWidthsString = localStorage.getItem('columnWidths');
   const columnWidths = JSON.parse(columnWidthsString);
   if (columnWidths) {
-    console.log('from local storage')
     setMinWidths(columnWidths);
   } else {
-    console.log('from default')
     setMinWidths({...minWidths,
       '.colIndex-1': {minWidth: '200px !important'},
       '.colIndex-7': {minWidth: '70px !important'}
