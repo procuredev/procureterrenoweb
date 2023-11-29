@@ -242,34 +242,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             if (field === 'storageBlueprints') {
 
               if (fieldContent) {
-                /* return (
-                  <Link
-                    href={fieldContent}
-                    target='_blank'
-                    rel='noreferrer'
-                    variant='body1'
-                    noWrap
-                    sx={{
-                      mt: 4,
-                      textOverflow: 'clip',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      marginBlockStart: '1em',
-                      marginBlockEnd: '1em',
-                      marginInlineStart: 0,
-                      marginInlineEnd: 0
-                    }}
-                    key={revision.id}
-                    color='inherit'
-                    underline='always'
-                  >
-                    <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
-                      Archivo
-                      <AttachFile sx={{ ml: 1 }} />
-                    </Box>
-                  </Link>
-                ) */
-
                 return fieldContent.map((content, index) => {
                   // Divide la URL en segmentos separados por '%2F'
                   const urlSegments = content.split('%2F');
