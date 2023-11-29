@@ -18,6 +18,7 @@ const useColumnResizer = (loading) => {
 
     const columnElements = document.querySelectorAll(`[aria-colindex="${index}"]`);
 
+    if (width < maxWidth && width > minWidth) {
     columnElements.forEach((element) => {
       element.style.maxWidth = "none";
       element.style.minWidth = "none";
@@ -30,6 +31,7 @@ const useColumnResizer = (loading) => {
         [`.colIndex-${index}`]: { minWidth: `${newWidth}px !important` },
       };
     });
+  }
 
 
   return adjustWidthColumn;
