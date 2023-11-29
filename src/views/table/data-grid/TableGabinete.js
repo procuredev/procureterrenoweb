@@ -308,9 +308,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'title',
+      minWidth: 200,
       headerName: 'Código Procure',
-      flex: 0.32,
-      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
@@ -365,8 +364,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientCode',
       headerName: 'Código MEL',
-      flex: 0.5,
-      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
@@ -397,8 +394,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      flex: 0.1,
-      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
@@ -415,8 +410,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      minWidth: 120,
-      flex: 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -433,8 +426,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex: 0.4,
-      minWidth: 120,
       //editable: true,
       renderCell: params => {
         const { row } = params
@@ -472,8 +463,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'start',
       headerName: 'ENTREGABLE',
-      flex: 0.3,
-      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
@@ -510,8 +499,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: 0.1,
-      minWidth: 120,
       renderCell: params => {
         const { row } = params
 
@@ -528,8 +515,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      flex: 0.1,
-      minWidth: 120,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -618,8 +603,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       ? {
           field: 'clientAprove',
           headerName: 'Cliente',
-          flex: 0.1,
-          minWidth: 120,
 
           renderCell: params => {
             const { row } = params
