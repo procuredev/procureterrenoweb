@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 
-const useColumnResizer = (loading) => {
+const useColumnResizer = (loading, initialValues={}) => {
 
-  const [minWidths, setMinWidths] = useState({})
+  const [minWidths, setMinWidths] = useState(initialValues)
   const isResizing = useRef(-1);
   const separatorRef = useRef(null);
 
