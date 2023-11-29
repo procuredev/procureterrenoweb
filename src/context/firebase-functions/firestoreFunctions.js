@@ -215,22 +215,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
   if (changedFields && Object.keys(changedFields).length > 0) {
     const { email, displayName } = userParam
 
-    let newEvent = {}
-
-    if (changedFields.designerReview && changedFields.designerReview.length > 0) {
-      // 1. Obtener el documento actual desde Firestore
-      const currentDocSnapshot = await getDoc(ref)
-      if (currentDocSnapshot.exists()) {
-        const currentDocData = currentDocSnapshot.data()
-        // 2. Combinar el designerReview actual con el nuevo designerReview
-        const combinedDesignerReview = [...(currentDocData.designerReview || []), ...changedFields.designerReview]
-        // Actualizar changedFields con el designerReview combinado
-        changedFields.designerReview = combinedDesignerReview
-      }
-
-      await updateDoc(ref, changedFields)
-    } else {
-      newEvent = {
+    let newEvent = {
         prevState,
         newState: changedFields.state,
         user: email,
@@ -241,7 +226,6 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       await updateDoc(ref, changedFields)
       await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
       await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
-    }
   } else {
     console.log('No se escribió ningún documento')
   }

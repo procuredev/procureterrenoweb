@@ -41,6 +41,13 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
 
+  useEffect(() => {
+    if (doc && doc.designerReview && doc.designerReview.length > 0) {
+      setDesignerReviewState(doc.designerReview);
+      console.log(doc.designerReview)
+    }
+  }, [doc]);
+
   const filterOptions = (options) => {
 
     // Convierte las opciones seleccionadas y las existentes en doc.designerReview en arrays de nombres
@@ -81,16 +88,27 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
   }
 
   const onsubmit = id => {
-    if (designerReviewState.length > 0) {
-      const designerReview = designerReviewState.map(item => ({
-        ...item,
-        allocationTime: new Date().getTime()
-      }));
+    //si tiene allocation time es porque esta en el doc
+    //si no tiene allocation time es porque es nuevo
+
+    //si está en el doc y no está en el state, lo borramos
+    //si está en el state y no está en el doc, lo agregamos
+    //si está en ambos, dejamos el que está en el doc
+    const designerReview = designerReviewState.map(designer => {
+      const designerInDoc = doc.designerReview?.find(item => item.userId === designer.userId)
+      if (designerInDoc) {
+        return designerInDoc
+      } else {
+        designer.allocationTime = new Date().getTime()
+
+        return designer
+      }
+    })
+    console.log(designerReview)
       updateDocs(id, {designerReview}, authUser)
       setDesignerReviewState([])
       setDesignerAssigned(true)
       handleClose()
-    }
   }
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
@@ -215,7 +233,7 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
-            Asignar Proyectistas
+            Guardar Proyectistas
           </Button>
         </Box>
       </DialogContent>

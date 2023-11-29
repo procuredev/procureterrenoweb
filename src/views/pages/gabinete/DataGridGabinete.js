@@ -195,7 +195,7 @@ const DataGridGabinete = () => {
       <DialogAssignDesigner
         open={open}
         handleClose={handleClose}
-        doc={currentPetition}
+        doc={petitions.find(petition => petition.ot == currentOT)}
         proyectistas={proyectistas}
         setDesignerAssigned={setDesignerAssigned}
       />
