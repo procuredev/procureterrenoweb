@@ -33,15 +33,35 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 
 export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, setDesignerAssigned }) => {
-  //falta evaluar la foto del proyectista
+  //TODO: Evaluar la foto del proyectista
   // ** States
   const [designerReviewState, setDesignerReviewState] = useState([])
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
 
-
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
 
+  const filterOptions = (options) => {
+
+    // Convierte las opciones seleccionadas y las existentes en doc.designerReview en arrays de nombres
+    const selectedNamesFromState = designerReviewState.map(designer => designer.name);
+
+    let selectedNamesFromDoc = [];
+    if (doc && doc.designerReview) {
+      selectedNamesFromDoc = doc.designerReview.map(designer => designer.name);
+    }
+
+    const allSelectedNames = [...selectedNamesFromState, ...selectedNamesFromDoc];
+
+    // Filtra las opciones y devuelve solo las que no están en el array de nombres seleccionados
+    return options.filter(option => !allSelectedNames.includes(option.name));
+  }
+
+  useEffect(() => {
+    setFilteredOptions(proyectistas);
+  }, [proyectistas]);
+
+  if (!doc) return null
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -73,28 +93,7 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
     }
   }
 
-
-  const filterOptions = (options) => {
-
-    // Convierte las opciones seleccionadas y las existentes en doc.designerReview en arrays de nombres
-    const selectedNamesFromState = designerReviewState.map(designer => designer.name);
-
-    let selectedNamesFromDoc = [];
-    if (doc && doc.designerReview) {
-      selectedNamesFromDoc = doc.designerReview.map(designer => designer.name);
-    }
-
-    const allSelectedNames = [...selectedNamesFromState, ...selectedNamesFromDoc];
-
-    // Filtra las opciones y devuelve solo las que no están en el array de nombres seleccionados
-    return options.filter(option => !allSelectedNames.includes(option.name));
-  }
-
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
-
-  useEffect(() => {
-    setFilteredOptions(proyectistas);
-  }, [proyectistas]);
 
   return (
     <Dialog
