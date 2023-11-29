@@ -236,12 +236,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             let fieldContent = revision[field] || 'aaa'
 
             if (field === 'date' || field === 'sentTime') {
-              fieldContent = unixToDate(revision[field].seconds)[0]
+              fieldContent = unixToDate(revision[field].seconds)
             }
 
             if (field === 'storageBlueprints') {
+
               if (fieldContent) {
-                return (
+                /* return (
                   <Link
                     href={fieldContent}
                     target='_blank'
@@ -267,8 +268,58 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                       <AttachFile sx={{ ml: 1 }} />
                     </Box>
                   </Link>
-                )
+                ) */
+
+                return fieldContent.map((content, index) => {
+                  // Divide la URL en segmentos separados por '%2F'
+                  const urlSegments = content.split('%2F');
+
+                  // Obtiene el último segmento, que debería ser el nombre del archivo
+                  const encodedFileName = urlSegments[urlSegments.length - 1];
+
+                  // Divide el nombre del archivo en segmentos separados por '?'
+                  const fileNameSegments = encodedFileName.split('?');
+
+                  // Obtiene el primer segmento, que debería ser el nombre del archivo
+                  const fileName = decodeURIComponent(fileNameSegments[0]);
+
+                  return (
+                    <Link
+                      href={content}
+                      target='_blank'
+                      rel='noreferrer'
+                      variant='body1'
+                      noWrap
+                      sx={{
+                        mt: 4,
+                        textOverflow: 'clip',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        marginBlockStart: '1em',
+                        marginBlockEnd: '1em',
+                        marginInlineStart: 0,
+                        marginInlineEnd: 0
+                      }}
+                      key={index}
+                      color='inherit'
+                      underline='always'
+                    >
+                      <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
+                        {fileName}
+                        <AttachFile sx={{ ml: 1 }} />
+                      </Box>
+                    </Link>
+                  )
+                });
               }
+            }
+
+            if (field === 'date') {
+              return (
+                <Typography noWrap sx={{ mt: 4, textOverflow: 'clip' }} key={revision.id}>
+                  {fieldContent[0] || 'Sin Datos'}
+                </Typography>
+              )
             }
 
             return (
