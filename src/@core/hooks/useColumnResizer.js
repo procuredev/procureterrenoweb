@@ -6,12 +6,12 @@ const useColumnResizer = (loading) => {
   const isResizing = useRef(-1);
   const separatorRef = useRef(null);
 
-  const DEFAULT_MIN_WIDTH_CELL = 70;
-  const DEFAULT_MAX_WIDTH_CELL = 800;
+  const defaultMinWidth = 50;
+  const defaultMaxWidth = 800;
 
   const adjustWidthColumn = (index, width) => {
-    const minWidth = DEFAULT_MIN_WIDTH_CELL;
-    const maxWidth = DEFAULT_MAX_WIDTH_CELL;
+    const minWidth = defaultMinWidth;
+    const maxWidth = defaultMaxWidth;
 
     let newWidth =
       width > maxWidth ? maxWidth : width < minWidth ? minWidth : width;
