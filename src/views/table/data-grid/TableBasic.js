@@ -24,7 +24,11 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
 
-  const resizedColumnWidths = useColumnResizer(loading)
+  const initialValues = {
+    '.colIndex-1': {minWidth: "200px !important"},
+  }
+
+  const resizedColumnWidths = useColumnResizer(loading, initialValues)
 
   useEffect(() => {
     if (rows) {
