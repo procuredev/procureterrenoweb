@@ -55,7 +55,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [currentRow, setCurrentRow] = useState(null)
   const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
-  const [devolutionRemarks, setDevolutionRemarks] = useState('')
+  const [remarksState, setRemarksState] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
@@ -88,16 +88,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const writeCallback = async () => {
-    const devolution = devolutionRemarks.length > 0 ? devolutionRemarks : false
+    const remarks = remarksState.length > 0 ? remarksState : false
     authUser.role === 9
-      ? await updateBlueprint(petitionId, doc, approve, authUser, devolution)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setDevolutionRemarks('')
+            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
-      : await updateBlueprint(petitionId, doc, approve, authUser, devolution)
+      : await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setDevolutionRemarks('')
+            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
   }
@@ -132,18 +132,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       row.description && row.clientCode && row.storageBlueprints && row.storageBlueprints.length >= 1
 
     const dictionary = {
-      4: {
-        approve:
-          role === 6 &&
-          ['B', 'C'].includes(row.revision) &&
-          row.approvedByContractAdmin === true &&
-          row.revision === 'B',
-        reject:
-          role === 6 &&
-          ['B', 'C'].includes(row.revision) &&
-          row.approvedByContractAdmin === true &&
-          row.revision === 'B'
-      },
       6: {
         approve:
           role === 6 &&
@@ -196,6 +184,58 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     }
 
     return dictionary[role]
+  }
+
+  const statusMap = {
+    'Aprobado con comentarios': row => row.approvedByClient && row.sentByDesigner && row.remarks,
+    'Aprobado': row => (row.approvedByClient && row.sentByDesigner) || row.revision === '0',
+    'Enviado': row => row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor),
+    'Rechazado con Observaciones': row => !row.sentByDesigner && !row.approvedByDocumentaryControl && row.remarks,
+    'Rechazado': row => !row.sentByDesigner && (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
+    'Revisión 0': row => row.canUpdateTo0,
+  };
+
+  const renderStatus = (row) => {
+    for (const status in statusMap) {
+      if (statusMap[status](row)) {
+        return status;
+      }
+    }
+
+    return 'No enviado';
+  }
+
+  const renderButton = (row, approve, color, IconComponent) => {
+    const handleClick = () => handleClickOpenAlert(row, approve);
+
+    return (
+      <Button
+        onClick={handleClick}
+        variant='contained'
+        color={color}
+        sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+      >
+        <IconComponent sx={{ fontSize: 18 }} />
+      </Button>
+    );
+  }
+
+  const renderButtons = (row, flexDirection, canApprove, canReject, canUpdate = false ) => {
+    return (
+      <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
+        {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
+        {canReject && renderButton(row, false, 'error', CancelOutlined)}
+        {canUpdate && renderButton(row, true, 'warning', CheckCircleOutline)}
+      </Container>
+    );
+  }
+
+  const checkRoleAndApproval = (role, row) => {
+    return role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66 && !row.approvedByClient;
+  }
+
+  const checkRoleAndUpdate = (role, row) => {
+    return role === 9 && row.approvedByDocumentaryControl && row.approvedByClient && row.revision.charCodeAt(0) >= 66 && row.canUpdateTo0 === false;
   }
 
   useEffect(() => {
@@ -523,30 +563,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const flexDirection = md ? 'row' : 'column'
 
-        const renderButtons = (
-          <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
-            {canApprove && (
-              <Button
-                onClick={() => handleClickOpenAlert(row, true)}
-                variant='contained'
-                color='success'
-                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-              >
-                <CheckCircleOutline sx={{ fontSize: 18 }} />
-              </Button>
-            )}
-            {canReject && (
-              <Button
-                onClick={() => handleClickOpenAlert(row, false)}
-                variant='contained'
-                color='error'
-                sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-              >
-                <CancelOutlined sx={{ fontSize: 18 }} />
-              </Button>
-            )}
-          </Container>
-        )
+        const buttons = renderButtons(row, flexDirection, canApprove, canReject );
 
         return (
           <>
@@ -560,40 +577,27 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               }}
             >
               {canApprove || canReject ? (
-                md ? (
-                  renderButtons
-                ) : (
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    size='small'
-                    IconComponent={() => <MoreHorizIcon />}
-                    sx={{
-                      '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                    }}
-                  >
-                    {renderButtons}
-                  </Select>
-                )
-              ) : row.approvedByClient === true && row.sentByDesigner || row.revision === '0' ? (
-                'Aprobado'
-              ) : row.sentByDesigner === true ||
-                (row.sentByDesigner === true &&
-                  (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)) ? (
-                'Enviado'
-              ) : (row.sentByDesigner === false &&
-                  (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)) ||
-                (row.revision !== 'iniciado' &&
-                  row.sentByDesigner === false &&
-                  row.approvedByDocumentaryControl === false) ? (
-                'Rechazado'
-              ) : row.canUpdateTo0 ? 'Revisión 0'  : (
-                'No enviado'
-              )}
-              <RevisionComponent row={row} field={'devolutionRemarks'} />
+                  md ? (
+                    buttons
+                  ) : (
+                    <Select
+                      labelId='demo-simple-select-label'
+                      id='demo-simple-select'
+                      size='small'
+                      IconComponent={() => <MoreHorizIcon />}
+                      sx={{
+                        '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                        '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                        '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                      }}
+                    >
+                      {buttons}
+                    </Select>
+                  )
+                ) : renderStatus(row)
+              }
+              <RevisionComponent row={row} field={'remarks'} />
             </Box>
           </>
         )
@@ -607,41 +611,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           renderCell: params => {
             const { row } = params
 
-            const canApprove =
-              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66 && !row.approvedByClient
-
-            const canReject =
-              role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66 && !row.approvedByClient
-
-            const canUpdate =
-              role === 9 && row.approvedByDocumentaryControl && row.approvedByClient && row.revision.charCodeAt(0) >= 66 && row.canUpdateTo0 === false
+            const canApprove = checkRoleAndApproval(authUser.role, row);
+            const canReject = checkRoleAndApproval(authUser.role, row);
+            const canUpdate = checkRoleAndUpdate(authUser.role, row);
 
             const flexDirection = md ? 'row' : 'column'
 
-            const renderButtons = (
-              <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
-                {canApprove && (
-                  <Button
-                    onClick={() => handleClickOpenAlert(row, true)}
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CheckCircleOutline sx={{ fontSize: 18 }} />
-                  </Button>
-                )}
-                {canReject && (
-                  <Button
-                    onClick={() => handleClickOpenAlert(row, false)}
-                    variant='contained'
-                    color='error'
-                    sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CancelOutlined sx={{ fontSize: 18 }} />
-                  </Button>
-                )}
-              </Container>
-            )
+            const buttons = renderButtons(row, flexDirection, canApprove, canReject, canUpdate);
 
             return (
               <>
@@ -656,7 +632,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 >
                   {canApprove || canReject ? (
                     md ? (
-                      renderButtons
+                      buttons
                     ) : (
                       <Select
                         labelId='demo-simple-select-label'
@@ -674,45 +650,33 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                           '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
                         }}
                       >
-                        {renderButtons}
+                        {buttons}
                       </Select>
                     )
-                  ) : canUpdate ? ( md  ?
-                    (<Button
-                      onClick={() => handleClickOpenAlert(row, true)}
-                      variant='contained'
-                      color='warning'
-                      sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                    <CheckCircleOutline sx={{ fontSize: 18 }} />
-                    </Button>) : (
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    size='small'
-                    IconComponent={() => <MoreHorizIcon />}
-                    sx={{
-                      '& .MuiSvgIcon-root': {
-                        position: 'absolute',
-                        margin: '20%',
-                        pointerEvents: 'none !important'
-                      },
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                    }}
-                  >
-                    <Button
-                      onClick={() => handleClickOpenAlert(row, true)}
-                      variant='contained'
-                      color='warning'
-                      sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <CheckCircleOutline sx={{ fontSize: 18 }} />
-                    </Button>
-                  </Select>
-                  )
+                  ) : canUpdate ? (
+                    md ? (
+                      buttons
                     ) : (
+                      <Select
+                        labelId='demo-simple-select-label'
+                        id='demo-simple-select'
+                        size='small'
+                        IconComponent={() => <MoreHorizIcon />}
+                        sx={{
+                          '& .MuiSvgIcon-root': {
+                            position: 'absolute',
+                            margin: '20%',
+                            pointerEvents: 'none !important'
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                          '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                          '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                        }}
+                      >
+                        {buttons}
+                      </Select>
+                    )
+                  ) : (
                     ''
                   )}
                 </Box>
@@ -753,8 +717,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         callback={writeCallback}
         approves={approve}
         authUser={authUser}
-        setDevolutionRemarks={setDevolutionRemarks}
-        devolutionRemarks={devolutionRemarks}
+        setRemarksState={setRemarksState}
+        blueprint={doc}
       ></AlertDialogGabinete>
       {loadingProyectistas ? (
         <p>Loading...</p>
