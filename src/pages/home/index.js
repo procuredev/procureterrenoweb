@@ -60,7 +60,6 @@ const Home = () => {
           weekObj,
           lastSixMonthsObjetives,
           byStateDocs,
-          byStateObj,
           byPlantsDocs,
           byPlantsObj,
           resTop10
@@ -70,20 +69,43 @@ const Home = () => {
           consultObjetives('week'),
           consultObjetives('lastSixMonths'),
           consultDocs('byState'),
-          consultObjetives('byState'),
           consultDocs('byPlants', { plants }),
           consultObjetives('byPlants', { plants }),
           getUsersWithSolicitudes()
         ])
 
-        /* const monthArray = lastSixMonthsObjetives.map(item => item.month)
-        const cantArray = lastSixMonthsObjetives.map(item => item.cant) */
         const [monthArray, cantArray] = lastSixMonthsObjetives.reduce((acc, item) => {
           acc[0].push(item.month);
           acc[1].push(item.cant);
 
           return acc;
-      }, [[], []]);
+        }, [[], []]);
+
+        const statesDoc = [[1, 5], [6, 9], [10, 10]];
+        const statesObj = [6, [7, 8], 9];
+
+        const filteredByStateDocs = statesDoc.map(([start, end]) => {
+          const filteredDocs = byStateDocs.filter(doc => {
+            const state = doc.state;
+
+            return state >= start && state <= end;
+          });
+
+          return filteredDocs.length;
+        });
+
+        const filteredByStateObj = statesObj.map(state => {
+          let filteredDocs;
+          if (Array.isArray(state)) {
+            // Si el estado es un array, filtrar los documentos que tienen un estado que está en ese array
+            filteredDocs = byStateDocs.filter(doc => state.includes(doc.state));
+          } else {
+            // Si el estado no es un array, filtrar los documentos que tienen ese estado
+            filteredDocs = byStateDocs.filter(doc => doc.state === state);
+          }
+
+          return filteredDocs.length;
+        });
 
         setAllDocs(allDocsCount)
         setAllObjetives(allObjCount);
@@ -93,8 +115,8 @@ const Home = () => {
         setMonthssOfLastSixMonths(monthArray)
         setObjetivesByPlants(byPlantsObj);
         setDocsByPlants(byPlantsDocs);
-        setDocsByState(byStateDocs);
-        setObjetivesByState(byStateObj);
+        setDocsByState(filteredByStateDocs);
+        setObjetivesByState(filteredByStateObj);
         setTop10(resTop10)
         setLoading(false);
       } catch (error) {
