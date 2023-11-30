@@ -461,13 +461,13 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
 
     // Se almacenan las constantes a usar en el email
-    const userName = requirementData.user
+    const userName = requirementData.userRole === 7 ? requirementData.petitioner : requirementData.user
     const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}`
     const requestNumber = requirementData.n_request
     const title = requirementData.title
     const engineering = requirementData.engineering ? 'Si' : 'No'
     const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-    const supervisor = requirementData.supervisorShift ? supervisorData.name : 'Por definir'
+    const supervisor = requirementData.supervisorShift ? (supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name) : '') : 'Por definir'
     const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
     const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
     const plant = requirementData.plant
