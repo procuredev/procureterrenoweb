@@ -57,6 +57,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [fileNames, setFileNames] = useState({})
   const [remarksState, setRemarksState] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
+  const [error, setError] = useState('')
+
+  const [hours, setHours] = useState({
+    start: null,
+    end: null,
+    total: '',
+    hours: 0,
+    minutes: 0,
+  })
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -89,6 +98,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const writeCallback = async () => {
     const remarks = remarksState.length > 0 ? remarksState : false
+
+    authUser.role === 8 ? await updateBlueprint(petitionId, doc, approve, authUser, false, hours.total)
+    .then(() => {
+      setOpenAlert(false), setBlueprintGenerated(true), setHours('')
+    })
+    .catch(err => console.error(err), setOpenAlert(false)) :
     authUser.role === 9
       ? await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
@@ -189,7 +204,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const statusMap = {
     'Aprobado con comentarios': row => row.approvedByClient && row.sentByDesigner && row.remarks,
     'Aprobado': row => (row.approvedByClient && row.sentByDesigner) || row.revision === '0',
-    'Enviado': row => row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor),
+    'Enviado': row => row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Rechazado con Observaciones': row => !row.sentByDesigner && !row.approvedByDocumentaryControl && row.remarks,
     'Rechazado': row => !row.sentByDesigner && (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
     'Revisión 0': row => row.canUpdateTo0,
@@ -239,16 +254,81 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   useEffect(() => {
+    if (hours.start && hours.end) {
+      const workStartHour = 8; // Hora de inicio de la jornada laboral
+      const workEndHour = 20; // Hora de finalización de la jornada laboral
+      const millisecondsPerHour = 60 * 60 * 1000; // Milisegundos por hora
+
+      let startDate = hours.start.clone();
+      let endDate = hours.end.clone();
+
+      // Asegurarse de que las fechas estén dentro de las horas de trabajo
+      if (startDate.hour() < workStartHour) {
+        startDate.hour(workStartHour).minute(0).second(0).millisecond(0);
+      }
+      if (endDate.hour() > workEndHour) {
+        endDate.hour(workEndHour).minute(0).second(0).millisecond(0);
+      } else if (endDate.hour() < workStartHour) {
+        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0);
+      }
+
+      let totalHoursWithinWorkingDays = 0;
+      let totalMinutes = 0;
+
+      while (startDate.isBefore(endDate)) {
+        const currentDayEnd = startDate.clone().hour(workEndHour);
+
+        if (currentDayEnd.isAfter(endDate)) {
+          const durationMillis = endDate.diff(startDate);
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
+          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000));
+        } else {
+          const durationMillis = currentDayEnd.diff(startDate);
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
+        }
+
+        startDate.add(1, 'day').hour(workStartHour);
+      }
+
+      if (totalMinutes >= 60) {
+        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60);
+        totalMinutes %= 60;
+      }
+
+      if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
+        setError('La hora de término debe ser superior a la hora de inicio.');
+
+        return;
+      } else {
+        setError(null); // Para limpiar cualquier error previo.
+      }
+
+      setHours(prevHours => ({
+        ...prevHours,
+        total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
+        hours: totalHoursWithinWorkingDays,
+        minutes: totalMinutes,
+      }));
+    }
+  }, [hours.start, hours.end]);
+
+  useEffect(() => {
+    // Primera parte: obtener los nombres de los planos
     rows.map(async row => {
-      const blueprintName = await getBlueprintName(row.id)
-      setFileNames(prevNames => ({ ...prevNames, [row.id]: blueprintName }))
-    })
-  }, [rows])
+      const blueprintName = await getBlueprintName(row.id);
+      setFileNames(prevNames => ({ ...prevNames, [row.id]: blueprintName }));
+    });
+
+    // Segunda parte: manejar la apertura del diálogo de carga
+    if (openUploadDialog) {
+      const filterRow = rows.find(rows => rows.id === currentRow);
+      setDoc(filterRow);
+      setOpenUploadDialog(true);
+    }
+  }, [rows, openUploadDialog, currentRow]);
 
   const theme = useTheme()
-  const sm = useMediaQuery(theme.breakpoints.up('sm'))
   const md = useMediaQuery(theme.breakpoints.up('md'))
-  const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
   useEffect(() => {
     const fetchProyectistas = async () => {
@@ -260,13 +340,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     fetchProyectistas()
   }, [authUser.shift])
 
-  useEffect(() => {
-    if (openUploadDialog) {
-      const filterRow = rows.find(rows => rows.id === currentRow)
-      setDoc(filterRow)
-      setOpenUploadDialog(true)
-    }
-  }, [rows])
 
   const RevisionComponent = ({ row, field }) => {
     return (
@@ -719,6 +792,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         authUser={authUser}
         setRemarksState={setRemarksState}
         blueprint={doc}
+        hours={hours}
+        setHours={setHours}
+        error={error}
+        setError={setError}
       ></AlertDialogGabinete>
       {loadingProyectistas ? (
         <p>Loading...</p>

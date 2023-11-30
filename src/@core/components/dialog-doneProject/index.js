@@ -3,20 +3,13 @@ import { useState, forwardRef, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import List from '@mui/material/List'
-import Avatar from '@mui/material/Avatar'
-import CustomAvatar from 'src/@core/components/mui/avatar'
 import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
-import ListItem from '@mui/material/ListItem'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
-import ListItemText from '@mui/material/ListItemText'
 import DialogContent from '@mui/material/DialogContent'
-import ListItemAvatar from '@mui/material/ListItemAvatar'
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import EngineeringIcon from '@mui/icons-material/Engineering'
 import FormControl from '@mui/material/FormControl'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
@@ -41,12 +34,8 @@ const Transition = forwardRef(function Transition(props, ref) {
 })
 
 export const DialogDoneProject = ({ open, doc, handleClose }) => {
-  //falta evaluar la foto del proyectista
 
   // ** States
-
-  const [draftmen, setDraftmen] = useState([])
-
 
   const [hours, setHours] = useState({
     start: null,
@@ -60,32 +49,6 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
-
-  const workDayStart = new Date(0, 0, 0, 8, 0); // Hora de inicio de la jornada laboral (08:00 AM)
-  const workDayEnd = new Date(0, 0, 0, 20, 0);  // Hora de finalización de la jornada laboral (08:00 PM)
-
-
-  const handleClickDelete = name => {
-    // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
-    const updatedDraftmen = draftmen.filter(draftman => draftman.name !== name)
-
-    // Actualizamos el estado con el nuevo array actualizado
-    setDraftmen(updatedDraftmen)
-  }
-
-  const handleInputChange = e => {
-    const inputValue = e.target.value
-
-    // Verifica si el valor ingresado es un número y si es mayor a 1
-    if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHours(inputValue)
-      setError('') // Limpia el mensaje de error si existe
-    } else {
-      setHours('')
-      setError('Por favor, ingrese un número mayor a 1.')
-    }
-  }
-
 
   const onsubmit = id => {
     if (hours.total !== '') {
@@ -176,9 +139,6 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     }
   }, [hours.start, hours.end]);
 
-
-  const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
-
   return (
     <Dialog
       fullWidth
@@ -250,45 +210,6 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
             helperText={error}
           />
         </Box>
-
-        <List dense sx={{ py: 4 }}>
-          {draftmen.map(draftman => {
-            return (
-              <ListItem
-                key={draftman.name}
-                sx={{
-                  p: 0,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  '.MuiListItem-container:not(:last-child) &': { mb: 4 }
-                }}
-              >
-                <ListItemAvatar>
-                  {draftman.avatar ? (
-                    <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} />
-                  ) : (
-                    <CustomAvatar skin='light'>{getInitials(draftman.name ? draftman.name : 'John Doe')}</CustomAvatar>
-                  )}
-                </ListItemAvatar>
-                <ListItemText
-                  primary={draftman.name}
-                  secondary={draftman.email}
-                  sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
-                />
-                <ListItemSecondaryAction sx={{ right: 0 }}>
-                  <IconButton
-                    size='small'
-                    aria-haspopup='true'
-                    onClick={() => handleClickDelete(draftman.name)}
-                    aria-controls='modal-share-examples'
-                  >
-                    <Icon icon='mdi:delete-circle-outline' fontSize={20} color='#f44336' />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
-            )
-          })}
-        </List>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />

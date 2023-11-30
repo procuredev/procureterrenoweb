@@ -613,7 +613,7 @@ const getLatestRevision = async (petitionID, blueprintID) => {
 };
 
 // getNextRevision calcula la próxima revisión basándose en una serie de condiciones
-const getNextRevision = async (approve, latestRevision, { role, email, displayName, uid }, { revision, description, storageBlueprints, approvedByClient, approvedByDocumentaryControl, approvedByContractAdmin, approvedBySupervisor }, remarks) => {
+const getNextRevision = async (approve, latestRevision, { role, email, displayName, uid }, { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor }, remarks, hours) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision;
 
@@ -666,14 +666,15 @@ const getNextRevision = async (approve, latestRevision, { role, email, displayNa
     userName: displayName,
     userId: uid,
     date: Timestamp.fromDate(new Date()),
-    remarks: remarks || 'sin observaciones'
+    remarks: remarks || 'sin observaciones',
+    drawingHours: hours? hours : null
   };
 
   return nextRevision;
 };
 
 // updateBlueprint() actualiza el entregable en la base de datos
-const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks) => {
+const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours) => {
   // Obtiene la referencia al documento del plano en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id);
 
@@ -681,7 +682,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const latestRevision = await getLatestRevision(petitionID, blueprint.id);
 
   // Calcula la próxima revisión del plano
-  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks);
+  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks, hours);
 
   // Comprueba varias condiciones sobre el plano
   const revisionIsNotStarted = blueprint.revision !== 'iniciado';
