@@ -240,7 +240,7 @@ const FormLayoutsSolicitud = () => {
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && excludedFields) {
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && excludedFields) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
@@ -377,6 +377,8 @@ const FormLayoutsSolicitud = () => {
     if (!values.deliverable.includes('Memoria de Cálculo')) {
       values.mcDescription = '' // Restablecer mcDescription si 'Memoria de Cálculo' no está seleccionado
     }
+
+    console.log(formErrors)
 
     if (
       Object.keys(formErrors).length === 0 &&
