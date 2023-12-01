@@ -19,11 +19,13 @@ import TextField from '@mui/material/TextField'
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
+import { doc } from 'firebase/firestore';
 
 const DataGridGabinete = () => {
   const [menuOpen, setMenuOpen] = useState(true)
   const [currentPetition, setCurrentPetition] = useState('')
-  const [currentOT, setCurrentOT] = useState('')
+  const [currentOT, setCurrentOT] = useState(null)
+  const [currentAutoComplete, setCurrentAutoComplete] = useState(null)
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
@@ -58,10 +60,12 @@ const DataGridGabinete = () => {
     setOpen(false)
   }
 
-  const handleChange = event => {
-    const currentDoc = petitions.filter(petition => petition.ot == event.target.value)[0] || ''
+  const handleChange = (value) => {
+    console.log(value)
+    setCurrentOT(value?.value)
+    const currentDoc = petitions.find(doc => doc.ot == value?.value)
     setCurrentPetition(currentDoc)
-    setCurrentOT(event.target.value)
+
   }
 
   useEffect(() => {
@@ -98,51 +102,17 @@ const DataGridGabinete = () => {
   }, [blueprintGenerated, currentPetition])
 
   return (
-    <Box id='main' sx={{ display: 'flex', width: '100%', height: '600px' }}>
-      <Paper
-      elevation={3}
-      sx={{
-        maxWidth: '20%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        backgroundColor: !menuOpen && 'transparent',
-        m: menuOpen ? 4 : 0,
-        p: menuOpen && 5,
-        boxShadow: !menuOpen && 'none !important',
-      }}>
-        <Box sx={{ display: 'flex', mb: 4, alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          {menuOpen && <Typography variant='button'>Solicitudes</Typography>}
-          <IconButton onClick={() => setMenuOpen(prev => !prev)}>
-            {menuOpen ? <KeyboardDoubleArrowLeft /> : <KeyboardDoubleArrowRight />}
-          </IconButton>
-        </Box>
-        <Box sx={{ display: menuOpen ? 'block' : 'none', height: '100%', width: '100%' }}>
-          <MenuList
-            dense
-            id='basic-menu'
-            open={false}
-            sx={{ overflow: 'hidden' }}
-          >
-            {petitions?.map((petitionItem, index) => (
-              <MenuItem key={index} onClick={e => handleChange(e)} value={petitionItem.ot}>
-                {petitionItem.ot + ' ' + petitionItem.title + '(' + petitionItem.designerReview?.length + ')'}
-              </MenuItem>
-            ))}
-          </MenuList>
-        </Box>
-      </Paper>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Box id='main' sx={{ display: 'flex', width: '100%', height: '600px', flexDirection: 'column' }}>
+      <Autocomplete
+        options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
+        getOptionLabel={option => option.value + ' ' + option.title + ' '}
+        sx={{ mx: 6.5 }}
+        onChange={(event, value) => handleChange(value)}
+        onInputChange={(event, value) => setCurrentAutoComplete(value)}
+        isOptionEqualToValue={(option, value) => option.value === value.value}
+        renderInput={params => <TextField {...params} label='OT' />}
+    />
         <Box sx={{ m: 4, display: 'flex' }}>
-          <TextField
-            sx={{ m: 2.5 }}
-            label='Título'
-            multiline
-            value={currentPetition ? currentPetition.title : ''}
-            id='form-props-read-only-input'
-            InputProps={{ readOnly: true }}
-          />
           <TextField
             sx={{ m: 2.5 }}
             label='Tipo de levantamiento'
@@ -190,7 +160,6 @@ const DataGridGabinete = () => {
             setBlueprintGenerated={setBlueprintGenerated}
           />
         </Box>
-      </Box>
 
       <DialogAssignDesigner
         open={open}
