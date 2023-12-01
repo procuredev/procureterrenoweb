@@ -114,14 +114,14 @@ const DataGridGabinete = () => {
     />
         <Box sx={{ m: 4, display: 'flex' }}>
           <TextField
-            sx={{ m: 2.5 }}
+            sx={{ m: 2.5 , width: '50%' }}
             label='Tipo de levantamiento'
             value={currentPetition ? currentPetition.objective : ''}
             id='form-props-read-only-input'
             InputProps={{ readOnly: true }}
           />
           <TextField
-            sx={{ m: 2.5 }}
+            sx={{ m: 2.5, width: '50%'  }}
             label='Entregable'
             value={currentPetition ? currentPetition.deliverable.map(item => item) : ''}
             id='form-props-read-only-input'
@@ -130,7 +130,7 @@ const DataGridGabinete = () => {
           <Autocomplete
             multiple
             readOnly
-            sx={{ m: 2.5, width: '25%'  }}
+            sx={{ m: 2.5, width: '100%'  }}
             value={
               (currentOT && petitions.find(doc => doc.ot == currentOT)?.designerReview?.map(item => item.name)) || []
             }
@@ -138,7 +138,9 @@ const DataGridGabinete = () => {
             renderInput={params => <TextField {...params} label='Proyectistas asignados' readOnly={true} sx={{ '& .MuiInputBase-inputAdornedStart': {display:'none'} }}/>}
           />
            {authUser.role === 7 ? (
-            <Button variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
+            <Button
+            sx={{width: '50%', m: 2.5}}
+            variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
               Asignar proyectista
             </Button>
           ) : (
