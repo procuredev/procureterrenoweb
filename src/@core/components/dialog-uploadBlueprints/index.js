@@ -19,7 +19,7 @@ import Typography from '@mui/material/Typography'
 import Slide from '@mui/material/Slide'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
-import { Download } from '@mui/icons-material'
+import { ChevronLeft, ChevronRight, Download } from '@mui/icons-material'
 import Link from '@mui/material/Link'
 import Icon from 'src/@core/components/icon'
 import Grid from '@mui/material/Grid'
@@ -35,6 +35,7 @@ import 'moment/locale/es'
 import CustomListItem from 'src/@core/components/custom-list'
 import DateListItem from 'src/@core/components/custom-date'
 import { InputAdornment } from '@mui/material'
+import { DialogClientCodeGenerator } from '../dialog-clientCodeGenerator'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -145,17 +146,17 @@ const PhotoGallery = ({ photos }) => (
 )
 
 export const UploadBlueprintsDialog = ({
-  open,
   handleClose,
   doc,
   roleData,
   petitionId,
   setBlueprintGenerated,
-  currentRow
+  currentRow,
+  petition
 }) => {
   let isPlanner = roleData && roleData.id === '5'
 
-  let { id, userId, userName, userEmail, revision, storageBlueprints, description, date } = doc
+  let { id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode } = doc
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
   const [editable, setEditable] = useState(isPlanner)
@@ -163,6 +164,7 @@ export const UploadBlueprintsDialog = ({
   const [files, setFiles] = useState([])
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
+  const [generateClientCode, setGenerateClientCode] = useState(false)
 
   const theme = useTheme()
   const { updateDocs, authUser, addDescription, uploadFilesToFirebaseStorage } = useFirebase()
@@ -173,6 +175,7 @@ export const UploadBlueprintsDialog = ({
 
   const initialValues = {
     id,
+    clientCode,
     userId,
     userName,
     userEmail,
@@ -389,9 +392,28 @@ export const UploadBlueprintsDialog = ({
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        {values.id}
+        <Box sx={{display:'flex', flexDirection:'column'}}>
+        <Typography variant='h5' sx={{lineHeight: 3}}>{values.id || 'Sin código Procure'}</Typography>
+        {values.clientCode || (authUser.role===8 ?
+        <Typography
+        variant='h6'
+        sx={{my:2, display:'flex', alignItems:'center', cursor:'pointer'}}
+        onClick={() => setGenerateClientCode((prev) => !prev)}
+        >
+          Generar código MEL
+          <ChevronRight sx={{transform: generateClientCode ? 'rotate(90deg)' : ''}}/>
+          </Typography>
+        : <Typography> Sin código MEL</Typography>)}
+        </Box>
         <Chip label={values.revision} sx={{ textTransform: 'capitalize' }} color='primary' />
       </DialogTitle>
+
+      {generateClientCode ? <DialogClientCodeGenerator
+      petition={petition}
+      blueprint={currentRow}
+      setBlueprintGenerated={setBlueprintGenerated}
+      handleClose={()=>setGenerateClientCode(false)}
+      /> : null}
       <Box sx={{ margin: 'auto' }}>
         {
           <Box>
@@ -455,7 +477,7 @@ export const UploadBlueprintsDialog = ({
                         <input {...getInputProps()} />
                         <Box
                           sx={{
-                            my: 2,
+                            my: 5,
                             mx: 'auto',
                             p: 5,
                             display: 'flex',

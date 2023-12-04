@@ -51,7 +51,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [approve, setApprove] = useState(true)
   const { authUser, getUserData, updateBlueprint, useEvents } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null)
-  const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
   const [remarksState, setRemarksState] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
@@ -78,10 +77,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const handleCloseUploadDialog = () => {
     setOpenUploadDialog(false)
-  }
-
-  const handleCloseClientCodeGenerator = () => {
-    setGenerateClientCode(false)
   }
 
 
@@ -754,16 +749,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         setError={setError}
       ></AlertDialogGabinete>
 
-      {generateClientCode && (
-        <DialogClientCodeGenerator
-          open={generateClientCode}
-          handleClose={handleCloseClientCodeGenerator}
-          petition={petition}
-          blueprint={currentRow}
-          roleData={roleData}
-          setBlueprintGenerated={setBlueprintGenerated}
-        />
-      )}
       <Dialog sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width: '100%' } }} open={openDialog}>
         <DialogContent>
           <UploadBlueprintsDialog
@@ -773,6 +758,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             petitionId={petitionId}
             setBlueprintGenerated={setBlueprintGenerated}
             currentRow={currentRow}
+            petition={petition}
+
           />
         </DialogContent>
         <DialogActions>

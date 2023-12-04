@@ -26,7 +26,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogClientCodeGenerator = ({ open, handleClose, petition, blueprint, setBlueprintGenerated }) => {
+export const DialogClientCodeGenerator = ({ handleClose, petition, blueprint, setBlueprintGenerated }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
@@ -86,32 +86,10 @@ export const DialogClientCodeGenerator = ({ open, handleClose, petition, bluepri
   }, [typeOfDiscipline]);
 
   return (
-    <Dialog
-      fullWidth
-      open={open}
-      maxWidth='xs'
-      scroll='body'
-      onClose={() => handleClose()}
-      TransitionComponent={Transition}
-      onBackdropClick={() => handleClose()}
-    >
-      <DialogContent sx={{ px: { xs: 8, sm: 15 }, py: { xs: 8, sm: 12.5 }, position: 'relative' }}>
-        <IconButton
-          size='small'
-          onClick={() => handleClose()}
-          sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
-        >
-          <Icon icon='mdi:close' />
-        </IconButton>
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
-            Generar código MEL
-          </Typography>
-          <Typography variant='body2'>Establece parámetros para crear el código</Typography>
-        </Box>
+      <DialogContent sx={{ position: 'relative', py:0 }}>
 
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+          <Typography variant='body2' sx={{pb:5}}>Establece parámetros para crear el código</Typography>
             <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
               <InputLabel id="demo-select-small-label">Tipo de disciplina</InputLabel>
               <Select
@@ -160,17 +138,16 @@ export const DialogClientCodeGenerator = ({ open, handleClose, petition, bluepri
               </Select>
             </FormControl>
           </Box>
-        </Box>
 
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'end' }}>
           <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={(petition, blueprint) => onsubmit(petition, blueprint)}>
-            <EngineeringIcon sx={{ fontSize: 18 }} />
             Crear código
           </Button>
         </Box>
       </DialogContent>
-    </Dialog>
+
   )
 }
 
