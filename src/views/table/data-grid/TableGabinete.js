@@ -35,8 +35,6 @@ import {
 import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
-import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
-import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
 import { DialogClientCodeGenerator } from 'src/@core/components/dialog-clientCodeGenerator'
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 
@@ -450,7 +448,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   sx={{ p: 0 }}
                   id={row.id}
                   onClick={e => {
-                    setCurrentRow(prev => (prev === row.id ? false : e.target.parentElement.id))
+                    setCurrentRow(prev => (prev === row.id ? false : e.target.parentElement?.id))
                   }}
                 >
                   <ChevronRight sx={{ transform: currentRow === row.id ? 'rotate(90deg)' : '' }} />
@@ -797,11 +795,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         error={error}
         setError={setError}
       ></AlertDialogGabinete>
-      {loadingProyectistas ? (
-        <p>Loading...</p>
-      ) : (
-        <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
-      )}
+
       {generateClientCode && (
         <DialogClientCodeGenerator
           open={generateClientCode}
