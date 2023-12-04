@@ -201,6 +201,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     'Aprobado': row => (row.approvedByClient && row.sentByDesigner) || row.revision === '0',
     'Enviado': row => row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Rechazado con Observaciones': row => !row.sentByDesigner && !row.approvedByDocumentaryControl && row.remarks,
+    'Iniciado': row => !row.sentTime,
     'Rechazado': row => !row.sentByDesigner && (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
     'Revisión 0': row => row.canUpdateTo0,
   };
