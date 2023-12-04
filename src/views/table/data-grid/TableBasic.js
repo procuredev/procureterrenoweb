@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-import useColumnResizer from 'src/@core/hooks/useColumnResizer'
+// import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
@@ -28,7 +28,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     '.colIndex-1': {minWidth: "200px !important"},
   }
 
-  const resizedColumnWidths = useColumnResizer(loading, initialValues)
+  // const resizedColumnWidths = useColumnResizer(loading, initialValues)
 
   useEffect(() => {
     if (rows) {
@@ -382,7 +382,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             '.MuiDataGrid-iconSeparator': {
               '& path:hover': { cursor: 'col-resize', strokeWidth: '3px', stroke: theme.palette.divider },
             },
-            ...{...resizedColumnWidths},
+           //...{...resizedColumnWidths},
         }}
           initialState={{
             sorting: {
