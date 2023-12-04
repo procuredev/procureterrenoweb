@@ -49,7 +49,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { authUser, getUserData, updateBlueprint, addDescription, useEvents } = useFirebase()
+  const { authUser, getUserData, updateBlueprint, useEvents } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null)
   const [generateClientCode, setGenerateClientCode] = useState(false)
   const [fileNames, setFileNames] = useState({})
@@ -84,9 +84,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     setGenerateClientCode(false)
   }
 
-  const handleClose = () => {
-    setOpen(false)
-  }
 
   const handleClickOpenAlert = (doc, isApproved) => {
     setDoc(doc)
@@ -438,7 +435,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 <IconButton
                   sx={{ p: 0 }}
                   id={row.id}
-                  onClick={e => {
+                  onClick={() => {
                     handleOpenUploadDialog(row)
                   }}
                 >
@@ -494,7 +491,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      flex:0.1,
+      flex:0.15,
       renderCell: params => {
         const { row } = params
 
@@ -511,10 +508,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex:0.2,
+      flex:0.15,
       renderCell: params => {
         const { row } = params
-        let description = row.description || true
 
         return (
           <Box
@@ -530,15 +526,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
                 {row.description || 'Sin descripción'}
               </Typography>
-              <IconButton
-                sx={{ ml: 2, p: 0 }}
-                onClick={() => {
-                  handleOpenUploadDialog(row)
-                  setCurrentRow(row.id)
-                }}
-              >
-                <Edit />
-              </IconButton>
             </Box>
             <RevisionComponent row={row} field={'description'} />
           </Box>
@@ -601,7 +588,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      flex:0.15,
+      flex:0.2,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -650,8 +637,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         )
       }
     },
-    authUser.role === 9
-      ? {
+    {
           field: 'clientAprove',
           headerName: 'Cliente',
 
@@ -731,7 +717,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             )
           }
         }
-      : ''
   ]
 
   return (
@@ -748,11 +733,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         rows={rows}
         columns={columns}
         columnVisibilityModel={{
-          ot: md,
-          end: md,
-          assign: md,
-          done: md,
-          actions: roleData.canApprove
+          clientApprove: authUser.role === 9
         }}
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
