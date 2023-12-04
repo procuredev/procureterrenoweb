@@ -29,7 +29,7 @@ const Navigation = () => {
       title: 'Solicitudes',
       icon: 'mdi:file-document-multiple-outline',
       subject: 'solicitudes',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 10]
     },
     {
       title: 'Calendario',
@@ -45,11 +45,11 @@ const Navigation = () => {
         {
           path: '/levantamientos',
           title: 'Levantamientos',
-          subject: 'levantamientos'
+          subject: 'levantamientos',
         }
       ],
 
-      authorizedRoles: [1, 7]
+      authorizedRoles: [1, 7, 8, 10]
     },
     {
       title: 'Documentos',
