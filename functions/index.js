@@ -212,7 +212,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub
     return null
   })
 
-// * Función que revisa la base de datos todos los días a las 8AM
+// * Función que revisa la base de datos todos los días a las 17:00
 exports.sendInfoToSupervisorAt5PM = functions.pubsub
   .schedule('every day 17:00')
   .timeZone('Chile/Continental')
@@ -287,24 +287,24 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
           .where('role', '==', 7)
           .get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
 
-        const supervisorData = supervisorSnapshot.docs[0].data() // Se almacena en una constante los datos del Supervisor
-        const supervisorEmail = supervisorData.email // Se almacena el e-mail del Supervisor
-        const supervisorName = supervisorData.name // Se almacena el e-mail del Supervisor
+        const supervisorData = supervisorSnapshot.docs // Se almacena en una constante los datos del Supervisor
+        const supervisorEmail = supervisorData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Supervisor
+        const supervisorName = supervisorData.filter(doc => doc.enabled != false).map(id => id.data().name) // Se almacena el e-mail del Supervisor
 
         const drawmansSnapshot = await usersRef
           .where('shift', 'array-contains', supervisorWork.supervisorShift)
           .where('role', '==', 8)
           .get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
         const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
-        const drawmansEmail = drawmansData.map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
+        const drawmansEmail = drawmansData.filter(doc => doc.enabled != false).map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
-        const plannerData = plannerSnapshot.docs[0].data() // Se almacena en una constante los datos del Planificador
-        const plannerEmail = plannerData.email // Se almacena el e-mail del Planificador
+        const plannerData = plannerSnapshot.docs // Se almacena en una constante los datos del Planificador
+        const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Planificador
 
         const admContratoSnapshot = await usersRef.where('role', '==', 6).get() // Se llama sólo al que cumple con la condición de que su rol es 6 (Administrador de Contrato)
-        const admContratoData = admContratoSnapshot.docs[0].data() // Se almacena en una constante los datos del Administrador de Contrato
-        const admContratoEmail = admContratoData.email // Se almacena el e-mail del Administrador de Contrato
+        const admContratoData = admContratoSnapshot.docs // Se almacena en una constante los datos del Administrador de Contrato
+        const admContratoEmail = admContratoData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Administrador de Contrato
 
         // Si hay mas de 1 levantamiento se escribirá 'levantamientos agendados'
         let youHaveTasks = 'levantamiento agendado'
@@ -334,8 +334,8 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
         await emailsRef.doc(mailId).update({
-          to: supervisorEmail,
-          cc: [plannerEmail, admContratoEmail].concat(drawmansEmail),
+          to: [...supervisorEmail],
+          cc: [...plannerEmail, ...admContratoEmail].concat(drawmansEmail),
           date: now,
           emailType: 'supervisorDailyTasks',
           message: {
