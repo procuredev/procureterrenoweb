@@ -143,6 +143,13 @@ const DataGridGabinete = () => {
             variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
               Asignar proyectista
             </Button>
+          ) : authUser.role === 9 ? (
+            <Button
+              variant='contained'
+              // onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
+            >
+              Generar Transmittal
+            </Button>
           ) : (
             <Button
               variant='contained'
