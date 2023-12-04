@@ -465,9 +465,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     }
                   }}
                 >
-                  {row.id}
+                  {row.id || 'Sin código Procure'}
                 </Typography>
-                <Typography variant='caption'>{row.clientCode}</Typography>
+                <Typography variant='caption'>{row.clientCode  || 'Sin código MEL'}</Typography>
                 </Box>
               </Box>
             </Tooltip>
@@ -511,7 +511,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex:0.1,
+      flex:0.2,
       renderCell: params => {
         const { row } = params
         let description = row.description || true
@@ -546,7 +546,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     },
     {
-      field: 'start',
+      field: 'files',
       headerName: 'ENTREGABLE',
       flex:0.2,
       renderCell: params => {
