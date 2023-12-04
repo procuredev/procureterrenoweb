@@ -116,7 +116,7 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
 
           }
 
-          { approves && authUser.role === 9 && blueprint.approvedByDocumentaryControl === true  ? (
+          { approves && authUser.role === 9 && blueprint?.approvedByDocumentaryControl === true  ? (
               <FormControlLabel
                 control={<Switch onChange={() => setToggleRemarks(!toggleRemarks)} />}
 

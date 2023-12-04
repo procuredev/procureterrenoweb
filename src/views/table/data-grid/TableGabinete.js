@@ -419,8 +419,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'title',
-      minWidth: 200,
-      headerName: 'Código Procure',
+      flex:0.3,
+      headerName: 'Código Procure / MEL',
       renderCell: params => {
         const { row } = params
 
@@ -453,6 +453,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 >
                   <ChevronRight sx={{ transform: currentRow === row.id ? 'rotate(90deg)' : '' }} />
                 </IconButton>
+                <Box>
                 <Typography
                   noWrap
                   sx={{
@@ -466,40 +467,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 >
                   {row.id}
                 </Typography>
+                <Typography variant='caption'>{row.clientCode}</Typography>
+                </Box>
               </Box>
             </Tooltip>
           </>
         )
-      }
-    },
-    {
-      field: 'clientCode',
-      headerName: 'Código MEL',
-      renderCell: params => {
-        const { row } = params
-
-        if (row.clientCode) {
-          return (
-            <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-              <Typography noWrap sx={{ overflow: 'hidden', textOverflow: 'clip' }}>
-                {row.clientCode || 'Sin descripción'}
-              </Typography>
-            </Box>
-          )
-        } else {
-          return (
-            <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-              <Edit
-                fontSize='small'
-                sx={{ ml: 2 }}
-                onClick={() => {
-                  setGenerateClientCode(true)
-                  setCurrentRow(row.id)
-                }}
-              ></Edit>
-            </Box>
-          )
-        }
       }
     },
     {
@@ -521,6 +494,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
+      flex:0.1,
       renderCell: params => {
         const { row } = params
 
@@ -537,7 +511,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      //editable: true,
+      flex:0.1,
       renderCell: params => {
         const { row } = params
         let description = row.description || true
@@ -574,6 +548,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'start',
       headerName: 'ENTREGABLE',
+      flex:0.2,
       renderCell: params => {
         const { row } = params
 
@@ -626,6 +601,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
+      flex:0.15,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -780,7 +756,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         }}
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
-        getRowHeight={row => (row.id === currentRow ? 'auto' : 60.44)}
+        getRowHeight={row => (row.id === currentRow ? 'auto' : 'auto')}
       />
       <AlertDialogGabinete
         open={openAlert}
