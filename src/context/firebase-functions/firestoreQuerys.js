@@ -29,7 +29,7 @@ const useEvents = (id, userParam, path='events') => {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    if (path.includes('//')) return data
+    if (path.includes('//')) return
     if (userParam && id) {
       const q = query(collection(db, 'solicitudes', id, path), orderBy('date', 'desc'))
 
