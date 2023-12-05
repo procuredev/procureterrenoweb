@@ -372,33 +372,23 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
             if (field === 'storageBlueprints') {
               if (fieldContent) {
-                return fieldContent.map((content, index) => {
-                  return <Link
+                return (
+                <Typography noWrap sx={{ mt: 4, textOverflow: 'clip' }} key={revision.id}>
+                {fieldContent.map((content, index) => {
+                return <Link
                   href={content}
                   target='_blank'
                   rel='noreferrer'
-                  variant='body1'
                   noWrap
-                  sx={{
-                    mt: 4,
-                    textOverflow: 'clip',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    marginBlockStart: '1em',
-                    marginBlockEnd: '1em',
-                    marginInlineStart: 0,
-                    marginInlineEnd: 0
-                  }}
                   key={index}
                   color='inherit'
                   underline='always'
                 >
-                  <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
                     {getFileName(content, index)}
-                    <AttachFile sx={{ ml: 1 }} />
-                  </Box>
                 </Link>
-                })
+                })}
+                </Typography>
+              )
               }
             }
 
@@ -558,13 +548,24 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }}
           >
             <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
-              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
                 {row.storageBlueprints ?
-                row.storageBlueprints.map((content, index) => {
-                  return getFileName(content, index)
-                })
-                : 'Sin entregable'}
-              </Typography>
+                row.storageBlueprints.map((content, index) =>
+                <Link
+                  key={index}
+                  href={content}
+                  target='_blank'
+                  rel='noreferrer'
+                  variant='body1'
+                  noWrap>
+                  <Typography key={index} noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                  {getFileName(content, index)}
+                  </Typography>
+                </Link>
+                )
+                : <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                  Sin entregable
+                </Typography>}
+
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
                 onClick={
@@ -573,7 +574,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     : null
                 }
               >
-                {row.storageBlueprints ? <AttachFile /> : <Upload />}
+                {row.storageBlueprints ? null : <Upload />}
               </IconButton>
             </Box>
             <RevisionComponent row={row} field={'storageBlueprints'} />
