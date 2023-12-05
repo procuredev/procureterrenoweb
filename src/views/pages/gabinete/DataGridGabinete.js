@@ -14,6 +14,8 @@ import {KeyboardDoubleArrowRight, KeyboardDoubleArrowLeft} from '@mui/icons-mate
 
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 // ** Demo Components Imports
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
@@ -67,6 +69,65 @@ const DataGridGabinete = () => {
     setCurrentPetition(currentDoc)
 
   }
+
+  const handleClickTransmittalGenerator = (currentPetition, blueprints) => {
+    const doc = new jsPDF();
+
+    doc.text('Transmittal', 95, 20);
+    doc.text(`Titulo: ${currentPetition.title}`, 10, 60);
+    doc.text(`OT: ${currentPetition.ot}`, 10, 80);
+    doc.text(`Tipo de Levantamiento: ${currentPetition.objective}`, 10, 100);
+
+
+    // Define las columnas de la tabla
+    const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
+    // Define las filas de la tabla
+    const rows = blueprints.map(obj => Object.values(obj));
+
+
+
+    const data = blueprints.map(obj => {
+      if (obj.storageBlueprints) {
+        // Divide la URL en segmentos separados por '%2F'
+        const urlSegments = obj.storageBlueprints[0].split('%2F');
+
+        // Obtiene el último segmento, que debería ser el nombre del archivo
+        const encodedFileName = urlSegments[urlSegments.length - 1];
+
+        // Divide el nombre del archivo en segmentos separados por '?'
+        const fileNameSegments = encodedFileName.split('?');
+
+        // Obtiene el primer segmento, que debería ser el nombre del archivo
+        const fileName = decodeURIComponent(fileNameSegments[0]);
+
+        return [
+          obj.id,
+          obj.revision,
+          obj.description,
+          fileName,
+          obj.date.toDate()
+        ];
+      } else {
+        // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
+        return [
+          obj.id,
+          obj.revision,
+          obj.description,
+          "",
+          obj.date.toDate()
+        ];
+      }
+    });
+
+    // Agrega la tabla al documento
+    doc.autoTable({
+      startY: 110,
+      head: [columns],
+      body: data,});
+
+    // Descarga el documento
+    doc.save("documento.pdf");
+  };
 
   useEffect(() => {
     const fetchRoleAndProyectistas = async () => {
@@ -146,7 +207,7 @@ const DataGridGabinete = () => {
           ) : authUser.role === 9 ? (
             <Button
               variant='contained'
-              // onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
+              onClick={() => currentPetition && handleClickTransmittalGenerator(currentPetition, blueprints)}
             >
               Generar Transmittal
             </Button>
