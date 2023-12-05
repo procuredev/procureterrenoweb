@@ -356,33 +356,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     // Obtiene el primer segmento, que debería ser el nombre del archivo
     const fileName = decodeURIComponent(fileNameSegments[0])
 
-    return (
-      <Link
-        href={content}
-        target='_blank'
-        rel='noreferrer'
-        variant='body1'
-        noWrap
-        sx={{
-          mt: 4,
-          textOverflow: 'clip',
-          cursor: 'pointer',
-          display: 'flex',
-          marginBlockStart: '1em',
-          marginBlockEnd: '1em',
-          marginInlineStart: 0,
-          marginInlineEnd: 0
-        }}
-        key={index}
-        color='inherit'
-        underline='always'
-      >
-        <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
-          {fileName}
-          <AttachFile sx={{ ml: 1 }} />
-        </Box>
-      </Link>
-    )
+    return fileName
   }
 
   const RevisionComponent = ({ row, field }) => {
@@ -399,7 +373,31 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             if (field === 'storageBlueprints') {
               if (fieldContent) {
                 return fieldContent.map((content, index) => {
-                  return getFileName(content, index)
+                  return <Link
+                  href={content}
+                  target='_blank'
+                  rel='noreferrer'
+                  variant='body1'
+                  noWrap
+                  sx={{
+                    mt: 4,
+                    textOverflow: 'clip',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    marginBlockStart: '1em',
+                    marginBlockEnd: '1em',
+                    marginInlineStart: 0,
+                    marginInlineEnd: 0
+                  }}
+                  key={index}
+                  color='inherit'
+                  underline='always'
+                >
+                  <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
+                    {getFileName(content, index)}
+                    <AttachFile sx={{ ml: 1 }} />
+                  </Box>
+                </Link>
                 })
               }
             }
@@ -561,7 +559,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           >
             <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
               <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
-                {row.storageBlueprints ? fileNames[row.id] : 'Sin entregable'}
+                {row.storageBlueprints ?
+                row.storageBlueprints.map((content, index) => {
+                  return getFileName(content, index)
+                })
+                : 'Sin entregable'}
               </Typography>
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
