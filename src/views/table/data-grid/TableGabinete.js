@@ -60,7 +60,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     end: null,
     total: '',
     hours: 0,
-    minutes: 0,
+    minutes: 0
   })
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
@@ -76,7 +76,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     setOpenUploadDialog(false)
   }
 
-
   const handleClickOpenAlert = (doc, isApproved) => {
     setDoc(doc)
     setOpenAlert(true)
@@ -86,12 +85,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const writeCallback = async () => {
     const remarks = remarksState.length > 0 ? remarksState : false
 
-    authUser.role === 8 ? await updateBlueprint(petitionId, doc, approve, authUser, false, hours.total)
-    .then(() => {
-      setOpenAlert(false), setBlueprintGenerated(true), setHours('')
-    })
-    .catch(err => console.error(err), setOpenAlert(false)) :
-    authUser.role === 9
+    authUser.role === 8
+      ? await updateBlueprint(petitionId, doc, approve, authUser, false, hours.total)
+          .then(() => {
+            setOpenAlert(false), setBlueprintGenerated(true), setHours('')
+          })
+          .catch(err => console.error(err), setOpenAlert(false))
+      : authUser.role === 9
       ? await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
             setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
@@ -190,26 +190,29 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const statusMap = {
     'Aprobado con comentarios': row => row.approvedByClient && row.sentByDesigner && row.remarks,
-    'Aprobado': row => (row.approvedByClient && row.sentByDesigner) || row.revision === '0',
-    'Enviado': row => row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
+    Aprobado: row => (row.approvedByClient && row.sentByDesigner) || row.revision === '0',
+    Enviado: row =>
+      row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Rechazado con Observaciones': row => !row.sentByDesigner && !row.approvedByDocumentaryControl && row.remarks,
-    'Iniciado': row => !row.sentTime,
-    'Rechazado': row => !row.sentByDesigner && (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
-    'Revisión 0': row => row.canUpdateTo0,
-  };
+    Iniciado: row => !row.sentTime,
+    Rechazado: row =>
+      !row.sentByDesigner &&
+      (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
+    'Revisión 0': row => row.canUpdateTo0
+  }
 
-  const renderStatus = (row) => {
+  const renderStatus = row => {
     for (const status in statusMap) {
       if (statusMap[status](row)) {
-        return status;
+        return status
       }
     }
 
-    return 'No enviado';
+    return 'No enviado'
   }
 
   const renderButton = (row, approve, color, IconComponent) => {
-    const handleClick = () => handleClickOpenAlert(row, approve);
+    const handleClick = () => handleClickOpenAlert(row, approve)
 
     return (
       <Button
@@ -220,100 +223,112 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       >
         <IconComponent sx={{ fontSize: 18 }} />
       </Button>
-    );
+    )
   }
 
-  const renderButtons = (row, flexDirection, canApprove, canReject, canUpdate = false ) => {
+  const renderButtons = (row, flexDirection, canApprove, canReject, canUpdate = false) => {
     return (
       <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
         {canReject && renderButton(row, false, 'error', CancelOutlined)}
         {canUpdate && renderButton(row, true, 'warning', CheckCircleOutline)}
       </Container>
-    );
+    )
   }
 
   const checkRoleAndApproval = (role, row) => {
-    return role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && row.revision.charCodeAt(0) >= 66 && !row.approvedByClient;
+    return (
+      role === 9 &&
+      row.approvedByDocumentaryControl &&
+      row.sentByDesigner &&
+      row.revision.charCodeAt(0) >= 66 &&
+      !row.approvedByClient
+    )
   }
 
   const checkRoleAndUpdate = (role, row) => {
-    return role === 9 && row.approvedByDocumentaryControl && row.approvedByClient && row.revision.charCodeAt(0) >= 66 && row.canUpdateTo0 === false;
+    return (
+      role === 9 &&
+      row.approvedByDocumentaryControl &&
+      row.approvedByClient &&
+      row.revision.charCodeAt(0) >= 66 &&
+      row.canUpdateTo0 === false
+    )
   }
 
   useEffect(() => {
     if (hours.start && hours.end) {
-      const workStartHour = 8; // Hora de inicio de la jornada laboral
-      const workEndHour = 20; // Hora de finalización de la jornada laboral
-      const millisecondsPerHour = 60 * 60 * 1000; // Milisegundos por hora
+      const workStartHour = 8 // Hora de inicio de la jornada laboral
+      const workEndHour = 20 // Hora de finalización de la jornada laboral
+      const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
 
-      let startDate = hours.start.clone();
-      let endDate = hours.end.clone();
+      let startDate = hours.start.clone()
+      let endDate = hours.end.clone()
 
       // Asegurarse de que las fechas estén dentro de las horas de trabajo
       if (startDate.hour() < workStartHour) {
-        startDate.hour(workStartHour).minute(0).second(0).millisecond(0);
+        startDate.hour(workStartHour).minute(0).second(0).millisecond(0)
       }
       if (endDate.hour() > workEndHour) {
-        endDate.hour(workEndHour).minute(0).second(0).millisecond(0);
+        endDate.hour(workEndHour).minute(0).second(0).millisecond(0)
       } else if (endDate.hour() < workStartHour) {
-        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0);
+        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0)
       }
 
-      let totalHoursWithinWorkingDays = 0;
-      let totalMinutes = 0;
+      let totalHoursWithinWorkingDays = 0
+      let totalMinutes = 0
 
       while (startDate.isBefore(endDate)) {
-        const currentDayEnd = startDate.clone().hour(workEndHour);
+        const currentDayEnd = startDate.clone().hour(workEndHour)
 
         if (currentDayEnd.isAfter(endDate)) {
-          const durationMillis = endDate.diff(startDate);
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
-          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000));
+          const durationMillis = endDate.diff(startDate)
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
+          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000))
         } else {
-          const durationMillis = currentDayEnd.diff(startDate);
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour);
+          const durationMillis = currentDayEnd.diff(startDate)
+          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
         }
 
-        startDate.add(1, 'day').hour(workStartHour);
+        startDate.add(1, 'day').hour(workStartHour)
       }
 
       if (totalMinutes >= 60) {
-        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60);
-        totalMinutes %= 60;
+        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60)
+        totalMinutes %= 60
       }
 
       if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
-        setError('La hora de término debe ser superior a la hora de inicio.');
+        setError('La hora de término debe ser superior a la hora de inicio.')
 
-        return;
+        return
       } else {
-        setError(null); // Para limpiar cualquier error previo.
+        setError(null) // Para limpiar cualquier error previo.
       }
 
       setHours(prevHours => ({
         ...prevHours,
         total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
         hours: totalHoursWithinWorkingDays,
-        minutes: totalMinutes,
-      }));
+        minutes: totalMinutes
+      }))
     }
-  }, [hours.start, hours.end]);
+  }, [hours.start, hours.end])
 
   useEffect(() => {
     // Primera parte: obtener los nombres de los planos
     rows.map(async row => {
-      const blueprintName = await getBlueprintName(row.id);
-      setFileNames(prevNames => ({ ...prevNames, [row.id]: blueprintName }));
-    });
+      const blueprintName = await getBlueprintName(row.id)
+      setFileNames(prevNames => ({ ...prevNames, [row.id]: blueprintName }))
+    })
 
     // Segunda parte: manejar la apertura del diálogo de carga
     if (openUploadDialog) {
-      const filterRow = rows.find(rows => rows.id === currentRow);
-      setDoc(filterRow);
-      setOpenUploadDialog(true);
+      const filterRow = rows.find(rows => rows.id === currentRow)
+      setDoc(filterRow)
+      setOpenUploadDialog(true)
     }
-  }, [rows, openUploadDialog, currentRow]);
+  }, [rows, openUploadDialog, currentRow])
 
   const theme = useTheme()
   const md = useMediaQuery(theme.breakpoints.up('md'))
@@ -328,6 +343,47 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     fetchProyectistas()
   }, [authUser.shift])
 
+  const getFileName = (content, index) => {
+    // Divide la URL en segmentos separados por '%2F'
+    const urlSegments = content.split('%2F')
+
+    // Obtiene el último segmento, que debería ser el nombre del archivo
+    const encodedFileName = urlSegments[urlSegments.length - 1]
+
+    // Divide el nombre del archivo en segmentos separados por '?'
+    const fileNameSegments = encodedFileName.split('?')
+
+    // Obtiene el primer segmento, que debería ser el nombre del archivo
+    const fileName = decodeURIComponent(fileNameSegments[0])
+
+    return (
+      <Link
+        href={content}
+        target='_blank'
+        rel='noreferrer'
+        variant='body1'
+        noWrap
+        sx={{
+          mt: 4,
+          textOverflow: 'clip',
+          cursor: 'pointer',
+          display: 'flex',
+          marginBlockStart: '1em',
+          marginBlockEnd: '1em',
+          marginInlineStart: 0,
+          marginInlineEnd: 0
+        }}
+        key={index}
+        color='inherit'
+        underline='always'
+      >
+        <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
+          {fileName}
+          <AttachFile sx={{ ml: 1 }} />
+        </Box>
+      </Link>
+    )
+  }
 
   const RevisionComponent = ({ row, field }) => {
     return (
@@ -341,49 +397,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }
 
             if (field === 'storageBlueprints') {
-
               if (fieldContent) {
                 return fieldContent.map((content, index) => {
-                  // Divide la URL en segmentos separados por '%2F'
-                  const urlSegments = content.split('%2F');
-
-                  // Obtiene el último segmento, que debería ser el nombre del archivo
-                  const encodedFileName = urlSegments[urlSegments.length - 1];
-
-                  // Divide el nombre del archivo en segmentos separados por '?'
-                  const fileNameSegments = encodedFileName.split('?');
-
-                  // Obtiene el primer segmento, que debería ser el nombre del archivo
-                  const fileName = decodeURIComponent(fileNameSegments[0]);
-
-                  return (
-                    <Link
-                      href={content}
-                      target='_blank'
-                      rel='noreferrer'
-                      variant='body1'
-                      noWrap
-                      sx={{
-                        mt: 4,
-                        textOverflow: 'clip',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        marginBlockStart: '1em',
-                        marginBlockEnd: '1em',
-                        marginInlineStart: 0,
-                        marginInlineEnd: 0
-                      }}
-                      key={index}
-                      color='inherit'
-                      underline='always'
-                    >
-                      <Box sx={{ display: 'inline-flex', justifyContent: 'space-between', width: '100%' }}>
-                        {fileName}
-                        <AttachFile sx={{ ml: 1 }} />
-                      </Box>
-                    </Link>
-                  )
-                });
+                  return getFileName(content, index)
+                })
               }
             }
 
@@ -409,7 +426,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'title',
-      flex:0.3,
+      flex: 0.3,
       headerName: 'Código Procure / MEL',
       renderCell: params => {
         const { row } = params
@@ -444,20 +461,20 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   <ChevronRight sx={{ transform: currentRow === row.id ? 'rotate(90deg)' : '' }} />
                 </IconButton>
                 <Box>
-                <Typography
-                  noWrap
-                  sx={{
-                    textOverflow: 'clip',
-                    textDecoration: 'none',
-                    transition: 'text-decoration 0.2s',
-                    '&:hover': {
-                      textDecoration: 'underline'
-                    }
-                  }}
-                >
-                  {row.id || 'Sin código Procure'}
-                </Typography>
-                <Typography variant='caption'>{row.clientCode  || 'Sin código MEL'}</Typography>
+                  <Typography
+                    noWrap
+                    sx={{
+                      textOverflow: 'clip',
+                      textDecoration: 'none',
+                      transition: 'text-decoration 0.2s',
+                      '&:hover': {
+                        textDecoration: 'underline'
+                      }
+                    }}
+                  >
+                    {row.id || 'Sin código Procure'}
+                  </Typography>
+                  <Typography variant='caption'>{row.clientCode || 'Sin código MEL'}</Typography>
                 </Box>
               </Box>
             </Tooltip>
@@ -484,7 +501,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      flex:0.15,
+      flex: 0.15,
       renderCell: params => {
         const { row } = params
 
@@ -501,7 +518,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex:0.15,
+      flex: 0.15,
       renderCell: params => {
         const { row } = params
 
@@ -528,7 +545,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      flex:0.2,
+      flex: 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -581,7 +598,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      flex:0.2,
+      flex: 0.2,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -590,7 +607,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const flexDirection = md ? 'row' : 'column'
 
-        const buttons = renderButtons(row, flexDirection, canApprove, canReject );
+        const buttons = renderButtons(row, flexDirection, canApprove, canReject)
 
         return (
           <>
@@ -604,26 +621,27 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               }}
             >
               {canApprove || canReject ? (
-                  md ? (
-                    buttons
-                  ) : (
-                    <Select
-                      labelId='demo-simple-select-label'
-                      id='demo-simple-select'
-                      size='small'
-                      IconComponent={() => <MoreHorizIcon />}
-                      sx={{
-                        '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                        '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                        '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                      }}
-                    >
-                      {buttons}
-                    </Select>
-                  )
-                ) : renderStatus(row)
-              }
+                md ? (
+                  buttons
+                ) : (
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    size='small'
+                    IconComponent={() => <MoreHorizIcon />}
+                    sx={{
+                      '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                    }}
+                  >
+                    {buttons}
+                  </Select>
+                )
+              ) : (
+                renderStatus(row)
+              )}
               <RevisionComponent row={row} field={'remarks'} />
             </Box>
           </>
@@ -631,85 +649,85 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     },
     {
-          field: 'clientAprove',
-          headerName: 'Cliente',
+      field: 'clientAprove',
+      headerName: 'Cliente',
 
-          renderCell: params => {
-            const { row } = params
+      renderCell: params => {
+        const { row } = params
 
-            const canApprove = checkRoleAndApproval(authUser.role, row);
-            const canReject = checkRoleAndApproval(authUser.role, row);
-            const canUpdate = checkRoleAndUpdate(authUser.role, row);
+        const canApprove = checkRoleAndApproval(authUser.role, row)
+        const canReject = checkRoleAndApproval(authUser.role, row)
+        const canUpdate = checkRoleAndUpdate(authUser.role, row)
 
-            const flexDirection = md ? 'row' : 'column'
+        const flexDirection = md ? 'row' : 'column'
 
-            const buttons = renderButtons(row, flexDirection, canApprove, canReject, canUpdate);
+        const buttons = renderButtons(row, flexDirection, canApprove, canReject, canUpdate)
 
-            return (
-              <>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    width: '100%',
-                    justifyContent: 'space-between',
-                    alignContent: 'center',
-                    flexDirection: 'column'
-                  }}
-                >
-                  {canApprove || canReject ? (
-                    md ? (
-                      buttons
-                    ) : (
-                      <Select
-                        labelId='demo-simple-select-label'
-                        id='demo-simple-select'
-                        size='small'
-                        IconComponent={() => <MoreHorizIcon />}
-                        sx={{
-                          '& .MuiSvgIcon-root': {
-                            position: 'absolute',
-                            margin: '20%',
-                            pointerEvents: 'none !important'
-                          },
-                          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                          '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                          '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                        }}
-                      >
-                        {buttons}
-                      </Select>
-                    )
-                  ) : canUpdate ? (
-                    md ? (
-                      buttons
-                    ) : (
-                      <Select
-                        labelId='demo-simple-select-label'
-                        id='demo-simple-select'
-                        size='small'
-                        IconComponent={() => <MoreHorizIcon />}
-                        sx={{
-                          '& .MuiSvgIcon-root': {
-                            position: 'absolute',
-                            margin: '20%',
-                            pointerEvents: 'none !important'
-                          },
-                          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                          '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                          '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                        }}
-                      >
-                        {buttons}
-                      </Select>
-                    )
-                  ) : (
-                    ''
-                  )}
-                </Box>
-              </>
-            )
-          }
-        }
+        return (
+          <>
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column'
+              }}
+            >
+              {canApprove || canReject ? (
+                md ? (
+                  buttons
+                ) : (
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    size='small'
+                    IconComponent={() => <MoreHorizIcon />}
+                    sx={{
+                      '& .MuiSvgIcon-root': {
+                        position: 'absolute',
+                        margin: '20%',
+                        pointerEvents: 'none !important'
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                    }}
+                  >
+                    {buttons}
+                  </Select>
+                )
+              ) : canUpdate ? (
+                md ? (
+                  buttons
+                ) : (
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    size='small'
+                    IconComponent={() => <MoreHorizIcon />}
+                    sx={{
+                      '& .MuiSvgIcon-root': {
+                        position: 'absolute',
+                        margin: '20%',
+                        pointerEvents: 'none !important'
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                    }}
+                  >
+                    {buttons}
+                  </Select>
+                )
+              ) : (
+                ''
+              )}
+            </Box>
+          </>
+        )
+      }
+    }
   ]
 
   return (
@@ -756,7 +774,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             setBlueprintGenerated={setBlueprintGenerated}
             currentRow={currentRow}
             petition={petition}
-
           />
         </DialogContent>
         <DialogActions>
