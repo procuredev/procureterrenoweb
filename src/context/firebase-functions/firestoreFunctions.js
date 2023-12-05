@@ -13,19 +13,22 @@ import {
   where,
   orderBy,
   limit,
-  runTransaction
+  runTransaction,
+  onSnapshot,
 } from 'firebase/firestore'
 
 // ** Imports Propios
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
-import { getUnixTime } from 'date-fns'
+import { getUnixTime, setDayOfYear } from 'date-fns'
 import { async } from '@firebase/util'
 import { timestamp } from '@antfu/utils'
 import { blue } from '@mui/material/colors'
+import { useEffect } from 'react'
 
-// ** Librería para manejar fechas
+import { useState } from 'react'
+
 const moment = require('moment')
 
 const requestCounter = async () => {
@@ -216,16 +219,16 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
     const { email, displayName } = userParam
 
     let newEvent = {
-        prevState,
-        newState: changedFields.state,
-        user: email,
-        userName: displayName,
-        date: Timestamp.fromDate(new Date()),
-        ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
-      }
-      await updateDoc(ref, changedFields)
-      await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
-      await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
+      prevState,
+      newState: changedFields.state,
+      user: email,
+      userName: displayName,
+      date: Timestamp.fromDate(new Date()),
+      ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
+    }
+    await updateDoc(ref, changedFields)
+    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
   } else {
     console.log('No se escribió ningún documento')
   }
@@ -463,19 +466,38 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-const getBlueprints = async id => {
-  const allBlueprints = []
-  const blueprintQuery = query(collection(db, `solicitudes/${id}/blueprints`), orderBy('date', 'desc'))
-  const blueprintQuerySnapshot = await getDocs(blueprintQuery)
-  blueprintQuerySnapshot.forEach(doc => {
-    // doc.data() is never undefined for query doc snapshots
-    allBlueprints.push({ ...doc.data(), id: doc.id })
-  })
-  if (allBlueprints && allBlueprints.length === 0) {
-    return
-  }
+const useBlueprints = id => {
+  const [data, setData] = useState([])
 
-  return allBlueprints
+  useEffect(() => {
+    if (!id) return
+
+    const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {
+      try {
+        const allDocs = []
+        docSnapshot.forEach(doc => {
+
+        const revisions = []
+
+        onSnapshot(collection(doc.ref, 'revisions'), revisionSnapshot => {
+          revisionSnapshot.forEach(revisionDoc => {
+            revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
+          })
+        })
+
+        allDocs.push({ id: doc.id, ...doc.data(), revisions })
+        setData(allDocs)
+      })}
+      catch (error) {
+        console.error('Error al obtener los planos:', error)
+      }
+    }
+    )
+
+    return () => unsubscribe()
+  }, [id])
+  
+  return data
 }
 
 function formatCount(count) {
@@ -595,65 +617,79 @@ const addDescription = async (petitionID, blueprint, description) => {
 // getLatestRevision() obtiene la última revisión de un plano en la base de datos
 const getLatestRevision = async (petitionID, blueprintID) => {
   // Obtiene la referencia a la colección de revisiones del plano en la base de datos
-  const revisionsRef = collection(db, 'solicitudes', petitionID, 'blueprints', blueprintID, 'revisions');
+  const revisionsRef = collection(db, 'solicitudes', petitionID, 'blueprints', blueprintID, 'revisions')
 
-   // Obtiene un snapshot de la última revisión del plano, ordenada por fecha en orden descendente
-  const revisionsSnapshot = await getDocs(query(revisionsRef, orderBy('date', 'desc'), limit(1)));
+  // Obtiene un snapshot de la última revisión del plano, ordenada por fecha en orden descendente
+  const revisionsSnapshot = await getDocs(query(revisionsRef, orderBy('date', 'desc'), limit(1)))
 
   // Si no hay revisiones, devuelve null
   if (revisionsSnapshot.docs && revisionsSnapshot.docs.length === 0) {
-    return null;
+    return null
   }
 
   // Obtiene los datos de la última revisión
-  const latestRevision = revisionsSnapshot.docs[0].data();
+  const latestRevision = revisionsSnapshot.docs[0].data()
 
   // Devuelve los datos de la última revisión
-  return latestRevision;
-};
+  return latestRevision
+}
 
 // getNextRevision calcula la próxima revisión basándose en una serie de condiciones
-const getNextRevision = async (approve, latestRevision, { role, email, displayName, uid }, { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor }, remarks, hours) => {
+const getNextRevision = async (
+  approve,
+  latestRevision,
+  { role, email, displayName, uid },
+  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor },
+  remarks,
+  hours
+) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
-  let newRevision = revision;
+  let newRevision = revision
 
   // Calcula el código de carácter de la próxima letra en el alfabeto
-  const nextCharCode = revision.charCodeAt(0) + 1;
+  const nextCharCode = revision.charCodeAt(0) + 1
 
-  const nextChar = String.fromCharCode(nextCharCode);
+  const nextChar = String.fromCharCode(nextCharCode)
 
-// Si el rol es 9 y se aprueba, se ejecutan una serie de acciones
+  // Si el rol es 9 y se aprueba, se ejecutan una serie de acciones
   if (role === 9 && approve) {
     // Define las acciones posibles
     const actions = {
       // Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
       keepRevision: {
         condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === false,
-        action: () => newRevision = revision
+        action: () => (newRevision = revision)
       },
       //Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente y por el administrador de contrato o el supervisor, se resetea la revisión a '0'
       resetRevision: {
-        condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === true && (approvedByContractAdmin === true || approvedBySupervisor === true),
-        action: () => newRevision = '0'
+        condition: () =>
+          revision.charCodeAt(0) >= 66 &&
+          approvedByClient === true &&
+          (approvedByContractAdmin === true || approvedBySupervisor === true),
+        action: () => (newRevision = '0')
       },
       // Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
       incrementRevision: {
-        condition: () => !['iniciado','A'].includes(revision) && revision.charCodeAt(0) >= 66 && approvedByClient === false && (approvedByContractAdmin === true || approvedBySupervisor === true),
-        action: () => newRevision = nextChar
+        condition: () =>
+          !['iniciado', 'A'].includes(revision) &&
+          revision.charCodeAt(0) >= 66 &&
+          approvedByClient === false &&
+          (approvedByContractAdmin === true || approvedBySupervisor === true),
+        action: () => (newRevision = nextChar)
       },
       // Si la revisión es 'iniciado' o 'A', se incrementa la revisión a 'A' o 'B', respectivamente
       startOrIncrementRevision: {
         condition: () => ['iniciado', 'A'].includes(revision),
-        action: () => newRevision = newRevision === 'iniciado' ? 'A' : 'B'
+        action: () => (newRevision = newRevision === 'iniciado' ? 'A' : 'B')
       }
-    };
+    }
 
     // Ejecuta la acción correspondiente para cada condición que se cumple
     Object.values(actions).forEach(({ condition, action }) => {
       if (condition()) {
-        action();
+        action()
       }
-    });
+    })
   }
 
   // Crea el objeto de la próxima revisión con los datos proporcionados y la nueva revisión calculada
@@ -667,29 +703,29 @@ const getNextRevision = async (approve, latestRevision, { role, email, displayNa
     userId: uid,
     date: Timestamp.fromDate(new Date()),
     remarks: remarks || 'sin observaciones',
-    drawingHours: hours? hours : null
-  };
+    drawingHours: hours ? hours : null
+  }
 
-  return nextRevision;
-};
+  return nextRevision
+}
 
 // updateBlueprint() actualiza el entregable en la base de datos
 const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours) => {
   // Obtiene la referencia al documento del plano en la base de datos
-  const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id);
+  const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
 
   // Obtiene la última revisión del plano
-  const latestRevision = await getLatestRevision(petitionID, blueprint.id);
+  const latestRevision = await getLatestRevision(petitionID, blueprint.id)
 
   // Calcula la próxima revisión del plano
-  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks, hours);
+  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks, hours)
 
   // Comprueba varias condiciones sobre el plano
-  const revisionIsNotStarted = blueprint.revision !== 'iniciado';
-  const isRevisionAtLeastA = blueprint.revision.charCodeAt(0) >= 65;
-  const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66;
-  const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor;
-  const isApprovedByClient = blueprint.approvedByClient;
+  const revisionIsNotStarted = blueprint.revision !== 'iniciado'
+  const isRevisionAtLeastA = blueprint.revision.charCodeAt(0) >= 65
+  const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
+  const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor
+  const isApprovedByClient = blueprint.approvedByClient
 
   // Inicializa los datos que se van a actualizar
   let updateData = {
@@ -699,53 +735,56 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     approvedBySupervisor: false,
     approvedByDocumentaryControl: false,
     sentTime: Timestamp.fromDate(new Date())
-  };
+  }
 
-   // Define las acciones a realizar en función del rol del usuario
+  // Define las acciones a realizar en función del rol del usuario
   const roleActions = {
     6: () => ({
       ...updateData,
-      sentByDesigner : approves,
-      approvedByContractAdmin : approves,
-      storageBlueprints : approves ? blueprint.storageBlueprints : null,
+      sentByDesigner: approves,
+      approvedByContractAdmin: approves,
+      storageBlueprints: approves ? blueprint.storageBlueprints : null
     }),
     7: () => ({
       ...updateData,
-      sentByDesigner : approves,
-      approvedBySupervisor : approves,
-      storageBlueprints : approves ? blueprint.storageBlueprints : null,
+      sentByDesigner: approves,
+      approvedBySupervisor: approves,
+      storageBlueprints: approves ? blueprint.storageBlueprints : null
     }),
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
-      approvedBySupervisor : approves && blueprint.revision === 'iniciado',
+      approvedBySupervisor: approves && blueprint.revision === 'iniciado'
     }),
-    9: () => revisionIsNotStarted && isRevisionAtLeastB && isNotApprovedByAdminAndSupervisor ? {
-      ...updateData,
-      approvedByClient : approves,
-      approvedByDocumentaryControl : approves,
-      storageBlueprints : !isApprovedByClient && approves ? blueprint.storageBlueprints : null,
-      canUpdateTo0 : isApprovedByClient? true : false,
-      sentByDesigner : approves && !isApprovedByClient? true : false,
-      remarks: remarks ? true : false
-    }
-    : {
-      ...updateData,
-      approvedByDocumentaryControl : approves,
-      sentByDesigner : approves && revisionIsNotStarted && isRevisionAtLeastA,
-      storageBlueprints : approves && revisionIsNotStarted && isRevisionAtLeastA ? blueprint.storageBlueprints : null,
-    }
-  };
+    9: () =>
+      revisionIsNotStarted && isRevisionAtLeastB && isNotApprovedByAdminAndSupervisor
+        ? {
+            ...updateData,
+            approvedByClient: approves,
+            approvedByDocumentaryControl: approves,
+            storageBlueprints: !isApprovedByClient && approves ? blueprint.storageBlueprints : null,
+            canUpdateTo0: isApprovedByClient ? true : false,
+            sentByDesigner: approves && !isApprovedByClient ? true : false,
+            remarks: remarks ? true : false
+          }
+        : {
+            ...updateData,
+            approvedByDocumentaryControl: approves,
+            sentByDesigner: approves && revisionIsNotStarted && isRevisionAtLeastA,
+            storageBlueprints:
+              approves && revisionIsNotStarted && isRevisionAtLeastA ? blueprint.storageBlueprints : null
+          }
+  }
 
   // Aplica la acción correspondiente al rol del usuario
-  updateData = roleActions[userParam.role] ? roleActions[userParam.role]() : updateData;
+  updateData = roleActions[userParam.role] ? roleActions[userParam.role]() : updateData
 
   // Actualiza el plano en la base de datos
-  await updateDoc(blueprintRef, updateData);
+  await updateDoc(blueprintRef, updateData)
 
   // Añade la nueva revisión a la subcolección de revisiones del plano
-  await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision);
-};
+  await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
+}
 
 export {
   newDoc,
@@ -753,7 +792,7 @@ export {
   updateUserPhone,
   blockDayInDatabase,
   generateBlueprint,
-  getBlueprints,
+  useBlueprints,
   updateBlueprint,
   addDescription,
   generateBlueprintCodeClient

@@ -42,14 +42,13 @@ import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBluepr
 import { getStorage, ref, list } from 'firebase/storage'
 
 const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
-  const [open, setOpen] = useState(false)
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState({})
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { authUser, getUserData, updateBlueprint, useEvents } = useFirebase()
+  const { authUser, getUserData, updateBlueprint } = useFirebase()
   const [currentRow, setCurrentRow] = useState(null)
   const [fileNames, setFileNames] = useState({})
   const [remarksState, setRemarksState] = useState('')
@@ -65,8 +64,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   })
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
-
-  const revisions = useEvents(petitionId, authUser, `blueprints/${currentRow}/revisions`)
 
   const handleOpenUploadDialog = doc => {
     setCurrentRow(doc.id)
@@ -336,8 +333,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     return (
       currentRow === row.id && (
         <Box sx={{ overflow: 'hidden' }}>
-          {revisions.map(revision => {
-            let fieldContent = revision[field] || 'aaa'
+          {row.revisions.map(revision => {
+            let fieldContent = revision[field] || 'Sin Datos'
 
             if (field === 'date' || field === 'sentTime') {
               fieldContent = unixToDate(revision[field].seconds)

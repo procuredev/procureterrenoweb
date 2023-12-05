@@ -24,7 +24,7 @@ import {
   updateUserPhone,
   blockDayInDatabase,
   generateBlueprint,
-  getBlueprints,
+  useBlueprints,
   updateBlueprint,
   addDescription,
   generateBlueprintCodeClient
@@ -59,23 +59,22 @@ const FirebaseContextProvider = props => {
   const auth = getAuth(app)
 
   useEffect(() => {
-    const auth = getAuth(app);
+    const auth = getAuth(app)
 
-    const unsubscribe = onAuthStateChanged(auth, async (authState) => {
+    const unsubscribe = onAuthStateChanged(auth, async authState => {
       if (!authState) {
-        setAuthUser(null);
-        setLoading(false);
+        setAuthUser(null)
+        setLoading(false)
       } else {
-        setLoading(true);
-        const formattedUser = await formatAuthUser(authState);
-        setAuthUser(formattedUser);
-        setLoading(false);
+        setLoading(true)
+        const formattedUser = await formatAuthUser(authState)
+        setAuthUser(formattedUser)
+        setLoading(false)
       }
-    });
+    })
 
-    return () => unsubscribe();
-  }, []);
-
+    return () => unsubscribe()
+  }, [])
 
   const value = {
     authUser,
@@ -107,7 +106,7 @@ const FirebaseContextProvider = props => {
     getUsersWithSolicitudes,
     signGoogle,
     generateBlueprint,
-    getBlueprints,
+    useBlueprints,
     fetchPetitionById,
     fetchPlaneProperties,
     updateBlueprint,

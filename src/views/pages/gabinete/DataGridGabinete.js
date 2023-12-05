@@ -8,7 +8,7 @@ import { useFirebase } from 'src/context/useFirebase'
 import Box from '@mui/material/Box'
 
 import { MenuList, MenuItem, Paper, Autocomplete, IconButton, Typography } from '@mui/material'
-import {KeyboardDoubleArrowRight, KeyboardDoubleArrowLeft} from '@mui/icons-material';
+import { KeyboardDoubleArrowRight, KeyboardDoubleArrowLeft } from '@mui/icons-material'
 
 // ** Custom Components Imports
 
@@ -21,10 +21,8 @@ import "jspdf-autotable";
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
-import { doc } from 'firebase/firestore';
 
 const DataGridGabinete = () => {
-  const [menuOpen, setMenuOpen] = useState(true)
   const [currentPetition, setCurrentPetition] = useState('')
   const [currentOT, setCurrentOT] = useState(null)
   const [currentAutoComplete, setCurrentAutoComplete] = useState(null)
@@ -32,12 +30,11 @@ const DataGridGabinete = () => {
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
   const [proyectistas, setProyectistas] = useState([])
-  const [blueprints, setBlueprints] = useState([])
   const [openCodeGenerator, setOpenCodeGenerator] = useState(false)
   const [blueprintGenerated, setBlueprintGenerated] = useState(false)
   const [designerAssigned, setDesignerAssigned] = useState(false)
 
-  const { useSnapshot, authUser, getUserData, getBlueprints, fetchPetitionById } = useFirebase()
+  const { useSnapshot, authUser, getUserData, useBlueprints, fetchPetitionById } = useFirebase()
   let petitions = useSnapshot(false, authUser, true)
 
   if (authUser.role === 8) {
@@ -45,6 +42,8 @@ const DataGridGabinete = () => {
       petition.designerReview?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
     )
   }
+
+  const blueprints = useBlueprints(currentPetition?.id)
 
   const handleClickOpenCodeGenerator = doc => {
     setOpenCodeGenerator(true)
@@ -62,7 +61,7 @@ const DataGridGabinete = () => {
     setOpen(false)
   }
 
-  const handleChange = (value) => {
+  const handleChange = value => {
     console.log(value)
     setCurrentOT(value?.value)
     const currentDoc = petitions.find(doc => doc.ot == value?.value)
@@ -140,27 +139,6 @@ const DataGridGabinete = () => {
 
     fetchRoleAndProyectistas()
   }, [authUser])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (blueprintGenerated) {
-        const resBlueprints = await getBlueprints(currentPetition.id)
-        if (resBlueprints) {
-          setBlueprints(resBlueprints)
-          // Reset flags
-          setBlueprintGenerated(false)
-        }
-      }
-
-      if (currentPetition) {
-        const resBlueprints = await getBlueprints(currentPetition.id)
-
-
-        setBlueprints(resBlueprints)
-      }
-    }
-    fetchData()
-  }, [blueprintGenerated, currentPetition])
 
   return (
     <Box id='main' sx={{ display: 'flex', width: '100%', height: '600px', flexDirection: 'column' }}>
