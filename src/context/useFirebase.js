@@ -31,7 +31,8 @@ import {
   generateBlueprintCodeClient,
   generateTransmittalCounter,
   updateSelectedDocuments,
-  addComment
+  addComment,
+  updateUserData
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -123,7 +124,8 @@ const FirebaseContextProvider = props => {
     updateSelectedDocuments,
     consultBluePrints,
     deleteCurrentUser,
-    addComment
+    addComment,
+    updateUserData
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

@@ -29,7 +29,8 @@ const formatAuthUser = async user => {
     company: data ? data.company || 'No definido' : 'No disponible',
     contop: data ? data.contop || 'No definido' : 'No disponible',
     opshift: data ? data.opshift || 'No definido' : 'No disponible',
-    registered: data ? true : false
+    registered: data ? true : false,
+    completedProfile: data ? data.completedProfile || false : false
   }
 }
 

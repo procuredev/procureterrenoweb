@@ -114,7 +114,7 @@ const newDoc = async (values, userParam) => {
       ...(urgency && { urgency }),
       ...(ot && { ot }),
       ...(end && { end }),
-      ...(mcDescription && {mcDescription})
+      ...(mcDescription && { mcDescription })
     })
 
     const adjustedDate = moment(values.start).subtract(1, 'day')
@@ -352,7 +352,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && emergencyBySupervisor,
           newState: latestEvent.newState,
           log: 'Modificado sin cambiar de estado por Planificador'
-        },
+        }
       ]
     ],
     [
@@ -464,6 +464,12 @@ const updateDocs = async (id, approves, userParam) => {
 const updateUserPhone = async (id, obj) => {
   const ref = doc(db, 'users', id)
   await updateDoc(ref, { phone: obj.replace(/\s/g, '') })
+}
+
+// ** Actualiza la información del usuario en Firestore
+const updateUserData = async (userId, data) => {
+  const ref = doc(db, 'users', userId)
+  await updateDoc(ref, data)
 }
 
 // ** Bloquear o desbloquear un día en la base de datos
@@ -1022,5 +1028,6 @@ export {
   generateBlueprintCodeClient,
   generateTransmittalCounter,
   updateSelectedDocuments,
-  addComment
+  addComment,
+  updateUserData
 }
