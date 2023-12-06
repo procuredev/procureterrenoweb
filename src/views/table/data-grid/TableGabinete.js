@@ -35,7 +35,7 @@ import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBluepr
 // TODO: Move to firebase-functions
 import { getStorage, ref, list } from 'firebase/storage'
 
-const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated }) => {
+const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated, apiRef }) => {
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState({})
@@ -745,7 +745,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             alignItems: 'baseline'
           }
         }}
-        hideFooterSelectedRowCount
+        apiRef={apiRef}
+        checkboxSelection
         rows={rows}
         columns={columns}
         columnVisibilityModel={{

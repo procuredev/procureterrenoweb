@@ -6,7 +6,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-
+import { useGridApiRef } from '@mui/x-data-grid';
 import { MenuList, MenuItem, Paper, Autocomplete, IconButton, Typography } from '@mui/material'
 import { KeyboardDoubleArrowRight, KeyboardDoubleArrowLeft } from '@mui/icons-material'
 
@@ -35,7 +35,9 @@ const DataGridGabinete = () => {
   const [blueprintGenerated, setBlueprintGenerated] = useState(false)
   const [designerAssigned, setDesignerAssigned] = useState(false)
 
+  const apiRef = useGridApiRef();
   const { useSnapshot, authUser, getUserData, useBlueprints, fetchPetitionById } = useFirebase()
+
   let petitions = useSnapshot(false, authUser, true)
 
   if (authUser.role === 8) {
@@ -71,6 +73,11 @@ const DataGridGabinete = () => {
   }
 
   const handleClickTransmittalGenerator = async (currentPetition, blueprints) => {
+    const selected = apiRef.current.getSelectedRows()
+    console.log(selected)
+    if (selected.size === 0) {
+      return alert('Seleccione al menos un documento')
+    } else {
     const doc = new jsPDF();
 
        // Obtiene los datos de la imagen
@@ -108,11 +115,12 @@ const DataGridGabinete = () => {
     // Define las columnas de la tabla
     const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
     // Define las filas de la tabla
-
-    const data = blueprints.map(obj => {
-      if (obj.storageBlueprints) {
+    let rows = [];
+    
+    const data = Array.from(selected).map(([key, value]) => {
+      if (value.storageBlueprints) {
         // Divide la URL en segmentos separados por '%2F'
-        const urlSegments = obj.storageBlueprints[0].split('%2F');
+        const urlSegments = value.storageBlueprints[0].split('%2F');
 
         // Obtiene el último segmento, que debería ser el nombre del archivo
         const encodedFileName = urlSegments[urlSegments.length - 1];
@@ -123,24 +131,27 @@ const DataGridGabinete = () => {
         // Obtiene el primer segmento, que debería ser el nombre del archivo
         const fileName = decodeURIComponent(fileNameSegments[0]);
 
-        return [
-          obj.id,
-          obj.revision,
-          obj.description,
+        rows = [
+          value.id,
+          value.revision,
+          value.description,
           fileName,
-          obj.date.toDate()
+          value.date.toDate()
         ];
       } else {
         // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
-        return [
-          obj.id,
-          obj.revision,
-          obj.description,
-          "",
-          obj.date.toDate()
+        rows = [
+          value.id,
+          value.revision,
+          value.description,
+          "", // Empty string for the 'Archivo' column
+          value.date.toDate()
         ];
       }
+
+      return rows;
     });
+
 
     // Agrega la tabla al documento
     doc.autoTable({
@@ -151,6 +162,7 @@ const DataGridGabinete = () => {
 
     // Descarga el documento
     doc.save("documento.pdf");
+  }
   };
 
   useEffect(() => {
@@ -231,6 +243,7 @@ const DataGridGabinete = () => {
             petitionId={currentPetition ? currentPetition.id : null}
             petition={currentPetition ? currentPetition : null}
             setBlueprintGenerated={setBlueprintGenerated}
+            apiRef={apiRef}
           />
         </Box>
 
