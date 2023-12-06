@@ -463,6 +463,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {row.id || 'Sin código Procure'}
                   </Typography>
                   <Typography variant='caption'>{row.clientCode || 'Sin código MEL'}</Typography>
+                  {row.id === currentRow && row.revisions.length === 0 && (
+                  <Typography sx={{ mt: 1 }}>
+                    Sin eventos en historial
+                  </Typography>
+                    )}
                 </Box>
               </Box>
             </Tooltip>
