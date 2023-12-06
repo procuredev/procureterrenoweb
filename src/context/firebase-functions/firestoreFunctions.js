@@ -496,7 +496,7 @@ const useBlueprints = id => {
 
     return () => unsubscribe()
   }, [id])
-  
+
   return data
 }
 
@@ -786,6 +786,55 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 }
 
+const generateTransmittalCounter = async (currentPetition) => {
+  try {
+    // Referencia al documento de contador para la combinación específica dentro de la subcolección transmittals
+    const counterDocID = `${currentPetition.ot}-counter`;
+    const counterRef = doc(db, 'counters', 'transmittal_CounterByOt');
+
+    // Incrementa el contador dentro de una transacción
+    const incrementedCount = await runTransaction(db, async transaction => {
+      const counterSnapshot = await transaction.get(counterRef);
+
+      let currentCount;
+      if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
+        currentCount = formatCount(1);
+        transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true });
+      } else {
+        currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1);
+        transaction.update(counterRef, { [counterDocID]: { count: currentCount } });
+      }
+
+      return currentCount; // Retorna el nuevo contador para usarlo fuera de la transacción
+    });
+
+    const idProject = '21286'
+
+    // Ahora, añade este contador al final de tu newCode
+    const newCode = `${idProject}-OT-${currentPetition.ot}-TT-${incrementedCount}`;
+
+    return newCode;
+  } catch (error) {
+    console.error('Error al generar Transmittal:', error);
+    throw new Error('Error al generar Transmittal');
+  }
+};
+
+const updateSelectedDocuments = async (newCode, selected, currentPetition) => {
+  try {
+    // Actualiza el campo lastTransmittal en cada uno de los documentos seleccionados
+    console.log('selected:', selected)
+    for (const id of selected) {
+      console.log('id:', id)
+      const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0]);
+      await updateDoc(docRef, { lastTransmittal: newCode });
+    }
+  } catch (error) {
+    console.error('Error al actualizar documentos seleccionados:', error);
+    throw new Error('Error al actualizar documentos seleccionados');
+  }
+};
+
 export {
   newDoc,
   updateDocs,
@@ -795,5 +844,7 @@ export {
   useBlueprints,
   updateBlueprint,
   addDescription,
-  generateBlueprintCodeClient
+  generateBlueprintCodeClient,
+  generateTransmittalCounter,
+  updateSelectedDocuments,
 }

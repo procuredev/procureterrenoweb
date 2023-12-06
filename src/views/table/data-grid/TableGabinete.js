@@ -501,6 +501,22 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           </Box>
         )
       }
+    },{
+      field: 'lastTransmittal',
+      headerName: 'Ultimo Transmittal',
+      flex: 0.18,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+              {row.lastTransmittal || 'N/A'}
+            </Typography>
+            <RevisionComponent row={row} field={'lastTransmittal'} />
+          </Box>
+        )
+      }
     },
     {
       field: 'description',

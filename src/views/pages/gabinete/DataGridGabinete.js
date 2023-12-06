@@ -36,7 +36,7 @@ const DataGridGabinete = () => {
   const [designerAssigned, setDesignerAssigned] = useState(false)
 
   const apiRef = useGridApiRef();
-  const { useSnapshot, authUser, getUserData, useBlueprints, fetchPetitionById } = useFirebase()
+  const { useSnapshot, authUser, getUserData, useBlueprints, fetchPetitionById, generateTransmittalCounter, updateSelectedDocuments } = useFirebase()
 
   let petitions = useSnapshot(false, authUser, true)
 
@@ -73,70 +73,87 @@ const DataGridGabinete = () => {
   }
 
   const handleClickTransmittalGenerator = async (currentPetition, blueprints) => {
-    const selected = apiRef.current.getSelectedRows()
-    console.log(selected)
-    if (selected.size === 0) {
-      return alert('Seleccione al menos un documento')
-    } else {
-    const doc = new jsPDF();
+    try {
 
-    doc.addImage(base64Image, 'PNG', 15, 10, 50, 20);
-    doc.text('Transmittal', 95, 20);
-    doc.text(`Titulo: ${currentPetition.title}`, 10, 60);
-    doc.text(`OT: ${currentPetition.ot}`, 10, 80);
-    doc.text(`Tipo de Levantamiento: ${currentPetition.objective}`, 10, 100);
+      // Actualiza el campo lastTransmittal en cada uno de los documentos seleccionados
+      const selected = apiRef.current.getSelectedRows();
 
-    // Define las columnas de la tabla
-    const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
-    // Define las filas de la tabla
-    let rows = [];
+      // Ahora, añade este contador al final de tu newCode
+      const newCode = await generateTransmittalCounter(currentPetition);
+      console.log('newCode:', newCode);
 
-    const data = Array.from(selected).map(([key, value]) => {
-      if (value.storageBlueprints) {
-        // Divide la URL en segmentos separados por '%2F'
-        const urlSegments = value.storageBlueprints[0].split('%2F');
+      await updateSelectedDocuments(newCode, selected, currentPetition);
 
-        // Obtiene el último segmento, que debería ser el nombre del archivo
-        const encodedFileName = urlSegments[urlSegments.length - 1];
 
-        // Divide el nombre del archivo en segmentos separados por '?'
-        const fileNameSegments = encodedFileName.split('?');
+      if (selected.size === 0) {
+          return alert('Seleccione al menos un documento')
+        } else {
+        const doc = new jsPDF();
 
-        // Obtiene el primer segmento, que debería ser el nombre del archivo
-        const fileName = decodeURIComponent(fileNameSegments[0]);
+        doc.addImage(base64Image, 'PNG', 15, 10, 50, 20);
+        doc.text('Transmittal', 95, 20);
+        doc.text(`Código de transmittal: ${newCode}`, 80, 60);
+        doc.text(`Titulo: ${currentPetition.title}`, 10, 60);
+        doc.text(`Cantidad de documentos: ${selected.size}`, 80, 80);
+        doc.text(`OT: ${currentPetition.ot}`, 10, 80);
+        doc.text(`Tipo de Levantamiento: ${currentPetition.objective}`, 10, 100);
 
-        rows = [
-          value.id,
-          value.revision,
-          value.description,
-          fileName,
-          value.date.toDate()
-        ];
-      } else {
-        // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
-        rows = [
-          value.id,
-          value.revision,
-          value.description,
-          "", // Empty string for the 'Archivo' column
-          value.date.toDate()
-        ];
+        // Define las columnas de la tabla
+        const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
+        // Define las filas de la tabla
+        let rows = [];
+
+        const data = Array.from(selected).map(([key, value]) => {
+          if (value.storageBlueprints) {
+            // Divide la URL en segmentos separados por '%2F'
+            const urlSegments = value.storageBlueprints[0].split('%2F');
+
+            // Obtiene el último segmento, que debería ser el nombre del archivo
+            const encodedFileName = urlSegments[urlSegments.length - 1];
+
+            // Divide el nombre del archivo en segmentos separados por '?'
+            const fileNameSegments = encodedFileName.split('?');
+
+            // Obtiene el primer segmento, que debería ser el nombre del archivo
+            const fileName = decodeURIComponent(fileNameSegments[0]);
+
+            rows = [
+              value.id,
+              value.revision,
+              value.description,
+              fileName,
+              value.date.toDate()
+            ];
+          } else {
+            // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
+            rows = [
+              value.id,
+              value.revision,
+              value.description,
+              "", // Empty string for the 'Archivo' column
+              value.date.toDate()
+            ];
+          }
+
+          return rows;
+        });
+
+
+        // Agrega la tabla al documento
+        doc.autoTable({
+          startY: 110,
+          head: [columns],
+          body: data,
+        });
+
+        // Descarga el documento
+        doc.save("documento.pdf");
       }
 
-      return rows;
-    });
-
-
-    // Agrega la tabla al documento
-    doc.autoTable({
-      startY: 110,
-      head: [columns],
-      body: data,
-    });
-
-    // Descarga el documento
-    doc.save("documento.pdf");
-  }
+    } catch (error) {
+      console.error('Error al generar Transmittal:', error);
+      throw new Error('Error al generar Transmittal');
+    }
   };
 
   useEffect(() => {
