@@ -427,7 +427,7 @@ export const UploadBlueprintsDialog = ({
                 onChange={handleInputChange('description')}
                 required={false}
                 inputProps={{endAdornment:
-                <InputAdornment position="end">
+                (description !== values.description) && <InputAdornment position="end">
                   <Button onClick={() => submitDescription()}> Guardar descripción </Button>
                 </InputAdornment>}}
               />
