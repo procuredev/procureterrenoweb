@@ -21,6 +21,7 @@ import "jspdf-autotable";
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
+import Logo_Procure from './../../../images/Logo_Procure.png';
 
 const DataGridGabinete = () => {
   const [currentPetition, setCurrentPetition] = useState('')
@@ -73,7 +74,7 @@ const DataGridGabinete = () => {
     const doc = new jsPDF();
 
        // Obtiene los datos de la imagen
-       const response = await fetch(imgLogo);
+       const response = await fetch(Logo_Procure);
        const blob = await response.blob();
 
     const getBase64Image = (blob) => {
