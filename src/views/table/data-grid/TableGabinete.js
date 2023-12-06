@@ -655,7 +655,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     },
     {
-      field: 'clientAprove',
+      field: 'clientApprove',
       headerName: 'Cliente',
 
       renderCell: params => {
