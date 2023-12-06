@@ -54,7 +54,7 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
         <DialogTitle id="alert-dialog-title">
         {(authUser.role === 8 ? 'Enviar' : approves ? 'Aprobar' : 'Rechazar')} entregable de la solicitud
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{display:'flex', flexDirection:'column'}}>
           <DialogContentText id="alert-dialog-description">
             ¿Estás segur@ de que quieres {(authUser.role === 8 ? 'enviar' : approves ? 'aprobar' : 'rechazar')} los entregables?
           </DialogContentText>
@@ -118,14 +118,17 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
 
           { approves && authUser.role === 9 && blueprint?.approvedByDocumentaryControl === true  ? (
               <FormControlLabel
-                control={<Switch onChange={() => setToggleRemarks(!toggleRemarks)} />}
-
+                control={<Switch
+                  onChange={() => setToggleRemarks(!toggleRemarks)} />}
+                  sx={{mt: 4}}
                 label="Agregar Comentario"
               />
             ) : !approves ?(
               <FormControlLabel
-                control={<Switch onChange={() => setToggleRemarks(!toggleRemarks)} />}
-                label="Agregar Observasión"
+                control={<Switch
+                  onChange={() => setToggleRemarks(!toggleRemarks)} />}
+                  sx={{mt: 4}}
+                label="Agregar Observación"
               />
             ) : ''
           }
