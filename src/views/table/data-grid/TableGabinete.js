@@ -373,16 +373,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             if (field === 'storageBlueprints') {
               if (fieldContent) {
                 return (
-                <Typography noWrap sx={{ mt: 4, textOverflow: 'clip' }} key={revision.id}>
+                <Typography sx={{ mt: 4, overflow:'hidden', width: 'max-content' }} key={revision.id}>
                 {fieldContent.map((content, index) => {
                 return <Link
                   href={content}
                   target='_blank'
                   rel='noreferrer'
-                  noWrap
                   key={index}
                   color='inherit'
                   underline='always'
+                  textOverflow='ellipsis'
                 >
                     {getFileName(content, index)}
                 </Link>
@@ -544,23 +544,26 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               width: '100%',
               justifyContent: 'space-between',
               alignContent: 'center',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              overflow:'hidden'
             }}
           >
-            <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
+            <Box display='inline-flex' sx={{ justifyContent: 'space-between', width:'max-content' }}>
                 {row.storageBlueprints ?
                 row.storageBlueprints.map((content, index) =>
+                <Typography key={index} noWrap sx={{  my: 'auto', textOverflow: 'clip', width:'inherit'}}>
                 <Link
+                  color='inherit'
                   key={index}
                   href={content}
                   target='_blank'
                   rel='noreferrer'
                   variant='body1'
                   noWrap>
-                  <Typography key={index} noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
                   {getFileName(content, index)}
+                  </Link>
                   </Typography>
-                </Link>
+
                 )
                 : <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
                   Sin entregable
