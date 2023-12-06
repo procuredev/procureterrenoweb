@@ -69,21 +69,44 @@ const DataGridGabinete = () => {
 
   }
 
-  const handleClickTransmittalGenerator = (currentPetition, blueprints) => {
+  const handleClickTransmittalGenerator = async (currentPetition, blueprints) => {
     const doc = new jsPDF();
+
+       // Obtiene los datos de la imagen
+       const response = await fetch(imgLogo);
+       const blob = await response.blob();
+
+    const getBase64Image = (blob) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          resolve(reader.result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    };
+
+    getBase64Image(blob).then(base64Image => {
+      if (base64Image) {
+        // Agrega la imagen al documento PDF
+        doc.addImage(base64Image, 'PNG', 15, 40, 180, 160);
+      } else {
+        console.error('La imagen no se cargó correctamente');
+      }
+    }).catch(error => {
+      console.error('Error al leer la imagen:', error);
+    });
+
 
     doc.text('Transmittal', 95, 20);
     doc.text(`Titulo: ${currentPetition.title}`, 10, 60);
     doc.text(`OT: ${currentPetition.ot}`, 10, 80);
     doc.text(`Tipo de Levantamiento: ${currentPetition.objective}`, 10, 100);
 
-
     // Define las columnas de la tabla
     const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
     // Define las filas de la tabla
-    const rows = blueprints.map(obj => Object.values(obj));
-
-
 
     const data = blueprints.map(obj => {
       if (obj.storageBlueprints) {
@@ -122,7 +145,8 @@ const DataGridGabinete = () => {
     doc.autoTable({
       startY: 110,
       head: [columns],
-      body: data,});
+      body: data,
+    });
 
     // Descarga el documento
     doc.save("documento.pdf");
