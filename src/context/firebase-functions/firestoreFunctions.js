@@ -455,6 +455,12 @@ const updateUserPhone = async (id, obj) => {
   await updateDoc(ref, { phone: obj.replace(/\s/g, '') })
 }
 
+// ** Actualiza la información del usuario en Firestore
+const updateUserData = async (userId, data) => {
+  const ref = doc(db, 'users', userId)
+  await updateDoc(ref, data)
+}
+
 // ** Bloquear o desbloquear un día en la base de datos
 const blockDayInDatabase = async (date, cause = '') => {
   try {
@@ -480,4 +486,4 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, addComment }
+export { newDoc, updateDocs, updateUserPhone, blockDayInDatabase, addComment, updateUserData }

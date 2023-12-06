@@ -25,7 +25,8 @@ const formatAuthUser = async user => {
     shift: data ? data.shift || 'No definido' : 'No disponible',
     company: data ? data.company || 'No definido' : 'No disponible',
     contop: data ? data.contop || 'No definido' : 'No disponible',
-    opshift: data ? data.opshift || 'No definido' : 'No disponible'
+    opshift: data ? data.opshift || 'No definido' : 'No disponible',
+    completedProfile: data ? data.completedProfile || false : false
   }
 }
 

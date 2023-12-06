@@ -24,6 +24,7 @@ import {
   updateUserPhone,
   blockDayInDatabase,
   addComment,
+  updateUserData,
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -61,7 +62,7 @@ const FirebaseContextProvider = props => {
         setLoading(true);
         const formattedUser = await formatAuthUser(authState);
         setAuthUser(formattedUser);
-        setLoading(false);
+        setLoading(false)
       }
     });
 
@@ -99,6 +100,7 @@ const FirebaseContextProvider = props => {
     getUsersWithSolicitudes,
     signGoogle,
     addComment,
+    updateUserData
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
