@@ -114,7 +114,7 @@ const newDoc = async (values, userParam) => {
       ...(urgency && { urgency }),
       ...(ot && { ot }),
       ...(end && { end }),
-      ...(mcDescription && {mcDescription})
+      ...(mcDescription && { mcDescription })
     })
 
     const adjustedDate = moment(values.start).subtract(1, 'day')
@@ -353,7 +353,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && emergencyBySupervisor,
           newState: latestEvent.newState,
           log: 'Modificado sin cambiar de estado por Planificador'
-        },
+        }
       ]
     ],
     [
