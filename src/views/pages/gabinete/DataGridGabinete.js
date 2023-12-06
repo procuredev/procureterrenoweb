@@ -18,6 +18,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
 // ** Demo Components Imports
+import tableElement from 'public/html/table.js'
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
@@ -90,13 +91,8 @@ const DataGridGabinete = () => {
         } else {
         const doc = new jsPDF();
 
-        doc.addImage(base64Image, 'PNG', 15, 10, 50, 20);
-        doc.text('Transmittal', 95, 20);
-        doc.text(`Código de transmittal: ${newCode}`, 80, 60);
-        doc.text(`Titulo: ${currentPetition.title}`, 10, 60);
-        doc.text(`Cantidad de documentos: ${selected.size}`, 80, 80);
-        doc.text(`OT: ${currentPetition.ot}`, 10, 80);
-        doc.text(`Tipo de Levantamiento: ${currentPetition.objective}`, 10, 100);
+    doc.addImage(base64Image, 'PNG', 15, 10, 50, 20);
+
 
         // Define las columnas de la tabla
         const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
@@ -138,13 +134,20 @@ const DataGridGabinete = () => {
           return rows;
         });
 
+    doc.autoTable({
+      startY: 50,
+      html: tableElement,
+      useCss: true,
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
 
         // Agrega la tabla al documento
-        doc.autoTable({
-          startY: 110,
-          head: [columns],
-          body: data,
-        });
+    /* doc.autoTable({
+      head: [columns],
+      body: data,
+    }); */
+
 
         // Descarga el documento
         doc.save("documento.pdf");
