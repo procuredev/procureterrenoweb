@@ -52,9 +52,15 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
 
   const onsubmit = async id => {
     if (typeOfDiscipline && typeOfDocument) {
-      await generateBlueprint(typeOfDiscipline, typeOfDocument, doc, authUser)
-      setBlueprintGenerated(true)
-      handleClose();
+      setIsSubmitDisabled(true);
+      await generateBlueprint(typeOfDiscipline, typeOfDocument, doc, authUser).then(() => {
+        setBlueprintGenerated(true)
+        handleClose();
+        setIsSubmitDisabled(false);
+      })
+      .catch((error) => {
+        console.error(error)
+      })
     } else {
       setError('Por favor, indique tipo de disciplina y tipo de documento.');
     }
@@ -150,7 +156,9 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
 
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
+          <Button
+          sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
+          disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Crear código
           </Button>
