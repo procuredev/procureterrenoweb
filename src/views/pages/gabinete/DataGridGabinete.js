@@ -21,7 +21,7 @@ import "jspdf-autotable";
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
-import Logo_Procure from './../../../images/Logo_Procure.png';
+import base64Image from './base64Image.js';
 
 const DataGridGabinete = () => {
   const [currentPetition, setCurrentPetition] = useState('')
@@ -80,33 +80,7 @@ const DataGridGabinete = () => {
     } else {
     const doc = new jsPDF();
 
-       // Obtiene los datos de la imagen
-       const response = await fetch(Logo_Procure);
-       const blob = await response.blob();
-
-    const getBase64Image = (blob) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = function() {
-          resolve(reader.result);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    };
-
-    getBase64Image(blob).then(base64Image => {
-      if (base64Image) {
-        // Agrega la imagen al documento PDF
-        doc.addImage(base64Image, 'PNG', 15, 40, 180, 160);
-      } else {
-        console.error('La imagen no se cargó correctamente');
-      }
-    }).catch(error => {
-      console.error('Error al leer la imagen:', error);
-    });
-
-
+    doc.addImage(base64Image, 'PNG', 15, 10, 50, 20);
     doc.text('Transmittal', 95, 20);
     doc.text(`Titulo: ${currentPetition.title}`, 10, 60);
     doc.text(`OT: ${currentPetition.ot}`, 10, 80);
@@ -116,7 +90,7 @@ const DataGridGabinete = () => {
     const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
     // Define las filas de la tabla
     let rows = [];
-    
+
     const data = Array.from(selected).map(([key, value]) => {
       if (value.storageBlueprints) {
         // Divide la URL en segmentos separados por '%2F'
