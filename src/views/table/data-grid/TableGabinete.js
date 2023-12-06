@@ -7,12 +7,9 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { DataGrid, esES } from '@mui/x-data-grid'
 import { Container } from '@mui/system'
 import {
-  Edit,
   Upload,
-  AttachFile,
   CheckCircleOutline,
   CancelOutlined,
-  ExpandMore,
   ChevronRight,
   OpenInNew
 } from '@mui/icons-material'
@@ -22,12 +19,10 @@ import {
   Box,
   Card,
   Tooltip,
-  TextField,
   Typography,
   Link,
   IconButton,
   Dialog,
-  DialogTitle,
   DialogActions,
   DialogContent
 } from '@mui/material'
@@ -35,7 +30,6 @@ import {
 import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
-import { DialogClientCodeGenerator } from 'src/@core/components/dialog-clientCodeGenerator'
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 
 // TODO: Move to firebase-functions
