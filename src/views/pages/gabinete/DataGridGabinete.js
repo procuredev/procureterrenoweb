@@ -48,7 +48,7 @@ const DataGridGabinete = () => {
   }
 
   let tableElement = document.createElement('table');
-tableElement.innerHTML = tableBody
+  tableElement.innerHTML = tableBody
 
   const blueprints = useBlueprints(currentPetition?.id)
 
@@ -141,7 +141,14 @@ tableElement.innerHTML = tableBody
       startY: 50,
       html: tableElement,
       useCss: true,
-    });
+      styles: {
+        lineColor: 'black',
+        lineWidth: 0.1,},
+        columnStyles: {
+          0: { fillColor: [191, 191, 191]},
+          2: { fillColor: [191, 191, 191]},
+        }}
+    );
 
     const finalY = doc.lastAutoTable.finalY + 10;
 
