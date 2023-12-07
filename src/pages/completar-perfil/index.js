@@ -122,8 +122,10 @@ const ProfileCompletion = () => {
 
     // Formatear el RUT
     if (authUser.rut && authUser.rut !== '') {
-      formattedRut = authUser.rut.replace(/[\.\-]/g, '');
-      formattedRut = `${formattedRut.length > 7 ? formattedRut.slice(-9, -7) + '.' : ''}${formattedRut.length > 4 ? formattedRut.slice(-7, -4) + '.' : ''}${formattedRut.length >= 2 ? formattedRut.slice(-4, -1) + '-' : ''}${formattedRut[formattedRut.length - 1] || ''}`;
+      formattedRut = authUser.rut.replace(/[^0-9kK]/g, '');
+      formattedRut = `${formattedRut.length > 7 ? formattedRut.slice(-9, -7) + '.' : ''}${formattedRut.length > 4 ? formattedRut.slice(-7, -4) + '.' : ''}${
+          formattedRut.length >= 2 ? formattedRut.slice(-4, -1) + '-' : ''
+      }${formattedRut[formattedRut.length - 1] || ''}`;
       formattedRut = formattedRut.trim();
     }
 
@@ -258,8 +260,9 @@ const ProfileCompletion = () => {
             </Box>
 
             <form onSubmit={onSubmit}>
-              {/* RUT
-              <TextField
+              {/* RUT */}
+              {!authUser.rut && (
+                <TextField
                   fullWidth sx={{ mb: 4 }}
                   type='tel'
                   label='RUT'
@@ -267,10 +270,11 @@ const ProfileCompletion = () => {
                   onChange={handleChange('rut')}
                   value={values.rut}
                   inputProps={{ maxLength: 12 }}
-                /> */}
+                />
+              )}
 
               {/* Teléfono */}
-
+              {!authUser.phone && (
                 <TextField
                   fullWidth sx={{ mb: 4 }}
                   label='Teléfono'
@@ -281,7 +285,7 @@ const ProfileCompletion = () => {
                   inputProps={{ maxLength: 11 }}
                   InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
                 />
-
+              )}
 
               {/* Contraturno */}
               {
