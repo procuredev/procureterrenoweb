@@ -811,7 +811,7 @@ const generateTransmittalCounter = async (currentPetition) => {
     const idProject = '21286'
 
     // Ahora, añade este contador al final de tu newCode
-    const newCode = `${idProject}-OT-${currentPetition.ot}-TT-${incrementedCount}`;
+    const newCode = `${idProject}-000-TT-${incrementedCount}`;
 
     return newCode;
   } catch (error) {
