@@ -146,10 +146,10 @@ tableElement.innerHTML = tableBody
     const finalY = doc.lastAutoTable.finalY + 10;
 
         // Agrega la tabla al documento
-    /* doc.autoTable({
+    doc.autoTable({
       head: [columns],
       body: data,
-    }); */
+    });
 
 
         // Descarga el documento
