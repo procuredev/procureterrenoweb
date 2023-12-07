@@ -1,7 +1,7 @@
 const tableBody = `
 <tbody>
   <tr>
-    <td}>Transmittal</td>
+    <td>Transmittal</td>
     <td>21286-000-TT-535</td>
     <td>Fecha</td>
     <td>01-09-2023</td>
