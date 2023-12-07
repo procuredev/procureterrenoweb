@@ -18,7 +18,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
 // ** Demo Components Imports
-import tableElement from 'public/html/table.js'
+import tableBody from 'public/html/table.js'
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
@@ -46,6 +46,9 @@ const DataGridGabinete = () => {
       petition.designerReview?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
     )
   }
+
+  let tableElement = document.createElement('table');
+tableElement.innerHTML = tableBody
 
   const blueprints = useBlueprints(currentPetition?.id)
 

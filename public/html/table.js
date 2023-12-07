@@ -1,13 +1,4 @@
-
-// HTML boilerplate
-const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Table</title>
-</head>
-<body>
-<table id="table">
+const tableBody = `
 <tbody>
   <tr>
     <td}>Transmittal</td>
@@ -54,18 +45,6 @@ const html = `
     <td>PDF</td>
   </tr>
 </tbody>
-</table>
-</body>
-</html>
 `;
 
-// Create a new DOMParser
-const parser = new DOMParser();
-
-// Use the DOMParser to parse the HTML string into a Document object
-const doc = parser.parseFromString(html, 'text/html');
-
-// Get a reference to the table element
-const tableElement = doc.getElementById("table");
-
-export default tableElement;
+export default tableBody;
