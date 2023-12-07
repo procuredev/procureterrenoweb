@@ -69,13 +69,13 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
   }
 }))
 
-const schema = yup.object().shape({
-  email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'),
-  password: yup
-    .string()
-    .min(6, 'La contraseña debe tener al menos 6 caracteres')
-    .required('Por favor, ingresa tu contraseña')
-})
+// const schema = yup.object().shape({
+//   email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'),
+//   password: yup
+//     .string()
+//     .min(6, 'La contraseña debe tener al menos 6 caracteres')
+//     .required('Por favor, ingresa tu contraseña')
+// })
 
 const ProfileCompletion = () => {
 
@@ -109,33 +109,33 @@ const ProfileCompletion = () => {
   const { skin } = settings
   const { authUser, updateUserData } = useFirebase()
 
-  useEffect(() => {
-    let formattedPhone = '';
-    let formattedRut = '';
+  // useEffect(() => {
+  //   let formattedPhone = '';
+  //   let formattedRut = '';
 
-    // Formatear el teléfono
-    if (authUser.phone && authUser.phone !== '') {
-      formattedPhone = authUser.phone.replace(/\s/g, '');
-      formattedPhone = `${formattedPhone[0] || ''} ${formattedPhone.slice(1, 5) || ''} ${formattedPhone.slice(5, 10) || ''}`;
-      formattedPhone = formattedPhone.trim();
-    }
+  //   // Formatear el teléfono
+  //   if (authUser.phone && authUser.phone !== '') {
+  //     formattedPhone = authUser.phone.replace(/\s/g, '');
+  //     formattedPhone = `${formattedPhone[0] || ''} ${formattedPhone.slice(1, 5) || ''} ${formattedPhone.slice(5, 10) || ''}`;
+  //     formattedPhone = formattedPhone.trim();
+  //   }
 
-    // Formatear el RUT
-    if (authUser.rut && authUser.rut !== '') {
-      formattedRut = authUser.rut.replace(/[^0-9kK]/g, '');
-      formattedRut = `${formattedRut.length > 7 ? formattedRut.slice(-9, -7) + '.' : ''}${formattedRut.length > 4 ? formattedRut.slice(-7, -4) + '.' : ''}${
-          formattedRut.length >= 2 ? formattedRut.slice(-4, -1) + '-' : ''
-      }${formattedRut[formattedRut.length - 1] || ''}`;
-      formattedRut = formattedRut.trim();
-    }
+  //   // Formatear el RUT
+  //   if (authUser.rut && authUser.rut !== '') {
+  //     formattedRut = authUser.rut.replace(/[^0-9kK]/g, '');
+  //     formattedRut = `${formattedRut.length > 7 ? formattedRut.slice(-9, -7) + '.' : ''}${formattedRut.length > 4 ? formattedRut.slice(-7, -4) + '.' : ''}${
+  //         formattedRut.length >= 2 ? formattedRut.slice(-4, -1) + '-' : ''
+  //     }${formattedRut[formattedRut.length - 1] || ''}`;
+  //     formattedRut = formattedRut.trim();
+  //   }
 
-    setValues(prevValues => ({
-      ...prevValues,
-      phone: formattedPhone,
-      rut: formattedRut
-    }));
+  //   setValues(prevValues => ({
+  //     ...prevValues,
+  //     phone: formattedPhone,
+  //     rut: formattedRut
+  //   }));
 
-  }, [authUser.rut, authUser.phone]);
+  // }, [authUser.rut, authUser.phone]);
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -168,10 +168,20 @@ const ProfileCompletion = () => {
     event.preventDefault()
     try {
       // Eliminar espacios del teléfono
-      const phoneFormatted = values.phone.replace(/\s/g, '');
+      let phoneFormatted
+      if (authUser.phone === 'No definido'){
+        phoneFormatted = values.phone.replace(/\s/g, '');
+      } else {
+        phoneFormatted = authUser.phone
+      }
 
       // Eliminar puntos y guión del RUT
-      const rutFormatted = values.rut.replace(/[\.\-]/g, '');
+      let rutFormatted
+      if (authUser.rut === 'No definido'){
+        rutFormatted = values.rut.replace(/[\.\-]/g, '');
+      } else {
+        rutFormatted = authUser.rut
+      }
 
       // Crear un nuevo objeto con los valores formateados
       const updatedValues = {
@@ -192,12 +202,12 @@ const ProfileCompletion = () => {
 
 
 
-  const addOpshift = () => {
-    setValues({
-      ...values,
-      opshift: [...values.opshift, initialOpshift]
-    });
-  };
+  // const addOpshift = () => {
+  //   setValues({
+  //     ...values,
+  //     opshift: [...values.opshift, initialOpshift]
+  //   });
+  // };
 
   const handleOpshift = (e, index, field) => {
     const newOpshift = values.opshift.map((opshiftNumber, i) => {
@@ -261,7 +271,7 @@ const ProfileCompletion = () => {
 
             <form onSubmit={onSubmit}>
               {/* RUT */}
-              {!authUser.rut && (
+              { authUser.rut === 'No definido' && (
                 <TextField
                   fullWidth sx={{ mb: 4 }}
                   type='tel'
@@ -274,7 +284,7 @@ const ProfileCompletion = () => {
               )}
 
               {/* Teléfono */}
-              {!authUser.phone && (
+              { authUser.phone === 'No definido' && (
                 <TextField
                   fullWidth sx={{ mb: 4 }}
                   label='Teléfono'

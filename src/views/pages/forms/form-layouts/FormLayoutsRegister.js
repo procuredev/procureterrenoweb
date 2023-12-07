@@ -149,7 +149,7 @@ const FormLayoutsBasic = () => {
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
-  const basicKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
+  const basicKeys = ['name', 'email', 'company', 'role']
   let requiredKeys = [...basicKeys] // Utilizamos spread operator para crear una copia de basicKeys
 
   const validateForm = values => {
@@ -158,7 +158,7 @@ const FormLayoutsBasic = () => {
 
     switch (true) {
       case values.role === 2 && !values.plant.includes(santiago):
-        requiredKeys.push('shift', 'plant') // Utilizamos push para agregar elementos al array
+        requiredKeys.push('plant') // Utilizamos push para agregar elementos al array
         break
       case values.role === 3:
         requiredKeys.push('plant')
