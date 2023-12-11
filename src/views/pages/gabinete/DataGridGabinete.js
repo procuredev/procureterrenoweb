@@ -98,7 +98,7 @@ const DataGridGabinete = () => {
 
 
         // Define las columnas de la tabla
-        const columns = ["Codigo", "Revisión", "Descripción", "Archivo", "Fecha"];
+        const columns = ["ÍTEM", "CÓDIGO CLIENTE", "DESCRIPCIÓN", "REV"];
         // Define las filas de la tabla
         let rows = [];
 
@@ -117,20 +117,18 @@ const DataGridGabinete = () => {
             const fileName = decodeURIComponent(fileNameSegments[0]);
 
             rows = [
+              key,
               value.id,
-              value.revision,
               value.description,
-              fileName,
-              value.date.toDate()
+              value.revision,
             ];
           } else {
             // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
             rows = [
+              key,
               value.id,
-              value.revision,
               value.description,
-              "", // Empty string for the 'Archivo' column
-              value.date.toDate()
+              value.revision,
             ];
           }
 
@@ -144,18 +142,22 @@ const DataGridGabinete = () => {
       styles: {
         lineColor: 'black',
         lineWidth: 0.1,},
-        columnStyles: {
+      columnStyles: {
           0: { fillColor: [191, 191, 191]},
           2: { fillColor: [191, 191, 191]},
         }}
     );
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-
         // Agrega la tabla al documento
     doc.autoTable({
       head: [columns],
       body: data,
+      useCss: true,
+      styles: {
+        lineColor: 'black',
+        lineWidth: 0.1,},
+      headStyles: {
+          fillColor: [191, 191, 191]},
     });
 
 
