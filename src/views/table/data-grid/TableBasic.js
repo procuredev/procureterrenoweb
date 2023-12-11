@@ -169,6 +169,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'title',
       headerName: 'Solicitud',
+      flex: 0.8,
+      minWidth: 200,
       renderCell: params => {
         const { row } = params
 
@@ -205,6 +207,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
+      flex: 0.8,
+      minWidth: 100,
+      maxWidth: 200,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -248,6 +253,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'supervisorShift',
+      maxWidth: 80,
       headerName: 'Turno',
       renderCell: params => {
         const { row } = params
@@ -257,6 +263,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'ot',
+
+      maxWidth: 60,
       headerName: 'OT',
       renderCell: params => {
         const { row } = params
@@ -267,6 +275,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'user',
       headerName: 'Autor',
+      flex: 0.5,
+      minWidth: 150,
     },
     {
       minWidth: md ? 190 : 100,
@@ -375,8 +385,6 @@ const TableBasic = ({ rows, role, roleData }) => {
           rows={rows}
           columns={columns}
           columnVisibilityModel={{
-            ot: md,
-            user: md,
             end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
             supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
             actions: roleData.canApprove
