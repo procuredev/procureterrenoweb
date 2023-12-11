@@ -316,14 +316,15 @@ const TableBasic = ({ rows, role, roleData }) => {
               </Button>
             )}
             {canReject && (
-              <Button
+               canApprove || canEdit ? (<Button
                 onClick={() => handleClickOpenAlert(row, false)}
                 variant='contained'
                 color='error'
                 sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
               >
+
                 <Clear sx={{ fontSize: 18 }} />
-              </Button>
+              </Button>) : <Button color='error' sx={{m:'5px'}} variant='contained' size='small'>Cancelar</Button>
             )}
           </Container>
         )
