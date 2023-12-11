@@ -169,8 +169,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'title',
       headerName: 'Solicitud',
-      cellClassName: 'colIndex-1',
-      headerClassName: 'colIndex-1',
       renderCell: params => {
         const { row } = params
 
@@ -207,8 +205,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      cellClassName: 'colIndex-2',
-      headerClassName: 'colIndex-2',
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -225,8 +221,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'date',
-      cellClassName: 'colIndex-3',
-      headerClassName: 'colIndex-3',
       headerName: 'Creación',
       renderCell: params => {
         const { row } = params
@@ -236,8 +230,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'start',
-      cellClassName: 'colIndex-4',
-      headerClassName: 'colIndex-4',
       headerName: 'Inicio',
       renderCell: params => {
         const { row } = params
@@ -247,8 +239,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'end',
-      cellClassName: 'colIndex-5',
-      headerClassName: 'colIndex-5',
       headerName: 'Entrega',
       renderCell: params => {
         const { row } = params
@@ -258,8 +248,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'supervisorShift',
-      cellClassName: 'colIndex-6',
-      headerClassName: 'colIndex-6',
       headerName: 'Turno',
       renderCell: params => {
         const { row } = params
@@ -270,8 +258,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'ot',
       headerName: 'OT',
-      cellClassName: 'colIndex-7',
-      headerClassName: 'colIndex-7',
       renderCell: params => {
         const { row } = params
 
@@ -281,13 +267,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'user',
       headerName: 'Autor',
-      cellClassName: 'colIndex-8',
-      headerClassName: 'colIndex-8',
     },
     {
       minWidth: md ? 190 : 100,
-      cellClassName: 'colIndex-9',
-      headerClassName: 'colIndex-9',
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
