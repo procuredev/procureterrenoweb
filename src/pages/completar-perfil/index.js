@@ -183,11 +183,20 @@ const ProfileCompletion = () => {
         rutFormatted = authUser.rut
       }
 
+      // Actualiza opshift
+      let opshiftFormatted
+      if (authUser.opshift === 'No definido'){
+        opshiftFormatted = values.opshift
+      } else {
+        opshiftFormatted = authUser.opshift
+      }
+
       // Crear un nuevo objeto con los valores formateados
       const updatedValues = {
         ...values,
         phone: phoneFormatted,
         rut: rutFormatted,
+        opshift: opshiftFormatted
         // Asegúrate de incluir opshift si es necesario
       };
 
@@ -196,6 +205,8 @@ const ProfileCompletion = () => {
         return updateUserData(authUser.uid, { completedProfile: true });
       }).then(() => {
         console.log('Usuario actualizado con éxito y perfil completado.');
+        // Refrescar la página
+        window.location.reload();
       })
       .catch((error) => {
         // Manejo de errores
@@ -305,7 +316,8 @@ const ProfileCompletion = () => {
               )}
 
               {/* Contraturno */}
-              {
+              {console.log(authUser.opshift)}
+              { authUser.opshift === 'No definido' && (
                 values.opshift.map((thisValue, index) => (
                   <div key={index}>
                     <Typography variant="subtitle1" gutterBottom>
@@ -333,15 +345,17 @@ const ProfileCompletion = () => {
                     />
                   </div>
                 ))
-              }
-              <Button onClick={() => {
-                setValues(prevValues => ({
-                  ...prevValues,
-                  opshift: [...prevValues.opshift, { name: '', email: '', phone: '' }]
-                }));
-              }}>
-                Agregar Contraturno
-              </Button>
+              )}
+              { authUser.opshift === 'No definido' && (
+                <Button onClick={() => {
+                  setValues(prevValues => ({
+                    ...prevValues,
+                    opshift: [...prevValues.opshift, { name: '', email: '', phone: '' }]
+                  }));
+                }}>
+                  Agregar Contraturno
+                </Button>
+              )}
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5, my: 5 }}>
                 Actualizar mi perfil
               </Button>
