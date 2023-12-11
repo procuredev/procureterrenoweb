@@ -323,7 +323,12 @@ const TableBasic = ({ rows, role, roleData }) => {
               >
 
                 <Clear sx={{ fontSize: 18 }} />
-              </Button>) : <Button color='error' sx={{m:'5px'}} variant='contained' size='small'>Cancelar</Button>
+              </Button>) : <Button
+              onClick={() => handleClickOpenAlert(row, false)}
+              color='error'
+              sx={{m:'5px'}}
+              variant='contained'
+              size='small'>Cancelar</Button>
             )}
           </Container>
         )
