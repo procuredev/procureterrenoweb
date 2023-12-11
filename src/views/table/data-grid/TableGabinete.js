@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import { DataGrid, esES } from '@mui/x-data-grid'
+import { DataGridPro, esES } from '@mui/x-data-grid-pro';
 import { Container } from '@mui/system'
 import {
   Upload,
@@ -753,7 +753,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   return (
     <Card sx={{ height: 'inherit' }}>
-      <DataGrid
+      <DataGridPro
         sx={{
           height: '100%',
           width: '100%',
