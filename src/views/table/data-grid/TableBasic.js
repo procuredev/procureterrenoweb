@@ -1,27 +1,20 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { useFirebase } from 'src/context/useFirebase'
+
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
+import { useFirebase } from 'src/context/useFirebase'
+// import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
-// ** MUI Imports
-import Fade from '@mui/material/Fade'
-import Tooltip from '@mui/material/Tooltip'
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import Select from '@mui/material/Select'
-import CustomChip from 'src/@core/components/mui/chip'
-import { Typography, IconButton } from '@mui/material'
-import { Button } from '@mui/material'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
-import { Container } from '@mui/system'
+import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
+import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
+
+import CustomChip from 'src/@core/components/mui/chip'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
-import { Check, Clear, Edit } from '@mui/icons-material'
 
 const TableBasic = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
@@ -29,6 +22,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
   const { updateDocs, authUser } = useFirebase()
+
+
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -49,9 +44,18 @@ const TableBasic = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
-  const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
-    setOpenAlert(false)
+  const writeCallback = async () => {
+    setLoading(true)
+    await updateDocs(doc.id, approve, authUser)
+    .then(() => {
+      setLoading(false)
+      setOpenAlert(false)
+    })
+    .catch(error => {
+      setLoading(false)
+      alert(error), console.log(error)
+    })
+
   }
 
   const handleCloseAlert = () => {
@@ -98,14 +102,14 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: row.state <= 6
       },
       5: {
-        approve: hasOTEnd && [3, 4].includes(row.state),
-        edit: [3, 4, 6].includes(row.state),
-        reject: [3, 4, 6].includes(row.state)
+        approve: hasOTEnd && [3, 4].includes(row.state) && !createdBySupervisor,
+        edit: [3, 4, 6].includes(row.state) && !createdBySupervisor,
+        reject: [3, 4, 6].includes(row.state) && !createdBySupervisor
       },
       6: {
-        approve: hasPrevState,
-        edit: hasPrevState,
-        reject: [5, 6].includes(row.state)
+        approve: hasPrevState && !createdBySupervisor,
+        edit: hasPrevState && !createdBySupervisor,
+        reject: [5, 6].includes(row.state) && !createdBySupervisor
       },
       7: {
         approve: false,
@@ -147,12 +151,13 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
+
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
       flex: 0.8,
-      minWidth: 220,
+      minWidth: 200,
       renderCell: params => {
         const { row } = params
 
@@ -189,8 +194,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      minWidth: 120,
-      flex: 0.4,
+      flex: 0.8,
+      minWidth: 100,
+      maxWidth: 200,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -240,6 +246,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'supervisorShift',
+      maxWidth: 80,
       headerName: 'Turno',
       flex: 0.4,
       minWidth: 90,
@@ -251,6 +258,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'ot',
+
+      maxWidth: 60,
       headerName: 'OT',
       flex: 0.3,
       minWidth: 50,
@@ -263,8 +272,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'user',
       headerName: 'Autor',
-      flex: 0.6,
-      minWidth: 120
+      flex: 0.5,
+      minWidth: 150,
+
     },
     {
       flex: 0.3,
@@ -365,8 +375,6 @@ const TableBasic = ({ rows, role, roleData }) => {
           rows={rows}
           columns={columns}
           columnVisibilityModel={{
-            ot: md,
-            user: md,
             end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
             supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
             actions: roleData.canApprove

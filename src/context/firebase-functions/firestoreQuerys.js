@@ -465,18 +465,20 @@ const consultDocs = async (type, options = {}) => {
         return resultsByPlants;
 
       case 'byState':
-        const states = [[1, 5], [6, 9], [10, 10]];
+        const currentDate = Timestamp.now();
+        const oneMonthAgo = Timestamp.fromDate(new Date(currentDate.toDate().setMonth(currentDate.toDate().getMonth() - 1)));
 
-        const resultsByState = await Promise.all(
-          states.map(async ([start, end]) => {
-            const qState = query(coll, where('state', '>=', start), where('state', '<=', end));
-            const snapshotState = await getDocs(qState);
+        // Consulta a Firestore para obtener documentos de los últimos 30 días
+        const qDate = query(coll, where('date', '>=', oneMonthAgo));
+        const snapshotDate = await getDocs(qDate);
 
-            return snapshotState.size;
-          })
-        );
+        // Crear un array de los datos de los documentos
+        const docsData = [];
+        snapshotDate.forEach(doc => {
+          docsData.push(doc.data());
+        });
 
-        return resultsByState;
+        return docsData;
 
       default:
         throw new Error(`Invalid type: ${type}`);
@@ -571,21 +573,6 @@ const consultObjetives = async (type, options = {}) => {
         const results = await Promise.all(queries)
 
         return results
-      }
-      break
-
-    case 'byState':
-      // Consulta para obtener el número de documentos por estado
-      queryFunc = async () => {
-        const q1 = query(coll, where('state', '==', 6))
-        const q2 = query(coll, where('state', '==', 7))
-        const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10))
-        const queryAllStates = [q1, q2, q3]
-
-        const snapshots = await Promise.all(queryAllStates.map(getCountFromServer))
-        const documentsByState = snapshots.map(snapshot => snapshot.data().count)
-
-        return documentsByState
       }
       break
 
