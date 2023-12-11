@@ -192,9 +192,16 @@ const ProfileCompletion = () => {
       };
 
       // Actualiza todos los campos en una sola llamada
-      await updateUserData(authUser.uid, updatedValues);
+      await updateUserData(authUser.uid, updatedValues).then(() => {
+        return updateUserData(authUser.uid, { completedProfile: true });
+      }).then(() => {
+        console.log('Usuario actualizado con éxito y perfil completado.');
+      })
+      .catch((error) => {
+        // Manejo de errores
+        console.error('Error al actualizar:', error);
+      });
 
-      console.log('Usuario actualizado con éxito');
     } catch (error) {
       console.error('Error al actualizar:', error);
     }
