@@ -21,20 +21,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
 
-  const initialValues = {
-    '.colIndex-1': {minWidth: "200px !important"},
-  }
-
-  // const resizedColumnWidths = useColumnResizer(loading, initialValues)
-
-  useEffect(() => {
-    if (rows) {
-      setLoading(false)
-    }
-  }, [rows])
 
 
   const findCurrentDoc = rows => {
@@ -153,7 +141,6 @@ const TableBasic = ({ rows, role, roleData }) => {
   const md = useMediaQuery(theme.breakpoints.up('md'))
   const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
-
   useEffect(() => {
     // Busca el documento actualizado en rows
     const updatedDoc = rows.find(row => row.id === doc.id)
@@ -227,6 +214,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -236,6 +225,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'start',
       headerName: 'Inicio',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -245,6 +236,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'end',
       headerName: 'Entrega',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -255,6 +248,8 @@ const TableBasic = ({ rows, role, roleData }) => {
       field: 'supervisorShift',
       maxWidth: 80,
       headerName: 'Turno',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -266,6 +261,8 @@ const TableBasic = ({ rows, role, roleData }) => {
 
       maxWidth: 60,
       headerName: 'OT',
+      flex: 0.3,
+      minWidth: 50,
       renderCell: params => {
         const { row } = params
 
@@ -277,8 +274,10 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Autor',
       flex: 0.5,
       minWidth: 150,
+
     },
     {
+      flex: 0.3,
       minWidth: md ? 190 : 100,
       field: 'actions',
       headerName: 'Acciones',
@@ -366,16 +365,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid
-          disableColumnMenu
-          disableColumnSelector
-          disableRowSelectionOnClick
-          disableColumnFilter
-          sx={{
-            '.MuiDataGrid-iconSeparator': {
-              '& path:hover': { cursor: 'col-resize', strokeWidth: '3px', stroke: theme.palette.divider },
-            },
-           //...{...resizedColumnWidths},
-        }}
+          disableColumnMenu //disable built-in mui filters
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
