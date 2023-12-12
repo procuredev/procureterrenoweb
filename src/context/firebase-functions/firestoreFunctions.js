@@ -616,7 +616,7 @@ const addDescription = async (petitionID, blueprint, description) => {
 
 // getLatestRevision() obtiene la última revisión de un plano en la base de datos
 const getLatestRevision = async (petitionID, blueprintID) => {
-  // Obtiene la referencia a la colección de revisiones del plano en la base de datos
+  // Obtiene la referencia a la colección de revisiones del entregable (blueprint) en la base de datos
   const revisionsRef = collection(db, 'solicitudes', petitionID, 'blueprints', blueprintID, 'revisions')
 
   // Obtiene un snapshot de la última revisión del plano, ordenada por fecha en orden descendente
@@ -639,7 +639,7 @@ const getNextRevision = async (
   approve,
   latestRevision,
   { role, email, displayName, uid },
-  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor },
+  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl },
   remarks,
   hours
 ) => {
@@ -652,7 +652,7 @@ const getNextRevision = async (
   const nextChar = String.fromCharCode(nextCharCode)
 
   // Si el rol es 9 y se aprueba, se ejecutan una serie de acciones
-  if (role === 9 && approve) {
+  /* if (role === 9 && approve) {
     // Define las acciones posibles
     const actions = {
       // Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
@@ -671,7 +671,7 @@ const getNextRevision = async (
       // Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
       incrementRevision: {
         condition: () =>
-          !['iniciado', 'A'].includes(revision) &&
+          (!['iniciado', 'A'].includes(revision) &&
           revision.charCodeAt(0) >= 66 &&
           approvedByClient === false &&
           (approvedByContractAdmin === true || approvedBySupervisor === true),
@@ -683,6 +683,57 @@ const getNextRevision = async (
         action: () => (newRevision = newRevision === 'iniciado' ? 'A' : 'B')
       }
     }
+
+    // Ejecuta la acción correspondiente para cada condición que se cumple
+    Object.values(actions).forEach(({ condition, action }) => {
+      if (condition()) {
+        action()
+      }
+    })
+  } */
+
+ // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
+  if (role === 8 && approve) {
+    // Define las acciones posibles
+    const actions = {
+      // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
+     /*  keepRevision: {
+        condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === false,
+        action: () => (newRevision = revision)
+      },
+      // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente y por el administrador de contrato o el supervisor, se resetea la revisión a '0'
+      resetRevision: {
+        condition: () =>
+          revision.charCodeAt(0) >= 66 &&
+          approvedByClient === true &&
+          (approvedByContractAdmin === true || approvedBySupervisor === true),
+        action: () => (newRevision = '0')
+      },
+      // * Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
+      incrementRevision: {
+        condition: () =>
+          //(!['iniciado', 'A'].includes(revision) &&)
+          revision.charCodeAt(0) >= 66 &&
+          approvedByClient === false &&
+          (approvedByContractAdmin === true || approvedBySupervisor === true),
+        action: () => (newRevision = nextChar)
+      }, */
+      // * Si la revisión es 'iniciado' o 'A', se incrementa la revisión a 'A' o 'B', respectivamente
+      startOrIncrementRevision: {
+        condition: () => ['iniciado', 'A'].includes(revision),
+        action: () => (newRevision = newRevision === 'iniciado' ? 'A' : approvedByDocumentaryControl ? nextChar : revision)
+      },
+      startRevision: {
+        condition: () => revision === 'iniciado',
+        action: () => (newRevision = 'A')
+      },
+      incrementRevision: {
+        condition: () => revision === 'A',
+        action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
+      }
+    }
+
+    // : approvedByDocumentaryControl ? nextChar : revision
 
     // Ejecuta la acción correspondiente para cada condición que se cumple
     Object.values(actions).forEach(({ condition, action }) => {
@@ -711,7 +762,7 @@ const getNextRevision = async (
 
 // updateBlueprint() actualiza el entregable en la base de datos
 const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours) => {
-  // Obtiene la referencia al documento del plano en la base de datos
+  // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
 
   // Obtiene la última revisión del plano
@@ -721,8 +772,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks, hours)
 
   // Comprueba varias condiciones sobre el plano
-  const revisionIsNotStarted = blueprint.revision !== 'iniciado'
-  const isRevisionAtLeastA = blueprint.revision.charCodeAt(0) >= 65
+  //const revisionIsNotStarted = blueprint.revision !== 'iniciado'
+  //const isRevisionAtLeastA = blueprint.revision.charCodeAt(0) >= 65
   const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
   const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor
   const isApprovedByClient = blueprint.approvedByClient
@@ -754,10 +805,10 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
-      approvedBySupervisor: approves && blueprint.revision === 'iniciado'
+      approvedBySupervisor: approves && blueprint.revision === 'iniciado' || (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl),
     }),
     9: () =>
-      revisionIsNotStarted && isRevisionAtLeastB && isNotApprovedByAdminAndSupervisor
+      isRevisionAtLeastB && isNotApprovedByAdminAndSupervisor
         ? {
             ...updateData,
             approvedByClient: approves,
@@ -770,9 +821,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         : {
             ...updateData,
             approvedByDocumentaryControl: approves,
-            sentByDesigner: approves && revisionIsNotStarted && isRevisionAtLeastA,
+            sentByDesigner: approves && isRevisionAtLeastB,
             storageBlueprints:
-              approves && revisionIsNotStarted && isRevisionAtLeastA ? blueprint.storageBlueprints : null
+              approves && isRevisionAtLeastB ? blueprint.storageBlueprints : null
           }
   }
 
@@ -782,7 +833,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
 
-  // Añade la nueva revisión a la subcolección de revisiones del plano
+  // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 }
 

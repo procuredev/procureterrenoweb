@@ -202,7 +202,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     }
 
-    return 'No enviado'
+    return 'Aprobado1'
   }
 
   const renderButton = (row, approve, color, IconComponent) => {
