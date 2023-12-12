@@ -29,7 +29,6 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import EngineeringIcon from '@mui/icons-material/Engineering'
 
 const TableLevantamiento = ({ rows, role, roleData }) => {
-  const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
   const [openDone, setOpenDone] = useState(false)
@@ -38,8 +37,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
-  const [draftmen, setDraftmen] = useState([])
+  const { updateDocs, authUser, getUserData } = useFirebase()
   const [isLoading, setIsLoading] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
