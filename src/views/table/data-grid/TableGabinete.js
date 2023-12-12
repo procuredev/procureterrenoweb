@@ -762,7 +762,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           }
         }}
         apiRef={apiRef}
-        checkboxSelection
+        checkboxSelection={authUser.role === 9}
+        isRowSelectable={(params) => params.row.revision.charCodeAt(0) >= 66 && params.row.revision !== 'iniciado'}
         rows={rows}
         columns={columns}
         columnVisibilityModel={{
