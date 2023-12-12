@@ -16,9 +16,6 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import CardHeader from '@mui/material/CardHeader'
-import { DateRangePicker } from '@mui/lab'
-import { date } from 'yup/lib/locale'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -26,17 +23,10 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import { DialogDoneProject } from 'src/@core/components/dialog-doneProject'
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
-import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 
 import EngineeringIcon from '@mui/icons-material/Engineering'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import TableSpanning from 'src/views/table/mui/TableSpanning'
-import { isLastDayOfMonth } from 'date-fns'
-import { set } from 'lodash'
 
 const TableLevantamiento = ({ rows, role, roleData }) => {
   const [options, setOptions] = useState('')
