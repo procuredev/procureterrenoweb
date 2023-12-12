@@ -10,7 +10,7 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
 import CustomChip from 'src/@core/components/mui/chip'
-import { Typography, IconButton } from '@mui/material'
+import { Typography, IconButton, Dialog, CircularProgress, DialogContent } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -35,6 +35,8 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import TableSpanning from 'src/views/table/mui/TableSpanning'
+import { isLastDayOfMonth } from 'date-fns'
+import { set } from 'lodash'
 
 const TableLevantamiento = ({ rows, role, roleData }) => {
   const [options, setOptions] = useState('')
@@ -48,6 +50,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
   const [draftmen, setDraftmen] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -88,8 +91,14 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   }
 
   const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
-    setOpenAlert(false)
+    setIsLoading(true)
+    updateDocs(doc.id, approve, authUser).then(() => {
+    setIsLoading(false)
+    setOpenAlert(false)})
+    .catch((error) => {
+      setIsLoading(false)
+      console.error(error)
+    })
   }
 
   const handleCloseAlert = () => {
@@ -391,6 +400,11 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         ) : (
           <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
         )}
+        {<Dialog open={isLoading}>
+          <DialogContent>
+          <CircularProgress />
+          </DialogContent>
+          </Dialog>}
         {openEvents && (
           <FullScreenDialog
             open={openEvents}
