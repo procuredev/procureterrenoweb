@@ -76,14 +76,14 @@ const generateFilterConfig = authUser => {
       filterFunction: doc => !doc.hasOwnProperty('ot')
     },
     shiftA: {
-      label: 'Turno P',
-      canSee: [1, 2, 3, 4, 5, 6, 9],
+      label: [5, 6, 7, 8, 9, 10].includes(authUser.role) ? 'Turno A' : 'Turno P',
+      canSee: [1, 2, 3, 4, 5, 6, 9, 10],
       type: 'Turno',
       filterFunction: doc => otherWeek(doc.start.seconds)
     },
     shiftB: {
-      label: 'Turno Q',
-      canSee: [1, 2, 3, 4, 5, 6, 9],
+      label: [5, 6, 7, 8, 9, 10].includes(authUser.role) ? 'Turno B' : 'Turno Q',
+      canSee: [1, 2, 3, 4, 5, 6, 9, 10],
       type: 'Turno',
       filterFunction: doc => !otherWeek(doc.start.seconds)
     },

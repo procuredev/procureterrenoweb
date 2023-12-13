@@ -10,15 +10,12 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
 import CustomChip from 'src/@core/components/mui/chip'
-import { Typography, IconButton } from '@mui/material'
+import { Typography, IconButton, Dialog, CircularProgress, DialogContent } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import CardHeader from '@mui/material/CardHeader'
-import { DateRangePicker } from '@mui/lab'
-import { date } from 'yup/lib/locale'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -26,18 +23,12 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import { DialogDoneProject } from 'src/@core/components/dialog-doneProject'
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
-import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 
 import EngineeringIcon from '@mui/icons-material/Engineering'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import TableSpanning from 'src/views/table/mui/TableSpanning'
 
 const TableLevantamiento = ({ rows, role, roleData }) => {
-  const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
   const [openDone, setOpenDone] = useState(false)
@@ -46,8 +37,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
-  const [draftmen, setDraftmen] = useState([])
+  const { updateDocs, authUser, getUserData } = useFirebase()
+  const [isLoading, setIsLoading] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -88,8 +79,14 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   }
 
   const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
-    setOpenAlert(false)
+    setIsLoading(true)
+    updateDocs(doc.id, approve, authUser).then(() => {
+    setIsLoading(false)
+    setOpenAlert(false)})
+    .catch((error) => {
+      setIsLoading(false)
+      console.error(error)
+    })
   }
 
   const handleCloseAlert = () => {
@@ -391,6 +388,11 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         ) : (
           <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
         )}
+        {<Dialog open={isLoading}>
+          <DialogContent>
+          <CircularProgress />
+          </DialogContent>
+          </Dialog>}
         {openEvents && (
           <FullScreenDialog
             open={openEvents}

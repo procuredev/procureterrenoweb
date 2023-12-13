@@ -315,14 +315,20 @@ const TableBasic = ({ rows, role, roleData }) => {
               </Button>
             )}
             {canReject && (
-              <Button
+               canApprove || canEdit ? (<Button
                 onClick={() => handleClickOpenAlert(row, false)}
                 variant='contained'
                 color='error'
                 sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
               >
+
                 <Clear sx={{ fontSize: 18 }} />
-              </Button>
+              </Button>) : <Button
+              onClick={() => handleClickOpenAlert(row, false)}
+              color='error'
+              sx={{m:'5px'}}
+              variant='contained'
+              size='small'>Cancelar</Button>
             )}
           </Container>
         )
@@ -365,7 +371,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid
-          disableColumnMenu //disable built-in mui filters
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]

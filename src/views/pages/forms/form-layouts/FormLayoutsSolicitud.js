@@ -604,7 +604,7 @@ const FormLayoutsSolicitud = () => {
               value={values.title}
               onChange={handleChange('title')}
               error={errors.title}
-              inputProps={{ maxLength: 150 }}
+              inputProps={{ maxLength: 300 }}
               helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
             />
 
