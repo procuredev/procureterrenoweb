@@ -472,12 +472,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <div>
+          <Box sx={{overflow:'hidden'}}>
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {row.revision || 'N/A'}
             </Typography>
             <RevisionComponent row={row} field={'newRevision'} />
-          </div>
+          </Box>
         )
       }
     },
