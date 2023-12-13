@@ -475,6 +475,7 @@ const useBlueprints = id => {
     const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {
       try {
         const allDocs = []
+        setData([])
         docSnapshot.forEach(doc => {
 
         const revisions = []
