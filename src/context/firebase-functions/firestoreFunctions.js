@@ -700,13 +700,12 @@ const getNextRevision = async (
      /*  keepRevision: {
         condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === false,
         action: () => (newRevision = revision)
-      },
+      }, */
       // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente y por el administrador de contrato o el supervisor, se resetea la revisión a '0'
       resetRevision: {
         condition: () =>
           revision.charCodeAt(0) >= 66 &&
-          approvedByClient === true &&
-          (approvedByContractAdmin === true || approvedBySupervisor === true),
+          approvedByClient === true,
         action: () => (newRevision = '0')
       },
       // * Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
@@ -714,20 +713,19 @@ const getNextRevision = async (
         condition: () =>
           //(!['iniciado', 'A'].includes(revision) &&)
           revision.charCodeAt(0) >= 66 &&
-          approvedByClient === false &&
-          (approvedByContractAdmin === true || approvedBySupervisor === true),
+          approvedByClient === false && approvedByDocumentaryControl === true,
         action: () => (newRevision = nextChar)
-      }, */
+      },
       // * Si la revisión es 'iniciado' o 'A', se incrementa la revisión a 'A' o 'B', respectivamente
-      startOrIncrementRevision: {
+      /* startOrIncrementRevision: {
         condition: () => ['iniciado', 'A'].includes(revision),
         action: () => (newRevision = newRevision === 'iniciado' ? 'A' : approvedByDocumentaryControl ? nextChar : revision)
-      },
+      }, */
       startRevision: {
         condition: () => revision === 'iniciado',
         action: () => (newRevision = 'A')
       },
-      incrementRevision: {
+      incrementRevision1: {
         condition: () => revision === 'A',
         action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
       }
@@ -812,7 +810,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         ? {
             ...updateData,
             approvedByClient: approves,
-            approvedByDocumentaryControl: approves,
+            approvedByDocumentaryControl: true,
             storageBlueprints: !isApprovedByClient && approves ? blueprint.storageBlueprints : null,
             canUpdateTo0: isApprovedByClient ? true : false,
             sentByDesigner: approves && !isApprovedByClient ? true : false,
