@@ -665,7 +665,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Select>
                 )
               ) : (
-                renderStatus(row)
+                <Typography>
+                {renderStatus(row)}
+                </Typography>
               )}
               <RevisionComponent row={row} field={'remarks'} />
             </Box>
