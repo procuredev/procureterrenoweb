@@ -600,6 +600,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
+      flex: 0.1,
       renderCell: params => {
         const { row } = params
 
@@ -669,7 +670,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-
+      flex: 0.1,
       renderCell: params => {
         const { row } = params
 
@@ -739,7 +740,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Select>
                 )
               ) : (
-                ''
+                <Button variant='contained' size='small' disabled sx={{width:'fit-content'}}>Pendiente</Button>
               )}
             </Box>
           </>
