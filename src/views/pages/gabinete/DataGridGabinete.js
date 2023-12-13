@@ -7,8 +7,7 @@ import { useFirebase } from 'src/context/useFirebase'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import { useGridApiRef } from '@mui/x-data-grid';
-import { MenuList, MenuItem, Paper, Autocomplete, IconButton, Typography } from '@mui/material'
-import { KeyboardDoubleArrowRight, KeyboardDoubleArrowLeft } from '@mui/icons-material'
+import { Autocomplete } from '@mui/material'
 
 // ** Custom Components Imports
 
@@ -29,7 +28,6 @@ const DataGridGabinete = () => {
   const [currentOT, setCurrentOT] = useState(null)
   const [currentAutoComplete, setCurrentAutoComplete] = useState(null)
   const [roleData, setRoleData] = useState({ name: 'admin' })
-  const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
   const [proyectistas, setProyectistas] = useState([])
   const [openCodeGenerator, setOpenCodeGenerator] = useState(false)
@@ -37,7 +35,7 @@ const DataGridGabinete = () => {
   const [designerAssigned, setDesignerAssigned] = useState(false)
 
   const apiRef = useGridApiRef();
-  const { useSnapshot, authUser, getUserData, useBlueprints, fetchPetitionById, generateTransmittalCounter, updateSelectedDocuments } = useFirebase()
+  const { useSnapshot, authUser, getUserData, useBlueprints, generateTransmittalCounter, updateSelectedDocuments } = useFirebase()
 
   let petitions = useSnapshot(false, authUser, true)
 
