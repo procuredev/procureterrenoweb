@@ -404,7 +404,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'title',
-      flex: 0.3,
+      flex: 0.4,
+      minWidth: 120,
       headerName: 'Código Procure / MEL',
       renderCell: params => {
         const { row } = params
@@ -466,6 +467,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
+      flex: 0.1,
       renderCell: params => {
         const { row } = params
 
@@ -482,7 +484,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      flex: 0.15,
+      flex: 0.25,
       renderCell: params => {
         const { row } = params
 
@@ -499,7 +501,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
-      flex: 0.18,
+      flex: 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -516,7 +518,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex: 0.15,
+      flex: 0.35,
       renderCell: params => {
         const { row } = params
 
@@ -543,7 +545,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      flex: 0.2,
+      flex: 0.25,
       renderCell: params => {
         const { row } = params
 
@@ -600,24 +602,27 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: 0.1,
+      flex: 0.2,
       renderCell: params => {
         const { row } = params
 
         return (
-          <div>
+          <Box sx={{
+            width: '100%',
+            overflow: 'hidden'
+          }}>
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {unixToDate(row.date.seconds)[0]}
             </Typography>
             <RevisionComponent row={row} field={'date'} />
-          </div>
+          </Box>
         )
       }
     },
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      flex: 0.2,
+      flex: 0.3,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -636,7 +641,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 width: '100%',
                 justifyContent: 'space-between',
                 alignContent: 'center',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                overflow: 'hidden'
               }}
             >
               {canApprove || canReject ? (
@@ -670,7 +676,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-      flex: 0.1,
+      flex: 0.3,
+      minWidth: 80,
       renderCell: params => {
         const { row } = params
 
@@ -690,7 +697,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 width: '100%',
                 justifyContent: 'space-between',
                 alignContent: 'center',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                overflow: 'hidden'
               }}
             >
               {canApprove || canReject ? (
