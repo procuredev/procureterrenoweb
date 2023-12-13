@@ -479,7 +479,7 @@ const useBlueprints = id => {
 
         const revisions = []
 
-        onSnapshot(collection(doc.ref, 'revisions'), revisionSnapshot => {
+        onSnapshot(collection(doc.ref, 'revisions'), orderBy('date', 'desc'), revisionSnapshot => {
           revisionSnapshot.forEach(revisionDoc => {
             revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
           })
