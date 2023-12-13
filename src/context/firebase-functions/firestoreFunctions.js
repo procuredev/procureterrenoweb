@@ -727,6 +727,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Comprueba varias condiciones sobre el plano
   const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
   const isRevisionAtLeast0 = blueprint.revision.charCodeAt(0) >= 48 && blueprint.revision.charCodeAt(0) <= 57
+  const isRevisionAtLeast1 = blueprint.revision.charCodeAt(0) >= 49 && blueprint.revision.charCodeAt(0) <= 57
   const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor
   const isApprovedByClient = blueprint.approvedByClient
 
@@ -765,9 +766,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             ...updateData,
             approvedByClient: approves,
             approvedByDocumentaryControl: true,
-            storageBlueprints: approves && isApprovedByClient ?  blueprint.storageBlueprints : null,
+            storageBlueprints: approves && (isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  blueprint.storageBlueprints : null,
             //canUpdateTo0: isApprovedByClient ? true : false,
-            zeroReviewCompleted: approves && isApprovedByClient ?  true : false,
+            zeroReviewCompleted: approves && (isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
             sentByDesigner: false,
             remarks: remarks ? true : false
           }
