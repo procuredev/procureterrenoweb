@@ -155,7 +155,7 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
         <DialogActions>
           <Button onClick={()=> {handleClose(); setToggleRemarks(false); setError('')}}>No</Button>
           <Button onClick={() => {
-            authUser.role !== 8 || authUser.role === 8 && hours.total !== '' ? callback() : setError('Por favor, indique fecha de inicio y fecha de término.')
+            authUser.role !== 8 || authUser.role === 8 && hours.total !== '' ? callback() : setError('Por favor, indique fecha de inicio y fecha de término.'); setToggleRemarks(false)
           }} autoFocus>
             Sí
           </Button>

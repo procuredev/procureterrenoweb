@@ -652,56 +652,15 @@ const getNextRevision = async (
 
   const nextChar = String.fromCharCode(nextCharCode)
 
-  // Si el rol es 9 y se aprueba, se ejecutan una serie de acciones
-  /* if (role === 9 && approve) {
-    // Define las acciones posibles
-    const actions = {
-      // Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
-      keepRevision: {
-        condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === false,
-        action: () => (newRevision = revision)
-      },
-      //Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente y por el administrador de contrato o el supervisor, se resetea la revisión a '0'
-      resetRevision: {
-        condition: () =>
-          revision.charCodeAt(0) >= 66 &&
-          approvedByClient === true &&
-          (approvedByContractAdmin === true || approvedBySupervisor === true),
-        action: () => (newRevision = '0')
-      },
-      // Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
-      incrementRevision: {
-        condition: () =>
-          (!['iniciado', 'A'].includes(revision) &&
-          revision.charCodeAt(0) >= 66 &&
-          approvedByClient === false &&
-          (approvedByContractAdmin === true || approvedBySupervisor === true),
-        action: () => (newRevision = nextChar)
-      },
-      // Si la revisión es 'iniciado' o 'A', se incrementa la revisión a 'A' o 'B', respectivamente
-      startOrIncrementRevision: {
-        condition: () => ['iniciado', 'A'].includes(revision),
-        action: () => (newRevision = newRevision === 'iniciado' ? 'A' : 'B')
-      }
-    }
-
-    // Ejecuta la acción correspondiente para cada condición que se cumple
-    Object.values(actions).forEach(({ condition, action }) => {
-      if (condition()) {
-        action()
-      }
-    })
-  } */
-
  // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
   if (role === 8 && approve) {
     // Define las acciones posibles
     const actions = {
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
-     /*  keepRevision: {
-        condition: () => revision.charCodeAt(0) >= 66 && approvedByClient === false,
+      keepRevision: {
+        condition: () => revision.charCodeAt(0) >= 48 && approvedByClient === true && approvedByDocumentaryControl === false,
         action: () => (newRevision = revision)
-      }, */
+      },
       // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente y por el administrador de contrato o el supervisor, se resetea la revisión a '0'
       resetRevision: {
         condition: () =>
@@ -713,20 +672,15 @@ const getNextRevision = async (
       incrementRevision: {
         condition: () =>
           //(!['iniciado', 'A'].includes(revision) &&)
-          revision.charCodeAt(0) >= 66 &&
+         (revision.charCodeAt(0) >= 66 || revision.charCodeAt(0) >= 48) &&
           approvedByClient === false && approvedByDocumentaryControl === true,
         action: () => (newRevision = nextChar)
       },
-      // * Si la revisión es 'iniciado' o 'A', se incrementa la revisión a 'A' o 'B', respectivamente
-      /* startOrIncrementRevision: {
-        condition: () => ['iniciado', 'A'].includes(revision),
-        action: () => (newRevision = newRevision === 'iniciado' ? 'A' : approvedByDocumentaryControl ? nextChar : revision)
-      }, */
       startRevision: {
         condition: () => revision === 'iniciado',
         action: () => (newRevision = 'A')
       },
-      incrementRevision1: {
+      incrementRevisionInA: {
         condition: () => revision === 'A',
         action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
       }
@@ -771,9 +725,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks, hours)
 
   // Comprueba varias condiciones sobre el plano
-  //const revisionIsNotStarted = blueprint.revision !== 'iniciado'
-  //const isRevisionAtLeastA = blueprint.revision.charCodeAt(0) >= 65
   const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
+  const isRevisionAtLeast0 = blueprint.revision.charCodeAt(0) >= 48 && blueprint.revision.charCodeAt(0) <= 57
   const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor
   const isApprovedByClient = blueprint.approvedByClient
 
@@ -807,22 +760,23 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
       approvedBySupervisor: approves && blueprint.revision === 'iniciado' || (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl),
     }),
     9: () =>
-      isRevisionAtLeastB && isNotApprovedByAdminAndSupervisor
+      (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor
         ? {
             ...updateData,
             approvedByClient: approves,
             approvedByDocumentaryControl: true,
-            storageBlueprints: !isApprovedByClient && approves ? blueprint.storageBlueprints : null,
-            canUpdateTo0: isApprovedByClient ? true : false,
-            sentByDesigner: approves && !isApprovedByClient ? true : false,
+            storageBlueprints: approves && isApprovedByClient ?  blueprint.storageBlueprints : null,
+            //canUpdateTo0: isApprovedByClient ? true : false,
+            zeroReviewCompleted: approves && isApprovedByClient ?  true : false,
+            sentByDesigner: false,
             remarks: remarks ? true : false
           }
         : {
             ...updateData,
             approvedByDocumentaryControl: approves,
-            sentByDesigner: approves && isRevisionAtLeastB,
+            sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0),
             storageBlueprints:
-              approves && isRevisionAtLeastB ? blueprint.storageBlueprints : null
+              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
           }
   }
 

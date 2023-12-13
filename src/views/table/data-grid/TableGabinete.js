@@ -126,13 +126,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         approve:
           role === 6 &&
           row.revision !== 'iniciado' &&
-          row.revision.charCodeAt(0) >= 65 &&
+          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedByContractAdmin === false,
         reject:
           role === 6 &&
           row.revision !== 'iniciado' &&
-          row.revision.charCodeAt(0) >= 65 &&
+          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedByContractAdmin === false
       },
@@ -140,21 +140,21 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         approve:
           role === 7 &&
           row.revision !== 'iniciado' &&
-          row.revision.charCodeAt(0) >= 65 &&
+          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
           row.approvedByDocumentaryControl === false,
         reject:
           role === 7 &&
           row.revision !== 'iniciado' &&
-          row.revision.charCodeAt(0) >= 65 &&
+          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
           row.approvedByDocumentaryControl === false
       },
       8: {
         approve:
-          role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && row.revision !== '0',
+          role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && !row.zeroReviewCompleted,
         reject: false
       },
       9: {
@@ -177,16 +177,19 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const statusMap = {
-    'Aprobado con comentarios': row => row.approvedByClient && row.sentByDesigner && row.remarks,
-    Aprobado: row => (row.approvedByClient && row.sentByDesigner) || row.revision === '0',
+    'Enviado a cliente': row =>
+    row.sentByDesigner && row.approvedByDocumentaryControl && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
+    Aprobado: row => (row.approvedByClient && row.approvedByDocumentaryControl || row.zeroReviewCompleted),
     Enviado: row =>
-      row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
-    'Rechazado con Observaciones': row => !row.sentByDesigner && !row.approvedByDocumentaryControl && row.remarks,
+    row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
+    'Aprobado con comentarios': row => row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
+    'Rechazado con Observaciones': row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
+    'Aprobado, send Next': row => (row.approvedByDocumentaryControl && !row.sentByDesigner),
     Iniciado: row => !row.sentTime,
     Rechazado: row =>
       !row.sentByDesigner &&
       (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
-    'Revisión 0': row => row.canUpdateTo0
+    //'Revisión 0': row => row.canUpdateTo0
   }
 
   const renderStatus = row => {
@@ -214,12 +217,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     )
   }
 
-  const renderButtons = (row, flexDirection, canApprove, canReject, canUpdate = false) => {
+  const renderButtons = (row, flexDirection, canApprove, canReject, /* canUpdate  = false*/) => {
     return (
       <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
         {canReject && renderButton(row, false, 'error', CancelOutlined)}
-        {canUpdate && renderButton(row, true, 'warning', CheckCircleOutline)}
+       {/*  {canUpdate && renderButton(row, true, 'warning', CheckCircleOutline)} */}
       </Container>
     )
   }
@@ -229,12 +232,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       role === 9 &&
       row.approvedByDocumentaryControl &&
       row.sentByDesigner &&
-      row.revision.charCodeAt(0) >= 66 &&
-      !row.approvedByClient
+      (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted
     )
   }
 
-  const checkRoleAndUpdate = (role, row) => {
+ /*  const checkRoleAndUpdate = (role, row) => {
     return (
       role === 9 &&
       row.approvedByDocumentaryControl &&
@@ -242,7 +244,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       row.revision.charCodeAt(0) >= 66 &&
       row.canUpdateTo0 === false
     )
-  }
+  } */
 
   useEffect(() => {
     if (hours.start && hours.end) {
@@ -685,11 +687,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const canApprove = checkRoleAndApproval(authUser.role, row)
         const canReject = checkRoleAndApproval(authUser.role, row)
-        const canUpdate = checkRoleAndUpdate(authUser.role, row)
+        //const canUpdate = checkRoleAndUpdate(authUser.role, row)
 
         const flexDirection = md ? 'row' : 'column'
 
-        const buttons = renderButtons(row, flexDirection, canApprove, canReject, canUpdate)
+        const buttons = renderButtons(row, flexDirection, canApprove, canReject, /* canUpdate */)
 
         return (
           <>
@@ -726,7 +728,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {buttons}
                   </Select>
                 )
-              ) : canUpdate ? (
+              ) : /* canUpdate ? (
                 md ? (
                   buttons
                 ) : (
@@ -749,8 +751,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {buttons}
                   </Select>
                 )
-              ) : (
-                <Button variant='contained' size='small' disabled sx={{width:'fit-content'}}>Pendiente</Button>
+              ) : */ (
+                ''
               )}
             </Box>
           </>
@@ -772,7 +774,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         apiRef={apiRef}
         checkboxSelection={authUser.role === 9}
         isRowSelectable={params =>
-          (params.row.revision.charCodeAt(0) >= 66 || params.row.revision === '0') && params.row.revision !== 'iniciado'
+          (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) && params.row.approvedByDocumentaryControl === true
         }
         rows={rows}
         columns={columns}
