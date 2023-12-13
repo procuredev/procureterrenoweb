@@ -686,8 +686,6 @@ const getNextRevision = async (
       }
     }
 
-    // : approvedByDocumentaryControl ? nextChar : revision
-
     // Ejecuta la acción correspondiente para cada condición que se cumple
     Object.values(actions).forEach(({ condition, action }) => {
       if (condition()) {
