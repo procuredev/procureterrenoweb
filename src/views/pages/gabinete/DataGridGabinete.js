@@ -136,8 +136,9 @@ const DataGridGabinete = () => {
     doc.autoTable({
       startY: 50,
       html: tableElement,
-      useCss: true,
+      theme: 'plain',
       styles: {
+        cellPadding: 1,
         lineColor: 'black',
         lineWidth: 0.1,},
       columnStyles: {
@@ -146,8 +147,12 @@ const DataGridGabinete = () => {
         }}
     );
 
+    doc.setFontSize(11);
+    doc.text('Sírvase recibir adjunto (1) copia(s) de los entregables que lista a continuación', 15, doc.lastAutoTable.finalY + 10);
+
         // Agrega la tabla al documento
     doc.autoTable({
+      startY: doc.lastAutoTable.finalY + 20,
       head: [columns],
       body: data,
       useCss: true,
@@ -157,6 +162,8 @@ const DataGridGabinete = () => {
       headStyles: {
           fillColor: [191, 191, 191]},
     });
+
+    doc.text('1. Como acuso de su recepción, devuelva una copia de esta firmada a Procure – Administrador de Contrato', 15, doc.lastAutoTable.finalY + 10);
 
 
         // Descarga el documento
