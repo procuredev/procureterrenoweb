@@ -4,15 +4,9 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import { DataGridPro, esES } from '@mui/x-data-grid-pro';
+import { DataGridPro, esES } from '@mui/x-data-grid-pro'
 import { Container } from '@mui/system'
-import {
-  Upload,
-  CheckCircleOutline,
-  CancelOutlined,
-  ChevronRight,
-  OpenInNew
-} from '@mui/icons-material'
+import { Upload, CheckCircleOutline, CancelOutlined, ChevronRight, OpenInNew } from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -367,22 +361,24 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             if (field === 'storageBlueprints') {
               if (fieldContent) {
                 return (
-                <Typography sx={{ mt: 4, overflow:'hidden', width: 'max-content' }} key={revision.id}>
-                {fieldContent.map((content, index) => {
-                return <Link
-                  href={content}
-                  target='_blank'
-                  rel='noreferrer'
-                  key={index}
-                  color='inherit'
-                  underline='always'
-                  textOverflow='ellipsis'
-                >
-                    {getFileName(content, index)}
-                </Link>
-                })}
-                </Typography>
-              )
+                  <Typography sx={{ mt: 4, overflow: 'hidden', width: 'max-content' }} key={revision.id}>
+                    {fieldContent.map((content, index) => {
+                      return (
+                        <Link
+                          href={content}
+                          target='_blank'
+                          rel='noreferrer'
+                          key={index}
+                          color='inherit'
+                          underline='always'
+                          textOverflow='ellipsis'
+                        >
+                          {getFileName(content, index)}
+                        </Link>
+                      )
+                    })}
+                  </Typography>
+                )
               }
             }
 
@@ -458,10 +454,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Typography>
                   <Typography variant='caption'>{row.clientCode || 'Sin código MEL'}</Typography>
                   {row.id === currentRow && row.revisions.length === 0 && (
-                  <Typography sx={{ mt: 1 }}>
-                    Sin eventos en historial
-                  </Typography>
-                    )}
+                    <Typography sx={{ mt: 1 }}>Sin eventos en historial</Typography>
+                  )}
                 </Box>
               </Box>
             </Tooltip>
@@ -501,7 +495,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           </Box>
         )
       }
-    },{
+    },
+    {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
       flex: 0.18,
@@ -560,29 +555,31 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               justifyContent: 'space-between',
               alignContent: 'center',
               flexDirection: 'column',
-              overflow:'hidden'
+              overflow: 'hidden'
             }}
           >
-            <Box display='inline-flex' sx={{ justifyContent: 'space-between', width:'max-content' }}>
-                {row.storageBlueprints ?
-                row.storageBlueprints.map((content, index) =>
-                <Typography key={index} noWrap sx={{  my: 'auto', textOverflow: 'clip', width:'inherit'}}>
-                <Link
-                  color='inherit'
-                  key={index}
-                  href={content}
-                  target='_blank'
-                  rel='noreferrer'
-                  variant='body1'
-                  noWrap>
-                  {getFileName(content, index)}
-                  </Link>
+            <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
+              {row.storageBlueprints ? (
+                row.storageBlueprints.map((content, index) => (
+                  <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
+                    <Link
+                      color='inherit'
+                      key={index}
+                      href={content}
+                      target='_blank'
+                      rel='noreferrer'
+                      variant='body1'
+                      noWrap
+                    >
+                      {getFileName(content, index)}
+                    </Link>
                   </Typography>
-
-                )
-                : <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                ))
+              ) : (
+                <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
                   Sin entregable
-                </Typography>}
+                </Typography>
+              )}
 
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
@@ -763,7 +760,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         }}
         apiRef={apiRef}
         checkboxSelection={authUser.role === 9}
-        isRowSelectable={(params) => (params.row.revision.charCodeAt(0) >= 66 || params.row.revision === '0') && params.row.revision !== 'iniciado'}
+        isRowSelectable={params =>
+          (params.row.revision.charCodeAt(0) >= 66 || params.row.revision === '0') && params.row.revision !== 'iniciado'
+        }
         rows={rows}
         columns={columns}
         columnVisibilityModel={{
