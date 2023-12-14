@@ -705,7 +705,7 @@ const getNextRevision = async (
     prevRevision: latestRevision && Object.keys(latestRevision).length === 0 ? latestRevision.newRevision : revision,
     newRevision,
     description,
-    storageBlueprints,
+    storageBlueprints: storageBlueprints[storageBlueprints.length - 1],
     userEmail: email,
     userName: displayName,
     userId: uid,

@@ -362,23 +362,22 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
             if (field === 'storageBlueprints') {
               if (fieldContent) {
+                console.log('fieldContent:', fieldContent)
+
                 return (
                   <Typography sx={{ mt: 4, overflow: 'hidden', width: 'max-content' }} key={revision.id}>
-                    {fieldContent.map((content, index) => {
-                      return (
-                        <Link
-                          href={content}
+
+                    <Link
+                          href={fieldContent}
                           target='_blank'
                           rel='noreferrer'
-                          key={index}
                           color='inherit'
                           underline='always'
                           textOverflow='ellipsis'
                         >
-                          {getFileName(content, index)}
+                          {getFileName(fieldContent)}
                         </Link>
-                      )
-                    })}
+
                   </Typography>
                 )
               }
@@ -547,7 +546,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      flex: 0.25,
+      flex: 0.65,
       renderCell: params => {
         const { row } = params
 
