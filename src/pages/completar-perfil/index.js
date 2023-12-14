@@ -87,6 +87,8 @@ const ProfileCompletion = () => {
 
   const [errorMessage, setErrorMessage] = useState('')
   const [alertMessage, setAlertMessage] = useState('')
+  const [errors, setErrors] = useState({});
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   const [values, setValues] = useState({
     rut: '',
@@ -137,31 +139,58 @@ const ProfileCompletion = () => {
 
   // }, [authUser.rut, authUser.phone]);
 
+  const formatPhone = (phone) => {
+    // Eliminar cualquier caracter que no sea un número
+    let numbers = phone.replace(/[^0-9]/g, '');
+
+    // Asegurarse de que solo toma los primeros 9 dígitos
+    numbers = numbers.substring(0, 9);
+
+    // Formatear con espacios
+    return `${numbers.slice(0, 1)} ${numbers.slice(1, 5)} ${numbers.slice(5, 9)}`;
+  }
+
   const handleChange = prop => (event, data) => {
-    let newValue
-    switch (prop) {
-      case 'phone':
-        newValue = event.target.value.replace(/[^0-9]/g, '')
-        newValue = `${newValue[0] || ''} ${newValue.slice(1, 5) || ''} ${newValue.slice(5, 10) || ''}`
-        newValue = newValue.trim()
-        break
-      case 'rut':
-        // Eliminar cualquier caracter que no sea un número o letra k
-        let cv = event.target.value.replace(/[^0-9kK]/g, '')
+    let newValue = event.target.value;
 
-        // Formatea RUT
-        newValue = `${cv.length > 7 ? cv.slice(-9, -7) + '.' : ''}${cv.length > 4 ? cv.slice(-7, -4) + '.' : ''}${
-          cv.length >= 2 ? cv.slice(-4, -1) + '-' : ''
-        }${cv[cv.length - 1] || ''}`
-        newValue = newValue.trim()
-        break
+    if (prop === 'phone' && authUser.phone === 'No definido') {
+      // Formateo del teléfono
+      newValue = formatPhone(newValue);
 
-      default:
-        newValue = event.target.value
-        break
+      // Validación del teléfono (debe tener exactamente 9 dígitos)
+      if (newValue.replace(/\s/g, '').length !== 9) {
+        setErrors(prevErrors => ({ ...prevErrors, phone: 'El teléfono debe tener 9 dígitos' }));
+      } else {
+        setErrors(prevErrors => {
+          const newErrors = { ...prevErrors };
+          delete newErrors.phone;
+
+          return newErrors;
+        });
+      }
     }
 
-    setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
+  if (prop === 'rut' && authUser.rut === 'No definido') {
+    // Formateo del RUT
+    newValue = event.target.value.replace(/[^0-9kK]/g, '');
+    newValue = `${newValue.length > 7 ? newValue.slice(-9, -7) + '.' : ''}${newValue.length > 4 ? newValue.slice(-7, -4) + '.' : ''}${newValue.length >= 2 ? newValue.slice(-4, -1) + '-' : ''}${newValue[newValue.length - 1] || ''}`;
+    newValue = newValue.trim();
+
+    // Validación del RUT
+    if (newValue && !/^(\d{1,3}\.){2}\d{3}-[\dkK]$/.test(newValue)) {
+      setErrors(prevErrors => ({ ...prevErrors, rut: 'Formato de RUT inválido' }));
+    } else {
+      setErrors(prevErrors => {
+        const newErrors = { ...prevErrors };
+        delete newErrors.rut;
+
+        return newErrors;
+      });
+    }
+  }
+
+  // Actualizar el valor
+  setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
   }
 
   const onSubmit = async () => {
@@ -227,19 +256,81 @@ const ProfileCompletion = () => {
   //   });
   // };
 
+const validateEmail = (email) => {
+
+  const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+  return re.test(String(email).toLowerCase());
+}
+
+const validatePhone = (phone) => {
+
+  const re = /^[0-9]{9}$/; // Asume que esperas 9 dígitos
+
+  return re.test(phone);
+}
+
   const handleOpshift = (e, index, field) => {
-    const newOpshift = values.opshift.map((opshiftNumber, i) => {
+    const newOpshift = values.opshift.map((opshiftItem, i) => {
       if (i === index) {
-        return { ...opshiftNumber, [field]: e.target.value }
+          let newValue = e.target.value;
+
+          // Aplicar el formateo para el campo de teléfono
+          if (field === 'phone') {
+              newValue = formatPhone(newValue);
+
+              // Validar si el teléfono tiene 9 dígitos
+              if (newValue.replace(/\s/g, '').length !== 9) {
+                  setErrors(prevErrors => ({
+                      ...prevErrors,
+                      [`opshift_${index}_phone`]: 'Teléfono no válido'
+                  }));
+              } else {
+                  setErrors(prevErrors => {
+                      const updatedErrors = { ...prevErrors };
+                      delete updatedErrors[`opshift_${index}_phone`];
+
+                      return updatedErrors;
+                  });
+              }
+          }
+
+          // Validar email
+          if (field === 'email' && !validateEmail(newValue)) {
+              setErrors(prevErrors => ({
+                  ...prevErrors,
+                  [`opshift_${index}_email`]: 'Email no válido'
+              }));
+          } else if (field === 'email') {
+              setErrors(prevErrors => {
+                  const updatedErrors = { ...prevErrors };
+                  delete updatedErrors[`opshift_${index}_email`];
+
+                  return updatedErrors;
+              });
+          }
+
+          return { ...opshiftItem, [field]: newValue };
       }
 
-      return opshiftNumber
-    });
+      return opshiftItem;
+  });
 
-
-
-    setValues({ ...values, opshift: newOpshift })
+  setValues({ ...values, opshift: newOpshift });
   };
+
+  useEffect(() => {
+    const errorsPresent = Object.keys(errors).length > 0;
+
+    // Verifica si los campos disponibles están vacíos
+    const fieldsEmpty = (
+      (authUser.rut === 'No definido' && !values.rut) ||
+      (authUser.phone === 'No definido' && !values.phone) ||
+      (authUser.opshift === 'No definido' && values.opshift.some(op => !op.name || !op.email || !op.phone))
+    );
+
+    setIsButtonDisabled(errorsPresent || fieldsEmpty);
+  }, [errors, values.rut, values.phone, values.opshift, authUser.rut, authUser.phone, authUser.opshift]);
 
   return (
     <Box className='content-right'>
@@ -297,6 +388,7 @@ const ProfileCompletion = () => {
                   placeholder='RUT'
                   onChange={handleChange('rut')}
                   value={values.rut}
+                  error={!!errors.rut}
                   inputProps={{ maxLength: 12 }}
                 />
               )}
@@ -310,6 +402,7 @@ const ProfileCompletion = () => {
                   placeholder='Teléfono'
                   onChange={handleChange('phone')}
                   value={values.phone}
+                  error={!!errors.phone}
                   inputProps={{ maxLength: 11 }}
                   InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
                 />
@@ -331,16 +424,21 @@ const ProfileCompletion = () => {
                     />
                     <TextField
                       fullWidth sx={{ mb: 4 }}
-                      label="Email del Contraturno"
-                      value={thisValue.email}
+                      label='Email del contraturno'
+                      placeholder='e-mail del contraturno'
                       onChange={(e) => handleOpshift(e, index, 'email')}
+                      value={thisValue.email}
+                      error={errors[`opshift_${index}_email`]}
                     />
                     <TextField
                       fullWidth sx={{ mb: 4 }}
-                      label="Teléfono del Contraturno"
-                      value={thisValue.phone}
+                      label='Teléfono del contraturno'
+                      type='tel'
+                      placeholder='Teléfono del contraturno'
                       onChange={(e) => handleOpshift(e, index, 'phone')}
-                      inputProps={{ maxLength: 9 }}
+                      value={thisValue.phone}
+                      error={errors[`opshift_${index}_phone`]}
+                      inputProps={{ maxLength: 11 }}
                       InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
                     />
                   </div>
@@ -356,7 +454,7 @@ const ProfileCompletion = () => {
                   Agregar Contraturno
                 </Button>
               )}
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5, my: 5 }}>
+              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5, my: 5 }} disabled={isButtonDisabled}>
                 Actualizar mi perfil
               </Button>
             </form>
