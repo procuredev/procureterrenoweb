@@ -354,7 +354,6 @@ const validatePhone = (phone) => {
               )}
 
               {/* Contraturno */}
-              {console.log(authUser.opshift)}
               { authUser.opshift === 'No definido' && (
                 values.opshift.map((thisValue, index) => (
                   <div key={index}>
