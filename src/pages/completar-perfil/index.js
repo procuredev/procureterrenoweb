@@ -21,6 +21,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
+import { CircularProgress } from '@mui/material'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
@@ -70,6 +71,7 @@ const ProfileCompletion = () => {
   const [errorMessage, setErrorMessage] = useState('')
   const [errors, setErrors] = useState({});
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [isUploading, setIsUploading] = useState(false)
 
   const [values, setValues] = useState({
     rut: '',
@@ -143,6 +145,8 @@ const ProfileCompletion = () => {
   const onSubmit = async () => {
     event.preventDefault()
     try {
+      setIsUploading(true) // Se activa el Spinner
+
       // Eliminar espacios del teléfono
       let phoneFormatted
       if (authUser.phone === 'No definido'){
@@ -180,6 +184,8 @@ const ProfileCompletion = () => {
       await updateUserData(authUser.uid, updatedValues).then(() => {
         return updateUserData(authUser.uid, { completedProfile: true });
       }).then(() => {
+        setIsUploading(false)
+      }).then(() => {
         console.log('Usuario actualizado con éxito y perfil completado.');
         // Refrescar la página
         window.location.reload();
@@ -190,6 +196,7 @@ const ProfileCompletion = () => {
       });
 
     } catch (error) {
+      setIsUploading(false),
       console.error('Error al actualizar:', error);
     }
   }
@@ -395,6 +402,21 @@ const validatePhone = (phone) => {
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5, my: 5 }} disabled={isButtonDisabled}>
                 Actualizar mi perfil
               </Button>
+              {isUploading && (
+                <Dialog
+                  sx={{ '.MuiDialog-paper': { minWidth: '20%' } }}
+                  open={isUploading}
+                  closeAfterTransition={true}
+                  maxWidth={false}
+                >
+                  <DialogTitle sx={{ mt: 2, textAlign: 'center' }} id='spinner-dialog-title'>
+                    Actualizando Perfil
+                  </DialogTitle>
+                  <DialogContent sx={{ textAlign: 'center' }}>
+                    <CircularProgress size={40} />
+                  </DialogContent>
+                </Dialog>
+              )}
             </form>
           </BoxWrapper>
         </Paper>
