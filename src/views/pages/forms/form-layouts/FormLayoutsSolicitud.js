@@ -50,7 +50,6 @@ const FormLayoutsSolicitud = () => {
     contop: '',
     fnlocation: '',
     petitioner: '',
-    opshift: '',
     type: '',
     detention: '',
     sap: '',
@@ -75,7 +74,6 @@ const FormLayoutsSolicitud = () => {
   const [allUsers, setAllUsers] = useState([])
   const [files, setFiles] = useState([])
   const [petitioners, setPetitioners] = useState([])
-  const [petitionerOpShift, setPetitionerOpShift] = useState([])
   const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({})
   const [values, setValues] = useState(initialValues)
@@ -106,7 +104,7 @@ const FormLayoutsSolicitud = () => {
 
   const handleChange = prop => async (event, data) => {
     const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'mcDescription']
-    const selectFields = ['plant', 'area', 'petitioner', 'opshift', 'type', 'detention', 'objective', 'contop', 'urgency']
+    const selectFields = ['plant', 'area', 'petitioner', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
     switch (true) {
@@ -120,9 +118,6 @@ const FormLayoutsSolicitud = () => {
       case selectFields.includes(prop): {
         newValue = event.target.value
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
-        if (prop === 'petitioner' && authUser.role !== 2) {
-          getPetitionerOpShift(newValue)
-        }
         if (prop === 'objective' && newValue === 'Análisis GPR') {
           handleGPRSelected()
         }
@@ -439,14 +434,6 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  // establece el estado del contraturno del solicitante de acuerdo al estado de solicitante seleccionado, pasada por parametro.
-  const getPetitionerOpShift = petitioner => {
-    let findPetitioner = petitioners.find(user => user.name === petitioner)
-    if (findPetitioner) {
-      setPetitionerOpShift(findPetitioner.opshift)
-    }
-  }
-
   const fetchData = async () => {
     try {
       const contOpOptions = await getUserData('getUsers', values.plant)
@@ -509,8 +496,7 @@ const FormLayoutsSolicitud = () => {
     if (authUser.role === 2) {
       let onlyPlant = plant[0]
       let userOption = authUser.displayName
-      let userOpshift = authUser.opshift
-      setValues({ ...values, plant: onlyPlant, opshift: userOpshift, petitioner: userOption })
+      setValues({ ...values, plant: onlyPlant, petitioner: userOption })
       findAreas(onlyPlant)
     }
   }, [authUser])
@@ -773,22 +759,6 @@ const FormLayoutsSolicitud = () => {
                 authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
               }
               helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
-              defaultValue=''
-            />
-
-            {/* Contraturno */}
-            <CustomSelect
-              options={
-                (authUser.role === 7 || authUser.role === 3 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
-                  ?  [{name: 'No aplica'}]
-                  : [authUser.opshift] || [{name: 'No aplica'}])
-              }
-              label='Contraturno del solicitante'
-              value={values.opshift}
-              onChange={handleChange('opshift')}
-              error={errors.opshift}
-              disabled={authUser.role === 2}
-              helper='Corresponde a la persona que trabaja en el turno de la semana siguiente del solicitante.'
               defaultValue=''
             />
 
