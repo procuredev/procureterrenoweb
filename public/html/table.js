@@ -1,10 +1,14 @@
-const tableBody = `
+const tableBody = (code, quantity) => {
+  const date = new Date()
+  const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+
+  return `
 <tbody>
   <tr>
     <td>Transmittal</td>
-    <td>21286-000-TT-535</td>
+    <td>${code}</td>
     <td>Fecha</td>
-    <td>01-09-2023</td>
+    <td>${formattedDate}</td>
   </tr>
   <tr>
     <td>N° Contrato</td>
@@ -34,17 +38,18 @@ const tableBody = `
   </tr>
   <tr>
     <td>E-mail</td>
-    <td>Controldoc72336@procure.cl</td>
+    <td>controldoc72336@procure.cl</td>
     <td>E-mail</td>
-    <td>Pamela.carrizo@bhp.com</td>
+    <td>pamela.carrizo@bhp.com</td>
   </tr>
   <tr>
     <td>Cantidad de Documentos</td>
-    <td>1</td>
+    <td>${quantity}</td>
     <td>Tipo de Archivo</td>
     <td>PDF</td>
   </tr>
 </tbody>
-`;
+`
+}
 
-export default tableBody;
+export default tableBody

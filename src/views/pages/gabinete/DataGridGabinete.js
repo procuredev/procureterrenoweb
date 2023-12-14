@@ -44,9 +44,6 @@ const DataGridGabinete = () => {
     )
   }
 
-  let tableElement = document.createElement('table');
-  tableElement.innerHTML = tableBody
-
   const blueprints = useBlueprints(currentPetition?.id)
 
   const handleClickOpenCodeGenerator = doc => {
@@ -81,8 +78,10 @@ const DataGridGabinete = () => {
       // Ahora, añade este contador al final de tu newCode
       const newCode = await generateTransmittalCounter(currentPetition);
 
-      await updateSelectedDocuments(newCode, selected, currentPetition);
+      await updateSelectedDocuments(newCode, selected, currentPetition)
 
+      let tableElement = document.createElement('table');
+      tableElement.innerHTML = tableBody(newCode, selected.size)
 
       if (selected.size === 0) {
           return alert('Seleccione al menos un documento')
