@@ -22,11 +22,6 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 
-// ** Third Party Imports
-import * as yup from 'yup'
-import { useForm, Controller } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -69,24 +64,10 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
   }
 }))
 
-// const schema = yup.object().shape({
-//   email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'),
-//   password: yup
-//     .string()
-//     .min(6, 'La contraseña debe tener al menos 6 caracteres')
-//     .required('Por favor, ingresa tu contraseña')
-// })
 
 const ProfileCompletion = () => {
 
-  const initialOpshift = {
-    name: '',
-    email: '',
-    phone: ''
-  };
-
   const [errorMessage, setErrorMessage] = useState('')
-  const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({});
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
@@ -96,12 +77,6 @@ const ProfileCompletion = () => {
     opshift: [{ name: '', email: '', phone: '' }]
   });
 
-  // const { control, handleSubmit, formState: { errors } } = useForm({
-  //   resolver: yupResolver(schema),
-  //   mode: 'onBlur'
-  // });
-
-
   // ** Hooks
 
   const theme = useTheme()
@@ -110,34 +85,6 @@ const ProfileCompletion = () => {
   // ** Vars
   const { skin } = settings
   const { authUser, updateUserData } = useFirebase()
-
-  // useEffect(() => {
-  //   let formattedPhone = '';
-  //   let formattedRut = '';
-
-  //   // Formatear el teléfono
-  //   if (authUser.phone && authUser.phone !== '') {
-  //     formattedPhone = authUser.phone.replace(/\s/g, '');
-  //     formattedPhone = `${formattedPhone[0] || ''} ${formattedPhone.slice(1, 5) || ''} ${formattedPhone.slice(5, 10) || ''}`;
-  //     formattedPhone = formattedPhone.trim();
-  //   }
-
-  //   // Formatear el RUT
-  //   if (authUser.rut && authUser.rut !== '') {
-  //     formattedRut = authUser.rut.replace(/[^0-9kK]/g, '');
-  //     formattedRut = `${formattedRut.length > 7 ? formattedRut.slice(-9, -7) + '.' : ''}${formattedRut.length > 4 ? formattedRut.slice(-7, -4) + '.' : ''}${
-  //         formattedRut.length >= 2 ? formattedRut.slice(-4, -1) + '-' : ''
-  //     }${formattedRut[formattedRut.length - 1] || ''}`;
-  //     formattedRut = formattedRut.trim();
-  //   }
-
-  //   setValues(prevValues => ({
-  //     ...prevValues,
-  //     phone: formattedPhone,
-  //     rut: formattedRut
-  //   }));
-
-  // }, [authUser.rut, authUser.phone]);
 
   const formatPhone = (phone) => {
     // Eliminar cualquier caracter que no sea un número
@@ -246,15 +193,6 @@ const ProfileCompletion = () => {
       console.error('Error al actualizar:', error);
     }
   }
-
-
-
-  // const addOpshift = () => {
-  //   setValues({
-  //     ...values,
-  //     opshift: [...values.opshift, initialOpshift]
-  //   });
-  // };
 
 const validateEmail = (email) => {
 
