@@ -829,14 +829,30 @@ const generateTransmittalCounter = async (currentPetition) => {
   }
 };
 
-const updateSelectedDocuments = async (newCode, selected, currentPetition) => {
+const updateSelectedDocuments = async (newCode, selected, currentPetition, authUser) => {
   try {
     // Actualiza el campo lastTransmittal en cada uno de los documentos seleccionados
-    console.log('selected:', selected)
     for (const id of selected) {
-      console.log('id:', id)
       const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0]);
       await updateDoc(docRef, { lastTransmittal: newCode });
+      console.log('id[0]:', id[0])
+      console.log('id:', id)
+
+      const nextRevision = {
+        prevRevision: id[1].revision,
+        newRevision: id[1].revision,
+        description: id[1].description,
+        storageBlueprints: id[1].storageBlueprints[0],
+        userEmail: authUser.email,
+        userName: authUser.displayName,
+        userId: authUser.uid,
+        date: Timestamp.fromDate(new Date()),
+        remarks: 'transmittal generado',
+        lastTransmittal: newCode
+      }
+
+      // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
+      await addDoc(collection(db, 'solicitudes', currentPetition.id, 'blueprints', id[0], 'revisions'), nextRevision)
     }
   } catch (error) {
     console.error('Error al actualizar documentos seleccionados:', error);

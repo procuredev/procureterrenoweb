@@ -78,7 +78,7 @@ const DataGridGabinete = () => {
       // Ahora, añade este contador al final de tu newCode
       const newCode = await generateTransmittalCounter(currentPetition);
 
-      await updateSelectedDocuments(newCode, selected, currentPetition)
+      await updateSelectedDocuments(newCode, selected, currentPetition, authUser);
 
       let tableElement = document.createElement('table');
       tableElement.innerHTML = tableBody(newCode, selected.size)

@@ -228,12 +228,19 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const checkRoleAndApproval = (role, row) => {
-    return (
-      role === 9 &&
-      row.approvedByDocumentaryControl &&
-      row.sentByDesigner &&
-      (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted
-    )
+    if (row.revisions && row.revisions.length > 0) {
+      const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const lastRevision = sortedRevisions[0];
+      if ('lastTransmittal' in lastRevision) {
+        return (
+          role === 9 &&
+          row.approvedByDocumentaryControl &&
+          row.sentByDesigner &&
+          (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted
+        )
+      } else {''}
+    }
+
   }
 
  /*  const checkRoleAndUpdate = (role, row) => {
@@ -362,8 +369,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
             if (field === 'storageBlueprints') {
               if (fieldContent) {
-                console.log('fieldContent:', fieldContent)
-
                 return (
                   <Typography sx={{ mt: 4, overflow: 'hidden', width: 'max-content' }} key={revision.id}>
 
