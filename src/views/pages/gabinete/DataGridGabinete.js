@@ -165,10 +165,38 @@ const DataGridGabinete = () => {
 
     doc.text('1. Como acuso de su recepción, devuelva una copia de esta firmada a Procure – Administrador de Contrato', 15, doc.lastAutoTable.finalY + 10);
 
+    const signatureY = doc.lastAutoTable.finalY + 40;
+
+    doc.autoTable({
+      startY: signatureY,
+      body: [['Control Documentos Servicios Procure SpA']],
+      useCss: true,
+      styles: {
+        valign: 'bottom',
+        halign: 'center',
+        lineColor: 'black',
+        lineWidth: 0.1,
+        minCellHeight: 30,},
+      margin: { left:35, right: 120 },
+    });
+
+    doc.autoTable({
+      startY: signatureY,
+      body: [['Receptor']],
+      useCss: true,
+      styles: {
+        valign: 'bottom',
+        halign: 'center',
+        lineColor: 'black',
+        lineWidth: 0.1,
+        minCellHeight: 30,},
+      margin: { left: 120, right: 35 },
+    });
 
         // Descarga el documento
         doc.save("documento.pdf");
       }
+
 
     } catch (error) {
       console.error('Error al generar Transmittal:', error);
