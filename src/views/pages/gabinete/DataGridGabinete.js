@@ -66,7 +66,6 @@ const DataGridGabinete = () => {
   }
 
   const handleChange = value => {
-    console.log(value)
     setCurrentOT(value?.value)
     const currentDoc = petitions.find(doc => doc.ot == value?.value)
     setCurrentPetition(currentDoc)
@@ -81,7 +80,6 @@ const DataGridGabinete = () => {
 
       // Ahora, añade este contador al final de tu newCode
       const newCode = await generateTransmittalCounter(currentPetition);
-      console.log('newCode:', newCode);
 
       await updateSelectedDocuments(newCode, selected, currentPetition);
 
