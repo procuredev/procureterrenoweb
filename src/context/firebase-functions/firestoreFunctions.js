@@ -520,6 +520,11 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
       'Instalaciones Cátodo'
     ]
 
+    function formatCount(count) {
+      // Convierte el conteo a un string y rellena con ceros a la izquierda hasta que la longitud sea 5
+      return String(count).padStart(5, '0');
+    }
+
     function getShortDefinition(plantLongDef) {
       const index = valPlant.indexOf(plantLongDef)
       if (index !== -1) {
@@ -539,6 +544,7 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
     const counterRef = doc(db, 'solicitudes', id, 'clientCodeGeneratorCount', counterDocID)
 
     // Incrementa el contador dentro de una transacción
+
     const incrementedCount = await runTransaction(db, async transaction => {
       const counterSnapshot = await transaction.get(counterRef)
       let newCount
