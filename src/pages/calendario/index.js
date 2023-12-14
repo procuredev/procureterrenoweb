@@ -396,7 +396,7 @@ const AppCalendar = () => {
           }}
         >
         <Typography variant='h6'>
-          Clasificación de colores:
+          Simbología de colores:
         </Typography>
         <Chip label="Shutdown" sx={{mx:1.5, my:3, bgcolor: theme.palette.error.main}} />
         <Chip label="Outage" sx={{mx:1.5, my:3, bgcolor: theme.palette.warning.main}} />

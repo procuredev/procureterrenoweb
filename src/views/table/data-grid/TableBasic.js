@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-import useColumnResizer from 'src/@core/hooks/useColumnResizer'
+// import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
@@ -21,20 +21,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
-  const [loading, setLoading] = useState(true)
   const { updateDocs, authUser } = useFirebase()
 
-  const initialValues = {
-    '.colIndex-1': {minWidth: "200px !important"},
-  }
-
-  const resizedColumnWidths = useColumnResizer(loading, initialValues)
-
-  useEffect(() => {
-    if (rows) {
-      setLoading(false)
-    }
-  }, [rows])
 
 
   const findCurrentDoc = rows => {
@@ -153,7 +141,6 @@ const TableBasic = ({ rows, role, roleData }) => {
   const md = useMediaQuery(theme.breakpoints.up('md'))
   const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
-
   useEffect(() => {
     // Busca el documento actualizado en rows
     const updatedDoc = rows.find(row => row.id === doc.id)
@@ -169,8 +156,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'title',
       headerName: 'Solicitud',
-      cellClassName: 'colIndex-1',
-      headerClassName: 'colIndex-1',
+      flex: 0.8,
+      minWidth: 200,
       renderCell: params => {
         const { row } = params
 
@@ -207,8 +194,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      cellClassName: 'colIndex-2',
-      headerClassName: 'colIndex-2',
+      flex: 0.8,
+      minWidth: 100,
+      maxWidth: 200,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
@@ -225,9 +213,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'date',
-      cellClassName: 'colIndex-3',
-      headerClassName: 'colIndex-3',
       headerName: 'Creación',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -236,9 +224,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'start',
-      cellClassName: 'colIndex-4',
-      headerClassName: 'colIndex-4',
       headerName: 'Inicio',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -247,9 +235,9 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'end',
-      cellClassName: 'colIndex-5',
-      headerClassName: 'colIndex-5',
       headerName: 'Entrega',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -258,9 +246,10 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'supervisorShift',
-      cellClassName: 'colIndex-6',
-      headerClassName: 'colIndex-6',
+      maxWidth: 80,
       headerName: 'Turno',
+      flex: 0.4,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
 
@@ -269,9 +258,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'ot',
+
+      maxWidth: 60,
       headerName: 'OT',
-      cellClassName: 'colIndex-7',
-      headerClassName: 'colIndex-7',
+      flex: 0.3,
+      minWidth: 50,
       renderCell: params => {
         const { row } = params
 
@@ -281,13 +272,13 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'user',
       headerName: 'Autor',
-      cellClassName: 'colIndex-8',
-      headerClassName: 'colIndex-8',
+      flex: 0.5,
+      minWidth: 150,
+
     },
     {
+      flex: 0.3,
       minWidth: md ? 190 : 100,
-      cellClassName: 'colIndex-9',
-      headerClassName: 'colIndex-9',
       field: 'actions',
       headerName: 'Acciones',
       renderCell: params => {
@@ -324,14 +315,20 @@ const TableBasic = ({ rows, role, roleData }) => {
               </Button>
             )}
             {canReject && (
-              <Button
+               canApprove || canEdit ? (<Button
                 onClick={() => handleClickOpenAlert(row, false)}
                 variant='contained'
                 color='error'
                 sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
               >
+
                 <Clear sx={{ fontSize: 18 }} />
-              </Button>
+              </Button>) : <Button
+              onClick={() => handleClickOpenAlert(row, false)}
+              color='error'
+              sx={{m:'5px'}}
+              variant='contained'
+              size='small'>Cancelar</Button>
             )}
           </Container>
         )
@@ -374,16 +371,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     <Card>
       <Box sx={{ height: 500 }}>
         <DataGrid
-          disableColumnMenu
-          disableColumnSelector
-          disableRowSelectionOnClick
-          disableColumnFilter
-          sx={{
-            '.MuiDataGrid-iconSeparator': {
-              '& path:hover': { cursor: 'col-resize', strokeWidth: '3px', stroke: theme.palette.divider },
-            },
-            ...{...resizedColumnWidths},
-        }}
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
@@ -393,8 +380,6 @@ const TableBasic = ({ rows, role, roleData }) => {
           rows={rows}
           columns={columns}
           columnVisibilityModel={{
-            ot: md,
-            user: md,
             end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
             supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
             actions: roleData.canApprove

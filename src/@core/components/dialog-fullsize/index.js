@@ -827,7 +827,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       return 'Aprobado'
                     }
 
-                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
+                    const status = element.newState === 0 ? 'Rechazado' : determineModificationType(element)
 
                     const result =
                       element.newState === 5 ? (
@@ -879,7 +879,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       return 'Aprobado'
                     }
 
-                    const status = element.newState === 10 ? 'Rechazado' : determineModificationType(element)
+                    const status = element.newState === 0 ? 'Rechazado' : determineModificationType(element)
 
                     return (
                       <div key={element.date}>
