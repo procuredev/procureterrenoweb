@@ -1,12 +1,13 @@
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import base64Image from "src/views/pages/gabinete/base64Image";
+import base64MEL from "src/views/pages/gabinete/base64MEL";
 
 export const generateTransmittal = (tableElement, selected) => {
   const doc = new jsPDF()
 
   doc.addImage(base64Image, 'PNG', 15, 10, 50, 20)
-
+  doc.addImage(base64MEL, 'PNG', 140, 23, 50, 4.3)
   // Define las columnas de la tabla
   const columns = ['ÍTEM', 'CÓDIGO CLIENTE', 'DESCRIPCIÓN', 'REV']
   // Define las filas de la tabla
