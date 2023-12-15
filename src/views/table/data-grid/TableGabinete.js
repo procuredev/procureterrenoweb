@@ -128,13 +128,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
-          row.approvedByContractAdmin === false,
+          row.approvedByContractAdmin === false && row.approvedBySupervisor === false,
         reject:
           role === 6 &&
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
-          row.approvedByContractAdmin === false
+          row.approvedByContractAdmin === false && row.approvedBySupervisor === false
       },
       7: {
         approve:
@@ -143,14 +143,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
-          row.approvedByDocumentaryControl === false,
+          row.approvedByDocumentaryControl === false && row.approvedByContractAdmin === false,
         reject:
           role === 7 &&
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
-          row.approvedByDocumentaryControl === false
+          row.approvedByDocumentaryControl === false && row.approvedByContractAdmin === false
       },
       8: {
         approve:
@@ -177,11 +177,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const statusMap = {
+    Enviado: row =>
+    row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Enviado a cliente': row =>
     row.sentByDesigner && row.approvedByDocumentaryControl && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
     Aprobado: row => (row.approvedByClient && row.approvedByDocumentaryControl || row.zeroReviewCompleted),
-    Enviado: row =>
-    row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Aprobado con comentarios': row => row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
     'Rechazado con Observaciones': row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
     'Aprobado, send Next': row => (row.approvedByDocumentaryControl && !row.sentByDesigner),

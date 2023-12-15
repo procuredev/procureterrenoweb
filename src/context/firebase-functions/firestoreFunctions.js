@@ -835,8 +835,6 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
     for (const id of selected) {
       const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0]);
       await updateDoc(docRef, { lastTransmittal: newCode });
-      console.log('id[0]:', id[0])
-      console.log('id:', id)
 
       const nextRevision = {
         prevRevision: id[1].revision,
