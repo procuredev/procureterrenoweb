@@ -513,7 +513,7 @@ const FormLayoutsSolicitud = () => {
       setValues({ ...values, plant: onlyPlant, opshift: userOpshift, petitioner: userOption })
       findAreas(onlyPlant)
     }
-  }, [authUser])
+  }, [authUser, isUploading])
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
