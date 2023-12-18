@@ -74,7 +74,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     const remarks = remarksState.length > 0 ? remarksState : false
 
     authUser.role === 8
-      ? await updateBlueprint(petitionId, doc, approve, authUser, false, hours.total)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, false, hours.total, hours.investedHours)
           .then(() => {
             setOpenAlert(false), setBlueprintGenerated(true), setHours('')
           })
@@ -303,11 +303,18 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         setError(null) // Para limpiar cualquier error previo.
       }
 
+      const startDateAsDate = hours.start.toDate();
+      const endDateAsDate = hours.end.toDate();
+
       setHours(prevHours => ({
         ...prevHours,
         total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
-        hours: totalHoursWithinWorkingDays,
-        minutes: totalMinutes
+        investedHours: {
+          hours: totalHoursWithinWorkingDays,
+          minutes: totalMinutes,
+          selectedStartDate: startDateAsDate,
+          selectedEndDate: endDateAsDate
+        },
       }))
     }
   }, [hours.start, hours.end])
