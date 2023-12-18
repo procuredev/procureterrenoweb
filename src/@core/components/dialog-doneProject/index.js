@@ -118,10 +118,6 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         totalMinutes %= 60;
       }
 
-      console.log(totalHoursWithinWorkingDays, totalMinutes, "RES")
-      console.log(hours.start, "hours.start")
-      console.log(hours.end, "hours.end")
-
       if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
         setError('La hora de término debe ser superior a la hora de inicio.');
         setIsSubmitDisabled(true);
