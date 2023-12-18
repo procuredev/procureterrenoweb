@@ -52,7 +52,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
   const onsubmit = id => {
     if (hours.total !== '') {
-      updateDocs(id, { hours: hours.total }, authUser); // Utiliza directamente el estado hours.total
+      updateDocs(id, { hours: hours.total, investedHours: hours.investedHours }, authUser); // Utiliza directamente el estado hours.total proporcionar msj string al frontend
       handleClose();
     } else {
       setError('Por favor, indique fecha de inicio y fecha de término.');
@@ -119,6 +119,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
       }
 
       console.log(totalHoursWithinWorkingDays, totalMinutes, "RES")
+      console.log(hours.start, "hours.start")
+      console.log(hours.end, "hours.end")
 
       if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
         setError('La hora de término debe ser superior a la hora de inicio.');
@@ -129,12 +131,19 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         setError(null); // Para limpiar cualquier error previo.
         setIsSubmitDisabled(false);
       }
+      const startDateAsDate = hours.start.toDate();
+      const endDateAsDate = hours.end.toDate();
 
       setHours(prevHours => ({
         ...prevHours,
         total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
-        hours: totalHoursWithinWorkingDays,
-        minutes: totalMinutes,
+        investedHours: {
+          hours: totalHoursWithinWorkingDays,
+          minutes: totalMinutes,
+          selectedStartDate: startDateAsDate,
+          selectedEndDate: endDateAsDate
+        },
+
       }));
     }
   }, [hours.start, hours.end]);
