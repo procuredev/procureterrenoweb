@@ -1,10 +1,19 @@
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import base64Image from "src/views/pages/gabinete/base64Image";
-import base64MEL from "src/views/pages/gabinete/base64MEL";
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
+import base64Image from 'src/views/pages/gabinete/base64Image'
+import base64MEL from 'src/views/pages/gabinete/base64MEL'
+import Calibri from 'public/fonts/calibri-normal'
+import CalibriBold from 'public/fonts/calibri-bold'
 
 export const generateTransmittal = (tableElement, selected) => {
   const doc = new jsPDF()
+
+  doc.addFileToVFS('calibri-normal.ttf', Calibri)
+  doc.addFileToVFS('calibri-bold.ttf', CalibriBold)
+  doc.addFont('calibri-regular.ttf', 'Calibri', 'normal')
+  doc.addFont('calibri-bold.ttf', 'Calibri', 'bold')
+  doc.setFont('Calibri')
+  doc.setFontSize(11)
 
   doc.addImage(base64Image, 'PNG', 15, 10, 50, 20, undefined, 'FAST')
   doc.addImage(base64MEL, 'PNG', 140, 23, 50, 4.3, undefined, 'FAST')
@@ -41,6 +50,7 @@ export const generateTransmittal = (tableElement, selected) => {
     html: tableElement,
     theme: 'plain',
     styles: {
+      font: 'Calibri',
       cellPadding: 1,
       lineColor: 'black',
       lineWidth: 0.1
@@ -51,7 +61,6 @@ export const generateTransmittal = (tableElement, selected) => {
     }
   })
 
-  doc.setFontSize(11)
   doc.text(
     'Sírvase recibir adjunto (1) copia(s) de los entregables que lista a continuación',
     15,
@@ -63,7 +72,7 @@ export const generateTransmittal = (tableElement, selected) => {
     startY: doc.lastAutoTable.finalY + 20,
     head: [columns],
     body: data,
-    useCss: true,
+    theme: 'plain',
     styles: {
       lineColor: 'black',
       lineWidth: 0.1
