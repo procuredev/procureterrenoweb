@@ -95,6 +95,7 @@ export const generateTransmittal = (tableElement, selected) => {
     body: [['Control Documentos Servicios Procure SpA']],
     useCss: true,
     styles: {
+      font: 'Calibri',
       valign: 'bottom',
       halign: 'center',
       lineColor: 'black',
@@ -109,6 +110,7 @@ export const generateTransmittal = (tableElement, selected) => {
     body: [['Receptor']],
     useCss: true,
     styles: {
+      font: 'Calibri',
       valign: 'bottom',
       halign: 'center',
       lineColor: 'black',
