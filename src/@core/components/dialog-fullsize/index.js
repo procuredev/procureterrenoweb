@@ -668,6 +668,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.title}
                   onChange={handleInputChange('title')}
                   required={true}
+                  multiline={true}
                 />
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
