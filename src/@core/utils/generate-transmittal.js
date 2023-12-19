@@ -2,16 +2,17 @@ import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
 import base64Image from 'src/views/pages/gabinete/base64Image'
 import base64MEL from 'src/views/pages/gabinete/base64MEL'
-import Calibri from 'public/fonts/calibri-normal'
-import CalibriBold from 'public/fonts/calibri-bold'
+
+const callAddRegular = require('public/fonts/calibri-normal.js')
+const callAddBold = require('public/fonts/calibri-bold.js')
 
 export const generateTransmittal = (tableElement, selected) => {
   const doc = new jsPDF()
 
+  callAddRegular.call(doc)
+  callAddBold.call(doc)
 
-  doc.addFont('calibri-regular.ttf', 'Calibri', 'normal')
-  doc.addFont('calibri-bold.ttf', 'Calibri', 'bold')
-  doc.setFont('Calibri')
+  doc.setFont('Calibri', 'normal')
   doc.setFontSize(11)
 
   doc.addImage(base64Image, 'PNG', 15, 10, 50, 20, undefined, 'FAST')
