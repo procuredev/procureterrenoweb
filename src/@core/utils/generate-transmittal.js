@@ -7,7 +7,7 @@ const callAddRegular = require('public/fonts/calibri-normal.js')
 const callAddBold = require('public/fonts/calibri-bold.js')
 
 export const generateTransmittal = (tableElement, selected) => {
-  const doc = new jsPDF()
+  const doc = new jsPDF('p', 'mm', 'letter', true, true)
 
   callAddRegular.call(doc)
   callAddBold.call(doc)
@@ -92,7 +92,7 @@ export const generateTransmittal = (tableElement, selected) => {
   const pageBreak = signatureY + estimatedContentHeight > pageHeight;
 
   if (pageBreak) {
-    doc.addPage();
+    doc.addPage('p', 'mm', 'letter', true, true);
   }
 
 
