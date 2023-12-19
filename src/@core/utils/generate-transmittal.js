@@ -22,7 +22,7 @@ export const generateTransmittal = (tableElement, selected) => {
   // Define las filas de la tabla
   let rows = []
 
-  const data = Array.from(selected).map(([key, value]) => {
+  const data = Array.from(selected).map(([key, value], index) => {
     if (value.storageBlueprints) {
       // Divide la URL en segmentos separados por '%2F'
       const urlSegments = value.storageBlueprints[0].split('%2F')
@@ -36,10 +36,10 @@ export const generateTransmittal = (tableElement, selected) => {
       // Obtiene el primer segmento, que debería ser el nombre del archivo
       const fileName = decodeURIComponent(fileNameSegments[0])
 
-      rows = [key, value.id, value.description, value.revision]
+      rows = [index+1, value.id, value.description, value.revision]
     } else {
       // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
-      rows = [key, value.id, value.description, value.revision]
+      rows = [index+1, value.id, value.description, value.revision]
     }
 
     return rows
