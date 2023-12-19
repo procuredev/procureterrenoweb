@@ -128,13 +128,17 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
-          row.approvedByContractAdmin === false && row.approvedBySupervisor === false,
+          row.approvedByContractAdmin === false &&
+          row.approvedByDocumentaryControl === false &&
+           row.approvedBySupervisor === false,
         reject:
           role === 6 &&
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
-          row.approvedByContractAdmin === false && row.approvedBySupervisor === false
+          row.approvedByContractAdmin === false &&
+          row.approvedByDocumentaryControl === false &&
+           row.approvedBySupervisor === false
       },
       7: {
         approve:
@@ -143,7 +147,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
-          row.approvedByDocumentaryControl === false && row.approvedByContractAdmin === false,
+          row.approvedByDocumentaryControl === false &&
+           row.approvedByContractAdmin === false,
         reject:
           role === 7 &&
           row.revision !== 'iniciado' &&
@@ -243,7 +248,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   }
 
- /*  const checkRoleAndUpdate = (role, row) => {
+/*   const checkRoleAndUpdate = (role, row) => {
     return (
       role === 9 &&
       row.approvedByDocumentaryControl &&

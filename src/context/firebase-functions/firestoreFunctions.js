@@ -15,6 +15,7 @@ import {
   limit,
   runTransaction,
   onSnapshot,
+  increment
 } from 'firebase/firestore'
 
 // ** Imports Propios
@@ -723,6 +724,7 @@ const getNextRevision = async (
 const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours, investedHours) => {
   // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
+  const solicitudRef = doc(db, 'solicitudes', petitionID);
 
   // Obtiene la última revisión del plano
   const latestRevision = await getLatestRevision(petitionID, blueprint.id)
@@ -790,11 +792,24 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Aplica la acción correspondiente al rol del usuario
   updateData = roleActions[userParam.role] ? roleActions[userParam.role]() : updateData
 
+
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
 
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
+
+  // Lee el documento de la 'solicitud'
+  const solicitudDoc = await getDoc(solicitudRef);
+  const blueprintDoc = await getDoc(blueprintRef);
+
+  if (blueprintDoc.data().zeroReviewCompleted) {
+    // Si el documento no tiene un campo 'zeroReviewCompleted', créalo
+    if (!solicitudDoc.data().zeroReviewCompleted) {
+      await updateDoc(solicitudRef, {zeroReviewCompleted: 0});
+    }
+    await updateDoc(solicitudRef, {zeroReviewCompleted: increment(1)});
+  }
 }
 
 const generateTransmittalCounter = async (currentPetition) => {

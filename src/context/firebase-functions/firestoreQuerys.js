@@ -572,6 +572,38 @@ const fetchPetitionById = async id => {
   }
 }
 
+const consultBluePrints = async (type, options = {}) => {
+  const coll = collection(db, 'blueprints')
+  let queryFunc
+
+  switch (type) {
+    case 'finished':
+      queryFunc = async () => {
+        const solicitudesRef = collection(db, 'solicitudes');
+        const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8));
+        let count = 0;
+
+        const solicitudesSnapshot = await getDocs(solicitudesQuery);
+
+        solicitudesSnapshot.forEach((doc) => {
+          if (doc.data().zeroReviewCompleted > 0) {
+            count += doc.data().zeroReviewCompleted;
+          }
+        });
+
+        console.log(count, "count");
+
+        return count;
+      }
+      break
+    default:
+      // Lanzar un error si el tipo no es válido
+      throw new Error(`Invalid type: ${type}`)
+  }
+
+  return queryFunc()
+}
+
 const consultObjetives = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes')
   let queryFunc
@@ -757,5 +789,6 @@ export {
   fetchPetitionById,
   fetchPlaneProperties,
   fetchMelDisciplines,
-  fetchMelDeliverableType
+  fetchMelDeliverableType,
+  consultBluePrints
 }

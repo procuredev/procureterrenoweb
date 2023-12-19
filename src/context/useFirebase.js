@@ -47,7 +47,8 @@ import {
   fetchPetitionById,
   fetchPlaneProperties,
   fetchMelDisciplines,
-  fetchMelDeliverableType
+  fetchMelDeliverableType,
+  consultBluePrints,
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -117,7 +118,8 @@ const FirebaseContextProvider = props => {
     fetchMelDeliverableType,
     generateBlueprintCodeClient,
     generateTransmittalCounter,
-    updateSelectedDocuments
+    updateSelectedDocuments,
+    consultBluePrints
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
