@@ -8,8 +8,7 @@ import CalibriBold from 'public/fonts/calibri-bold'
 export const generateTransmittal = (tableElement, selected) => {
   const doc = new jsPDF()
 
-  doc.addFileToVFS('calibri-normal.ttf', Calibri)
-  doc.addFileToVFS('calibri-bold.ttf', CalibriBold)
+
   doc.addFont('calibri-regular.ttf', 'Calibri', 'normal')
   doc.addFont('calibri-bold.ttf', 'Calibri', 'bold')
   doc.setFont('Calibri')
@@ -74,6 +73,7 @@ export const generateTransmittal = (tableElement, selected) => {
     body: data,
     theme: 'plain',
     styles: {
+      font: 'Calibri',
       lineColor: 'black',
       lineWidth: 0.1
     },
