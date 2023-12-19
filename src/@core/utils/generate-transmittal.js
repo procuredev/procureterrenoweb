@@ -84,17 +84,27 @@ export const generateTransmittal = (tableElement, selected) => {
     }
   })
 
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const signatureY = doc.lastAutoTable.finalY;
+  const estimatedContentHeight = 75; // Estimar la altura del contenido que sigue
+
+  // Evaluar si el contenido que sigue se ajusta en la página actual
+  const pageBreak = signatureY + estimatedContentHeight > pageHeight;
+
+  if (pageBreak) {
+    doc.addPage();
+  }
+
+
   doc.setFont('Calibri', 'bold')
   doc.text(
     '1. Como acuso de su recepción, devuelva una copia de esta firmada a Procure – Administrador de Contrato',
     15,
-    doc.lastAutoTable.finalY + 10
+    pageBreak ? 20 : doc.lastAutoTable.finalY + 10
   )
 
-  const signatureY = doc.lastAutoTable.finalY + 40
-
   doc.autoTable({
-    startY: signatureY,
+    startY: pageBreak ? 40 : signatureY + 30,
     body: [['Control Documentos Servicios Procure SpA']],
     useCss: true,
     styles: {
@@ -110,7 +120,7 @@ export const generateTransmittal = (tableElement, selected) => {
   })
 
   doc.autoTable({
-    startY: signatureY,
+    startY: pageBreak ? 40 : signatureY + 30,
     body: [['Receptor']],
     useCss: true,
     styles: {
