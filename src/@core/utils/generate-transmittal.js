@@ -16,7 +16,7 @@ export const generateTransmittal = (tableElement, selected) => {
   doc.setFontSize(11)
 
   doc.addImage(base64Image, 'PNG', 15, 10, 50, 20, undefined, 'FAST')
-  doc.addImage(base64MEL, 'PNG', 140, 23, 50, 4.15, undefined, 'FAST')
+  doc.addImage(base64MEL, 'PNG', 140, 23, 50, 4.14, undefined, 'FAST')
   // Define las columnas de la tabla
   const columns = ['ÍTEM', 'CÓDIGO CLIENTE', 'DESCRIPCIÓN', 'REV']
   // Define las filas de la tabla
