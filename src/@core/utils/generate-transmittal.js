@@ -16,7 +16,7 @@ export const generateTransmittal = (tableElement, selected) => {
   doc.setFontSize(11)
 
   doc.addImage(base64Image, 'PNG', 15, 10, 50, 20, undefined, 'FAST')
-  doc.addImage(base64MEL, 'PNG', 140, 23, 50, 4.3, undefined, 'FAST')
+  doc.addImage(base64MEL, 'PNG', 140, 23, 50, 4.15, undefined, 'FAST')
   // Define las columnas de la tabla
   const columns = ['ÍTEM', 'CÓDIGO CLIENTE', 'DESCRIPCIÓN', 'REV']
   // Define las filas de la tabla
@@ -75,6 +75,7 @@ export const generateTransmittal = (tableElement, selected) => {
     theme: 'plain',
     styles: {
       font: 'Calibri',
+      halign: 'center',
       lineColor: 'black',
       lineWidth: 0.1
     },
@@ -83,6 +84,7 @@ export const generateTransmittal = (tableElement, selected) => {
     }
   })
 
+  doc.setFont('Calibri', 'bold')
   doc.text(
     '1. Como acuso de su recepción, devuelva una copia de esta firmada a Procure – Administrador de Contrato',
     15,
@@ -97,6 +99,7 @@ export const generateTransmittal = (tableElement, selected) => {
     useCss: true,
     styles: {
       font: 'Calibri',
+      fontStyle: 'bold',
       valign: 'bottom',
       halign: 'center',
       lineColor: 'black',
@@ -112,6 +115,7 @@ export const generateTransmittal = (tableElement, selected) => {
     useCss: true,
     styles: {
       font: 'Calibri',
+      fontStyle: 'bold',
       valign: 'bottom',
       halign: 'center',
       lineColor: 'black',
