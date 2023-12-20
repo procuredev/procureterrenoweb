@@ -10,6 +10,9 @@ import { getData } from './firestoreQuerys'
 // ** Genera contraseña unica y aleatoria
 const generatorPassword = require('generate-password')
 
+// ** Auth object
+ const auth = getAuth();
+
 const formatAuthUser = async user => {
   const data = await getData(user.uid)
 
@@ -25,7 +28,8 @@ const formatAuthUser = async user => {
     shift: data ? data.shift || 'No definido' : 'No disponible',
     company: data ? data.company || 'No definido' : 'No disponible',
     contop: data ? data.contop || 'No definido' : 'No disponible',
-    opshift: data ? data.opshift || 'No definido' : 'No disponible'
+    opshift: data ? data.opshift || 'No definido' : 'No disponible',
+    registered: data ? true : false,
   }
 }
 
@@ -175,7 +179,6 @@ async function signAdminFailure() {
 }
 
 const signGoogle = async () => {
-  const auth = getAuth();
   const provider = new GoogleAuthProvider()
   provider.setCustomParameters({
     'hd': 'procure.cl'
@@ -203,6 +206,16 @@ const signGoogle = async () => {
   });
   }
 
+  const deleteCurrentUser = async () => {
+    const user = auth.currentUser;
+    deleteUser(user).then(() => {
+      // User deleted.
+    }).catch((error) => {
+      console.error(error);
+      // ...
+    });
+  }
+
 export {
   formatAuthUser,
   resetPassword,
@@ -213,4 +226,5 @@ export {
   signAdminBack,
   signAdminFailure,
   signGoogle,
+  deleteCurrentUser,
 }

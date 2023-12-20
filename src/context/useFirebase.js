@@ -15,7 +15,8 @@ import {
   createUser,
   signAdminBack,
   signAdminFailure,
-  signGoogle
+  signGoogle,
+  deleteCurrentUser
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
@@ -119,7 +120,8 @@ const FirebaseContextProvider = props => {
     generateBlueprintCodeClient,
     generateTransmittalCounter,
     updateSelectedDocuments,
-    consultBluePrints
+    consultBluePrints,
+    deleteCurrentUser
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
