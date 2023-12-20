@@ -398,7 +398,11 @@ export const UploadBlueprintsDialog = ({
         <Typography
         variant='h6'
         sx={{my:2, display:'flex', alignItems:'center', cursor:'pointer'}}
-        onClick={() => setGenerateClientCode((prev) => !prev)}
+        onClick={() => {
+          if (authUser.uid === doc.userId) {
+            setGenerateClientCode((prev) => !prev)
+          }
+        }}
         >
           Generar código MEL
           <ChevronRight sx={{transform: generateClientCode ? 'rotate(90deg)' : ''}}/>
@@ -419,7 +423,7 @@ export const UploadBlueprintsDialog = ({
           <Box>
             <List>
               <CustomListItem
-                editable={true}
+                editable={authUser.uid === doc.userId}
                 label='Descripción'
                 id='description'
                 initialValue={description}
@@ -428,7 +432,11 @@ export const UploadBlueprintsDialog = ({
                 required={false}
                 inputProps={{endAdornment:
                 (description !== values.description) && <InputAdornment position="end">
-                  <Button onClick={() => submitDescription()}> Guardar descripción </Button>
+                  <Button onClick={() => {
+                    if (authUser.uid === doc.userId) {
+                      submitDescription();
+                    }
+                  }}> Guardar descripción </Button>
                 </InputAdornment>}}
               />
               <DateListItem
@@ -473,7 +481,9 @@ export const UploadBlueprintsDialog = ({
                 <ListItem>
                   <FormControl fullWidth>
                     <Fragment>
-                      <div {...getRootProps({ className: 'dropzone' })}>
+                      {(authUser.uid === doc.userId && !doc.sentByDesigner) ||
+      ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
+      (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl) ? <div {...getRootProps({ className: 'dropzone' })} >
                         <input {...getInputProps()} />
                         <Box
                           sx={{
@@ -494,7 +504,7 @@ export const UploadBlueprintsDialog = ({
                             <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
                           </Typography>
                         </Box>
-                      </div>
+                      </div> : ''}
                       {files.length > 0 && (
                         <Fragment>
                           <List>{fileList}</List>
