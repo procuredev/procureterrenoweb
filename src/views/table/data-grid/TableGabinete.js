@@ -6,7 +6,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { DataGridPro, esES } from '@mui/x-data-grid-pro'
 import { Container } from '@mui/system'
-import { Upload, CheckCircleOutline, CancelOutlined, ChevronRight, OpenInNew } from '@mui/icons-material'
+import { Upload, CheckCircleOutline, CancelOutlined, ChevronRight, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -159,7 +159,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       },
       8: {
         approve:
-          role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && !row.zeroReviewCompleted,
+          role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && !row.zeroReviewCompleted && !row.blueprintCompleted,
         reject: false
       },
       9: {
@@ -186,6 +186,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Enviado a cliente': row =>
     row.sentByDesigner && row.approvedByDocumentaryControl && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
+    'Reanudado, send next': row => row.resumeBlueprint,
     Aprobado: row => (row.approvedByClient && row.approvedByDocumentaryControl || row.zeroReviewCompleted),
     'Aprobado con comentarios': row => row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
     'Rechazado con Observaciones': row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
@@ -194,7 +195,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     Rechazado: row =>
       !row.sentByDesigner &&
       (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
-    //'Revisión 0': row => row.canUpdateTo0
   }
 
   const renderStatus = row => {
@@ -207,7 +207,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     return 'Aprobado1'
   }
 
-  const renderButton = (row, approve, color, IconComponent) => {
+  const renderButton = (row, approve, color, IconComponent, resume= false) => {
     const handleClick = () => handleClickOpenAlert(row, approve)
 
     return (
@@ -215,19 +215,20 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         onClick={handleClick}
         variant='contained'
         color={color}
-        sx={{ margin: '2px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+        sx={{ margin: '2px', maxWidth: '25px', maxHeight:'25px', minWidth: resume ? '120px' : '25px', minHeight: '25px' }}
       >
         <IconComponent sx={{ fontSize: 18 }} />
+        {resume ? <Typography sx={{ textOverflow: 'clip' }} > Reanudar</Typography> : ''}
       </Button>
     )
   }
 
-  const renderButtons = (row, flexDirection, canApprove, canReject, /* canUpdate  = false*/) => {
+  const renderButtons = (row, flexDirection, canApprove, canReject, canResume  = false) => {
     return (
       <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
         {canReject && renderButton(row, false, 'error', CancelOutlined)}
-       {/*  {canUpdate && renderButton(row, true, 'warning', CheckCircleOutline)} */}
+        {canResume && renderButton(row, true, 'info', AutorenewOutlined, true)}
       </Container>
     )
   }
@@ -236,6 +237,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     if (row.revisions && row.revisions.length > 0) {
       const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date));
       const lastRevision = sortedRevisions[0];
+
       if ('lastTransmittal' in lastRevision) {
         return (
           role === 9 &&
@@ -243,20 +245,40 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           row.sentByDesigner &&
           (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted
         )
-      } else {''}
+      }
     }
 
   }
 
-/*   const checkRoleAndUpdate = (role, row) => {
+  const checkRoleAndGenerateTransmittal = (role, row) => {
+    if (row.revisions && row.revisions.length > 0) {
+      const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const lastRevision = sortedRevisions[0];
+
+      // Caso 1: 'row' no tiene 'lastTransmittal' y se cumplen las demás condiciones
+      if (!row.lastTransmittal && role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted) {
+        return true;
+      }
+
+      // Caso 2: 'lastRevision' no tiene 'lastTransmittal' y se cumplen las demás condiciones
+      if (!('lastTransmittal' in lastRevision) && role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted) {
+        return true;
+      }
+
+    }
+
+    return false;
+  }
+
+  const checkRoleAndResume = (role, row) => {
     return (
       role === 9 &&
       row.approvedByDocumentaryControl &&
       row.approvedByClient &&
-      row.revision.charCodeAt(0) >= 66 &&
-      row.canUpdateTo0 === false
+      row.revision.charCodeAt(0) >= 48 &&
+      row.blueprintCompleted === true
     )
-  } */
+  }
 
   useEffect(() => {
     if (hours.start && hours.end) {
@@ -703,11 +725,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const canApprove = checkRoleAndApproval(authUser.role, row)
         const canReject = checkRoleAndApproval(authUser.role, row)
-        //const canUpdate = checkRoleAndUpdate(authUser.role, row)
+        const canGenerateBlueprint = checkRoleAndGenerateTransmittal(authUser.role, row)
+        const canResume = checkRoleAndResume(authUser.role, row)
 
         const flexDirection = md ? 'row' : 'column'
 
-        const buttons = renderButtons(row, flexDirection, canApprove, canReject, /* canUpdate */)
+        const buttons = renderButtons(row, flexDirection, canApprove, canReject, canResume)
 
         return (
           <>
@@ -744,7 +767,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {buttons}
                   </Select>
                 )
-              ) : /* canUpdate ? (
+              ) : canGenerateBlueprint ? 'Generar Transmittal' : canResume ? (
                 md ? (
                   buttons
                 ) : (
@@ -767,7 +790,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {buttons}
                   </Select>
                 )
-              ) : */ (
+              ) : (
                 ''
               )}
             </Box>

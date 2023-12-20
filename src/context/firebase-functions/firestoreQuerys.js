@@ -586,12 +586,10 @@ const consultBluePrints = async (type, options = {}) => {
         const solicitudesSnapshot = await getDocs(solicitudesQuery);
 
         solicitudesSnapshot.forEach((doc) => {
-          if (doc.data().zeroReviewCompleted > 0) {
-            count += doc.data().zeroReviewCompleted;
+          if (doc.data().counterBlueprintCompleted > 0) {
+            count += doc.data().counterBlueprintCompleted;
           }
         });
-
-        console.log(count, "count");
 
         return count;
       }

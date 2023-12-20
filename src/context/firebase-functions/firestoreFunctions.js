@@ -647,10 +647,11 @@ const getNextRevision = async (
   approve,
   latestRevision,
   { role, email, displayName, uid },
-  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl },
+  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl, resumeBlueprint },
   remarks,
   hours,
-  investedHours
+  investedHours,
+
 ) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision
@@ -664,12 +665,17 @@ const getNextRevision = async (
   if (role === 8 && approve) {
     // Define las acciones posibles
     const actions = {
+
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
       keepRevision: {
         condition: () => revision.charCodeAt(0) >= 48 && approvedByClient === true && approvedByDocumentaryControl === false,
         action: () => (newRevision = revision)
       },
-      // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente y por el administrador de contrato o el supervisor, se resetea la revisión a '0'
+      incrementResume: {
+        condition: () => revision.charCodeAt(0) >= 48 && resumeBlueprint === true,
+        action: () => (newRevision = nextChar)
+      },
+      // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente, se resetea la revisión a '0'
       resetRevision: {
         condition: () =>
           revision.charCodeAt(0) >= 66 &&
@@ -679,7 +685,6 @@ const getNextRevision = async (
       // * Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
       incrementRevision: {
         condition: () =>
-          //(!['iniciado', 'A'].includes(revision) &&)
          (revision.charCodeAt(0) >= 66 || revision.charCodeAt(0) >= 48) &&
           approvedByClient === false && approvedByDocumentaryControl === true,
         action: () => (newRevision = nextChar)
@@ -772,11 +777,11 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
       (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor
         ? {
             ...updateData,
-            approvedByClient: approves,
+            approvedByClient: blueprint.blueprintCompleted ? false : approves,
             approvedByDocumentaryControl: true,
-            storageBlueprints: approves && (isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  blueprint.storageBlueprints : null,
-            //canUpdateTo0: isApprovedByClient ? true : false,
-            zeroReviewCompleted: approves && (isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
+            storageBlueprints: approves && (!blueprint.blueprintCompleted && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  blueprint.storageBlueprints :  null,
+            resumeBlueprint: isApprovedByClient && blueprint.blueprintCompleted ? true : false,
+            blueprintCompleted: approves && ((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
             sentByDesigner: false,
             remarks: remarks ? true : false
           }
@@ -803,12 +808,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const solicitudDoc = await getDoc(solicitudRef);
   const blueprintDoc = await getDoc(blueprintRef);
 
-  if (blueprintDoc.data().zeroReviewCompleted) {
+  if (blueprintDoc.data().blueprintCompleted) {
     // Si el documento no tiene un campo 'zeroReviewCompleted', créalo
-    if (!solicitudDoc.data().zeroReviewCompleted) {
-      await updateDoc(solicitudRef, {zeroReviewCompleted: 0});
+    if (!solicitudDoc.data().counterBlueprintCompleted) {
+      await updateDoc(solicitudRef, {counterBlueprintCompleted: 0});
     }
-    await updateDoc(solicitudRef, {zeroReviewCompleted: increment(1)});
+    await updateDoc(solicitudRef, {counterBlueprintCompleted: increment(1)});
   }
 }
 
