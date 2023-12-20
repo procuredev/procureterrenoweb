@@ -482,29 +482,31 @@ export const UploadBlueprintsDialog = ({
                   <FormControl fullWidth>
                     <Fragment>
                       {(authUser.uid === doc.userId && !doc.sentByDesigner) ||
-      ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
-      (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl) ? <div {...getRootProps({ className: 'dropzone' })} >
-                        <input {...getInputProps()} />
-                        <Box
-                          sx={{
-                            my: 5,
-                            mx: 'auto',
-                            p: 5,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: ['center'],
-                            backdropFilter: 'contrast(0.8)',
-                            width: '100%',
-                            borderRadius: '10px',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <Icon icon='mdi:file-document-outline' />
-                          <Typography sx={{ mt: 5 }} color='textSecondary'>
-                            <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
-                          </Typography>
-                        </Box>
-                      </div> : ''}
+                        ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
+                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl) ?
+                        <div {...getRootProps({ className: 'dropzone' })} >
+                          <input {...getInputProps()} />
+                          <Box
+                            sx={{
+                              my: 5,
+                              mx: 'auto',
+                              p: 5,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: ['center'],
+                              backdropFilter: 'contrast(0.8)',
+                              width: '100%',
+                              borderRadius: '10px',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Icon icon='mdi:file-document-outline' />
+                            <Typography sx={{ mt: 5 }} color='textSecondary'>
+                              <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
+                            </Typography>
+                          </Box>
+                        </div> : ''
+                      }
                       {files.length > 0 && (
                         <Fragment>
                           <List>{fileList}</List>
