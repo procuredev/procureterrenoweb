@@ -1,5 +1,5 @@
 // ** Firebase Imports
-import { getAuth, updateProfile, deleteUser, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { getAuth, updateProfile, deleteUser, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth'
 import { Firebase, db } from 'src/configs/firebase'
 import { doc, setDoc } from 'firebase/firestore'
 
@@ -177,21 +177,25 @@ async function signAdminFailure() {
 const signGoogle = async () => {
   const auth = getAuth();
   const provider = new GoogleAuthProvider()
+
+  /* Asks for permissions for the app to access the user's Drive files.
   provider.addScope('https://www.googleapis.com/auth/drive.file');
   provider.addScope('https://www.googleapis.com/auth/drive.metadata.readonly');
   provider.addScope('https://www.googleapis.com/auth/userinfo.email');
   provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+ */
 
-  signInWithPopup(auth, provider)
+  signInWithRedirect(auth, provider)
+  // This gives you a Google Access Token. You can use it to access the Google API.
+  /* getRedirectResult(auth)
   .then((result) => {
-    // This gives you a Google Access Token. You can use it to access the Google API.
     let credential = GoogleAuthProvider.credentialFromResult(result);
     const token = credential.accessToken;
     const params = {'access_token': token}
     localStorage.setItem('oauth2-test-params', JSON.stringify(params));
   }).catch((error) => {
     console.log(error)
-  });
+  }); */
   }
 
 export {
