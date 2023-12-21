@@ -743,6 +743,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const isRevisionAtLeast1 = blueprint.revision.charCodeAt(0) >= 49 && blueprint.revision.charCodeAt(0) <= 57
   const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor
   const isApprovedByClient = blueprint.approvedByClient
+  const isOverResumable = isRevisionAtLeast1 && blueprint.resumeBlueprint && blueprint.blueprintCompleted
 
   // Inicializa los datos que se van a actualizar
   let updateData = {
@@ -780,12 +781,19 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             approvedByClient: blueprint.blueprintCompleted ? false : approves,
             approvedByDocumentaryControl: true,
             storageBlueprints: approves && (!blueprint.blueprintCompleted && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  blueprint.storageBlueprints :  null,
-            resumeBlueprint: isApprovedByClient && blueprint.blueprintCompleted ? true : false,
+            resumeBlueprint: isApprovedByClient && blueprint.blueprintCompleted || blueprint.resumeBlueprint && blueprint.approvedByDocumentaryControl? true : false,
             blueprintCompleted: approves && ((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
             sentByDesigner: false,
             remarks: remarks ? true : false
           }
-        : {
+        : isOverResumable ? {
+            ...updateData,
+            approvedByClient: false,
+            approvedByDocumentaryControl: false,
+            storageBlueprints: null,
+            sentByDesigner: false,
+            remarks: remarks ? true : false
+        } : {
             ...updateData,
             approvedByDocumentaryControl: approves,
             sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0),
@@ -808,13 +816,17 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const solicitudDoc = await getDoc(solicitudRef);
   const blueprintDoc = await getDoc(blueprintRef);
 
-  if (blueprintDoc.data().blueprintCompleted) {
-    // Si el documento no tiene un campo 'zeroReviewCompleted', créalo
+  if (blueprintDoc.data().blueprintCompleted && blueprintDoc.data().resumeBlueprint === false) {
+
+    // Si el documento no tiene un campo 'counterBlueprintCompleted', créalo
     if (!solicitudDoc.data().counterBlueprintCompleted) {
       await updateDoc(solicitudRef, {counterBlueprintCompleted: 0});
     }
+
     await updateDoc(solicitudRef, {counterBlueprintCompleted: increment(1)});
   }
+
+
 }
 
 const generateTransmittalCounter = async (currentPetition) => {

@@ -186,7 +186,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Enviado a cliente': row =>
     row.sentByDesigner && row.approvedByDocumentaryControl && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
-    'Reanudado, send next': row => row.resumeBlueprint,
+    'Reanudado, send next': row => row.resumeBlueprint && !row.approvedByClient && !row.sentByDesigner,
     Aprobado: row => (row.approvedByClient && row.approvedByDocumentaryControl || row.zeroReviewCompleted),
     'Aprobado con comentarios': row => row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
     'Rechazado con Observaciones': row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
