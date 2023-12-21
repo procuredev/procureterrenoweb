@@ -824,7 +824,23 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     }
 
     await updateDoc(solicitudRef, {counterBlueprintCompleted: increment(1)});
+
+    // Obtiene la subcolección 'blueprints'
+    const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints');
+    // Obtiene todos los documentos de la subcolección
+    const blueprintsSnapshot = await getDocs(blueprintsCollection);
+    // Obtiene la cantidad de documentos en la subcolección
+    const numBlueprints = blueprintsSnapshot.size;
+
+    console.log('numBlueprints:', numBlueprints);
+    console.log('solicitudDoc.data().counterBlueprintCompleted:', solicitudDoc.data().counterBlueprintCompleted);
+
+    if(solicitudDoc.data().counterBlueprintCompleted === numBlueprints) {
+      await updateDoc(solicitudRef, {state: 9});
+    }
   }
+
+
 
 
 }
