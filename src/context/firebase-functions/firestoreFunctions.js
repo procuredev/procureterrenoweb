@@ -832,8 +832,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     // Obtiene la cantidad de documentos en la subcolección
     const numBlueprints = blueprintsSnapshot.size;
 
-    console.log('numBlueprints:', numBlueprints);
-    console.log('solicitudDoc.data().counterBlueprintCompleted:', solicitudDoc.data().counterBlueprintCompleted);
 
     if(solicitudDoc.data().counterBlueprintCompleted === numBlueprints) {
       await updateDoc(solicitudRef, {state: 9});
