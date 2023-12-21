@@ -79,7 +79,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
-  const handlePause = () => {
+  const handlePause = doc => {
     setDoc(doc)
     setApprove({ pendingReschedule: true })
     setOpenAlert(true)
@@ -312,24 +312,28 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         const { row } = params
 
         const RenderButtons = () => {
-          return(
+          return role === 7 && (
             <>
               <Button
-                    onClick={role === 7 ? () => handleClickOpenDone(row) : null}
+                    onClick={() => handleClickOpenDone(row)}
                     variant='contained'
                     color='success'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
                   >
                     <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
               </Button>
-              <Button
-                    onClick={role === 7 ? () => handleClickOpenAlert(row, false) : null}
+              {
+                !row.pendingReschedule && (
+                  <Button
+                    onClick={() => handlePause(row)}
                     variant='contained'
                     color='secondary'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
                   >
                     <Pause sx={{ fontSize: 18 }} />
               </Button>
+                )
+              }
             </>
           )
         }
