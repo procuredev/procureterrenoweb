@@ -243,7 +243,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           role === 9 &&
           row.approvedByDocumentaryControl &&
           row.sentByDesigner &&
-          (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted
+          (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.blueprintCompleted
         )
       }
     }
@@ -666,8 +666,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
-        const canApprove = permissionsData?.approve
-        const canReject = permissionsData?.reject
+        const canApprove = permissionsData.approve
+        const canReject = permissionsData.reject
 
         const flexDirection = md ? 'row' : 'column'
 
