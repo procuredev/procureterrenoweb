@@ -89,7 +89,7 @@ const Navigation = () => {
       icon: 'mdi:folder-multiple',
       path: '/gabinete',
       subject: 'gabinete',
-      authorizedRoles: [1, 4, 6, 7, 8, 9]
+      authorizedRoles: [1, 4, 6, 7, 8, 9, 10]
     }
   ]
 

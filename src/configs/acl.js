@@ -25,7 +25,7 @@ const defineRulesFor = (role, subject) => {
   } else if (role === 9) {
     can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'documentos', 'gabinete'])
   } else if (role === 10) {
-    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'documentos'])
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'documentos', 'gabinete'])
   } else {
     can('manage', subject)
   }
