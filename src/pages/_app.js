@@ -5,6 +5,9 @@ import { LicenseInfo } from '@mui/x-license-pro';
 import Head from 'next/head'
 import { Router } from 'next/router'
 
+// ** Importar Error 405
+import Error405 from '../pages/405'
+
 // ** Loader Import
 import NProgress from 'nprogress'
 
@@ -37,6 +40,9 @@ import ReactHotToast from 'src/@core/styles/libs/react-hot-toast'
 
 // ** Utils Imports
 import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
+
+// ** Importar Firebase
+import { isUnderMaintenance } from '../configs/firebase'
 
 // ** Prismjs Styles
 import 'prismjs'
@@ -72,18 +78,24 @@ if (themeConfig.routingLoader) {
 
 // Función que decide qué hacer:
 // Si estás logueado, se usa authGuard; sino, se usa GuestGuard
-const Guard = ({ children, authGuard, guestGuard }) => {
-  if (guestGuard) {
-    return <GuestGuard fallback={<Spinner />}>{children}</GuestGuard>
-  } else if (!guestGuard && !authGuard) {
-    return <>{children}</>
+const Guard = ({ children, authGuard, guestGuard, isUnderMaintenance }) => {
+
+  if (isUnderMaintenance === 'true') {
+    return <Error405 fallback={<Spinner />}>{children}</Error405>;
   } else {
-    return <AuthGuard fallback={<Spinner />}>{children}</AuthGuard>
+    if (guestGuard) {
+      return <GuestGuard fallback={<Spinner />}>{children}</GuestGuard>;
+    } else if (!guestGuard && !authGuard) {
+      return <>{children}</>;
+    } else {
+      return <AuthGuard fallback={<Spinner />}>{children}</AuthGuard>;
+    }
   }
 }
 
 // ** Configure JSS & ClassName
 const App = props => {
+
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
 
   // Variables
@@ -95,6 +107,7 @@ const App = props => {
   const authGuard = Component.authGuard ?? true
   const guestGuard = Component.guestGuard ?? false
   const aclAbilities = Component.acl ?? defaultACLObj
+  const maintenanceMode = isUnderMaintenance
 
   return (
     <FirebaseContextProvider>
@@ -112,7 +125,7 @@ const App = props => {
               return (
                 <ThemeComponent settings={settings}>
                   <WindowWrapper>
-                    <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                    <Guard authGuard={authGuard} guestGuard={guestGuard} isUnderMaintenance={maintenanceMode}>
                       <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard}>
                         {getLayout(<Component {...pageProps} />)}
                       </AclGuard>
