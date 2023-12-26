@@ -356,8 +356,8 @@ const TabAccount = () => {
                     fullWidth
                     disabled
                     id='outlined-disabled'
-                    label='Contract Operator'
-                    value={authUser.opshift}
+                    label='Planta'
+                    value={authUser.plant.join(', ')}
                   />
                 </Grid>
                 <Grid item xs={12}>
