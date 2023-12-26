@@ -15,7 +15,7 @@ const defineRulesFor = (role, subject) => {
   } else if (role === 4) {
     can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile', 'documentos', 'gabinete'])
   } else if (role === 5) {
-    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile', 'documentos'])
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile', 'documentos', 'gabinete'])
   } else if (role === 6) {
     can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'solicitudes', 'user-profile', 'documentos', 'gabinete'])
   } else if (role === 7) {
