@@ -127,7 +127,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           role === 6 &&
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
-          row.sentByDesigner === true &&
+          (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
           row.approvedByDocumentaryControl === false &&
            row.approvedBySupervisor === false,
@@ -135,20 +135,20 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           role === 6 &&
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
-          row.sentByDesigner === true &&
+          (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
           row.approvedByDocumentaryControl === false &&
            row.approvedBySupervisor === false
       },
       7: {
         approve:
-          role === 7 &&
+          (role === 7 &&
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
           row.approvedByDocumentaryControl === false &&
-           row.approvedByContractAdmin === false,
+           row.approvedByContractAdmin === false) || ( role === 7 && isMyBlueprint && hasRequiredFields && row.sentBySupervisor === false && !row.blueprintCompleted),
         reject:
           role === 7 &&
           row.revision !== 'iniciado' &&
@@ -159,21 +159,21 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       },
       8: {
         approve:
-          role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && !row.zeroReviewCompleted && !row.blueprintCompleted,
+          role === 8 && isMyBlueprint && hasRequiredFields && row.sentByDesigner === false && !row.blueprintCompleted,
         reject: false
       },
       9: {
         approve:
           row.revision === 'iniciado'
-            ? role === 9 && row.sentByDesigner === true
+            ? role === 9 && (row.sentByDesigner === true || row.sentBySupervisor === true)
             : role === 9 &&
-              row.sentByDesigner === true &&
+              (row.sentByDesigner === true || row.sentBySupervisor === true) &&
               (row.approvedByContractAdmin === true || row.approvedBySupervisor === true),
         reject:
           row.revision === 'iniciado'
-            ? role === 9 && row.sentByDesigner === true
+            ? role === 9 && (row.sentByDesigner === true || row.sentBySupervisor === true)
             : role === 9 &&
-              row.sentByDesigner === true &&
+            (row.sentByDesigner === true || row.sentBySupervisor === true) &&
               (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)
       }
     }
@@ -183,7 +183,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const statusMap = {
     Enviado: row =>
-    row.sentByDesigner || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
+    row.sentByDesigner || row.sentBySupervisor || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Enviado a cliente': row =>
     row.sentByDesigner && row.approvedByDocumentaryControl && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
     'Reanudado, send next': row => row.resumeBlueprint && !row.approvedByClient && !row.sentByDesigner,
@@ -242,7 +242,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         return (
           role === 9 &&
           row.approvedByDocumentaryControl &&
-          row.sentByDesigner &&
+          (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.blueprintCompleted
         )
       }

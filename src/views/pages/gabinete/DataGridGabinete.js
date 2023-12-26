@@ -144,12 +144,26 @@ const DataGridGabinete = () => {
             options={[]}
             renderInput={params => <TextField {...params} label='Proyectistas asignados' readOnly={true} sx={{ '& .MuiInputBase-inputAdornedStart': {display:'none'} }}/>}
           />
-           {authUser.role === 7 ? (
+
+           {
+           authUser.role === 8 ? (
             <Button
-            sx={{width: '50%', m: 2.5}}
-            variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
-              Asignar proyectista
+              variant='contained'
+              onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
+            >
+              Generar nuevo documento
             </Button>
+          ) :
+           authUser.role === 7 ? (
+            <>
+              <Button
+              sx={{width: '50%', m: 2.5}}
+              variant='contained' onClick={() => currentPetition && handleClickOpen(currentPetition)}>
+                Asignar proyectista
+              </Button>
+            </>
+
+
           ) : authUser.role === 9 ? (
             <Button
               variant='contained'
@@ -157,14 +171,17 @@ const DataGridGabinete = () => {
             >
               Generar Transmittal
             </Button>
-          ) : (
-            <Button
-              variant='contained'
-              onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
-            >
-              Generar nuevo documento
-            </Button>
-          )}
+          ) : ''}
+
+          {
+          authUser.role === 7 && currentPetition && (currentPetition.designerReview && currentPetition.designerReview.find(user => user.userId === authUser.uid)) ? (
+              <Button
+                variant='contained'
+                onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
+              >
+                Generar nuevo documento
+              </Button>
+            ) : ''}
         </Box>
         <Box sx={{ m: 4, height: '100%' }}>
           <TableGabinete

@@ -394,7 +394,7 @@ export const UploadBlueprintsDialog = ({
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{display:'flex', flexDirection:'column'}}>
         <Typography variant='h5' sx={{lineHeight: 3}}>{values.id || 'Sin código Procure'}</Typography>
-        {values.clientCode || (authUser.role===8 ?
+        {values.clientCode || (authUser.role===8 || authUser.role===7?
         <Typography
         variant='h6'
         sx={{my:2, display:'flex', alignItems:'center', cursor:'pointer'}}

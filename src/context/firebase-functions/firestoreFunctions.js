@@ -607,6 +607,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       revision: 'iniciado',
       userEmail: userParam.email,
       sentByDesigner: false,
+      sentBySupervisor: false,
       date: Timestamp.fromDate(new Date())
     })
 
@@ -705,6 +706,49 @@ const getNextRevision = async (
         action()
       }
     })
+  } else if (role === 7 && approve) {
+     // Define las acciones posibles
+     const actions = {
+
+      // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
+      keepRevision: {
+        condition: () => revision.charCodeAt(0) >= 48 && approvedByClient === true && approvedByDocumentaryControl === false,
+        action: () => (newRevision = revision)
+      },
+      incrementResume: {
+        condition: () => revision.charCodeAt(0) >= 48 && resumeBlueprint === true,
+        action: () => (newRevision = nextChar)
+      },
+      // * Si la revisión es mayor o igual a 'B', ha sido aprobada por el cliente, se resetea la revisión a '0'
+      resetRevision: {
+        condition: () =>
+          revision.charCodeAt(0) >= 66 &&
+          approvedByClient === true,
+        action: () => (newRevision = '0')
+      },
+      // * Si la revisión es 'B', 'C' o 'D', no ha sido aprobada por el cliente y ha sido aprobada por el administrador de contrato o el supervisor, se incrementa la revisión a la siguiente letra
+      incrementRevision: {
+        condition: () =>
+         (revision.charCodeAt(0) >= 66 || revision.charCodeAt(0) >= 48) &&
+          approvedByClient === false && approvedByDocumentaryControl === true,
+        action: () => (newRevision = nextChar)
+      },
+      startRevision: {
+        condition: () => revision === 'iniciado',
+        action: () => (newRevision = 'A')
+      },
+      incrementRevisionInA: {
+        condition: () => revision === 'A',
+        action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
+      }
+    }
+
+    // Ejecuta la acción correspondiente para cada condición que se cumple
+    Object.values(actions).forEach(({ condition, action }) => {
+      if (condition()) {
+        action()
+      }
+    })
   }
 
   // Crea el objeto de la próxima revisión con los datos proporcionados y la nueva revisión calculada
@@ -763,12 +807,18 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
       approvedByContractAdmin: approves,
       storageBlueprints: approves ? blueprint.storageBlueprints : null
     }),
-    7: () => ({
-      ...updateData,
-      sentByDesigner: approves,
-      approvedBySupervisor: approves,
-      storageBlueprints: approves ? blueprint.storageBlueprints : null
-    }),
+    7: (blueprint, authUser) => {
+      return (blueprint.userId === authUser.uid ? ({
+        ...updateData,
+        sentBySupervisor: approves,
+        approvedByContractAdmin: approves && blueprint.revision === 'iniciado'
+      }) : ({
+        ...updateData,
+        sentByDesigner: approves,
+        approvedBySupervisor: approves,
+        storageBlueprints: approves ? blueprint.storageBlueprints : null
+      }))
+    },
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
@@ -784,6 +834,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             resumeBlueprint: isApprovedByClient && blueprint.blueprintCompleted || blueprint.resumeBlueprint && blueprint.approvedByDocumentaryControl? true : false,
             blueprintCompleted: approves && ((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
             sentByDesigner: false,
+            sentBySupervisor: false,
             remarks: remarks ? true : false
           }
         : isOverResumable ? {
@@ -797,13 +848,14 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             ...updateData,
             approvedByDocumentaryControl: approves,
             sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0),
+            sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0),
             storageBlueprints:
               approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
           }
   }
 
   // Aplica la acción correspondiente al rol del usuario
-  updateData = roleActions[userParam.role] ? roleActions[userParam.role]() : updateData
+  updateData = roleActions[userParam.role] ? roleActions[userParam.role](blueprint, userParam) : updateData
 
 
   // Actualiza el plano en la base de datos
