@@ -161,7 +161,7 @@ const ProfileCompletion = () => {
       // Eliminar puntos y guión del RUT
       let rutFormatted
       if (authUser.rut === 'No definido'){
-        rutFormatted = values.rut.replace(/[\.\-]/g, '');
+        rutFormatted = values.rut.replace(/\./g, '');
       } else {
         rutFormatted = authUser.rut
       }
