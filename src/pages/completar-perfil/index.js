@@ -95,11 +95,10 @@ const ProfileCompletion = () => {
     // Eliminar cualquier caracter que no sea un número
     let numbers = phone.replace(/[^0-9]/g, '');
 
-    // Asegurarse de que solo toma los primeros 9 dígitos
-    numbers = numbers.substring(0, 9);
+    // Aplicar formato con espacios
+    const formattedPhone = numbers.replace(/(\d{1})(\d{4})(\d{4})/, '$1 $2 $3');
 
-    // Formatear con espacios
-    return `${numbers.slice(0, 1)} ${numbers.slice(1, 5)} ${numbers.slice(5, 9)}`;
+    return formattedPhone;
   }
 
   const handleChange = prop => (event, data) => {
@@ -122,27 +121,28 @@ const ProfileCompletion = () => {
       }
     }
 
-  if (prop === 'rut' && authUser.rut === 'No definido') {
-    // Formateo del RUT
-    newValue = event.target.value.replace(/[^0-9kK]/g, '');
-    newValue = `${newValue.length > 7 ? newValue.slice(-9, -7) + '.' : ''}${newValue.length > 4 ? newValue.slice(-7, -4) + '.' : ''}${newValue.length >= 2 ? newValue.slice(-4, -1) + '-' : ''}${newValue[newValue.length - 1] || ''}`;
-    newValue = newValue.trim();
+    if (prop === 'rut' && authUser.rut === 'No definido') {
+      // Formateo del RUT
+      newValue = event.target.value.replace(/[^0-9kK]/g, '');
+      newValue = `${newValue.length > 7 ? newValue.slice(-9, -7) + '.' : ''}${newValue.length > 4 ? newValue.slice(-7, -4) + '.' : ''}${newValue.length >= 2 ? newValue.slice(-4, -1) + '-' : ''}${newValue[newValue.length - 1] || ''}`;
+      newValue = newValue.trim();
 
-    // Validación del RUT
-    if (newValue && !/^(\d{1,3}\.){2}\d{3}-[\dkK]$/.test(newValue)) {
-      setErrors(prevErrors => ({ ...prevErrors, rut: 'Formato de RUT inválido' }));
-    } else {
-      setErrors(prevErrors => {
-        const newErrors = { ...prevErrors };
-        delete newErrors.rut;
+      // Validación del RUT
+      if (newValue && !/^(\d{1,3}\.){2}\d{3}-[\dkK]$/.test(newValue)) {
+        setErrors(prevErrors => ({ ...prevErrors, rut: 'Formato de RUT inválido' }));
+      } else {
+        setErrors(prevErrors => {
+          const newErrors = { ...prevErrors };
+          delete newErrors.rut;
 
-        return newErrors;
-      });
+          return newErrors;
+        });
+      }
     }
-  }
 
-  // Actualizar el valor
-  setValues(prevValues => ({ ...prevValues, [prop]: newValue }));
+    // Actualizar el valor
+    setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
+
   }
 
   const onSubmit = async () => {
@@ -169,7 +169,10 @@ const ProfileCompletion = () => {
       // Actualiza opshift
       let opshiftFormatted
       if (authUser.opshift === 'No definido'){
-        opshiftFormatted = values.opshift
+        opshiftFormatted = values.opshift.map(op => ({
+          ...op,
+          phone: op.phone.replace(/\s/g, '') // Formatear teléfono para cada contraturno
+      }));
       } else {
         opshiftFormatted = authUser.opshift
       }
