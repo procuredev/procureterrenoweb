@@ -22,6 +22,7 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import { CircularProgress } from '@mui/material'
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
@@ -70,8 +71,10 @@ const ProfileCompletion = () => {
 
   const [errorMessage, setErrorMessage] = useState('')
   const [errors, setErrors] = useState({});
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
+  const [showAdditionalOpshift, setShowAdditionalOpshift] = useState(false)
+
 
   const [values, setValues] = useState({
     rut: '',
@@ -359,13 +362,29 @@ const validatePhone = (phone) => {
                   <div key={index}>
                     <Typography variant="subtitle1" gutterBottom>
                       Contraturno {index + 1}
+                      {index > 0 && (
+                      <Button onClick={() => {
+                        const updatedOpshift = [...values.opshift];
+                        updatedOpshift.splice(index, 1);
+                        setValues(prevValues => ({
+                          ...prevValues,
+                          opshift: updatedOpshift
+                        }));
+                      }}>
+                        <RemoveCircleIcon/>
+                      </Button>
+                    )}
                     </Typography>
+
+                    {/* Nombre del Contraturno */}
                     <TextField
                       fullWidth sx={{ mb: 4 }}
                       label="Nombre del Contraturno"
                       value={thisValue.name}
                       onChange={(e) => handleOpshift(e, index, 'name')}
                     />
+
+                    {/* e-mail del Contraturno */}
                     <TextField
                       fullWidth sx={{ mb: 4 }}
                       label='Email del contraturno'
@@ -374,6 +393,8 @@ const validatePhone = (phone) => {
                       value={thisValue.email}
                       error={errors[`opshift_${index}_email`]}
                     />
+
+                    {/* Teléfono del Contraturno */}
                     <TextField
                       fullWidth sx={{ mb: 4 }}
                       label='Teléfono del contraturno'
