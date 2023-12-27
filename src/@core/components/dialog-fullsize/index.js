@@ -27,7 +27,10 @@ import {
   DialogContentText,
   DialogActions,
   DialogTitle,
-  Tooltip
+  Tooltip,
+  MenuItem,
+  InputLabel,
+  Select
 } from '@mui/material'
 
 import {
@@ -68,6 +71,7 @@ function CustomListItem({
   disabled = false,
   required = false,
   multiline = false,
+  select = false,
   initialValue
 }) {
   return (
@@ -75,7 +79,33 @@ function CustomListItem({
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
-            <TextField
+          {select ? (
+              <>
+                <InputLabel variant='standard'>
+                  {label} {required && <span>*</span>}
+                </InputLabel>
+                <Select
+                  id={`${id}-input`}
+                  defaultValue={initialValue}
+                  disabled={disabled}
+                  required={required}
+                  value={value}
+                  size='small'
+                  variant='standard'
+                  fullWidth={true}
+                  onChange={onChange}
+                >
+                  {options &&
+                    options.map(option => {
+                      return (
+                        <MenuItem key={option.name || option} value={option.name || option}>
+                          {option.name || option}
+                        </MenuItem>
+                      )
+                    })}
+                </Select>
+              </>
+            ) : <TextField
               onChange={onChange}
               label={label}
               id={`${id}-input`}
@@ -87,7 +117,7 @@ function CustomListItem({
               variant='standard'
               fullWidth={true}
               multiline={multiline}
-            />
+            /> }
           </StyledFormControl>
         </ListItem>
       ) : (
