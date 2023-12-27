@@ -711,6 +711,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={['a']}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Planta'
                   id='plant'
@@ -719,6 +721,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('plant')}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={['a']}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
