@@ -648,7 +648,7 @@ const getNextRevision = async (
   approve,
   latestRevision,
   { role, email, displayName, uid },
-  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl, resumeBlueprint },
+  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl, resumeBlueprint, userId },
   remarks,
   hours,
   investedHours,
@@ -706,7 +706,7 @@ const getNextRevision = async (
         action()
       }
     })
-  } else if (role === 7 && approve) {
+  } else if (role === 7 && approve && userId === uid) {
      // Define las acciones posibles
      const actions = {
 
@@ -829,7 +829,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         ? {
             ...updateData,
             approvedByClient: blueprint.blueprintCompleted ? false : approves,
-            approvedByDocumentaryControl: true,
+            approvedByDocumentaryControl: approves,
             storageBlueprints: approves && (!blueprint.blueprintCompleted && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  blueprint.storageBlueprints :  null,
             resumeBlueprint: isApprovedByClient && blueprint.blueprintCompleted || blueprint.resumeBlueprint && blueprint.approvedByDocumentaryControl? true : false,
             blueprintCompleted: approves && ((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
