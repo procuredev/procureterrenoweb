@@ -55,6 +55,9 @@ import CustomListItem from 'src/@core/components/custom-list/index'
 import DateListItem from 'src/@core/components/custom-date/index'
 
 import { useDropzone } from 'react-dropzone'
+import areas from '../plants-areas'
+import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
+import { object } from 'yup'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
