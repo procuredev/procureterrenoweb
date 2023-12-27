@@ -71,7 +71,8 @@ function CustomListItem({
   disabled = false,
   required = false,
   multiline = false,
-  select = false,
+  selectable = false,
+  options = [],
   initialValue
 }) {
   return (
@@ -79,7 +80,7 @@ function CustomListItem({
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
-          {select ? (
+          {selectable ? (
               <>
                 <InputLabel variant='standard'>
                   {label} {required && <span>*</span>}
