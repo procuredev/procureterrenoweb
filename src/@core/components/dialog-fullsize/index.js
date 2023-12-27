@@ -51,8 +51,10 @@ import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-
 import { useDropzone } from 'react-dropzone'
+import areas from '../plants-areas'
+import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
+import { object } from 'yup'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -712,7 +714,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <CustomListItem
                   selectable={true}
-                  options={['a']}
+                  options={areas}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Planta'
                   id='plant'
@@ -722,7 +724,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <CustomListItem
                   selectable={true}
-                  options={['a']}
+                  options={(areas.find(area => area.name === values?.plant)?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0])) || values?.area || []}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
