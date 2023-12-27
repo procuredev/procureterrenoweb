@@ -27,7 +27,10 @@ import {
   DialogContentText,
   DialogActions,
   DialogTitle,
-  Tooltip
+  Tooltip,
+  MenuItem,
+  InputLabel,
+  Select
 } from '@mui/material'
 
 import {
@@ -304,8 +307,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     if (Object.keys(newData).length > 0) {
       setLoading(true)
       await updateDocs(id, newData, authUser)
-      .then(() => {
-        setLoading(false)})
+        .then(() => {
+          setLoading(false)
+        })
         .catch(error => {
           setLoading(false)
           alert(error), console.log(error)
