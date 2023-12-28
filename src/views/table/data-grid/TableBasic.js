@@ -198,7 +198,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Estado',
       flex: 0.8,
       minWidth: 100,
-      maxWidth: 200,
+      maxWidth: 300,
       renderCell: params => {
         const { row } = params
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
