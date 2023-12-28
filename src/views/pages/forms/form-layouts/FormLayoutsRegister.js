@@ -61,7 +61,8 @@ const FormLayoutsBasic = () => {
   const [newUID, setNewUID] = useState('')
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile } = useFirebase()
+
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -255,6 +256,8 @@ const FormLayoutsBasic = () => {
 
       try {
         await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)
+        // Inicia el estado de creación de perfil
+        setIsCreatingProfile(true)
         setDialog(true)
         setErrors({})
       } catch (error) {
@@ -275,6 +278,8 @@ const FormLayoutsBasic = () => {
       setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
       setDialog(true)
       setAlertMessage(message)
+      // Finaliza el estado de creación de perfil
+      setIsCreatingProfile(false)
     } catch (error) {
       console.log(error)
       setAttempts(attempts + 1) // Incrementar el contador de intentos

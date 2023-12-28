@@ -9,7 +9,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const AuthGuard = props => {
   const { children, fallback } = props
-  const { authUser, loading } = useFirebase()
+  const { authUser, loading, isCreatingProfile } = useFirebase()
   const router = useRouter()
   useEffect(
     () => {
@@ -22,7 +22,7 @@ const AuthGuard = props => {
 
       // Si hay un usuario logueado
       if (authUser) {
-        if (authUser.completedProfile === false) {
+        if (authUser.completedProfile === false && isCreatingProfile === false) {
           router.replace('/completar-perfil')
         } else {
           // Y si este usuario intenta ingresar al login, forgot-password o '/'

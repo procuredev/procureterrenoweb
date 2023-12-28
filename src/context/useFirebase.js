@@ -47,12 +47,13 @@ const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false)
 
   // ** Variables
   const auth = getAuth(app)
 
   useEffect(() => {
-    const auth = getAuth(app);
+    const auth = getAuth(app)
 
     const unsubscribe = onAuthStateChanged(auth, async (authState) => {
       if (!authState) {
@@ -74,6 +75,8 @@ const FirebaseContextProvider = props => {
     authUser,
     auth,
     loading,
+    isCreatingProfile,
+    setIsCreatingProfile,
     signOut,
     resetPassword,
     updatePassword,
