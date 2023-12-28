@@ -295,7 +295,9 @@ const validatePhone = (phone) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'background.paper'
+            backgroundColor: 'background.paper',
+            mt: 4,
+            mb: 4
           }}
         >
           <BoxWrapper>
@@ -382,9 +384,16 @@ const validatePhone = (phone) => {
                     {/* Nombre del Contraturno */}
                     <TextField
                       fullWidth sx={{ mb: 4 }}
+                      type='text'
                       label="Nombre del Contraturno"
                       value={thisValue.name}
                       onChange={(e) => handleOpshift(e, index, 'name')}
+                      inputProps={{ maxLength: 50 }}
+                      onKeyDown={(e) => {
+                        if (!/^[A-Za-zñÑáéíóúüÁÉÍÓÚÜ\s]+$/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
 
                     {/* e-mail del Contraturno */}
