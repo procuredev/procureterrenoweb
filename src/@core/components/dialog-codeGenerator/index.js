@@ -119,7 +119,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
                 { Object.entries(disciplines).map(([key, value]) => (
 
                   <MenuItem key={key} value={value}>
-                  <em>{key}</em>
+                  <em>{`${value} - ${key}`}</em>
                   </MenuItem>
                   ))
                 }
@@ -144,7 +144,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
                 { Object.entries(deliverables).map(([key, value]) => (
 
                   <MenuItem key={key} value={value}>
-                  <em>{key}</em>
+                  <em>{`${value} - ${key}`}</em>
                   </MenuItem>
                   ))
                   }
