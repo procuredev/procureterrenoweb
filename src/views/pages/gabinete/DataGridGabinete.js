@@ -109,7 +109,7 @@ const DataGridGabinete = () => {
   }, [authUser])
 
   return (
-    <Box id='main' sx={{ display: 'flex', width: '100%', height: '600px', flexDirection: 'column' }}>
+    <Box id='main' sx={{ display: 'flex', width: '100%', flexDirection: 'column' }}>
       <Autocomplete
         options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
         getOptionLabel={option => option.value + ' ' + option.title + ' '}

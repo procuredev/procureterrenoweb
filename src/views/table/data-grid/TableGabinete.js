@@ -805,9 +805,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       <DataGridPro
         sx={{
           height: '100%',
+          maxHeight: '1000px',
           width: '100%',
           '& .MuiDataGrid-cell--withRenderer': {
             alignItems: 'baseline'
+          },
+          '& .MuiDataGrid-virtualScroller': {
+            minHeight: '200px'
           }
         }}
         apiRef={apiRef}
