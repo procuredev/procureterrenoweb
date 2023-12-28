@@ -507,7 +507,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      flex: 0.1,
+      flex: 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -541,7 +541,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
-      flex: 0.2,
+      flex: 0.25,
       renderCell: params => {
         const { row } = params
 
@@ -585,7 +585,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      flex: 0.65,
+      flex: 0.5,
       renderCell: params => {
         const { row } = params
 
