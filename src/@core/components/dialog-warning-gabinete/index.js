@@ -27,6 +27,9 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
 
 
   const handleDateChangeWrapper = dateField => date => {
+
+    date.minutes(0);
+
     const handleDateChange = date => {
       const fieldValue = moment(date && date.toDate());
       const updatedHours = { ...hours };
@@ -41,6 +44,12 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
     };
 
     handleDateChange(date);
+  };
+
+  const handleDateTimeChange = (newValue) => {
+    // Establecer los minutos a 0 cada vez que el usuario selecciona una fecha y hora
+    newValue.setMinutes(0);
+    setValue(newValue);
   };
 
   return (
@@ -59,7 +68,7 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
             ¿Estás segur@ de que quieres {(authUser.role === 8 ? 'enviar' : approves ? 'aprobar' : 'rechazar')} los entregables?
           </DialogContentText>
 
-          {approves && authUser.role === 8 ? (
+          {(approves && authUser.role === 8) || (approves && authUser.role === 7 && authUser.uid === blueprint.userId) ? (
             <>
               <Box sx={{ mb: 4, textAlign: 'center' }}>
                 <Typography variant='body2'>Establece el total de horas</Typography>
@@ -78,6 +87,7 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
                           value={hours.start}
                           onChange={handleDateChangeWrapper('start')}
                           InputLabelProps={{ shrink: true, required: true }}
+                          viewRenderers={{ minutes: null }}
                         />
                       </Box>
                     </LocalizationProvider>
@@ -95,6 +105,7 @@ export default function AlertDialogGabinete({open, handleClose, callback, approv
                           value={hours.end}
                           onChange={handleDateChangeWrapper('end')}
                           InputLabelProps={{ shrink: true, required: true }}
+                          viewRenderers={{ minutes: null }}
                         />
                       </Box>
                     </LocalizationProvider>
