@@ -32,9 +32,6 @@ const AuthGuard = props => {
 
       // Si hay un usuario logueado
       if (authUser) {
-        console.log(authUser?.completedProfile !== undefined)
-        console.log(authUser.completedProfile)
-        console.log(isCreatingProfile)
         if (authUser?.completedProfile !== undefined && authUser.completedProfile === false && !isCreatingProfile) {
           router.replace('/completar-perfil')
         } else {
