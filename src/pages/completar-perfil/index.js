@@ -277,7 +277,7 @@ const validatePhone = (phone) => {
     const fieldsEmpty = (
       (authUser.rut === 'No definido' && !values.rut) ||
       (authUser.phone === 'No definido' && !values.phone) ||
-      (authUser.opshift === 'No definido' && values.opshift.some(op => !op.name || !op.email || !op.phone))
+      (authUser.role === 2 && authUser.opshift === 'No definido' && values.opshift.some(op => !op.name || !op.email || !op.phone))
     );
 
     setIsButtonDisabled(errorsPresent || fieldsEmpty);
@@ -362,7 +362,7 @@ const validatePhone = (phone) => {
               )}
 
               {/* Contraturno */}
-              { authUser.opshift === 'No definido' && (
+              { authUser.role === 2 && authUser.opshift === 'No definido' && (
                 values.opshift.map((thisValue, index) => (
                   <div key={index}>
                     <Typography variant="subtitle1" gutterBottom>
@@ -421,7 +421,7 @@ const validatePhone = (phone) => {
                   </div>
                 ))
               )}
-              { authUser.opshift === 'No definido' && (
+              { authUser.role === 2 && authUser.opshift === 'No definido' && (
                 <Button onClick={() => {
                   setValues(prevValues => ({
                     ...prevValues,

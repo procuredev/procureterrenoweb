@@ -32,7 +32,10 @@ const AuthGuard = props => {
 
       // Si hay un usuario logueado
       if (authUser) {
-        if (authUser.completedProfile === false && isCreatingProfile === false) {
+        console.log(authUser?.completedProfile !== undefined)
+        console.log(authUser.completedProfile)
+        console.log(isCreatingProfile)
+        if (authUser?.completedProfile !== undefined && authUser.completedProfile === false && !isCreatingProfile) {
           router.replace('/completar-perfil')
         } else {
           // Y si este usuario intenta ingresar al login, forgot-password o '/'
@@ -47,7 +50,7 @@ const AuthGuard = props => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [router.route, authUser]
+    [router.route, authUser, isCreatingProfile]
   )
 
   if ((loading || !authUser) && router.asPath !== '/nuevo-usuario/') {
