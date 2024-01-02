@@ -401,7 +401,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               fieldContent = unixToDate(revision[field].seconds)
             }
 
-            if (field === 'storageBlueprints') {
+            if (field === 'storageBlueprints' || field === 'storageHlcDocuments') {
               if (fieldContent) {
                 return (
                   <Typography sx={{ mt: 4, overflow: 'hidden', width: 'max-content' }} key={revision.id}>
@@ -635,6 +635,63 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </IconButton>
             </Box>
             <RevisionComponent row={row} field={'storageBlueprints'} />
+          </Box>
+        )
+      }
+    },
+    {
+      field: 'storageHlcDocuments',
+      headerName: 'HLC',
+      flex: 0.5,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignContent: 'center',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+          >
+            <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
+              {row.storageHlcDocuments ? (
+                row.storageHlcDocuments.map((content, index) => (
+                  <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
+                    <Link
+                      color='inherit'
+                      key={index}
+                      href={content}
+                      target='_blank'
+                      rel='noreferrer'
+                      variant='body1'
+                      noWrap
+                    >
+                      {getFileName(content, index)}
+                    </Link>
+                  </Typography>
+                ))
+              ) : (
+                <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                  Sin Hoja de Cálculo
+                </Typography>
+              )}
+
+              <IconButton
+                sx={{ my: 'auto', ml: 2, p: 0 }}
+                onClick={
+                  row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                    ? () => handleOpenUploadDialog(row)
+                    : null
+                }
+              >
+                {row.storageHlcDocuments ? null : <Upload />}
+              </IconButton>
+            </Box>
+            <RevisionComponent row={row} field={'storageHlcDocuments'} />
           </Box>
         )
       }

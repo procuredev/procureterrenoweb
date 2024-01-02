@@ -648,7 +648,7 @@ const getNextRevision = async (
   approve,
   latestRevision,
   { role, email, displayName, uid },
-  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl, resumeBlueprint, userId },
+  { revision, description, storageBlueprints, approvedByClient, approvedByContractAdmin, approvedBySupervisor, approvedByDocumentaryControl, resumeBlueprint, userId, storageHlcDocuments },
   remarks,
   hours,
   investedHours,
@@ -757,6 +757,7 @@ const getNextRevision = async (
     newRevision,
     description,
     storageBlueprints: storageBlueprints[storageBlueprints.length - 1],
+    storageHlcDocuments: storageHlcDocuments && storageHlcDocuments[storageHlcDocuments.length - 1],
     userEmail: email,
     userName: displayName,
     userId: uid,
@@ -835,7 +836,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             blueprintCompleted: approves && ((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient || !isApprovedByClient && isRevisionAtLeast1) ?  true : false,
             sentByDesigner: false,
             sentBySupervisor: false,
-            remarks: remarks ? true : false
+            remarks: remarks ? true : false,
+            storageHlcDocuments: null
           }
         : isOverResumable ? {
             ...updateData,

@@ -320,7 +320,7 @@ export const UploadBlueprintsDialog = ({
         return invalidFiles
       }
 
-      if (doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
+      if (authUser.role === 9 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
         setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
       }
 
@@ -576,7 +576,7 @@ export const UploadBlueprintsDialog = ({
                     <Fragment>
                       {(authUser.uid === doc.userId && !doc.sentByDesigner) ||
                         ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
-                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc)) ?
+                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) && (doc.approvedBySupervisor || doc.approvedByContractAdmin) && doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc)) ?
                         <div {...getRootProps({ className: 'dropzone' })} >
                           <input {...getInputProps()} />
                           <Box
@@ -623,7 +623,7 @@ export const UploadBlueprintsDialog = ({
                 <ListItem>
                   <FormControl fullWidth>
                     <Fragment>
-                      {(authUser.role === 9 &&  doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) ?
+                      {(authUser.role === 9 &&  (doc.sentByDesigner || doc.sentBySupervisor) && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) ?
                         <div {...getRootProps({ className: 'dropzone' })} >
                           <input {...getInputProps()} />
                           <Box
@@ -647,7 +647,7 @@ export const UploadBlueprintsDialog = ({
                           </Box>
                         </div> : ''
                       }
-                      {hlcDocuments.length > 0 && (
+                      {hlcDocuments.length > 0 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc) && (
                         <Fragment>
                           <List>{hlcList}</List>
                           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
