@@ -22,7 +22,6 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
-  const [loading, setLoading] = useState(false)
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -315,27 +314,16 @@ const TableBasic = ({ rows, role, roleData }) => {
                 {approveWithChanges ? <Check sx={{ fontSize: 18 }} /> : <Edit sx={{ fontSize: 18 }} />}
               </Button>
             )}
-            {canReject &&
-              (canApprove || canEdit ? (
-                <Button
-                  onClick={() => handleClickOpenAlert(row, false)}
-                  variant='contained'
-                  color='error'
-                  sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                >
-                  <Clear sx={{ fontSize: 18 }} />
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => handleClickOpenAlert(row, false)}
-                  color='error'
-                  sx={{ m: '5px' }}
-                  variant='contained'
-                  size='small'
-                >
-                  Cancelar
-                </Button>
-              ))}
+            {canReject && (
+              <Button
+                onClick={() => handleClickOpenAlert(row, false)}
+                variant='contained'
+                color='error'
+                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                <Clear sx={{ fontSize: 18 }} />
+              </Button>
+            )}
           </Container>
         )
 
