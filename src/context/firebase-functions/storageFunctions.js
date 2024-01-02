@@ -12,6 +12,7 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 's
 
       for (const file of files) {
         const storageRef = destination === 'blueprints'? ref(storage, `uploadedBlueprints/${idSolicitud}/blueprints/${file.name}`)
+         : destination === 'hlcDocuments'? ref(storage, `uploadedHlcDocuments/${idSolicitud}/hlcDocuments/${file.name}`)
          : ref(storage, `fotosSolicitud/${idSolicitud}/fotos/${file.name}`)
 
         if (file) {
@@ -29,14 +30,16 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 's
       }
 
       const solicitudRef = destination === 'blueprints'? doc(db, 'solicitudes', petitionId, 'blueprints', idSolicitud)
-       : doc(db, 'solicitudes', idSolicitud)
+       : destination === 'hlcDocuments'? doc(db, 'solicitudes', petitionId, 'blueprints', idSolicitud) : doc(db, 'solicitudes', idSolicitud)
 
       const solicitudDoc = await getDoc(solicitudRef)
 
       if (solicitudDoc.exists()) {
         const fotos = arrayURL || []
 
-        destination === 'blueprints'? await updateDoc(solicitudRef, { storageBlueprints: arrayUnion(...fotos) }) : await updateDoc(solicitudRef, { fotos })
+        destination === 'blueprints'? await updateDoc(solicitudRef, { storageBlueprints: arrayUnion(...fotos) })
+        : destination === 'hlcDocuments'? await updateDoc(solicitudRef, { storageHlcDocuments: arrayUnion(...fotos) })
+        : await updateDoc(solicitudRef, { fotos })
         console.log('URL de la foto actualizada exitosamente')
       } else {
         console.error('El documento de la solicitud no existe')

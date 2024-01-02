@@ -852,6 +852,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             setBlueprintGenerated={setBlueprintGenerated}
             currentRow={currentRow}
             petition={petition}
+            checkRoleAndApproval={checkRoleAndApproval}
           />
         </DialogContent>
         <DialogActions>

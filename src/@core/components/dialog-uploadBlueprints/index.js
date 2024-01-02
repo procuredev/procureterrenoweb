@@ -152,16 +152,19 @@ export const UploadBlueprintsDialog = ({
   petitionId,
   setBlueprintGenerated,
   currentRow,
-  petition
+  petition,
+  checkRoleAndApproval
 }) => {
-  let isPlanner = roleData && roleData.id === '5'
+ /*  let isPlanner = roleData && roleData.id === '5' */
 
-  let { id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode } = doc
+  let { id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments } = doc
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
-  const [editable, setEditable] = useState(isPlanner)
+
+/*   const [editable, setEditable] = useState(isPlanner) */
   const [openAlert, setOpenAlert] = useState(false)
   const [files, setFiles] = useState([])
+  const [hlcDocuments, setHlcDocuments] = useState([])
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
@@ -181,6 +184,7 @@ export const UploadBlueprintsDialog = ({
     userEmail,
     revision,
     storageBlueprints,
+    storageHlcDocuments,
     description,
     date
   }
@@ -316,15 +320,36 @@ export const UploadBlueprintsDialog = ({
         return invalidFiles
       }
 
-      // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
-      setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+      if (doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
+        setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+      }
+
+      if ((authUser.uid === doc.userId && !doc.sentByDesigner) ||
+      ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
+      (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc))) {
+
+        // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
+        setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+      }
+
+
     }
   })
+
+  console.log('files', files)
+
+
 
   const handleRemoveFile = file => {
     const uploadedFiles = files
     const filtered = uploadedFiles.filter(i => i.name !== file.name)
     setFiles([...filtered])
+  }
+
+  const handleRemoveHLC = file => {
+    const uploadedFiles = hlcDocuments
+    const filtered = uploadedFiles.filter(i => i.name !== file.name)
+    setHlcDocuments([...filtered])
   }
 
   const fileList = (
@@ -370,11 +395,67 @@ export const UploadBlueprintsDialog = ({
     </Grid>
   )
 
+  const hlcList = (
+    <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
+
+      {hlcDocuments.map(file => (
+        <Grid item key={file.name}>
+          <Paper
+            elevation={0}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '10px',
+              border: `4px solid ${theme.palette.primary.main}`,
+              borderRadius: '4px',
+              width: '220px',
+              position: 'relative' // Agregamos esta propiedad para posicionar el icono correctamente
+            }}
+          >
+            {file.type.startsWith('image') ? (
+              <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
+            ) : (
+              <Icon icon={getFileIcon(file.type)} fontSize={50} />
+            )}
+            <Typography
+              variant='body2'
+              sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
+            >
+              {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
+            </Typography>
+            <IconButton
+              onClick={() => handleRemoveFile(file)}
+              sx={{
+                position: 'absolute', // Posicionamos el icono en relación al Paper
+                top: '0px', // Ajusta el valor según la posición vertical deseada
+                right: '0px' // Ajusta el valor según la posición horizontal deseada
+              }}
+            >
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  )
+
   const handleSubmitAllFiles = async () => {
     try {
       await uploadFilesToFirebaseStorage(files, doc.id, 'blueprints', petitionId)
       setBlueprintGenerated(true)
       setFiles([])
+      setHlcDocuments([])
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const handleSubmitHlcDocuments = async () => {
+    try {
+      await uploadFilesToFirebaseStorage(hlcDocuments, doc.id, 'hlcDocuments', petitionId)
+      setBlueprintGenerated(true)
+      setFiles([])
+      setHlcDocuments([])
     } catch (error) {
       console.log(error)
     }
@@ -382,6 +463,7 @@ export const UploadBlueprintsDialog = ({
 
   const handleRemoveAllFiles = () => {
     setFiles([])
+    setHlcDocuments([])
   }
 
   const handleLinkClick = event => {
@@ -470,9 +552,20 @@ export const UploadBlueprintsDialog = ({
                 <ListItem>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>
-                      Archivos adjuntos
+                      Plano adjunto
                     </Typography>
                     <PhotoGallery photos={storageBlueprints} />
+                  </Box>
+                </ListItem>
+              )}
+
+              {doc.storageHlcDocuments && doc.storageHlcDocuments.length > 0 && (
+                <ListItem>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      HLC adjunto
+                    </Typography>
+                    <PhotoGallery photos={storageHlcDocuments} />
                   </Box>
                 </ListItem>
               )}
@@ -483,7 +576,7 @@ export const UploadBlueprintsDialog = ({
                     <Fragment>
                       {(authUser.uid === doc.userId && !doc.sentByDesigner) ||
                         ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
-                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl) ?
+                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc)) ?
                         <div {...getRootProps({ className: 'dropzone' })} >
                           <input {...getInputProps()} />
                           <Box
@@ -502,7 +595,7 @@ export const UploadBlueprintsDialog = ({
                           >
                             <Icon icon='mdi:file-document-outline' />
                             <Typography sx={{ mt: 5 }} color='textSecondary'>
-                              <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivos.
+                              <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar Plano.
                             </Typography>
                           </Box>
                         </div> : ''
@@ -524,9 +617,56 @@ export const UploadBlueprintsDialog = ({
                   </FormControl>
                 </ListItem>
               )}
+
+              {/* HLC */}
+              {true && (
+                <ListItem>
+                  <FormControl fullWidth>
+                    <Fragment>
+                      {(authUser.role === 9 &&  doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) ?
+                        <div {...getRootProps({ className: 'dropzone' })} >
+                          <input {...getInputProps()} />
+                          <Box
+                            sx={{
+                              my: 5,
+                              mx: 'auto',
+                              p: 5,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: ['center'],
+                              backdropFilter: 'contrast(0.8)',
+                              width: '100%',
+                              borderRadius: '10px',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Icon icon='mdi:file-document-outline' />
+                            <Typography sx={{ mt: 5 }} color='textSecondary'>
+                              <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivo HLC.
+                            </Typography>
+                          </Box>
+                        </div> : ''
+                      }
+                      {hlcDocuments.length > 0 && (
+                        <Fragment>
+                          <List>{hlcList}</List>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                            <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
+                              Quitar todo
+                            </Button>
+                            <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitHlcDocuments}>
+                              Subir archivos HLC
+                            </Button>
+                          </Box>
+                        </Fragment>
+                      )}
+                    </Fragment>
+                  </FormControl>
+                </ListItem>
+              )}
             </List>
 
-            {editable ? (
+            {/* {editable ? (
               <Button
                 sx={{ mt: 3, mb: 5 }}
                 disabled={!Object.values(hasChanges).some(hasChange => hasChange)}
@@ -535,7 +675,7 @@ export const UploadBlueprintsDialog = ({
               >
                 {isPlanner && state <= 4 ? 'Aprobar y guardar' : 'Guardar'}
               </Button>
-            ) : null}
+            ) : null} */}
           </Box>
         }
       </Box>
