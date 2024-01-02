@@ -241,7 +241,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'end',
-      headerName: 'Entrega',
+      headerName: 'Término',
       flex: 0.4,
       minWidth: 90,
       renderCell: params => {
