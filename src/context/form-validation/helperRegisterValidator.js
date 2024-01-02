@@ -115,7 +115,7 @@ export function registerValidator(values) {
     if (typeof values[key] === 'string') {
       if (
         (key === 'shift' && hasShift && !values[key]) ||
-        (!['shift', 'opshift', 'plant', 'engineering'].includes(key) && values[key].trim() === '')
+        (!['shift', 'opshift', 'plant', 'engineering', 'rut', 'phone'].includes(key) && values[key].trim() === '')
       ) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
@@ -123,7 +123,7 @@ export function registerValidator(values) {
     if (!['role', 'plant', 'engineering', 'shift'].includes(key) && typeof values[key] !== 'string') {
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
-    if (validations.hasOwnProperty(key)) {
+    if (validations.hasOwnProperty(key) && !['rut', 'phone'].includes(key)) {
       const { validate, message } = validations[key]
       if (!validate(values[key])) {
         throw new Error(message)

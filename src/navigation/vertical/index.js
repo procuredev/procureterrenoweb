@@ -49,7 +49,7 @@ const Navigation = () => {
         }
       ],
 
-      authorizedRoles: [1, 7, 8, 10]
+      authorizedRoles: [1, 7, 8]
     },
     {
       title: 'Documentos',

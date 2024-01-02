@@ -24,6 +24,7 @@ import {
   updateUserPhone,
   blockDayInDatabase,
   addComment,
+  updateUserData,
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -46,12 +47,13 @@ const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false)
 
   // ** Variables
   const auth = getAuth(app)
 
   useEffect(() => {
-    const auth = getAuth(app);
+    const auth = getAuth(app)
 
     const unsubscribe = onAuthStateChanged(auth, async (authState) => {
       if (!authState) {
@@ -61,7 +63,7 @@ const FirebaseContextProvider = props => {
         setLoading(true);
         const formattedUser = await formatAuthUser(authState);
         setAuthUser(formattedUser);
-        setLoading(false);
+        setLoading(false)
       }
     });
 
@@ -73,6 +75,8 @@ const FirebaseContextProvider = props => {
     authUser,
     auth,
     loading,
+    isCreatingProfile,
+    setIsCreatingProfile,
     signOut,
     resetPassword,
     updatePassword,
@@ -99,6 +103,7 @@ const FirebaseContextProvider = props => {
     getUsersWithSolicitudes,
     signGoogle,
     addComment,
+    updateUserData
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

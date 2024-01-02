@@ -25,7 +25,9 @@ const formatAuthUser = async user => {
     shift: data ? data.shift || 'No definido' : 'No disponible',
     company: data ? data.company || 'No definido' : 'No disponible',
     contop: data ? data.contop || 'No definido' : 'No disponible',
-    opshift: data ? data.opshift || 'No definido' : 'No disponible'
+    opshift: data ? data.opshift || 'No definido' : 'No disponible',
+    rut: data ? data.rut || 'No definido' : 'No disponible',
+    completedProfile: data ? data.completedProfile || false : false
   }
 }
 
@@ -118,6 +120,22 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
 const createUserInDatabase = (values, uid) => {
   const { name, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
 
+  // Lógica para calcular completedProfile
+  let completedProfile = false
+  if (company === 'Procure') {
+    completedProfile = true
+  } else if (company === 'MEL') {
+    if (role === 2) {
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+    } else if (role === 3 || role === 4) {
+      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut;
+    } else {
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+    }
+  }
+
+  console.log('completedProfile: ' + completedProfile)
+
   return new Promise(async (resolve, reject) => {
     try {
       await setDoc(doc(db, 'users', uid), {
@@ -130,7 +148,8 @@ const createUserInDatabase = (values, uid) => {
         ...(plant && { plant }),
         ...(engineering && { engineering }),
         ...(shift && { shift }),
-        ...(opshift && { opshift })
+        ...(opshift && { opshift }),
+        completedProfile: completedProfile
       })
 
       resolve('Usuario creado exitosamente en la base de datos')
