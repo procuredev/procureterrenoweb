@@ -391,6 +391,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           handleClose={handleCloseAlert}
           callback={writeCallback}
           approves={approve}
+          loading={loading}
         ></AlertDialog>
         {open && (
           <FullScreenDialog
