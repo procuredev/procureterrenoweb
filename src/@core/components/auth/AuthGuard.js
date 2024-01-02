@@ -9,7 +9,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const AuthGuard = props => {
   const { children, fallback } = props
-  const { authUser, loading } = useFirebase()
+  const { authUser, loading, isCreatingProfile } = useFirebase()
   const router = useRouter()
   useEffect(
     () => {
@@ -22,10 +22,14 @@ const AuthGuard = props => {
 
       // Si hay un usuario logueado
       if (authUser) {
-        // Y si este usuario intenta ingresar al login, forgot-password o '/'
-        if (thisRoute == '/login/' || thisRoute == '/forgot-password/' || thisRoute == '/') {
-          // Será redirigido al home
-          router.replace('/home')
+        if (authUser?.completedProfile !== undefined && authUser.completedProfile === false && !isCreatingProfile) {
+          router.replace('/completar-perfil')
+        } else {
+          // Y si este usuario intenta ingresar al login, forgot-password o '/'
+          if (thisRoute == '/login/' || thisRoute == '/forgot-password/' || thisRoute == '/') {
+            // Será redirigido al home
+            router.replace('/home')
+          }
         }
       } else if (!authUser && !(thisRoute.includes('documentos'))) {
         // Si no hay alguien conectado, siempre será redirigido al login
@@ -33,7 +37,7 @@ const AuthGuard = props => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [router.route, authUser]
+    [router.route, authUser, isCreatingProfile]
   )
 
   if ((loading || !authUser) && router.asPath !== '/nuevo-usuario/') {

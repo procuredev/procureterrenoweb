@@ -32,7 +32,8 @@ const AclGuard = props => {
     router.route === '/404' ||
     router.route === '/500' ||
     router.route === '/' ||
-    router.route === '/nuevo-usuario'
+    router.route === '/nuevo-usuario' ||
+    router.route === '/completar-perfil'
   ) {
     return <>{children}</>
   }

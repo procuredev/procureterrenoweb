@@ -21,6 +21,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
+  const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
 
 
@@ -57,6 +58,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     })
 
   }
+
+  // const writeCallback = () => {
+  //   updateDocs(doc.id, approve, authUser)
+  //   setOpenAlert(false)
+  // }
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
