@@ -787,7 +787,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const flexDirection = md ? 'row' : 'column'
 
-        const buttons = renderButtons(row, flexDirection, canApprove, canReject, canResume)
+        const buttons = renderButtons(row, flexDirection, canApprove(row), canReject(row), canResume(row))
 
         return (
           <>
