@@ -666,8 +666,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
-        const canApprove = permissionsData.approve
-        const canReject = permissionsData.reject
+        const canApprove = permissionsData?.approve
+        const canReject = permissionsData?.reject
 
         const flexDirection = md ? 'row' : 'column'
 
