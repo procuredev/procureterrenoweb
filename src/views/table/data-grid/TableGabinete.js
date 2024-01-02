@@ -879,7 +879,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         rows={rows}
         columns={columns}
         columnVisibilityModel={{
-          clientApprove: authUser.role === 9
+          clientApprove: authUser.role === 9,
+          storageHlcDocuments: authUser.role === 9
         }}
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
