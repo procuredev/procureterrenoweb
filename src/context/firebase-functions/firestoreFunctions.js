@@ -757,7 +757,6 @@ const getNextRevision = async (
     newRevision,
     description,
     storageBlueprints: storageBlueprints[storageBlueprints.length - 1],
-    storageHlcDocuments: storageHlcDocuments && storageHlcDocuments[storageHlcDocuments.length - 1],
     userEmail: email,
     userName: displayName,
     userId: uid,
@@ -837,7 +836,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentByDesigner: false,
             sentBySupervisor: false,
             remarks: remarks ? true : false,
-            storageHlcDocuments: isApprovedByClient? null : blueprint.storageHlcDocuments
+            storageHlcDocuments: null
           }
         : isOverResumable ? {
             ...updateData,
@@ -948,7 +947,8 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
         userId: authUser.uid,
         date: Timestamp.fromDate(new Date()),
         remarks: 'transmittal generado',
-        lastTransmittal: newCode
+        lastTransmittal: newCode,
+        storageHlcDocuments: id[1].storageHlcDocuments[0],
       }
 
       // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
