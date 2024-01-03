@@ -626,7 +626,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               <IconButton
                 sx={{ my: 'auto', ml: 2, p: 0 }}
                 onClick={
-                  row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                  (authUser.uid === row.userId && !row.sentByDesigner) ||
+                  ((authUser.role === 6 || authUser.role === 7) && row.sentByDesigner && !row.approvedByDocumentaryControl) ||
+                  (authUser.role === 9 && ((row.approvedBySupervisor || row.approvedByContractAdmin) || row.approvedByDocumentaryControl && row.sentByDesigner))
+                  //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
                     ? () => handleOpenUploadDialog(row)
                     : null
                 }
@@ -676,14 +679,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 ))
               ) : (
                 <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
-                  Sin Hoja de Cálculo
+                  Sin HLC
                 </Typography>
               )}
 
               <IconButton
-                sx={{ my: 'auto', ml: 2, p: 0 }}
+                sx={{ my: 'auto', ml: 2, p: 0, color: authUser.role === 9 && ( row.approvedByDocumentaryControl && row.sentByDesigner) ? theme.palette.success : theme.palette.grey[500] }}
+                color= 'success'
                 onClick={
-                  row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                  authUser.role === 9 && ( row.approvedByDocumentaryControl && row.sentByDesigner)
                     ? () => handleOpenUploadDialog(row)
                     : null
                 }
@@ -893,7 +897,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         approves={approve}
         authUser={authUser}
         setRemarksState={setRemarksState}
-        blueprint={doc}
+        blueprint={doc && doc}
         hours={hours}
         setHours={setHours}
         error={error}

@@ -575,8 +575,8 @@ export const UploadBlueprintsDialog = ({
                   <FormControl fullWidth>
                     <Fragment>
                       {(authUser.uid === doc.userId && !doc.sentByDesigner) ||
-                        ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
-                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) && (doc.approvedBySupervisor || doc.approvedByContractAdmin) && doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc)) ?
+                        ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) && !doc.approvedBySupervisor && !doc.approvedByContractAdmin||
+                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) && doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc)) ?
                         <div {...getRootProps({ className: 'dropzone' })} >
                           <input {...getInputProps()} />
                           <Box

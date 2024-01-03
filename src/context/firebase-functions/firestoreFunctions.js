@@ -837,7 +837,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentByDesigner: false,
             sentBySupervisor: false,
             remarks: remarks ? true : false,
-            storageHlcDocuments: null
+            storageHlcDocuments: isApprovedByClient? null : blueprint.storageHlcDocuments
           }
         : isOverResumable ? {
             ...updateData,
