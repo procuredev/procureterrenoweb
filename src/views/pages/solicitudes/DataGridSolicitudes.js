@@ -44,9 +44,11 @@ const DataGrid = () => {
     }))
   }
 
+  // Tab content filters based on the user role
   const tabContent = authUser
     ? [
-        {
+        { // Filters all rejected requests.
+          // TODO: Delete filter for role 5
           data: data.filter(doc => doc.state !== 0),
           label: 'Todas las solicitudes',
           info: 'Todas las solicitudes'
