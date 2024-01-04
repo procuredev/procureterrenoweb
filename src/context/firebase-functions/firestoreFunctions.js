@@ -477,24 +477,26 @@ const useBlueprints = id => {
       try {
         const allDocs = []
         setData([])
+
         docSnapshot.forEach(doc => {
+          const revisions = []
 
-        const revisions = []
+          const unsubscribeRevisions = onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
+            revisionSnapshot.forEach(revisionDoc => {
+              revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
+            })
 
-        onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
-          revisionSnapshot.forEach(revisionDoc => {
-            revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
+            allDocs.push({ id: doc.id, ...doc.data(), revisions })
+            setData([...allDocs]) // Set data inside the revisions snapshot to update in real-time
           })
-        })
 
-        allDocs.push({ id: doc.id, ...doc.data(), revisions })
-        setData(allDocs)
-      })}
+          return () => unsubscribeRevisions()
+        })
+      }
       catch (error) {
         console.error('Error al obtener los planos:', error)
       }
-    }
-    )
+    })
 
     return () => unsubscribe()
   }, [id])
