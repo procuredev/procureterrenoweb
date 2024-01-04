@@ -1,6 +1,13 @@
+// Import the moment library for date manipulation
 const moment = require('moment')
 
+// This file contains the filter config for the requests page
+// It recieves the authUser object as a parameter for differentiating the filters by role
+// The filter config is an object with the following structure:
+
 const generateFilterConfig = authUser => {
+
+  // This function returns true if the week of the date is even
   const otherWeek = date => {
     let dateFormatted = new Date(date * 1000)
     let week = moment(dateFormatted).isoWeek()
@@ -8,6 +15,8 @@ const generateFilterConfig = authUser => {
     return week % 2 == 0
   }
 
+  // This is the object that contains the filter config and is recieved by the filter component
+  // TODO: Review if the status filters are correct
   return {
     all: {
       label: 'Todas las solicitudes',
