@@ -390,54 +390,56 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     return fileName
   }
 
-  const RevisionComponent = ({ row, field }) => {
+  const RevisionComponent = ({ row }) => {
+    console.log(row)
+
     return (
-      currentRow === row.id && (
-        <Box sx={{ overflow: 'hidden' }}>
-          {row.revisions.map(revision => {
-            let fieldContent = revision[field] || 'Sin Datos'
-
-            if (field === 'date' || field === 'sentTime') {
-              fieldContent = unixToDate(revision[field].seconds)
-            }
-
-            if (field === 'storageBlueprints' || field === 'storageHlcDocuments') {
-              if (fieldContent) {
-                return (
-                  <Typography sx={{ mt: 4, overflow: 'hidden', width: 'max-content' }} key={revision.id}>
-
-                    <Link
-                          href={fieldContent}
-                          target='_blank'
-                          rel='noreferrer'
-                          color='inherit'
-                          underline='always'
-                          textOverflow='ellipsis'
-                        >
-                          {getFileName(fieldContent)}
-                        </Link>
-
-                  </Typography>
-                )
-              }
-            }
-
-            if (field === 'date') {
-              return (
-                <Typography noWrap sx={{ mt: 4, textOverflow: 'clip' }} key={revision.id}>
-                  {fieldContent[0] || 'Sin Datos'}
-                </Typography>
-              )
-            }
-
-            return (
-              <Typography noWrap sx={{ mt: 4, textOverflow: 'clip' }} key={revision.id}>
-                {fieldContent || 'Sin Datos'}
+        row.revisions.map((revision, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: 'inline-flex',
+              flexDirection: 'row',
+              flexWrap:'nowrap',
+              width: '100%',
+              alignContent: 'center',
+              overflow: 'hidden',
+              backgroundColor: 'inherit'
+            }}
+          >
+            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
+              <Typography >
+                {revision.userName}
               </Typography>
-            )
-          })}
-        </Box>
-      )
+            </Box>
+            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
+              <Typography >
+                {revision.remarks}
+              </Typography>
+            </Box>
+            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
+              <Typography >
+                {revision.newRevision}
+              </Typography>
+            </Box>
+            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
+              <Typography >
+                {revision.description}
+              </Typography>
+            </Box>
+              <Box sx={{width:'16%', overflow:'hidden', height:20}}>
+              <Typography >
+                {unixToDate(revision.date.seconds)}
+              </Typography>
+            </Box>
+              <Box sx={{width:'16%', overflow:'hidden', height:20}}>
+              <Typography >
+                {getFileName(revision.storageBlueprints)}
+              </Typography>
+            </Box>
+            </Box>
+
+         ))
     )
   }
 
@@ -469,15 +471,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   }}
                 >
                   <OpenInNew />
-                </IconButton>
-                <IconButton
-                  sx={{ p: 0 }}
-                  id={row.id}
-                  onClick={e => {
-                    setCurrentRow(prev => (prev === row.id ? false : e.target.parentElement?.id))
-                  }}
-                >
-                  <ChevronRight sx={{ transform: currentRow === row.id ? 'rotate(90deg)' : '' }} />
                 </IconButton>
                 <Box>
                   <Typography
@@ -881,6 +874,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
         getRowHeight={row => (row.id === currentRow ? 'auto' : 'auto')}
+        getDetailPanelContent={({ row }) => <RevisionComponent row={row} />}
       />
       <AlertDialogGabinete
         open={openAlert}
