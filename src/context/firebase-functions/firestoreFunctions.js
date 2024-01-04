@@ -467,42 +467,43 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-const useBlueprints = id => {
-  const [data, setData] = useState([])
+  const useBlueprints = id => {
+    const [data, setData] = useState([])
 
-  useEffect(() => {
-    if (!id) return
+    useEffect(() => {
+      if (!id) return
 
-    const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {
-      try {
-        const allDocs = []
-        setData([])
+      const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {
+        try {
+          const allDocs = []
+          setData([])
 
-        docSnapshot.forEach(doc => {
-          const revisions = []
+          docSnapshot.forEach(doc => {
 
-          const unsubscribeRevisions = onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
-            revisionSnapshot.forEach(revisionDoc => {
-              revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
+            const unsubscribeRevisions = onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
+              const revisions = [] // Declare revisions array here
+
+              revisionSnapshot.forEach(revisionDoc => {
+                revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
+              })
+
+              allDocs.push({ id: doc.id, ...doc.data(), revisions })
+              setData([...allDocs]) // Set data inside the revisions snapshot to update in real-time
             })
 
-            allDocs.push({ id: doc.id, ...doc.data(), revisions })
-            setData([...allDocs]) // Set data inside the revisions snapshot to update in real-time
+            return () => unsubscribeRevisions()
           })
+        }
+        catch (error) {
+          console.error('Error al obtener los planos:', error)
+        }
+      })
 
-          return () => unsubscribeRevisions()
-        })
-      }
-      catch (error) {
-        console.error('Error al obtener los planos:', error)
-      }
-    })
+      return () => unsubscribe()
+    }, [id])
 
-    return () => unsubscribe()
-  }, [id])
-
-  return data
-}
+    return data
+  }
 
 function formatCount(count) {
   return String(count).padStart(3, '0')
