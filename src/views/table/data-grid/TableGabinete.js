@@ -516,7 +516,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {row.revision || 'N/A'}
             </Typography>
-            <RevisionComponent row={row} field={'newRevision'} />
           </Box>
         )
       }
@@ -533,7 +532,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {row.userName || 'N/A'}
             </Typography>
-            <RevisionComponent row={row} field={'userName'} />
           </Box>
         )
       }
@@ -550,7 +548,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {row.lastTransmittal || 'N/A'}
             </Typography>
-            <RevisionComponent row={row} field={'lastTransmittal'} />
           </Box>
         )
       }
@@ -577,7 +574,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 {row.description || 'Sin descripción'}
               </Typography>
             </Box>
-            <RevisionComponent row={row} field={'description'} />
           </Box>
         )
       }
@@ -637,7 +633,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 {row.storageBlueprints ? null : <Upload />}
               </IconButton>
             </Box>
-            <RevisionComponent row={row} field={'storageBlueprints'} />
           </Box>
         )
       }
@@ -695,7 +690,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 {row.storageHlcDocuments ? null : <Upload />}
               </IconButton>
             </Box>
-            <RevisionComponent row={row} field={'storageHlcDocuments'} />
           </Box>
         )
       }
@@ -715,7 +709,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {unixToDate(row.date.seconds)[0]}
             </Typography>
-            <RevisionComponent row={row} field={'date'} />
           </Box>
         )
       }
@@ -770,7 +763,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 {renderStatus(row)}
                 </Typography>
               )}
-              <RevisionComponent row={row} field={'remarks'} />
             </Box>
           </>
         )
