@@ -41,8 +41,10 @@ import filterByLabel from 'src/@core/components/custom-filters/customFilters'
 import { Typography } from '@mui/material'
 
 const AppCalendar = () => {
+  // ** Añade el ref para el calendario, para poder acceder a sus métodos en calendarOptions
   const calendarRef = useRef()
 
+  // ** Initial Event format
   const initialEvent = {
     title: 'title',
     state: 'state',
@@ -60,9 +62,12 @@ const AppCalendar = () => {
   // ** Vars
   const { skin, direction } = settings
   const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
+  // ** Hook para obtener los datos de la base de datos
   const data = useSnapshot(false, authUser)
+  // ** Hook para obtener el tema
   const theme = useTheme()
 
+  // ** State
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const [open, setOpen] = useState(false)
   const [doc, setDoc] = useState(initialEvent)
@@ -73,6 +78,7 @@ const AppCalendar = () => {
   const [consultationResult, setConsultationResult] = useState('')
   const [blockReason, setBlockReason] = useState('')
 
+  // ** Función para abrir el modal al hacer click en un evento
   const handleModalToggle = clickedEvent => {
     let document = data.find(doc => doc.id === clickedEvent.id)
     setDoc(document)
@@ -86,11 +92,12 @@ const AppCalendar = () => {
     setDoc(initialEvent)
   }
 
-  // Objeto de configuración de filtros
+  // ** Función para generar la configuración de los filtros
   useEffect(() => {
     setFilterConfig(generateFilterConfig(authUser))
   }, [authUser])
 
+  // ** Función para obtener el rol del usuario
   useEffect(() => {
     const role = async () => {
       if (authUser) {
@@ -102,6 +109,7 @@ const AppCalendar = () => {
     role()
   }, [])
 
+  // ** Función para cambiar de filtro
   const handleFilterChange = (key, value) => {
     setFilters(prevValues => ({
       ...prevValues,
@@ -112,7 +120,7 @@ const AppCalendar = () => {
   // Adds data-based filters
   const filterByPlant = () => filterByLabel('plant', 'Planta', data)
   const filterByJobType = () => filterByLabel('objective', 'Objetivo', data)
-
+  // Updates filter config when data changes
   useEffect(() => {
     let jobType = filterByJobType()
     let plant = filterByPlant()
@@ -122,6 +130,7 @@ const AppCalendar = () => {
       ...plant
     }))
   }, [data])
+  // Applies filters to data
 
   const applyFilters = (events, activeFilters) => {
     return events.filter(event => {
@@ -133,10 +142,12 @@ const AppCalendar = () => {
     })
   }
 
+  // ** Función para agregar un motivo al bloquear un día
   const handleBlockReasonChange = event => {
     setBlockReason(event.target.value)
   }
 
+  // ** Función para bloquear un día en la base de datos
   const handleBlockConfirmation = async () => {
     await blockDayInDatabase(dayDialogOpen, blockReason)
     setOpen(false)
@@ -145,6 +156,7 @@ const AppCalendar = () => {
     setDoc(initialEvent)
   }
 
+  // ** Función para establecer el color de los eventos
   const setColor = doc => {
     let color
     switch (doc.type) {
@@ -171,7 +183,7 @@ const AppCalendar = () => {
   }
 
 
-
+  // ** Función para establecer el título de los eventos
   const eventResume = doc => {
     let ot = ''
     let n_request = ''
@@ -199,8 +211,10 @@ const AppCalendar = () => {
     return { resume: { realTitle: realTitle, ot: ot, n_request: n_request, plant: plant }, title: title }
   }
 
+  // ** Opciones de configuración del calendario
   const calendarOptions = {
     ref: calendarRef,
+    // ** Formato eventos filtrados
     events: applyFilters(data, filters).map(a => ({
       title: eventResume(a).title,
       start: a.start.seconds * 1000,
@@ -212,6 +226,7 @@ const AppCalendar = () => {
       borderColor: 'transparent',
       resume: eventResume(a).resume
     })),
+    // ** Agregar tooltip a los eventos
     eventDidMount: function (info) {
       tippy(info.el, {
         content: `
@@ -229,12 +244,14 @@ const AppCalendar = () => {
         info.el.tooltip.dispose()
       }
     },
+    // ** Vistas del calendario
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: 'dayGridMonth',
     headerToolbar: {
       start: 'sidebarToggle, prev, next, title, showFilters,',
       end: 'dayGridMonth,listMonth'
     },
+    // ** Función para abrir el modal al hacer click en un evento
     eventClick: ({ event: clickedEvent }) => {
       handleModalToggle(clickedEvent)
     },
@@ -253,6 +270,7 @@ const AppCalendar = () => {
     eventDisplay: 'block',
     nextDayThreshold: '00:00:00',
     firstDay: 1,
+    // ** Función para establecer el color de los días según la semana
     dayCellClassNames: function (date) {
       const foundObject = blockResult.find(obj => {
         const objTimestamp = new Date(obj.timestamp).setHours(0, 0, 0, 0) // Establece los segundos, milisegundos a 0
