@@ -784,14 +784,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        const canApprove = (row) => checkRoleAndApproval(authUser.role, row)
-        const canReject = (row) => checkRoleAndApproval(authUser.role, row)
-        const canGenerateBlueprint = (row) => checkRoleAndGenerateTransmittal(authUser.role, row)
-        const canResume = (row) => checkRoleAndResume(authUser.role, row)
+        const canApprove = checkRoleAndApproval(authUser.role, row)
+        const canReject = checkRoleAndApproval(authUser.role, row)
+        const canGenerateBlueprint = checkRoleAndGenerateTransmittal(authUser.role, row)
+        const canResume = checkRoleAndResume(authUser.role, row)
 
         const flexDirection = md ? 'row' : 'column'
 
-        const buttons = renderButtons(row, flexDirection, canApprove(row), canReject(row), canResume(row))
+        const buttons = renderButtons(row, flexDirection, canApprove, canReject, canResume)
 
         return (
           <>
@@ -805,7 +805,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 overflow: 'hidden'
               }}
             >
-              {canApprove(row) || canReject(row) ? (
+              {canApprove || canReject ? (
                 md ? (
                   buttons
                 ) : (
@@ -828,7 +828,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {buttons}
                   </Select>
                 )
-              ) : canGenerateBlueprint(row) ? 'Generar Transmittal' : canResume(row) ? (
+              ) : canGenerateBlueprint ? 'Generar Transmittal' : canResume ? (
                 md ? (
                   buttons
                 ) : (
