@@ -6,7 +6,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { DataGridPro, esES } from '@mui/x-data-grid-pro'
 import { Container } from '@mui/system'
-import { Upload, CheckCircleOutline, CancelOutlined, ChevronRight, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
+import { Upload, CheckCircleOutline, CancelOutlined, ChevronRight, OpenInNew, AutorenewOutlined, ThermostatTwoTone, Opacity } from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -860,6 +860,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             minHeight: '200px'
           }
         }}
+        slotProps={{
+          baseCheckbox: {
+            sx: {
+              '& .MuiSvgIcon-root': {
+                color: theme.palette.primary.main,
+                opacity: 0.7
+              }
+            }}
+          }
+        }
         apiRef={apiRef}
         checkboxSelection={authUser.role === 9}
         isRowSelectable={params =>
