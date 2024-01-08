@@ -268,7 +268,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const dateHasChanged = latestEvent && 'prevDoc' in latestEvent && 'start' in latestEvent.prevDoc
   const approveWithChanges = typeof approves === 'object' || typeof approves === 'string'
   const approvedByPlanner = latestEvent.prevState === state.planner
-  const emergencyBySupervisor = latestEvent.newState === state.draftsman && userRole === 7
+  const emergencyBySupervisor = userRole === 7
   const returned = latestEvent.newState === state.returned
   const changingStartDate = typeof approves === 'object' && 'start' in approves
   const modifiedBySameRole = userRole === role
