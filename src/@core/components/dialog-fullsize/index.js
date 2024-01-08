@@ -27,7 +27,10 @@ import {
   DialogContentText,
   DialogActions,
   DialogTitle,
-  Tooltip
+  Tooltip,
+  MenuItem,
+  InputLabel,
+  Select
 } from '@mui/material'
 
 import {
@@ -48,8 +51,10 @@ import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-
 import { useDropzone } from 'react-dropzone'
+import areas from '../plants-areas'
+import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
+import { object } from 'yup'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -68,6 +73,8 @@ function CustomListItem({
   disabled = false,
   required = false,
   multiline = false,
+  selectable = false,
+  options = [],
   initialValue
 }) {
   return (
@@ -75,7 +82,33 @@ function CustomListItem({
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
-            <TextField
+          {selectable ? (
+              <>
+                <InputLabel variant='standard'>
+                  {label} {required && <span>*</span>}
+                </InputLabel>
+                <Select
+                  id={`${id}-input`}
+                  defaultValue={initialValue}
+                  disabled={disabled}
+                  required={required}
+                  value={value}
+                  size='small'
+                  variant='standard'
+                  fullWidth={true}
+                  onChange={onChange}
+                >
+                  {options &&
+                    options.map(option => {
+                      return (
+                        <MenuItem key={option.name || option} value={option.name || option}>
+                          {option.name || option}
+                        </MenuItem>
+                      )
+                    })}
+                </Select>
+              </>
+            ) : <TextField
               onChange={onChange}
               label={label}
               id={`${id}-input`}
@@ -87,7 +120,7 @@ function CustomListItem({
               variant='standard'
               fullWidth={true}
               multiline={multiline}
-            />
+            /> }
           </StyledFormControl>
         </ListItem>
       ) : (
@@ -683,6 +716,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={areas}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Planta'
                   id='plant'
@@ -691,6 +726,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('plant')}
                 />
                 <CustomListItem
+                  selectable={true}
+                  options={(areas.find(area => area.name === values?.plant)?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0])) || values?.area || []}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'

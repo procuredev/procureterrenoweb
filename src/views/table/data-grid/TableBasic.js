@@ -21,6 +21,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
+  const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
 
 
@@ -57,6 +58,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     })
 
   }
+
+  // const writeCallback = () => {
+  //   updateDocs(doc.id, approve, authUser)
+  //   setOpenAlert(false)
+  // }
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
@@ -235,7 +241,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'end',
-      headerName: 'Entrega',
+      headerName: 'Término',
       flex: 0.4,
       minWidth: 90,
       renderCell: params => {
@@ -315,20 +321,14 @@ const TableBasic = ({ rows, role, roleData }) => {
               </Button>
             )}
             {canReject && (
-               canApprove || canEdit ? (<Button
-                onClick={() => handleClickOpenAlert(row, false)}
-                variant='contained'
-                color='error'
-                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-              >
-
-                <Clear sx={{ fontSize: 18 }} />
-              </Button>) : <Button
-              onClick={() => handleClickOpenAlert(row, false)}
-              color='error'
-              sx={{m:'5px'}}
-              variant='contained'
-              size='small'>Cancelar</Button>
+               <Button
+               onClick={() => handleClickOpenAlert(row, false)}
+               variant='contained'
+               color='error'
+               sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+             >
+               <Clear sx={{ fontSize: 18 }} />
+             </Button>
             )}
           </Container>
         )
@@ -391,6 +391,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           handleClose={handleCloseAlert}
           callback={writeCallback}
           approves={approve}
+          loading={loading}
         ></AlertDialog>
         {open && (
           <FullScreenDialog
