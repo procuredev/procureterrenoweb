@@ -6,7 +6,16 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { DataGridPro, esES } from '@mui/x-data-grid-pro'
 import { Container } from '@mui/system'
-import { Upload, CheckCircleOutline, CancelOutlined, ChevronRight, OpenInNew, AutorenewOutlined, ThermostatTwoTone, Opacity } from '@mui/icons-material'
+import {
+  Upload,
+  CheckCircleOutline,
+  CancelOutlined,
+  ChevronRight,
+  OpenInNew,
+  AutorenewOutlined,
+  ThermostatTwoTone,
+  Opacity
+} from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -130,7 +139,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
           row.approvedByDocumentaryControl === false &&
-           row.approvedBySupervisor === false,
+          row.approvedBySupervisor === false,
         reject:
           role === 6 &&
           row.revision !== 'iniciado' &&
@@ -138,24 +147,30 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
           row.approvedByDocumentaryControl === false &&
-           row.approvedBySupervisor === false
+          row.approvedBySupervisor === false
       },
       7: {
         approve:
           (role === 7 &&
-          row.revision !== 'iniciado' &&
-          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
-          row.sentByDesigner === true &&
-          row.approvedBySupervisor === false &&
-          row.approvedByDocumentaryControl === false &&
-           row.approvedByContractAdmin === false) || ( role === 7 && isMyBlueprint && hasRequiredFields && row.sentBySupervisor === false && !row.blueprintCompleted),
+            row.revision !== 'iniciado' &&
+            (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
+            row.sentByDesigner === true &&
+            row.approvedBySupervisor === false &&
+            row.approvedByDocumentaryControl === false &&
+            row.approvedByContractAdmin === false) ||
+          (role === 7 &&
+            isMyBlueprint &&
+            hasRequiredFields &&
+            row.sentBySupervisor === false &&
+            !row.blueprintCompleted),
         reject:
           role === 7 &&
           row.revision !== 'iniciado' &&
           (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
-          row.approvedByDocumentaryControl === false && row.approvedByContractAdmin === false
+          row.approvedByDocumentaryControl === false &&
+          row.approvedByContractAdmin === false
       },
       8: {
         approve:
@@ -173,7 +188,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           row.revision === 'iniciado'
             ? role === 9 && (row.sentByDesigner === true || row.sentBySupervisor === true)
             : role === 9 &&
-            (row.sentByDesigner === true || row.sentBySupervisor === true) &&
+              (row.sentByDesigner === true || row.sentBySupervisor === true) &&
               (row.approvedByContractAdmin === true || row.approvedBySupervisor === true)
       }
     }
@@ -183,18 +198,23 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const statusMap = {
     Enviado: row =>
-    row.sentByDesigner || row.sentBySupervisor || (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
+      row.sentByDesigner ||
+      row.sentBySupervisor ||
+      (row.sentByDesigner && (row.approvedByContractAdmin || row.approvedBySupervisor)),
     'Enviado a cliente': row =>
-    row.sentByDesigner && row.approvedByDocumentaryControl && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
+      row.sentByDesigner &&
+      row.approvedByDocumentaryControl &&
+      (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
     'Reanudado, send next': row => row.resumeBlueprint && !row.approvedByClient && !row.sentByDesigner,
-    Aprobado: row => (row.approvedByClient && row.approvedByDocumentaryControl || row.zeroReviewCompleted),
+    Aprobado: row => (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
     'Aprobado con comentarios': row => row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
-    'Rechazado con Observaciones': row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
-    'Aprobado, send Next': row => (row.approvedByDocumentaryControl && !row.sentByDesigner),
+    'Rechazado con Observaciones': row =>
+      !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
+    'Aprobado, send Next': row => row.approvedByDocumentaryControl && !row.sentByDesigner,
     Iniciado: row => !row.sentTime,
     Rechazado: row =>
       !row.sentByDesigner &&
-      (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor),
+      (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)
   }
 
   const renderStatus = row => {
@@ -207,7 +227,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     return 'Aprobado1'
   }
 
-  const renderButton = (row, approve, color, IconComponent, resume= false) => {
+  const renderButton = (row, approve, color, IconComponent, resume = false) => {
     const handleClick = () => handleClickOpenAlert(row, approve)
 
     return (
@@ -215,15 +235,21 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         onClick={handleClick}
         variant='contained'
         color={color}
-        sx={{ margin: '2px', maxWidth: '25px', maxHeight:'25px', minWidth: resume ? '120px' : '25px', minHeight: '25px' }}
+        sx={{
+          margin: '2px',
+          maxWidth: '25px',
+          maxHeight: '25px',
+          minWidth: resume ? '120px' : '25px',
+          minHeight: '25px'
+        }}
       >
         <IconComponent sx={{ fontSize: 18 }} />
-        {resume ? <Typography sx={{ textOverflow: 'clip' }} > Reanudar</Typography> : ''}
+        {resume ? <Typography sx={{ textOverflow: 'clip' }}> Reanudar</Typography> : ''}
       </Button>
     )
   }
 
-  const renderButtons = (row, flexDirection, canApprove, canReject, canResume  = false) => {
+  const renderButtons = (row, flexDirection, canApprove, canReject, canResume = false) => {
     return (
       <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
@@ -235,39 +261,52 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   const checkRoleAndApproval = (role, row) => {
     if (row.revisions && row.revisions.length > 0) {
-      const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const lastRevision = sortedRevisions[0];
+      const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
+      const lastRevision = sortedRevisions[0]
 
       if ('lastTransmittal' in lastRevision) {
         return (
           role === 9 &&
           row.approvedByDocumentaryControl &&
           (row.sentByDesigner === true || row.sentBySupervisor === true) &&
-          (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.blueprintCompleted
+          (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
+          !row.blueprintCompleted
         )
       }
     }
-
   }
 
   const checkRoleAndGenerateTransmittal = (role, row) => {
     if (row.revisions && row.revisions.length > 0) {
-      const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const lastRevision = sortedRevisions[0];
+      const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
+      const lastRevision = sortedRevisions[0]
 
       // Caso 1: 'row' no tiene 'lastTransmittal' y se cumplen las demás condiciones
-      if (!row.lastTransmittal && role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted) {
-        return true;
+      if (
+        !row.lastTransmittal &&
+        role === 9 &&
+        row.approvedByDocumentaryControl &&
+        row.sentByDesigner &&
+        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
+        !row.zeroReviewCompleted
+      ) {
+        return true
       }
 
       // Caso 2: 'lastRevision' no tiene 'lastTransmittal' y se cumplen las demás condiciones
-      if (!('lastTransmittal' in lastRevision) && role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner && (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) && !row.zeroReviewCompleted) {
-        return true;
+      if (
+        !('lastTransmittal' in lastRevision) &&
+        role === 9 &&
+        row.approvedByDocumentaryControl &&
+        row.sentByDesigner &&
+        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
+        !row.zeroReviewCompleted
+      ) {
+        return true
       }
-
     }
 
-    return false;
+    return false
   }
 
   const checkRoleAndResume = (role, row) => {
@@ -330,8 +369,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         setError(null) // Para limpiar cualquier error previo.
       }
 
-      const startDateAsDate = hours.start.toDate();
-      const endDateAsDate = hours.end.toDate();
+      const startDateAsDate = hours.start.toDate()
+      const endDateAsDate = hours.end.toDate()
 
       setHours(prevHours => ({
         ...prevHours,
@@ -341,7 +380,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           minutes: totalMinutes,
           selectedStartDate: startDateAsDate,
           selectedEndDate: endDateAsDate
-        },
+        }
       }))
     }
   }, [hours.start, hours.end])
@@ -393,54 +432,45 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const RevisionComponent = ({ row }) => {
     console.log(row)
 
-    return (
-        row.revisions.map((revision, index) => (
-          <Box
-            key={index}
-            sx={{
-              display: 'inline-flex',
-              flexDirection: 'row',
-              flexWrap:'nowrap',
-              width: '100%',
-              alignContent: 'center',
-              overflow: 'hidden',
-              backgroundColor: 'inherit'
-            }}
-          >
-            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
-              <Typography >
-                {revision.userName}
-              </Typography>
-            </Box>
-            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
-              <Typography >
-                {revision.remarks}
-              </Typography>
-            </Box>
-            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
-              <Typography >
-                {revision.newRevision}
-              </Typography>
-            </Box>
-            <Box sx={{width:'16%', overflow:'hidden', height:20}}>
-              <Typography >
-                {revision.description}
-              </Typography>
-            </Box>
-              <Box sx={{width:'16%', overflow:'hidden', height:20}}>
-              <Typography >
-                {unixToDate(revision.date.seconds)}
-              </Typography>
-            </Box>
-              <Box sx={{width:'16%', overflow:'hidden', height:20}}>
-              <Typography >
-                {getFileName(revision.storageBlueprints)}
-              </Typography>
-            </Box>
-            </Box>
-
-         ))
-    )
+    return row.revisions.map((revision, index) => (
+      <Box
+        key={index}
+        sx={{
+          display: 'inline-flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          width: '100%',
+          alignContent: 'center',
+          overflow: 'hidden',
+          backgroundColor: 'inherit'
+        }}
+      >
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.newRevision}</Typography>
+        </Box>
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.userName}</Typography>
+        </Box>
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.lastTransmittal}</Typography>
+        </Box>
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.description}</Typography>
+        </Box>
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{getFileName(revision.storageBlueprints)}</Typography>
+        </Box>
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.storageHlcDocuments ? getFileName(revision.storageHlcDocuments) : ''}</Typography>
+        </Box>
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{unixToDate(revision.date.seconds)}</Typography>
+        </Box>
+        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.remarks}</Typography>
+        </Box>
+      </Box>
+    ))
   }
 
   const columns = [
@@ -505,7 +535,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <Box sx={{overflow:'hidden'}}>
+          <Box sx={{ overflow: 'hidden' }}>
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {row.revision || 'N/A'}
             </Typography>
@@ -616,10 +646,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 sx={{ my: 'auto', ml: 2, p: 0 }}
                 onClick={
                   (authUser.uid === row.userId && !row.sentByDesigner) ||
-                  ((authUser.role === 6 || authUser.role === 7) && row.sentByDesigner && !row.approvedByDocumentaryControl) ||
-                  (authUser.role === 9 && ((row.approvedBySupervisor || row.approvedByContractAdmin) || row.approvedByDocumentaryControl && row.sentByDesigner))
-                  //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
-                    ? () => handleOpenUploadDialog(row)
+                  ((authUser.role === 6 || authUser.role === 7) &&
+                    row.sentByDesigner &&
+                    !row.approvedByDocumentaryControl) ||
+                  (authUser.role === 9 &&
+                    (row.approvedBySupervisor ||
+                      row.approvedByContractAdmin ||
+                      (row.approvedByDocumentaryControl && row.sentByDesigner)))
+                    ? //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                      () => handleOpenUploadDialog(row)
                     : null
                 }
               >
@@ -672,10 +707,18 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               )}
 
               <IconButton
-                sx={{ my: 'auto', ml: 2, p: 0, color: authUser.role === 9 && ( row.approvedByDocumentaryControl && row.sentByDesigner) ? theme.palette.success : theme.palette.grey[500] }}
-                color= 'success'
+                sx={{
+                  my: 'auto',
+                  ml: 2,
+                  p: 0,
+                  color:
+                    authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
+                      ? theme.palette.success
+                      : theme.palette.grey[500]
+                }}
+                color='success'
                 onClick={
-                  authUser.role === 9 && ( row.approvedByDocumentaryControl && row.sentByDesigner)
+                  authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
                     ? () => handleOpenUploadDialog(row)
                     : null
                 }
@@ -695,10 +738,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const { row } = params
 
         return (
-          <Box sx={{
-            width: '100%',
-            overflow: 'hidden'
-          }}>
+          <Box
+            sx={{
+              width: '100%',
+              overflow: 'hidden'
+            }}
+          >
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
               {unixToDate(row.date.seconds)[0]}
             </Typography>
@@ -752,9 +797,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Select>
                 )
               ) : (
-                <Typography>
-                {renderStatus(row)}
-                </Typography>
+                <Typography>{renderStatus(row)}</Typography>
               )}
             </Box>
           </>
@@ -813,7 +856,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {buttons}
                   </Select>
                 )
-              ) : canGenerateBlueprint ? 'Generar Transmittal' : canResume ? (
+              ) : canGenerateBlueprint ? (
+                'Generar Transmittal'
+              ) : canResume ? (
                 md ? (
                   buttons
                 ) : (
@@ -867,13 +912,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 color: theme.palette.primary.main,
                 opacity: 0.7
               }
-            }}
+            }
           }
-        }
+        }}
         apiRef={apiRef}
         checkboxSelection={authUser.role === 9}
         isRowSelectable={params =>
-          (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) && params.row.approvedByDocumentaryControl === true
+          (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
+          params.row.approvedByDocumentaryControl === true
         }
         rows={rows}
         columns={columns}

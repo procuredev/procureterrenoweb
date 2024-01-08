@@ -155,13 +155,32 @@ export const UploadBlueprintsDialog = ({
   petition,
   checkRoleAndApproval
 }) => {
- /*  let isPlanner = roleData && roleData.id === '5' */
+  /*  let isPlanner = roleData && roleData.id === '5' */
 
-  let { id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments } = doc
+  //let { id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments } = doc
+  let id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments
+
+  if (doc) {
+    ;({
+      id,
+      userId,
+      userName,
+      userEmail,
+      revision,
+      storageBlueprints,
+      description,
+      date,
+      clientCode,
+      storageHlcDocuments
+    } = doc)
+  } else {
+    console.log('doc is undefined')
+  }
+
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
 
-/*   const [editable, setEditable] = useState(isPlanner) */
+  /*   const [editable, setEditable] = useState(isPlanner) */
   const [openAlert, setOpenAlert] = useState(false)
   const [files, setFiles] = useState([])
   const [hlcDocuments, setHlcDocuments] = useState([])
@@ -324,21 +343,19 @@ export const UploadBlueprintsDialog = ({
         setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
       }
 
-      if ((authUser.uid === doc.userId && !doc.sentByDesigner) ||
-      ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
-      (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) || doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc))) {
-
+      if (
+        (authUser.uid === doc.userId && !doc.sentByDesigner) ||
+        ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) ||
+        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin)) ||
+        (doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc))
+      ) {
         // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
         setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
       }
-
-
     }
   })
 
   console.log('files', files)
-
-
 
   const handleRemoveFile = file => {
     const uploadedFiles = files
@@ -397,7 +414,6 @@ export const UploadBlueprintsDialog = ({
 
   const hlcList = (
     <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
-
       {hlcDocuments.map(file => (
         <Grid item key={file.name}>
           <Paper
@@ -474,52 +490,67 @@ export const UploadBlueprintsDialog = ({
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Box sx={{display:'flex', flexDirection:'column'}}>
-        <Typography variant='h5' sx={{lineHeight: 3}}>{values.id || 'Sin código Procure'}</Typography>
-        {values.clientCode || (authUser.role===8 || authUser.role===7?
-        <Typography
-        variant='h6'
-        sx={{my:2, display:'flex', alignItems:'center', cursor:'pointer'}}
-        onClick={() => {
-          if (authUser.uid === doc.userId) {
-            setGenerateClientCode((prev) => !prev)
-          }
-        }}
-        >
-          Generar código MEL
-          <ChevronRight sx={{transform: generateClientCode ? 'rotate(90deg)' : ''}}/>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography variant='h5' sx={{ lineHeight: 3 }}>
+            {values.id || 'Sin código Procure'}
           </Typography>
-        : <Typography> Sin código MEL</Typography>)}
+          {values.clientCode ||
+            (authUser.role === 8 || authUser.role === 7 ? (
+              <Typography
+                variant='h6'
+                sx={{ my: 2, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                onClick={() => {
+                  if (authUser.uid === doc.userId) {
+                    setGenerateClientCode(prev => !prev)
+                  }
+                }}
+              >
+                Generar código MEL
+                <ChevronRight sx={{ transform: generateClientCode ? 'rotate(90deg)' : '' }} />
+              </Typography>
+            ) : (
+              <Typography> Sin código MEL</Typography>
+            ))}
         </Box>
         <Chip label={values.revision} sx={{ textTransform: 'capitalize' }} color='primary' />
       </DialogTitle>
 
-      {generateClientCode ? <DialogClientCodeGenerator
-      petition={petition}
-      blueprint={currentRow}
-      setBlueprintGenerated={setBlueprintGenerated}
-      handleClose={()=>setGenerateClientCode(false)}
-      /> : null}
+      {generateClientCode ? (
+        <DialogClientCodeGenerator
+          petition={petition}
+          blueprint={currentRow}
+          setBlueprintGenerated={setBlueprintGenerated}
+          handleClose={() => setGenerateClientCode(false)}
+        />
+      ) : null}
       <Box sx={{ margin: 'auto' }}>
         {
           <Box>
             <List>
               <CustomListItem
-                editable={authUser.uid === doc.userId}
+                editable={doc && authUser.uid === doc.userId}
                 label='Descripción'
                 id='description'
                 initialValue={description}
                 value={values.description}
                 onChange={handleInputChange('description')}
                 required={false}
-                inputProps={{endAdornment:
-                (description !== values.description) && <InputAdornment position="end">
-                  <Button onClick={() => {
-                    if (authUser.uid === doc.userId) {
-                      submitDescription();
-                    }
-                  }}> Guardar descripción </Button>
-                </InputAdornment>}}
+                inputProps={{
+                  endAdornment: description !== values.description && (
+                    <InputAdornment position='end'>
+                      <Button
+                        onClick={() => {
+                          if (authUser.uid === doc.userId) {
+                            submitDescription()
+                          }
+                        }}
+                      >
+                        {' '}
+                        Guardar descripción{' '}
+                      </Button>
+                    </InputAdornment>
+                  )
+                }}
               />
               <DateListItem
                 editable={false}
@@ -548,7 +579,7 @@ export const UploadBlueprintsDialog = ({
                 onChange={handleInputChange('userEmail')}
                 required={false}
               />
-              {doc.storageBlueprints && doc.storageBlueprints.length > 0 && (
+              {doc && doc.storageBlueprints && doc.storageBlueprints.length > 0 && (
                 <ListItem>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>
@@ -559,7 +590,7 @@ export const UploadBlueprintsDialog = ({
                 </ListItem>
               )}
 
-              {doc.storageHlcDocuments && doc.storageHlcDocuments.length > 0 && (
+              {doc && doc.storageHlcDocuments && doc.storageHlcDocuments.length > 0 && (
                 <ListItem>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>
@@ -574,10 +605,19 @@ export const UploadBlueprintsDialog = ({
                 <ListItem>
                   <FormControl fullWidth>
                     <Fragment>
-                      {(authUser.uid === doc.userId && !doc.sentByDesigner) ||
-                        ((authUser.role === 6 || authUser.role === 7) && doc.sentByDesigner && !doc.approvedByDocumentaryControl) && !doc.approvedBySupervisor && !doc.approvedByContractAdmin||
-                        (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin) && doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc)) ?
-                        <div {...getRootProps({ className: 'dropzone' })} >
+                      {(doc && authUser.uid === doc.userId && !doc.sentByDesigner) ||
+                      (doc &&
+                        (authUser.role === 6 || authUser.role === 7) &&
+                        doc.sentByDesigner &&
+                        !doc.approvedByDocumentaryControl &&
+                        !doc.approvedBySupervisor &&
+                        !doc.approvedByContractAdmin) ||
+                      (doc &&
+                        authUser.role === 9 &&
+                        (doc.approvedBySupervisor || doc.approvedByContractAdmin) &&
+                        doc.approvedByDocumentaryControl &&
+                        checkRoleAndApproval(authUser.role, doc)) ? (
+                        <div {...getRootProps({ className: 'dropzone' })}>
                           <input {...getInputProps()} />
                           <Box
                             sx={{
@@ -598,8 +638,10 @@ export const UploadBlueprintsDialog = ({
                               <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar Plano.
                             </Typography>
                           </Box>
-                        </div> : ''
-                      }
+                        </div>
+                      ) : (
+                        ''
+                      )}
                       {files.length > 0 && (
                         <Fragment>
                           <List>{fileList}</List>
@@ -623,8 +665,11 @@ export const UploadBlueprintsDialog = ({
                 <ListItem>
                   <FormControl fullWidth>
                     <Fragment>
-                      {(authUser.role === 9 &&  (doc.sentByDesigner || doc.sentBySupervisor) && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) ?
-                        <div {...getRootProps({ className: 'dropzone' })} >
+                      {authUser.role === 9 &&
+                      (doc.sentByDesigner || doc.sentBySupervisor) &&
+                      doc.approvedByDocumentaryControl &&
+                      !checkRoleAndApproval(authUser.role, doc) ? (
+                        <div {...getRootProps({ className: 'dropzone' })}>
                           <input {...getInputProps()} />
                           <Box
                             sx={{
@@ -645,21 +690,30 @@ export const UploadBlueprintsDialog = ({
                               <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivo HLC.
                             </Typography>
                           </Box>
-                        </div> : ''
-                      }
-                      {hlcDocuments.length > 0 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc) && (
-                        <Fragment>
-                          <List>{hlcList}</List>
-                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                            <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
-                              Quitar todo
-                            </Button>
-                            <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitHlcDocuments}>
-                              Subir archivos HLC
-                            </Button>
-                          </Box>
-                        </Fragment>
+                        </div>
+                      ) : (
+                        ''
                       )}
+                      {hlcDocuments.length > 0 &&
+                        doc.approvedByDocumentaryControl &&
+                        !checkRoleAndApproval(authUser.role, doc) && (
+                          <Fragment>
+                            <List>{hlcList}</List>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
+                                Quitar todo
+                              </Button>
+                              <Button
+                                color='primary'
+                                sx={{ m: 2 }}
+                                variant='outlined'
+                                onClick={handleSubmitHlcDocuments}
+                              >
+                                Subir archivos HLC
+                              </Button>
+                            </Box>
+                          </Fragment>
+                        )}
                     </Fragment>
                   </FormControl>
                 </ListItem>
