@@ -11,7 +11,7 @@ import { getData } from './firestoreQuerys'
 const generatorPassword = require('generate-password')
 
 // ** Auth object
- const auth = getAuth();
+const auth = getAuth()
 
 const formatAuthUser = async user => {
   const data = await getData(user.uid)
@@ -29,7 +29,7 @@ const formatAuthUser = async user => {
     company: data ? data.company || 'No definido' : 'No disponible',
     contop: data ? data.contop || 'No definido' : 'No disponible',
     opshift: data ? data.opshift || 'No definido' : 'No disponible',
-    registered: data ? true : false,
+    registered: data ? true : false
   }
 }
 
@@ -181,40 +181,41 @@ async function signAdminFailure() {
 const signGoogle = async () => {
   const provider = new GoogleAuthProvider()
   provider.setCustomParameters({
-    'hd': 'procure.cl'
-   });
+    hd: 'procure.cl'
+  })
 
-  /* Asks for permissions for the app to access the user's Drive files.
-  provider.addScope('https://www.googleapis.com/auth/drive.file');
-  provider.addScope('https://www.googleapis.com/auth/drive.metadata.readonly');
-  provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-  provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
- */
+  //Asks for permissions for the app to access the user's Drive files.
+  provider.addScope('https://www.googleapis.com/auth/drive.file')
+  provider.addScope('https://www.googleapis.com/auth/drive.metadata.readonly')
+  provider.addScope('https://www.googleapis.com/auth/userinfo.email')
+  provider.addScope('https://www.googleapis.com/auth/userinfo.profile')
 
   signInWithPopup(auth, provider)
-  // This gives you a Google Access Token. You can use it to access the Google API.
-  // Uncomment the following lines to save the token in the local storage
-  /* .then((result) => {
-    window.alert('Ingreso exitoso')
-    let credential = GoogleAuthProvider.credentialFromResult(result);
-    const token = credential.accessToken;
-    const params = {'access_token': token}
-    localStorage.setItem('oauth2-test-params', JSON.stringify(params));
-  }) */
-  .catch((error) => {
-    console.log(error)
-  });
-  }
+    // This gives you a Google Access Token. You can use it to access the Google API.
+    // Uncomment the following lines to save the token in the local storage
+    .then(result => {
+      window.alert('Ingreso exitoso')
+      let credential = GoogleAuthProvider.credentialFromResult(result)
+      const token = credential.accessToken
+      const params = { access_token: token }
+      localStorage.setItem('oauth2-test-params', JSON.stringify(params))
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
 
-  const deleteCurrentUser = async () => {
-    const user = auth.currentUser;
-    deleteUser(user).then(() => {
+const deleteCurrentUser = async () => {
+  const user = auth.currentUser
+  deleteUser(user)
+    .then(() => {
       // User deleted.
-    }).catch((error) => {
-      console.error(error);
+    })
+    .catch(error => {
+      console.error(error)
       // ...
-    });
-  }
+    })
+}
 
 export {
   formatAuthUser,
@@ -226,5 +227,5 @@ export {
   signAdminBack,
   signAdminFailure,
   signGoogle,
-  deleteCurrentUser,
+  deleteCurrentUser
 }
