@@ -173,7 +173,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
       setHours(prevHours => ({
         ...prevHours,
         total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
-        investedHours: {
+        uprisingInvestedHours: {
           hours: totalHoursWithinWorkingDays,
           minutes: totalMinutes,
           selectedStartDate: startDateAsDate,
