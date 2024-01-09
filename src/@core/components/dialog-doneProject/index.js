@@ -78,7 +78,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const onSubmit = id => {
     if (hours.total !== '') {
       setLoading(true)
-      updateDocs(id, { hours: hours.total }, authUser)
+      updateDocs(id, { hours: hours.total, investedHours: hours.investedHours }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
@@ -164,6 +164,9 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         setError(null) // Para limpiar cualquier error previo.
         setIsSubmitDisabled(false)
       }
+      const startDateAsDate = hours.start.toDate()
+      const endDateAsDate = hours.end.toDate()
+
       const startDateAsDate = hours.start.toDate()
       const endDateAsDate = hours.end.toDate()
 
