@@ -222,7 +222,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
     let newEvent = {
       prevState,
       newState: changedFields.state,
-      uprisingInvestedHours: changedFields.investedHours,
+      uprisingInvestedHours: changedFields.uprisingInvestedHours,
       user: email,
       userName: displayName,
       date: Timestamp.fromDate(new Date()),
