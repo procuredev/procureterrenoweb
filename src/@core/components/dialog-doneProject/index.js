@@ -225,6 +225,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       value={hours.start}
                       onChange={handleDateChangeWrapper('start')}
                       InputLabelProps={{ shrink: true, required: true }}
+                      viewRenderers={{ minutes: null }}
                     />
                   </Box>
                 </LocalizationProvider>
@@ -242,6 +243,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       value={hours.end}
                       onChange={handleDateChangeWrapper('end')}
                       InputLabelProps={{ shrink: true, required: true }}
+                      viewRenderers={{ minutes: null }}
                     />
                   </Box>
                 </LocalizationProvider>
