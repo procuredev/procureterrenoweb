@@ -210,11 +210,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     'Aprobado con comentarios': row => row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
     'Rechazado con Observaciones': row =>
       !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
-    'Aprobado, send Next': row => row.approvedByDocumentaryControl && !row.sentByDesigner,
+    'Aprobado, send Next': row => row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
     Iniciado: row => !row.sentTime,
     Rechazado: row =>
-      !row.sentByDesigner &&
-      (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)
+      (!row.sentByDesigner &&
+        (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
+      (row.approvedByDocumentaryControl &&
+        !row.sentByDesigner &&
+        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48))
   }
 
   const renderStatus = row => {
@@ -264,16 +267,18 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
       const lastRevision = sortedRevisions[0]
 
-      if ('lastTransmittal' in lastRevision) {
-        return (
-          role === 9 &&
-          row.approvedByDocumentaryControl &&
-          (row.sentByDesigner === true || row.sentBySupervisor === true) &&
-          (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
-          !row.blueprintCompleted
-        )
+      if (
+        role === 9 &&
+        row.approvedByDocumentaryControl &&
+        (row.sentByDesigner === true || row.sentBySupervisor === true) &&
+        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
+        !row.blueprintCompleted
+      ) {
+        return true
       }
     }
+
+    return false
   }
 
   const checkRoleAndGenerateTransmittal = (role, row) => {
@@ -286,9 +291,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         !row.lastTransmittal &&
         role === 9 &&
         row.approvedByDocumentaryControl &&
-        row.sentByDesigner &&
+        (row.sentByDesigner === true || row.sentBySupervisor === true) &&
         (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
-        !row.zeroReviewCompleted
+        !row.blueprintCompleted
       ) {
         return true
       }
@@ -298,9 +303,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         !('lastTransmittal' in lastRevision) &&
         role === 9 &&
         row.approvedByDocumentaryControl &&
-        row.sentByDesigner &&
+        (row.sentByDesigner === true || row.sentBySupervisor === true) &&
         (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
-        !row.zeroReviewCompleted
+        !row.blueprintCompleted
       ) {
         return true
       }

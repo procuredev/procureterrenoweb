@@ -482,13 +482,13 @@ const useBlueprints = id => {
     const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {
       // Se inicializa un array vacío para almacenar todos los documentos.
       try {
-        const allDocs = []
+        let allDocs = []
         // Se limpia el estado 'data'.
         setData([])
         // Se recorren todos los documentos en la colección 'blueprints'.
         docSnapshot.forEach(doc => {
           // Se inicializa un array vacío para almacenar las revisiones de cada documento.
-          const revisions = []
+          let revisions = []
           // Se establece un listener en la subcolección 'revisions' de cada documento.
           onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
             // Se recorren todos los documentos en la subcolección 'revisions' y se agregan al array 'revisions'.
@@ -503,7 +503,12 @@ const useBlueprints = id => {
           if (docIndex === -1) {
             allDocs.push({ id: doc.id, ...doc.data(), revisions })
           } else {
-            allDocs[docIndex] = { id: doc.id, ...doc.data(), revisions }
+            // Crea una copia de 'allDocs'.
+            const allDocsCopy = [...allDocs]
+            // Actualiza el elemento en la copia.
+            allDocsCopy[docIndex] = { id: doc.id, ...doc.data(), revisions }
+            // Actualiza 'allDocs' con la copia.
+            allDocs = allDocsCopy
           }
 
           //allDocs.push({ id: doc.id, ...doc.data(), revisions })
@@ -520,7 +525,7 @@ const useBlueprints = id => {
     return () => unsubscribe()
   }, [id]) // El hook 'useEffect' se ejecuta cada vez que cambia el id.
 
-  return data
+  return [data, setData]
 }
 
 function formatCount(count) {

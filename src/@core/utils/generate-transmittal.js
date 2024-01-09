@@ -6,7 +6,7 @@ import base64MEL from 'src/views/pages/gabinete/base64MEL'
 const callAddRegular = require('public/fonts/calibri-normal.js')
 const callAddBold = require('public/fonts/calibri-bold.js')
 
-export const generateTransmittal = (tableElement, selected) => {
+export const generateTransmittal = (tableElement, selected, setTransmittalGenerated) => {
   const doc = new jsPDF('p', 'mm', 'letter', true, true)
 
   callAddRegular.call(doc)
@@ -36,10 +36,10 @@ export const generateTransmittal = (tableElement, selected) => {
       // Obtiene el primer segmento, que debería ser el nombre del archivo
       const fileName = decodeURIComponent(fileNameSegments[0])
 
-      rows = [index+1, value.id, value.description, value.revision]
+      rows = [index + 1, value.id, value.description, value.revision]
     } else {
       // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
-      rows = [index+1, value.id, value.description, value.revision]
+      rows = [index + 1, value.id, value.description, value.revision]
     }
 
     return rows
@@ -84,17 +84,16 @@ export const generateTransmittal = (tableElement, selected) => {
     }
   })
 
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const signatureY = doc.lastAutoTable.finalY;
-  const estimatedContentHeight = 75; // Estimar la altura del contenido que sigue
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const signatureY = doc.lastAutoTable.finalY
+  const estimatedContentHeight = 75 // Estimar la altura del contenido que sigue
 
   // Evaluar si el contenido que sigue se ajusta en la página actual
-  const pageBreak = signatureY + estimatedContentHeight > pageHeight;
+  const pageBreak = signatureY + estimatedContentHeight > pageHeight
 
   if (pageBreak) {
-    doc.addPage('p', 'mm', 'letter', true, true);
+    doc.addPage('p', 'mm', 'letter', true, true)
   }
-
 
   doc.setFont('Calibri', 'bold')
   doc.text(
@@ -137,4 +136,5 @@ export const generateTransmittal = (tableElement, selected) => {
 
   // Descarga el documento
   doc.save('documento.pdf')
+  setTransmittalGenerated(true)
 }

@@ -52,7 +52,8 @@ const DataGridGabinete = () => {
     )
   }
 
-  const blueprints = useBlueprints(currentPetition?.id)
+  //let blueprints = useBlueprints(currentPetition?.id)
+  const [blueprints, setBlueprints] = useBlueprints(currentPetition?.id)
 
   const handleClickOpenCodeGenerator = doc => {
     setOpenCodeGenerator(true)
@@ -77,8 +78,7 @@ const DataGridGabinete = () => {
   }
 
   const handleGenerateTransmittal = (tableElement, selected) => {
-    generateTransmittal(tableElement, selected)
-    setTransmittalGenerated(true)
+    generateTransmittal(tableElement, selected, setTransmittalGenerated)
   }
 
   const handleClickTransmittalGenerator = async currentPetition => {
@@ -122,10 +122,13 @@ const DataGridGabinete = () => {
       // Aquí puedes realizar las operaciones necesarias para actualizar la interfaz de usuario
       // ...
 
+      // Actualiza 'blueprints'.
+      setBlueprints([...blueprints])
+
       // Luego, restablece el estado a false para estar listo para la próxima generación de transmittal
       setTransmittalGenerated(false)
     }
-  }, [transmittalGenerated])
+  }, [transmittalGenerated, setBlueprints])
 
   return (
     <Box id='main' sx={{ display: 'flex', width: '100%', flexDirection: 'column' }}>
