@@ -80,7 +80,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const onSubmit = id => {
     if (hours.total !== '') {
       setLoading(true)
-      updateDocs(id, { hours: hours.total }, authUser)
+      updateDocs(id, { hours: hours.total, investedHours: hours.investedHours }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
@@ -167,11 +167,18 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         setIsSubmitDisabled(false)
       }
 
+      const startDateAsDate = hours.start.toDate()
+      const endDateAsDate = hours.end.toDate()
+
       setHours(prevHours => ({
         ...prevHours,
         total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
-        hours: totalHoursWithinWorkingDays,
-        minutes: totalMinutes
+        investedHours: {
+          hours: totalHoursWithinWorkingDays,
+          minutes: totalMinutes,
+          selectedStartDate: startDateAsDate,
+          selectedEndDate: endDateAsDate
+        }
       }))
     }
   }, [hours.start, hours.end])
