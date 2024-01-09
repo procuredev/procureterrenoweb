@@ -105,7 +105,7 @@ const newDoc = async (values, userParam) => {
       ...(urgency && { urgency }),
       ...(ot && { ot }),
       ...(end && { end }),
-      ...(mcDescription && {mcDescription})
+      ...(mcDescription && { mcDescription })
     })
 
     const adjustedDate = moment(values.start).subtract(1, 'day')
@@ -215,6 +215,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
     let newEvent = {
       prevState,
       newState: changedFields.state,
+      uprisingInvestedHours: changedFields.investedHours,
       user: email,
       userName: displayName,
       date: Timestamp.fromDate(new Date()),
@@ -230,7 +231,6 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
 }
 
 const addComment = async (id, comment, userParam) => {
-
   let newEvent = {
     user: userParam.email,
     userName: userParam.displayName,
@@ -238,12 +238,12 @@ const addComment = async (id, comment, userParam) => {
     comment
   }
   await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
-  .then(() => {
-    console.log('Comentario agregado')
-  })
-  .catch((err) => {
-    console.error(err)
-  })
+    .then(() => {
+      console.log('Comentario agregado')
+    })
+    .catch(err => {
+      console.error(err)
+    })
 }
 
 function getNextState(role, approves, latestEvent, userRole) {
@@ -345,7 +345,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && emergencyBySupervisor,
           newState: latestEvent.newState,
           log: 'Modificado sin cambiar de estado por Planificador'
-        },
+        }
       ]
     ],
     [
