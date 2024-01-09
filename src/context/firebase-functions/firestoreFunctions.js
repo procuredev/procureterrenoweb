@@ -383,10 +383,10 @@ function getNextState(role, approves, latestEvent, userRole) {
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
         },
-        
+
         // Supervisor pausa el levantamiento y retrocede a adm contrato
         {
-          condition: approves && approves.hasOwnProperty('pendingReschedule'),
+          condition: approves && approves.hasOwnProperty('pendingReschedule') && approves.pendingReschedule === true,
           newState: state.contAdmin,
           log: 'Pausado por Supervisor'
         }
