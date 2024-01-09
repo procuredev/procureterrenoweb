@@ -80,7 +80,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const onSubmit = id => {
     if (hours.total !== '') {
       setLoading(true)
-      updateDocs(id, { hours: hours.total, investedHours: hours.investedHours }, authUser)
+      updateDocs(id, { hours: hours.total, uprisingInvestedHours: hours.uprisingInvestedHours }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
