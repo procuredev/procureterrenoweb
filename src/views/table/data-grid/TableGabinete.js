@@ -447,32 +447,83 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           width: '100%',
           alignContent: 'center',
           overflow: 'hidden',
-          backgroundColor: 'inherit'
+          backgroundColor: 'inherit',
+          padding: 1,
+          margin: 2,
+          borderRadius: 1
         }}
       >
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.newRevision}</Typography>
+        <Box sx={{ width: '4%', overflow: 'hidden', height: 20, marginLeft: 80 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {revision.newRevision}
+          </Typography>
         </Box>
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.userName}</Typography>
+        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {revision.userName}
+          </Typography>
         </Box>
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.lastTransmittal}</Typography>
+        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {revision.lastTransmittal}
+          </Typography>
         </Box>
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.description}</Typography>
+        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {revision.description}
+          </Typography>
         </Box>
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{getFileName(revision.storageBlueprints)}</Typography>
+        <Box sx={{ width: '20%', overflow: 'hidden', height: 20 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {getFileName(revision.storageBlueprints)}
+          </Typography>
         </Box>
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.storageHlcDocuments ? getFileName(revision.storageHlcDocuments) : ''}</Typography>
+        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {revision.storageHlcDocuments ? getFileName(revision.storageHlcDocuments) : ''}
+          </Typography>
         </Box>
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{unixToDate(revision.date.seconds)}</Typography>
+        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {unixToDate(revision.date.seconds)}
+          </Typography>
         </Box>
-        <Box sx={{ width: '16%', overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.remarks}</Typography>
+        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+          <Typography
+            sx={{
+              fontSize: '0.875rem'
+            }}
+          >
+            {revision.remarks}
+          </Typography>
         </Box>
       </Box>
     ))
