@@ -434,9 +434,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     return fileName
   }
 
-  const RevisionComponent = ({ row }) => {
-    console.log(row)
-
+  const RevisionComponent = ({ row, authUser }) => {
     return row.revisions.map((revision, index) => (
       <Box
         key={index}
@@ -453,7 +451,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           borderRadius: 1
         }}
       >
-        <Box sx={{ width: '4%', overflow: 'hidden', height: 20, marginLeft: 80 }}>
+        <Box sx={{ width: '8%', overflow: 'hidden', height: 20, marginLeft: 80 }}>
           <Typography
             sx={{
               fontSize: '0.875rem'
@@ -462,7 +460,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             {revision.newRevision}
           </Typography>
         </Box>
-        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+        <Box sx={{ width: '13%', overflow: 'hidden', height: 20 }}>
           <Typography
             sx={{
               fontSize: '0.875rem'
@@ -471,15 +469,17 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             {revision.userName}
           </Typography>
         </Box>
-        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {revision.lastTransmittal}
-          </Typography>
-        </Box>
+        {authUser.role === 9 && (
+          <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+            <Typography
+              sx={{
+                fontSize: '0.875rem'
+              }}
+            >
+              {revision.lastTransmittal}
+            </Typography>
+          </Box>
+        )}
         <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
           <Typography
             sx={{
@@ -489,7 +489,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             {revision.description}
           </Typography>
         </Box>
-        <Box sx={{ width: '20%', overflow: 'hidden', height: 20 }}>
+        <Box sx={{ width: '26%', overflow: 'hidden', height: 20 }}>
           <Typography
             sx={{
               fontSize: '0.875rem'
@@ -498,15 +498,17 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             {getFileName(revision.storageBlueprints)}
           </Typography>
         </Box>
-        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {revision.storageHlcDocuments ? getFileName(revision.storageHlcDocuments) : ''}
-          </Typography>
-        </Box>
+        {authUser.role === 9 && (
+          <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
+            <Typography
+              sx={{
+                fontSize: '0.875rem'
+              }}
+            >
+              {revision.storageHlcDocuments ? getFileName(revision.storageHlcDocuments) : ''}
+            </Typography>
+          </Box>
+        )}
         <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
           <Typography
             sx={{
@@ -634,7 +636,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex: 0.35,
+      flex: 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -981,12 +983,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         columns={columns}
         columnVisibilityModel={{
           clientApprove: authUser.role === 9,
-          storageHlcDocuments: authUser.role === 9
+          storageHlcDocuments: authUser.role === 9,
+          lastTransmittal: authUser.role === 9
         }}
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
         getRowHeight={row => (row.id === currentRow ? 'auto' : 'auto')}
-        getDetailPanelContent={({ row }) => <RevisionComponent row={row} />}
+        getDetailPanelContent={({ row }) => <RevisionComponent row={row} authUser={authUser} />}
       />
       <AlertDialogGabinete
         open={openAlert}
