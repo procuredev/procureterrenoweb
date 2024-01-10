@@ -38,10 +38,9 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const [draftmen, setDraftmen] = useState([])
   const [loading, setLoading] = useState(false)
 
-  const [hours, setHours] = useState({
+  const [timeSelected, setTimeSelected] = useState({
     start: null,
     end: null,
-    total: '',
     hours: 0,
     minutes: 0
   })
@@ -67,18 +66,18 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
     if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHours(inputValue)
+      setTimeSelected(inputValue)
       setError('') // Limpia el mensaje de error si existe
     } else {
-      setHours('')
+      setTimeSelected('')
       setError('Por favor, ingrese un número mayor a 1.')
     }
   }
 
   const onSubmit = id => {
-    if (hours.total !== '') {
+    if (timeSelected.hours > 0) {
       setLoading(true)
-      updateDocs(id, { hours: hours.total, uprisingInvestedHours: hours.uprisingInvestedHours }, authUser)
+      updateDocs(id, { uprisingInvestedHours: timeSelected.uprisingInvestedHours }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
@@ -97,7 +96,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const handleDateChangeWrapper = dateField => date => {
     const handleDateChange = date => {
       const fieldValue = moment(date.toDate())
-      const updatedHours = { ...hours }
+      const updatedHours = { ...timeSelected }
 
       if (dateField === 'start') {
         updatedHours.start = fieldValue
@@ -105,20 +104,20 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         updatedHours.end = fieldValue
       }
 
-      setHours(updatedHours)
+      setTimeSelected(updatedHours)
     }
 
     handleDateChange(date)
   }
 
   useEffect(() => {
-    if (hours.start && hours.end) {
+    if (timeSelected.start && timeSelected.end) {
       const workStartHour = 8 // Hora de inicio de la jornada laboral
       const workEndHour = 20 // Hora de finalización de la jornada laboral
       const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
 
-      let startDate = hours.start.clone()
-      let endDate = hours.end.clone()
+      let startDate = timeSelected.start.clone()
+      let endDate = timeSelected.end.clone()
 
       // Asegurarse de que las fechas estén dentro de las horas de trabajo
       if (startDate.hour() < workStartHour) {
@@ -153,7 +152,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         totalMinutes %= 60
       }
 
-      console.log(totalHoursWithinWorkingDays, totalMinutes, 'RES')
+      //console.log(totalHoursWithinWorkingDays, totalMinutes, 'RES')
 
       if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
         setError('La hora de término debe ser superior a la hora de inicio.')
@@ -167,12 +166,11 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
       const startDateAsDate = hours.start.toDate()
       const endDateAsDate = hours.end.toDate()
 
-      const startDateAsDate = hours.start.toDate()
-      const endDateAsDate = hours.end.toDate()
+      const startDateAsDate = timeSelected.start.toDate()
+      const endDateAsDate = timeSelected.end.toDate()
 
-      setHours(prevHours => ({
+      setTimeSelected(prevHours => ({
         ...prevHours,
-        total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
         uprisingInvestedHours: {
           hours: totalHoursWithinWorkingDays,
           minutes: totalMinutes,
@@ -181,7 +179,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         }
       }))
     }
-  }, [hours.start, hours.end])
+  }, [timeSelected.start, timeSelected.end])
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
@@ -222,7 +220,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
                       label='Fecha de inicio'
-                      value={hours.start}
+                      value={timeSelected.start}
                       onChange={handleDateChangeWrapper('start')}
                       InputLabelProps={{ shrink: true, required: true }}
                       viewRenderers={{ minutes: null }}
@@ -240,7 +238,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
                       label='Fecha de término'
-                      value={hours.end}
+                      value={timeSelected.end}
                       onChange={handleDateChangeWrapper('end')}
                       InputLabelProps={{ shrink: true, required: true }}
                       viewRenderers={{ minutes: null }}
@@ -254,7 +252,13 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
               //label='Horas del Levantamiento'
               disabled={true}
               justifyContent='center'
-              value={hours.total}
+              value={
+                timeSelected.start === null || timeSelected.end === null || timeSelected.start > timeSelected.end
+                  ? '0 horas'
+                  : timeSelected.uprisingInvestedHours && timeSelected.uprisingInvestedHours.hours === 1
+                  ? `${timeSelected.uprisingInvestedHours && timeSelected.uprisingInvestedHours.hours} hora`
+                  : `${timeSelected.uprisingInvestedHours && timeSelected.uprisingInvestedHours.hours} horas`
+              }
               //onChange={handleInputChange}
               error={error !== ''}
               helperText={error}
