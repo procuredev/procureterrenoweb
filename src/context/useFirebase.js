@@ -15,7 +15,8 @@ import {
   createUser,
   signAdminBack,
   signAdminFailure,
-  signGoogle
+  signGoogle,
+  deleteCurrentUser
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
@@ -25,6 +26,13 @@ import {
   blockDayInDatabase,
   addComment,
   updateUserData,
+  generateBlueprint,
+  useBlueprints,
+  updateBlueprint,
+  addDescription,
+  generateBlueprintCodeClient,
+  generateTransmittalCounter,
+  updateSelectedDocuments
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -39,6 +47,11 @@ import {
   consultDocs,
   consultObjetives,
   getUsersWithSolicitudes,
+  fetchPetitionById,
+  fetchPlaneProperties,
+  fetchMelDisciplines,
+  fetchMelDeliverableType,
+  consultBluePrints,
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -55,21 +68,20 @@ const FirebaseContextProvider = props => {
   useEffect(() => {
     const auth = getAuth(app)
 
-    const unsubscribe = onAuthStateChanged(auth, async (authState) => {
+    const unsubscribe = onAuthStateChanged(auth, async authState => {
       if (!authState) {
-        setAuthUser(null);
-        setLoading(false);
+        setAuthUser(null)
+        setLoading(false)
       } else {
         setLoading(true);
         const formattedUser = await formatAuthUser(authState);
         setAuthUser(formattedUser);
         setLoading(false)
       }
-    });
+    })
 
-    return () => unsubscribe();
-  }, []);
-
+    return () => unsubscribe()
+  }, [])
 
   const value = {
     authUser,
@@ -104,6 +116,19 @@ const FirebaseContextProvider = props => {
     signGoogle,
     addComment,
     updateUserData
+    generateBlueprint,
+    useBlueprints,
+    fetchPetitionById,
+    fetchPlaneProperties,
+    updateBlueprint,
+    addDescription,
+    fetchMelDisciplines,
+    fetchMelDeliverableType,
+    generateBlueprintCodeClient,
+    generateTransmittalCounter,
+    updateSelectedDocuments,
+    consultBluePrints,
+    deleteCurrentUser
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

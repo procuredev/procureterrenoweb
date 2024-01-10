@@ -27,13 +27,14 @@ import { capitalize } from 'lodash'
 
 const moment = require('moment')
 
-// ** Trae colección de eventos
-const useEvents = (id, userParam) => {
+// ** Trae subcolecciones
+const useEvents = (id, userParam, path='events') => {
   const [data, setData] = useState([])
 
   useEffect(() => {
+    if (path.includes('//')) return
     if (userParam && id) {
-      const q = query(collection(db, 'solicitudes', id, 'events'), orderBy('date', 'desc'))
+      const q = query(collection(db, 'solicitudes', id, path), orderBy('date', 'desc'))
 
       const unsubscribe = onSnapshot(q, querySnapshot => {
         try {
@@ -56,13 +57,13 @@ const useEvents = (id, userParam) => {
       // Devuelve una función de limpieza que se ejecuta al desmontar el componente
       return () => unsubscribe()
     }
-  }, [userParam, id])
+  }, [userParam, id, path])
 
   return data
 }
 
 // ** Escucha cambios en los documentos en tiempo real
-const useSnapshot = (datagrid = false, userParam) => {
+const useSnapshot = (datagrid = false, userParam, control = false) => {
   const [data, setData] = useState([])
 
   useEffect(() => {
@@ -90,6 +91,20 @@ const useSnapshot = (datagrid = false, userParam) => {
             break
         }
       }
+
+      if (control) {
+        switch (userParam.role) {
+          case 1:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
+            break;
+          case 7:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8), where('supervisorShift', '==', userParam.shift[0]))
+            break;
+          default:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
+            break;
+        }}
+
 
       const unsubscribe = onSnapshot(q, async querySnapshot => {
         try {
@@ -166,7 +181,7 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => 
         : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
     getAllPlantUsers: () => query(coll, where('plant', 'array-contains', plant)),
     getAllProcureUsers: () => query(coll, where('company', '==', 'Procure')),
-    getUserProyectistas: () => query(coll, where('role', '==', 8), where('shift', 'array-contains', userParam.shift[0])),
+    getUserProyectistas: () => query(coll, (where('enabled', '==', true), where('shift', 'array-contains', userParam.shift[0]), or(where('role', '==', 7), where('role', '==', 8)))),
     getPetitioner: () => query(coll, where('plant', 'array-contains', plant)),
     getReceiverUsers: () => query(coll, where('plant', 'array-contains', plant), where('role', '==', 2)),
     getUsersByRole: () => query(coll, where('role', '==', userParam.role))
@@ -490,6 +505,116 @@ const consultDocs = async (type, options = {}) => {
   }
 };
 
+const fetchPlaneProperties = async () => {
+  const docRef = doc(db, 'domain', 'blueprintProcureProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const resDeliverables = await docSnap.data().deliverables
+    const resDisciplines = await docSnap.data().disciplines
+
+
+    return {resDeliverables, resDisciplines }
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
+const fetchMelDisciplines = async () => {
+  const docRef = doc(db, 'domain', 'blueprintMelProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const resDisciplines = await docSnap.data().disciplines
+
+    return resDisciplines
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
+const fetchMelDeliverableType = async (discipline) => {
+  const shortDeliverableType = ['AR', 'BS', 'CL', 'EL', 'GN', 'IC', 'ME', 'PP', 'PR', 'ST', 'TC', 'VE']
+
+  const longDeliverableType = [
+    'arquitectura',
+    'hvca',
+    'civil',
+    'electrica',
+    'multi-disciplina',
+    'instrumentacion y control',
+    'mecanica',
+    'cañeria',
+    'proceso',
+    'estructura',
+    'comunicaciones',
+    'vendor'
+  ]
+
+  function getLongDefinition(item) {
+    const index = shortDeliverableType.indexOf(item)
+    if (index !== -1) {
+      return longDeliverableType[index]
+    } else {
+      return 'No se encontró definición corta para este tipo'
+    }
+  }
+
+  const deliverableType = getLongDefinition(discipline)
+
+  const docRef = doc(db, 'domain', 'blueprintMelProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists() && discipline) {
+    const resDeliverableType = await docSnap.data()[deliverableType]
+
+    return resDeliverableType
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
+const fetchPetitionById = async id => {
+  const docRef = doc(db, 'solicitudes', id)
+  const docSnap = await getDoc(docRef)
+
+  if (docSnap.exists()) {
+    return { ...docSnap.data(), id: docSnap.id }
+  } else {
+    return undefined
+  }
+}
+
+const consultBluePrints = async (type, options = {}) => {
+  const coll = collection(db, 'blueprints')
+  let queryFunc
+
+  switch (type) {
+    case 'finished':
+      queryFunc = async () => {
+        const solicitudesRef = collection(db, 'solicitudes');
+        const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8));
+        let count = 0;
+
+        const solicitudesSnapshot = await getDocs(solicitudesQuery);
+
+        solicitudesSnapshot.forEach((doc) => {
+          if (doc.data().counterBlueprintCompleted > 0) {
+            count += doc.data().counterBlueprintCompleted;
+          }
+        });
+
+        return count;
+      }
+      break
+    default:
+      // Lanzar un error si el tipo no es válido
+      throw new Error(`Invalid type: ${type}`)
+  }
+
+  return queryFunc()
+}
+
 const consultObjetives = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes')
   let queryFunc
@@ -656,5 +781,10 @@ export {
   consultUserEmailInDB,
   consultDocs,
   consultObjetives,
-  getUsersWithSolicitudes
+  getUsersWithSolicitudes,
+  fetchPetitionById,
+  fetchPlaneProperties,
+  fetchMelDisciplines,
+  fetchMelDeliverableType,
+  consultBluePrints
 }

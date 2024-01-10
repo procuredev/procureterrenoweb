@@ -6,13 +6,14 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 // import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
+// ** MUI Imports
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { DataGrid, esES } from '@mui/x-data-grid'
-import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
-
 import CustomChip from 'src/@core/components/mui/chip'
+import { Box, Button, Card, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
+import { DataGridPro, esES } from '@mui/x-data-grid-pro';
+import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 
@@ -370,7 +371,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGrid
+        <DataGridPro
+          resizeable
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
