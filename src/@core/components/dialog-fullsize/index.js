@@ -4,14 +4,15 @@ import 'moment/locale/es'
 
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { DatePicker, AdapterMoment, LocalizationProvider } from '@mui/x-date-pickers'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import {
   Button,
   Paper,
   Box,
   TextField,
   FormControl,
-  Close,
   Chip,
   IconButton,
   Typography,
@@ -29,16 +30,9 @@ import {
   Tooltip,
   MenuItem,
   InputLabel,
-  Select,
-  Edit,
-  Download,
-  AddComment,
-  ChevronLeft,
-  ChevronRight
+  Select
 } from '@mui/material'
-import { Download } from '@mui/icons-material'
-import { Icon, DialogErrorFile } from 'src/@core/components'
-import { useDropzone } from 'react-dropzone'
+
 import {
   Timeline,
   TimelineItem,
@@ -49,15 +43,18 @@ import {
   TimelineOppositeContent,
   timelineOppositeContentClasses
 } from '@mui/lab'
+
+import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
+import Icon from 'src/@core/components/icon'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
+import { useDropzone } from 'react-dropzone'
 import areas from '../plants-areas'
 import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
 import { object } from 'yup'
-import CustomListItem from 'src/@core/components/custom-list/index'
-import DateListItem from 'src/@core/components/custom-date/index'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />

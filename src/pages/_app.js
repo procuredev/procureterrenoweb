@@ -1,5 +1,4 @@
 import FirebaseContextProvider from 'src/context/useFirebase'
-import { LicenseInfo } from '@mui/x-license-pro';
 
 // ** Next Imports
 import Head from 'next/head'
@@ -56,10 +55,6 @@ import 'src/iconify-bundle/icons-bundle-react'
 
 // ** Global css styles
 import '../../styles/globals.css'
-
-
-// ** Set License Key for MUI X Premium
-LicenseInfo.setLicenseKey(process.env.NEXT_PUBLIC_DEV_MUI_X_KEY);
 
 const clientSideEmotionCache = createEmotionCache()
 

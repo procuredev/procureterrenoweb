@@ -28,13 +28,12 @@ import { useFirebase } from 'src/context/useFirebase'
 
 const Home = () => {
   // ** Hooks
-  const { consultDocs, consultObjetives, getUsersWithSolicitudes, consultBluePrints } = useFirebase()
+  const { consultDocs, consultObjetives, getUsersWithSolicitudes } = useFirebase()
 
   const [allDocs, setAllDocs] = useState(null);
   const [docsByPlants, setDocsByPlants] = useState(null);
   const [docsByState, setDocsByState] = useState([0, 0, 0]);
   const [allObjetives, setAllObjetives] = useState(null);
-  const [allBlueprintsFinished, setAllBlueprintsFinished] = useState(null);
   const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0]);
   const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
   const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
@@ -57,7 +56,6 @@ const Home = () => {
       try {
         const   [
           allDocsCount,
-          allBlueprintsFinished,
           allObjCount,
           weekObj,
           lastSixMonthsObjetives,
@@ -67,7 +65,6 @@ const Home = () => {
           resTop10
         ] = await Promise.all([
           consultDocs('all'),
-          consultBluePrints('finished'),
           consultObjetives('all'),
           consultObjetives('week'),
           consultObjetives('lastSixMonths'),
@@ -112,7 +109,6 @@ const Home = () => {
 
         setAllDocs(allDocsCount)
         setAllObjetives(allObjCount);
-        setAllBlueprintsFinished(allBlueprintsFinished);
         setObjetivesOfActualWeek(weekObj);
         setObjetivesOfLastSixMonths(lastSixMonthsObjetives);
         setObjetivesOfLastSixMonths(cantArray)
@@ -138,8 +134,8 @@ const Home = () => {
         <Card>
           <CardHeader sx={{ pb: 3.25 }} title='Resumen Estadístico' titleTypographyProps={{ variant: 'h6' }} />
           <CardContent>
-            <Grid container spacing={4}>
-              <Grid  item xs={12} sm={4}>
+            <Grid container spacing={6}>
+              <Grid  item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='primary' sx={{ mr: 4 }}>
                     <Icon icon='mdi:text-box-outline' />
@@ -152,7 +148,7 @@ const Home = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='warning' sx={{ mr: 4 }}>
                     <Icon icon='mdi:progress-upload' />
@@ -165,19 +161,19 @@ const Home = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              {/* <Grid item xs={12} sm={4}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='info' sx={{ mr: 4 }}>
                     <Icon icon='mdi:tooltip-edit-outline' />
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                      {allBlueprintsFinished}
+                      8.458
                     </Typography>
                     <Typography variant='caption'> Trabajos de Gabinete</Typography>
                   </Box>
                 </Box>
-              </Grid>
+              </Grid> */}
             </Grid>
           </CardContent>
         </Card>

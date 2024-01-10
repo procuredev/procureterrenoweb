@@ -33,9 +33,9 @@ const Transition = forwardRef(function Transition(props, ref) {
 })
 
 export const DialogDoneProject = ({ open, doc, handleClose }) => {
+  //falta evaluar la foto del proyectista
 
   // ** States
-
 
   const [draftmen, setDraftmen] = useState([])
   const [loading, setLoading] = useState(false)
@@ -51,7 +51,6 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
-
 
   const workDayStart = new Date(0, 0, 0, 8, 0) // Hora de inicio de la jornada laboral (08:00 AM)
   const workDayEnd = new Date(0, 0, 0, 20, 0) // Hora de finalización de la jornada laboral (08:00 PM)
@@ -155,7 +154,6 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         totalMinutes %= 60
       }
 
-
       //console.log(totalHoursWithinWorkingDays, totalMinutes, 'RES')
 
       if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
@@ -167,21 +165,17 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         setError(null) // Para limpiar cualquier error previo.
         setIsSubmitDisabled(false)
       }
-      const startDateAsDate = hours.start.toDate();
-      const endDateAsDate = hours.end.toDate();
 
       const startDateAsDate = timeSelected.start.toDate()
       const endDateAsDate = timeSelected.end.toDate()
 
       setTimeSelected(prevHours => ({
         ...prevHours,
-
         uprisingInvestedHours: {
           hours: totalHoursWithinWorkingDays,
           minutes: totalMinutes,
           selectedStartDate: startDateAsDate,
           selectedEndDate: endDateAsDate
-
         }
       }))
     }
@@ -270,8 +264,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
               helperText={error}
             />
           </Box>
-
         )}
+
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}

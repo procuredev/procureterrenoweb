@@ -120,6 +120,7 @@ const LoginPage = () => {
 
   const onSubmit = data => {
     const { email, password } = data
+
     signInWithEmailAndPassword(email, password)
       .then(user => {
         // Manejar la respuesta exitosa
@@ -134,8 +135,7 @@ const LoginPage = () => {
       })
   }
 
-  const handleSignGoogle = (e) => {
-    e.preventDefault()
+  const handleSignGoogle = () => {
     signGoogle()
       .then(token => {
         // Manejar la respuesta exitosa
@@ -289,10 +289,9 @@ const LoginPage = () => {
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>
                 Entrar
               </Button>
-              <Button fullWidth size='large' onClick={(e) => handleSignGoogle(e)} variant='contained' sx={{ mb:3}}>
+              {/* <Button fullWidth size='large' onClick={() => handleSignGoogle()} variant='contained' sx={{ mb: 7 }}>
                 Entrar con Google
-              </Button>
-              <Typography variant='body1' fontSize={12} align='center'>Solo disponible para usuarios registrados Procure</Typography>
+              </Button> */}
             </form>
           </BoxWrapper>
         </Paper>
