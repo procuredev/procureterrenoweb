@@ -53,10 +53,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [openDialog, setOpenDialog] = useState(false)
   const [error, setError] = useState('')
 
-  const [hours, setHours] = useState({
+  const [drawingTimeSelected, setDrawingTimeSelected] = useState({
     start: null,
     end: null,
-    total: '',
     hours: 0,
     minutes: 0
   })
@@ -84,9 +83,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     const remarks = remarksState.length > 0 ? remarksState : false
 
     authUser.role === 8
-      ? await updateBlueprint(petitionId, doc, approve, authUser, false, hours.total, hours.investedHours)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, false, drawingTimeSelected.investedHours)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setHours('')
+            setOpenAlert(false), setBlueprintGenerated(true), setDrawingTimeSelected('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
       : authUser.role === 9
@@ -326,13 +325,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   useEffect(() => {
-    if (hours.start && hours.end) {
+    if (drawingTimeSelected.start && drawingTimeSelected.end) {
       const workStartHour = 8 // Hora de inicio de la jornada laboral
       const workEndHour = 20 // Hora de finalización de la jornada laboral
       const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
 
-      let startDate = hours.start.clone()
-      let endDate = hours.end.clone()
+      let startDate = drawingTimeSelected.start.clone()
+      let endDate = drawingTimeSelected.end.clone()
 
       // Asegurarse de que las fechas estén dentro de las horas de trabajo
       if (startDate.hour() < workStartHour) {
@@ -375,12 +374,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         setError(null) // Para limpiar cualquier error previo.
       }
 
-      const startDateAsDate = hours.start.toDate()
-      const endDateAsDate = hours.end.toDate()
+      const startDateAsDate = drawingTimeSelected.start.toDate()
+      const endDateAsDate = drawingTimeSelected.end.toDate()
 
-      setHours(prevHours => ({
+      setDrawingTimeSelected(prevHours => ({
         ...prevHours,
-        total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
         investedHours: {
           hours: totalHoursWithinWorkingDays,
           minutes: totalMinutes,
@@ -389,7 +387,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         }
       }))
     }
-  }, [hours.start, hours.end])
+  }, [drawingTimeSelected.start, drawingTimeSelected.end])
 
   useEffect(() => {
     // Primera parte: obtener los nombres de los planos
@@ -1000,8 +998,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         authUser={authUser}
         setRemarksState={setRemarksState}
         blueprint={doc && doc}
-        hours={hours}
-        setHours={setHours}
+        drawingTimeSelected={drawingTimeSelected}
+        setDrawingTimeSelected={setDrawingTimeSelected}
         error={error}
         setError={setError}
       ></AlertDialogGabinete>
