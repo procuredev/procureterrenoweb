@@ -21,8 +21,24 @@ export const generateTransmittal = (tableElement, selected, setTransmittalGenera
   const columns = ['ÍTEM', 'CÓDIGO CLIENTE', 'DESCRIPCIÓN', 'REV']
   // Define las filas de la tabla
   let rows = []
+  let newSelected = []
 
-  const data = Array.from(selected).map(([key, value], index) => {
+  Array.from(selected).forEach((value, index) => {
+    newSelected.push(value)
+
+    if (value[1].storageHlcDocuments) {
+      newSelected.push([
+        `${value[1].id}_REV_${value[1].revision}_HLC`,
+        {
+          id: `${value[1].id}_REV_${value[1].revision}_HLC`,
+          description: `Hoja de Levantamiento de Comentarios ${value[1].description}`,
+          revision: '-'
+        }
+      ])
+    }
+  })
+
+  const data = newSelected.map(([key, value], index) => {
     if (value.storageBlueprints) {
       // Divide la URL en segmentos separados por '%2F'
       const urlSegments = value.storageBlueprints[0].split('%2F')

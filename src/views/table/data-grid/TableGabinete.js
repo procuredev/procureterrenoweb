@@ -268,6 +268,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       const lastRevision = sortedRevisions[0]
 
       if (
+        'lastTransmittal' in lastRevision &&
         role === 9 &&
         row.approvedByDocumentaryControl &&
         (row.sentByDesigner === true || row.sentBySupervisor === true) &&

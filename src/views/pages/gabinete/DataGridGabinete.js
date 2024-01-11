@@ -92,6 +92,8 @@ const DataGridGabinete = () => {
       await updateSelectedDocuments(newCode, selected, currentPetition, authUser)
 
       let tableElement = document.createElement('table')
+      console.log('Original selected:', selected)
+      console.log('selected:', selected.entries())
       tableElement.innerHTML = tableBody(newCode, selected.size)
 
       if (selected.size === 0) {
