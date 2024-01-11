@@ -163,8 +163,6 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         setError(null) // Para limpiar cualquier error previo.
         setIsSubmitDisabled(false)
       }
-      const startDateAsDate = hours.start.toDate()
-      const endDateAsDate = hours.end.toDate()
 
       const startDateAsDate = timeSelected.start.toDate()
       const endDateAsDate = timeSelected.end.toDate()
