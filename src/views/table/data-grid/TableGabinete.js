@@ -949,6 +949,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     }
   ]
 
+
   return (
     <Card sx={{ height: 'inherit' }}>
       <DataGridPremium

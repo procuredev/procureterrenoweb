@@ -53,7 +53,6 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 import CustomListItem from 'src/@core/components/custom-list/index'
 import DateListItem from 'src/@core/components/custom-date/index'
-
 import { useDropzone } from 'react-dropzone'
 import areas from '../plants-areas'
 import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
@@ -63,6 +62,134 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
+/*
+const StyledFormControl = props => (
+  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
+)
+
+function CustomListItem({
+  editable,
+  label,
+  id,
+  value,
+  onChange,
+  disabled = false,
+  required = false,
+  multiline = false,
+  selectable = false,
+  options = [],
+  initialValue
+}) {
+  return (
+    <>
+      {editable ? (
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+          {selectable ? (
+              <>
+                <InputLabel variant='standard'>
+                  {label} {required && <span>*</span>}
+                </InputLabel>
+                <Select
+                  id={`${id}-input`}
+                  defaultValue={initialValue}
+                  disabled={disabled}
+                  required={required}
+                  value={value}
+                  size='small'
+                  variant='standard'
+                  fullWidth={true}
+                  onChange={onChange}
+                >
+                  {options &&
+                    options.map(option => {
+                      return (
+                        <MenuItem key={option.name || option} value={option.name || option}>
+                          {option.name || option}
+                        </MenuItem>
+                      )
+                    })}
+                </Select>
+              </>
+            ) : <TextField
+              onChange={onChange}
+              label={label}
+              id={`${id}-input`}
+              defaultValue={initialValue}
+              disabled={disabled}
+              required={required}
+              value={value}
+              size='small'
+              variant='standard'
+              fullWidth={true}
+              multiline={multiline}
+            /> }
+          </StyledFormControl>
+        </ListItem>
+      ) : (
+        initialValue && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
+      )}
+    </>
+  )
+}
+
+function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
+  return (
+    <>
+      {editable ? (
+        <ListItem id={`list-${label}`} divider={!editable}>
+          <StyledFormControl>
+            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+              <DatePicker
+                dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                minDate={customMinDate || moment().subtract(1, 'year')}
+                maxDate={moment().add(1, 'year')}
+                label={label}
+                value={value}
+                onChange={onChange}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    required: true,
+                    variant: 'standard',
+                    fullWidth: true
+                  }
+                }}
+              />
+            </LocalizationProvider>
+          </StyledFormControl>
+        </ListItem>
+      ) : (
+        initialValue &&
+        initialValue.seconds && (
+          <ListItem id={`list-${label}`} divider={!editable}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Typography component='div' sx={{ width: '30%' }}>
+                {label}
+              </Typography>
+              <Typography component='div' sx={{ width: '70%' }}>
+                {initialValue && unixToDate(initialValue.seconds)[0]}
+              </Typography>
+            </Box>
+          </ListItem>
+        )
+      )}
+    </>
+  )
+}
+*/
+      
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
 function getIconForFileType(filePath) {
   const urlWithoutParams = filePath.split('?')[0]
@@ -174,6 +301,38 @@ const PhotoGallery = ({ photos }) => {
   )
 }
 
+/*
+  return (
+    <Box sx={{ display: 'contents' }}>
+      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}>
+        <ChevronLeft />
+      </IconButton>
+      <Box
+        id='gallery'
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          height: '140px',
+          overflow: 'auto',
+          scrollBehavior:'smooth',
+          '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
+          '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
+          '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
+        }}
+      >
+        {photos.map((fotoUrl, index) => (
+          <PhotoItem key={index} photoUrl={fotoUrl} />
+        ))}
+      </Box>
+      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft += 200)}>
+        <ChevronRight />
+      </IconButton>
+    </Box>
+  )
+}
+*/
+
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
   let isPlanner = roleData && roleData.id === '5'
 
@@ -204,7 +363,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
+
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
+
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -848,21 +1009,20 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
+      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width:'100%', height:'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>
-          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline rows={5} fullWidth />
+          <TextField
+          value={comment}
+          onChange={(e)=>setComment(e.target.value)}
+          multiline
+          rows={5}
+          fullWidth
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
-          <Button
-            onClick={() => {
-              setLoading(true), handleSubmitComment()
-            }}
-            disabled={loading}
-          >
-            Enviar comentario
-          </Button>
+        <Button onClick={()=>setCommentDialog(false)}>Cerrar</Button>
+        <Button onClick={()=>{setLoading(true), handleSubmitComment()}} disabled={loading}>Enviar comentario</Button>
         </DialogActions>
       </Dialog>
 

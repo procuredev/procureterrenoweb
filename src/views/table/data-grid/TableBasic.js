@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
+
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
@@ -8,6 +9,8 @@ import { useFirebase } from 'src/context/useFirebase'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import { DataGridPro, esES } from '@mui/x-data-grid-pro'
+import { DataGrid } from '@mui/x-data-grid'
+
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
 
@@ -22,6 +25,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
+
+
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -152,6 +157,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       setDoc(updatedDoc)
     }
   }, [rows])
+
 
   const columns = [
     {
@@ -315,14 +321,14 @@ const TableBasic = ({ rows, role, roleData }) => {
               </Button>
             )}
             {canReject && (
-              <Button
-                onClick={() => handleClickOpenAlert(row, false)}
-                variant='contained'
-                color='error'
-                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-              >
-                <Clear sx={{ fontSize: 18 }} />
-              </Button>
+               <Button
+               onClick={() => handleClickOpenAlert(row, false)}
+               variant='contained'
+               color='error'
+               sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+             >
+               <Clear sx={{ fontSize: 18 }} />
+             </Button>
             )}
           </Container>
         )
@@ -364,8 +370,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGridPro
-          resizeable
+        <DataGrid
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]

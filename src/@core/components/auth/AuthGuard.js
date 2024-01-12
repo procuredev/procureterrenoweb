@@ -12,6 +12,7 @@ const AuthGuard = props => {
   const { children, fallback } = props
   const { authUser, loading, deleteCurrentUser, isCreatingProfile } = useFirebase()
   const [seconds, setSeconds] = useState(5)
+
   const router = useRouter()
   useEffect(() => {
     const timer = setInterval(() => {
