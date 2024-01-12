@@ -216,7 +216,7 @@ const processFieldChanges = (incomingFields, currentDoc) => {
 }
 
 const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc, requesterId, id, prevState) => {
-  if (changedFields && Object.keys(changedFields).length > 0) {
+  if (Object.keys(changedFields).length > 0) {
     const { email, displayName } = userParam
 
     let newEvent = {
@@ -227,6 +227,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       date: Timestamp.fromDate(new Date()),
       ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
     }
+
     await updateDoc(ref, changedFields)
     await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
