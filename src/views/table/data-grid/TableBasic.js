@@ -48,15 +48,14 @@ const TableBasic = ({ rows, role, roleData }) => {
   const writeCallback = async () => {
     setLoading(true)
     await updateDocs(doc.id, approve, authUser)
-    .then(() => {
-      setLoading(false)
-      setOpenAlert(false)
-    })
-    .catch(error => {
-      setLoading(false)
-      alert(error), console.log(error)
-    })
-
+      .then(() => {
+        setLoading(false)
+        setOpenAlert(false)
+      })
+      .catch(error => {
+        setLoading(false)
+        alert(error), console.log(error)
+      })
   }
 
   // const writeCallback = () => {
@@ -279,8 +278,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       field: 'user',
       headerName: 'Autor',
       flex: 0.5,
-      minWidth: 150,
-
+      minWidth: 150
     },
     {
       flex: 0.3,
@@ -400,7 +398,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             doc={findCurrentDoc(rows)}
             roleData={roleData}
             editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
-            canComment={[5,6,7].includes(authUser.role)}
+            canComment={[5, 6, 7].includes(authUser.role)}
           />
         )}
       </Box>
