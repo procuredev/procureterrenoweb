@@ -48,7 +48,6 @@ const Navigation = () => {
           subject: 'levantamientos'
         }
       ],
-
       authorizedRoles: [1, 7, 8]
     },
     {

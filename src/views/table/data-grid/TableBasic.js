@@ -24,6 +24,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
 
+
+
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
   }
@@ -153,6 +155,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       setDoc(updatedDoc)
     }
   }, [rows])
+
 
   const columns = [
     {

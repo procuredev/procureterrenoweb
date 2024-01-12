@@ -26,13 +26,19 @@ import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
 import { useFirebase } from 'src/context/useFirebase'
+import { CircularProgress } from '@mui/material'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
 export const DialogDoneProject = ({ open, doc, handleClose }) => {
+  //falta evaluar la foto del proyectista
+
   // ** States
+
+  const [draftmen, setDraftmen] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const [hours, setHours] = useState({
     start: null,
@@ -47,10 +53,44 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
 
-  const onsubmit = id => {
+  const workDayStart = new Date(0, 0, 0, 8, 0) // Hora de inicio de la jornada laboral (08:00 AM)
+  const workDayEnd = new Date(0, 0, 0, 20, 0) // Hora de finalización de la jornada laboral (08:00 PM)
+
+  const handleClickDelete = name => {
+    // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
+    const updatedDraftmen = draftmen.filter(draftman => draftman.name !== name)
+
+    // Actualizamos el estado con el nuevo array actualizado
+    setDraftmen(updatedDraftmen)
+  }
+
+  const handleInputChange = e => {
+    const inputValue = e.target.value
+
+    // Verifica si el valor ingresado es un número y si es mayor a 1
+    if (!isNaN(inputValue) && Number(inputValue) > 0) {
+      setHours(inputValue)
+      setError('') // Limpia el mensaje de error si existe
+    } else {
+      setHours('')
+      setError('Por favor, ingrese un número mayor a 1.')
+    }
+  }
+
+  const onSubmit = id => {
     if (hours.total !== '') {
-      updateDocs(id, { hours: hours.total, investedHours: hours.investedHours }, authUser) // Utiliza directamente el estado hours.total proporcionar msj string al frontend
-      handleClose()
+      setLoading(true)
+      updateDocs(id, { hours: hours.total }, authUser)
+        .then(() => {
+          setLoading(false)
+          handleClose()
+        })
+        .catch(error => {
+          alert.error(error)
+          console.error(error)
+          setLoading(false)
+          handleClose()
+        })
     } else {
       setError('Por favor, indique fecha de inicio y fecha de término.')
     }
@@ -115,6 +155,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         totalMinutes %= 60
       }
 
+      console.log(totalHoursWithinWorkingDays, totalMinutes, 'RES')
+
       if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
         setError('La hora de término debe ser superior a la hora de inicio.')
         setIsSubmitDisabled(true)
@@ -124,21 +166,17 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         setError(null) // Para limpiar cualquier error previo.
         setIsSubmitDisabled(false)
       }
-      const startDateAsDate = hours.start.toDate()
-      const endDateAsDate = hours.end.toDate()
 
       setHours(prevHours => ({
         ...prevHours,
         total: `${totalHoursWithinWorkingDays} horas ${totalMinutes} minutos`,
-        investedHours: {
-          hours: totalHoursWithinWorkingDays,
-          minutes: totalMinutes,
-          selectedStartDate: startDateAsDate,
-          selectedEndDate: endDateAsDate
-        }
+        hours: totalHoursWithinWorkingDays,
+        minutes: totalMinutes
       }))
     }
   }, [hours.start, hours.end])
+
+  const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
   return (
     <Dialog
@@ -164,58 +202,62 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           </Typography>
           <Typography variant='body2'>Establece el total de horas</Typography>
         </Box>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                  <Box display='flex' alignItems='center'>
+                    <MobileDateTimePicker
+                      dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                      minDate={moment().subtract(1, 'year')}
+                      maxDate={moment().add(1, 'year')}
+                      label='Fecha de inicio'
+                      value={hours.start}
+                      onChange={handleDateChangeWrapper('start')}
+                      InputLabelProps={{ shrink: true, required: true }}
+                    />
+                  </Box>
+                </LocalizationProvider>
+              </FormControl>
+            </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                  <Box display='flex' alignItems='center'>
+                    <MobileDateTimePicker
+                      dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                      minDate={moment().subtract(1, 'year')}
+                      maxDate={moment().add(1, 'year')}
+                      label='Fecha de término'
+                      value={hours.end}
+                      onChange={handleDateChangeWrapper('end')}
+                      InputLabelProps={{ shrink: true, required: true }}
+                    />
+                  </Box>
+                </LocalizationProvider>
+              </FormControl>
+            </Box>
+            <TextField
+              //id='outlined-basic'
+              //label='Horas del Levantamiento'
+              disabled={true}
+              justifyContent='center'
+              value={hours.total}
+              //onChange={handleInputChange}
+              error={error !== ''}
+              helperText={error}
+            />
+          </Box>
+        )}
 
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-                <Box display='flex' alignItems='center'>
-                  <MobileDateTimePicker
-                    dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                    minDate={moment().subtract(1, 'year')}
-                    maxDate={moment().add(1, 'year')}
-                    label='Fecha de inicio'
-                    value={hours.start}
-                    onChange={handleDateChangeWrapper('start')}
-                    InputLabelProps={{ shrink: true, required: true }}
-                  />
-                </Box>
-              </LocalizationProvider>
-            </FormControl>
-          </Box>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-                <Box display='flex' alignItems='center'>
-                  <MobileDateTimePicker
-                    dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                    minDate={moment().subtract(1, 'year')}
-                    maxDate={moment().add(1, 'year')}
-                    label='Fecha de término'
-                    value={hours.end}
-                    onChange={handleDateChangeWrapper('end')}
-                    InputLabelProps={{ shrink: true, required: true }}
-                  />
-                </Box>
-              </LocalizationProvider>
-            </FormControl>
-          </Box>
-          <TextField
-            //id='outlined-basic'
-            //label='Horas del Levantamiento'
-            disabled={true}
-            justifyContent='center'
-            value={hours.total}
-            //onChange={handleInputChange}
-            error={error !== ''}
-            helperText={error}
-          />
-        </Box>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
             disabled={isSubmitDisabled}
-            onClick={() => onsubmit(doc.id)}
+            onClick={() => onSubmit(doc.id)}
           >
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar
