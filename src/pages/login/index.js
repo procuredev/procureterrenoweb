@@ -123,7 +123,7 @@ const LoginPage = () => {
     signInWithEmailAndPassword(email, password)
       .then(user => {
         // Manejar la respuesta exitosa
-        console.log(user)
+        // console.log(user)
       })
       .catch(error => {
         // Manejar el error y mostrar el mensaje al usuario
