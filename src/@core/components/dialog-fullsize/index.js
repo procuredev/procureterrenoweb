@@ -51,8 +51,6 @@ import AlertDialog from 'src/@core/components/dialog-warning'
 import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-import CustomListItem from 'src/@core/components/custom-list/index'
-import DateListItem from 'src/@core/components/custom-date/index'
 import { useDropzone } from 'react-dropzone'
 import areas from '../plants-areas'
 import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
@@ -62,7 +60,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
-/*
 const StyledFormControl = props => (
   <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
 )
@@ -85,7 +82,7 @@ function CustomListItem({
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
-          {selectable ? (
+            {selectable ? (
               <>
                 <InputLabel variant='standard'>
                   {label} {required && <span>*</span>}
@@ -111,19 +108,21 @@ function CustomListItem({
                     })}
                 </Select>
               </>
-            ) : <TextField
-              onChange={onChange}
-              label={label}
-              id={`${id}-input`}
-              defaultValue={initialValue}
-              disabled={disabled}
-              required={required}
-              value={value}
-              size='small'
-              variant='standard'
-              fullWidth={true}
-              multiline={multiline}
-            /> }
+            ) : (
+              <TextField
+                onChange={onChange}
+                label={label}
+                id={`${id}-input`}
+                defaultValue={initialValue}
+                disabled={disabled}
+                required={required}
+                value={value}
+                size='small'
+                variant='standard'
+                fullWidth={true}
+                multiline={multiline}
+              />
+            )}
           </StyledFormControl>
         </ListItem>
       ) : (
@@ -188,7 +187,6 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
     </>
   )
 }
-*/
 
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
 function getIconForFileType(filePath) {
@@ -301,38 +299,6 @@ const PhotoGallery = ({ photos }) => {
   )
 }
 
-/*
-  return (
-    <Box sx={{ display: 'contents' }}>
-      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}>
-        <ChevronLeft />
-      </IconButton>
-      <Box
-        id='gallery'
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'nowrap',
-          height: '140px',
-          overflow: 'auto',
-          scrollBehavior:'smooth',
-          '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
-          '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
-          '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
-        }}
-      >
-        {photos.map((fotoUrl, index) => (
-          <PhotoItem key={index} photoUrl={fotoUrl} />
-        ))}
-      </Box>
-      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft += 200)}>
-        <ChevronRight />
-      </IconButton>
-    </Box>
-  )
-}
-*/
-
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
   let isPlanner = roleData && roleData.id === '5'
 
@@ -363,9 +329,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const theme = useTheme()
   const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
-
-  const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
-
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -818,7 +781,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {values.fotos ? (
                   <ListItem>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      <Typography component='div' sx={{ width: '30%' }}>
                         Archivos adjuntos
                       </Typography>
                       <Box sx={{ width: '70%', display: 'inline-flex', justifyContent: 'space-between' }}>
