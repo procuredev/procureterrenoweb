@@ -7,16 +7,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { GridToolbar, DataGridPremium, esES } from '@mui/x-data-grid-premium'
 
 import { Container } from '@mui/system'
-import {
-  Upload,
-  CheckCircleOutline,
-  CancelOutlined,
-  ChevronRight,
-  OpenInNew,
-  AutorenewOutlined,
-  ThermostatTwoTone,
-  Opacity
-} from '@mui/icons-material'
+import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
 import {
   Button,
   Select,
@@ -948,7 +939,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     }
   ]
-
 
   return (
     <Card sx={{ height: 'inherit' }}>
