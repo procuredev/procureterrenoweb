@@ -189,7 +189,7 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
   )
 }
 */
-      
+
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
 function getIconForFileType(filePath) {
   const urlWithoutParams = filePath.split('?')[0]
@@ -1009,20 +1009,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width:'100%', height:'auto' } }}>
+      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>
-          <TextField
-          value={comment}
-          onChange={(e)=>setComment(e.target.value)}
-          multiline
-          rows={5}
-          fullWidth
-          />
+          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline rows={5} fullWidth />
         </DialogContent>
         <DialogActions>
-        <Button onClick={()=>setCommentDialog(false)}>Cerrar</Button>
-        <Button onClick={()=>{setLoading(true), handleSubmitComment()}} disabled={loading}>Enviar comentario</Button>
+          <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
+          <Button
+            onClick={() => {
+              setLoading(true), handleSubmitComment()
+            }}
+            disabled={loading}
+          >
+            Enviar comentario
+          </Button>
         </DialogActions>
       </Dialog>
 
