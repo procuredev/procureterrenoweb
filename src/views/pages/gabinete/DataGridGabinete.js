@@ -20,6 +20,7 @@ import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { generateTransmittal } from 'src/@core/utils/generate-transmittal'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
+import { el } from 'date-fns/locale'
 
 const DataGridGabinete = () => {
   const [currentPetition, setCurrentPetition] = useState('')
@@ -92,9 +93,20 @@ const DataGridGabinete = () => {
       await updateSelectedDocuments(newCode, selected, currentPetition, authUser)
 
       let tableElement = document.createElement('table')
+      let numberOfDocuments = selected.size
       console.log('Original selected:', selected)
-      console.log('selected:', selected.entries())
-      tableElement.innerHTML = tableBody(newCode, selected.size)
+
+      selected.forEach((value, key) => {
+        //console.log('key:', key)
+        console.log('value:', value)
+        if (value.hasOwnProperty('storageHlcDocuments') && value.storageHlcDocuments !== null) {
+          numberOfDocuments++
+        }
+      })
+
+      console.log('numberOfDocuments:', numberOfDocuments)
+
+      tableElement.innerHTML = tableBody(newCode, numberOfDocuments)
 
       if (selected.size === 0) {
         return alert('Seleccione al menos un documento')
