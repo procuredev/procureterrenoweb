@@ -33,7 +33,6 @@ const Transition = forwardRef(function Transition(props, ref) {
 })
 
 export const DialogDoneProject = ({ open, doc, handleClose }) => {
-
   // ** States
 
   const [draftmen, setDraftmen] = useState([])
@@ -76,7 +75,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   }
 
   const onSubmit = id => {
-    if (uprisingTimeSelected.hours > 0) {
+    console.log('uprisingInvestedHours: ', uprisingTimeSelected.uprisingInvestedHours)
+    if (uprisingTimeSelected.uprisingInvestedHours.hours > 0) {
       setLoading(true)
       updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected.uprisingInvestedHours }, authUser)
         .then(() => {

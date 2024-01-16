@@ -193,8 +193,8 @@ const processFieldChanges = (incomingFields, currentDoc) => {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
 
-    //console.log(value)
-    //console.log(currentFieldValue)
+    console.log('value: ', value)
+    console.log('currentFieldValue: ', currentFieldValue)
 
     if (key === 'start' || key === 'end') {
       value = moment(value.toDate()).toDate().getTime()
@@ -227,7 +227,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       date: Timestamp.fromDate(new Date()),
       ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
     }
-
+    console.log('changedFields: ', changedFields)
     await updateDoc(ref, changedFields)
     await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
@@ -385,7 +385,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         // Supervisor agrega horas pasando estado de la solicitud a 8
         // Si horas cambia a objeto, en vez de checkear por string se deberá checkear que el objeto tenga {start, end y hours}
         {
-          condition: approves && approves.hasOwnProperty('hours'),
+          condition: approves && approves.hasOwnProperty('uprisingInvestedHours'),
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
         },
@@ -437,6 +437,8 @@ const updateDocs = async (id, approves, userParam) => {
   const supervisorShift = addShift ? await setSupervisorShift(docStartDate) : null
 
   if (hasFieldModifications) {
+    console.log('approves: ', approves)
+    console.log('docSnapshot: ', docSnapshot)
     processedFields = processFieldChanges(approves, docSnapshot)
   }
   let { incomingFields, changedFields } = processedFields
