@@ -139,14 +139,24 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
   return data
 }
 
-// Obtener los datos de un rol
-const getRoleData = async role => {
-  const docRef = doc(db, 'roles', role)
-  const docSnap = await getDoc(docRef)
-  let data = docSnap.data()
-  data.id = docSnap.id
+// Función para obtener los datos de un documento de la colección 'domain'
+// Se pedirá como parámetro obligatorio el documento que quiere obtener (plants, roles, deliverables, etc)
+// Como parámetro opcional se ingresará el campo que quiere obtener de ese documento
+// Si no se indica el parámetro field, se retornarán todos los campos existentes en ese documento
+const getDomainData = async (document, field=null) => {
 
-  return data
+  let returnedData
+  const docRef = doc(db, 'domain', document)
+  const docSnap = await getDoc(docRef)
+  const docData = docSnap.data()
+
+  if (field != null) {
+    returnedData = docData[field]
+  } else {
+    returnedData = docData
+  }
+
+  return returnedData
 }
 
 const getData = async id => {
@@ -775,7 +785,7 @@ export {
   useSnapshot,
   getData,
   getUserData,
-  getRoleData,
+  getDomainData,
   consultBlockDayInDB,
   consultSAP,
   consultUserEmailInDB,

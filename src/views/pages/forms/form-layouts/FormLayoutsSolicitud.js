@@ -27,7 +27,6 @@ import {
 
 // ** Custom Components
 import Icon from 'src/@core/components/icon'
-import plants from 'src/@core/components/plants-areas/index'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 import {
@@ -64,7 +63,7 @@ const FormLayoutsSolicitud = () => {
   }
 
   // ** Hooks
-  const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData } = useFirebase()
+  const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData, getDomainData} = useFirebase()
   const router = useRouter()
 
   // ** States
@@ -82,6 +81,29 @@ const FormLayoutsSolicitud = () => {
   const [isUploading, setIsUploading] = useState(false)
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
+  // const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
+  // const [userInputMC, setUserInputMC] = useState("")
+  // const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false)
+  const [plantAreas, setPlantAreas] = useState([])
+  const [objectivesOptions, setObjectivesOptions] = useState([])
+  const [deliverablesOptions, setDeliverablesOptions] = useState([])
+  
+  /*
+  const handleCloseDialogMC = () => {
+    setIsDialogOpenMC(false)
+  };
+
+  const handleConfirmDialogMC = () => {
+    if (values.deliverable.includes('Memoria de Cálculo')) {
+      // Procesa userInput solo si 'Memoria de Cálculo' está seleccionado
+      //console.log("El usuario confirmó Memoria de Cálculo con descripción:", userInputMC)
+    } else {
+      setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' no está seleccionado
+    }
+    setIsDialogOpenMC(false)
+    setHasDialogMCBeenShown(true) // Asume que el usuario terminó con este diálogo
+  }
+  */
 
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
@@ -274,15 +296,42 @@ const FormLayoutsSolicitud = () => {
     return newErrors
   }
 
-  const findAreas = plant => {
-    let setOfAreas = plants.find(obj => obj.name == plant)
-    if (setOfAreas) {
-      let areaNames = setOfAreas.allAreas.map(
-        element => Object.keys(element).toString() + ' - ' + Object.values(element).toString()
-      )
-      setAreas(Object.values(areaNames))
-    } else {
-      setAreas(['No aplica'])
+  const findAreas = async (plant) => {
+    const plantData = await getDomainData('plants', plant)
+    let areasArray = []
+    for (const area in plantData) {
+      // Accede al valor de "name" dentro de cada propiedad de plantData
+      const areaName = plantData[area].name
+      areasArray.push(`${area} - ${areaName}`)
+    }
+
+    areasArray.sort()
+
+    try {
+      setAreas(areasArray)
+    } catch (error) {
+      console.log('Error: ' + error)
+    }
+  }
+
+  const findDomainData = async (document) => {
+    const data = await getDomainData(document)
+    let dataArray = []
+    for (const field in data) {
+      dataArray.push(field)
+    }
+
+    dataArray.sort()
+
+    try {
+      if (document === 'objectives') {
+        setObjectivesOptions(dataArray)
+      } else if (document === 'deliverables') {
+        setDeliverablesOptions(dataArray)
+      }
+
+    } catch (error) {
+      console.log('Error: ' + error)
     }
   }
 
@@ -492,6 +541,8 @@ const FormLayoutsSolicitud = () => {
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
     let plant = authUser && authUser.plant.map(plant => plant)
+    findDomainData('objectives')
+    findDomainData('deliverables')
 
     if (authUser.role === 2) {
       let onlyPlant = plant[0]
@@ -671,7 +722,7 @@ const FormLayoutsSolicitud = () => {
                 authUser.role === 7 ||
                 (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
 
-                  ? plants
+                  ? [...authUser.plant]
                   : [...authUser.plant]
               }
               label='Planta'
@@ -801,14 +852,7 @@ const FormLayoutsSolicitud = () => {
             {/* Tipo de Levantamiento */}
             <CustomSelect
               required
-              options={[
-                'Análisis fotogramétrico',
-                'Análisis GPR',
-                'Inspección Dron',
-                'Levantamiento 3D',
-                'Levantamiento 3D GPS',
-                'Topografía'
-              ]}
+              options={objectivesOptions}
               label='Tipo de Levantamiento'
               value={values.objective}
               onChange={handleChange('objective')}
@@ -820,15 +864,7 @@ const FormLayoutsSolicitud = () => {
             {/* Entregables */}
             <CustomAutocomplete
               required
-              options={[
-                'Sketch',
-                'Plano de Fabricación',
-                'Plano de Diseño',
-                'Memoria de Cálculo',
-                'Informe',
-                'Nube de Puntos',
-                'Ortofotografía'
-              ]}
+              options={deliverablesOptions}
               label='Entregables del levantamiento'
               value={values.deliverable}
               onChange={handleChange('deliverable')}
