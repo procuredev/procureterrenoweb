@@ -193,8 +193,8 @@ const processFieldChanges = (incomingFields, currentDoc) => {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
 
-    console.log('value: ', value)
-    console.log('currentFieldValue: ', currentFieldValue)
+    //console.log('value: ', value)
+    //console.log('currentFieldValue: ', currentFieldValue)
 
     if (key === 'start' || key === 'end') {
       value = moment(value.toDate()).toDate().getTime()
@@ -225,9 +225,11 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       user: email,
       userName: displayName,
       date: Timestamp.fromDate(new Date()),
-      ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {})
+      ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {}),
+      ...(changedFields.uprisingInvestedHours && { uprisingInvestedHours: changedFields.uprisingInvestedHours }),
+      ...(changedFields.draftmen && { draftmen: changedFields.draftmen })
     }
-    console.log('changedFields: ', changedFields)
+    //console.log('changedFields: ', changedFields)
     await updateDoc(ref, changedFields)
     await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
@@ -437,8 +439,6 @@ const updateDocs = async (id, approves, userParam) => {
   const supervisorShift = addShift ? await setSupervisorShift(docStartDate) : null
 
   if (hasFieldModifications) {
-    console.log('approves: ', approves)
-    console.log('docSnapshot: ', docSnapshot)
     processedFields = processFieldChanges(approves, docSnapshot)
   }
   let { incomingFields, changedFields } = processedFields
