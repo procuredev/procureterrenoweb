@@ -389,11 +389,16 @@ function getNextState(role, approves, latestEvent, userRole) {
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
         },
-
         {
           condition: approves && approves.hasOwnProperty('designerReview'),
           newState: state.draftsman,
           log: 'Proyectistas agregados por Supervisor'
+        },
+        // Supervisor pausa el levantamiento y retrocede a adm contrato
+        {
+          condition: approves && approves.hasOwnProperty('pendingReschedule') && approves.pendingReschedule === true,
+          newState: state.contAdmin,
+          log: 'Pausado por Supervisor'
         }
 
         // Caso para cuando supervisor cambia fecha al momento de asignar proyectistas o antes (6 --> 1)
