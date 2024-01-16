@@ -27,6 +27,7 @@ import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 
 import EngineeringIcon from '@mui/icons-material/Engineering'
+import { Pause } from '@mui/icons-material'
 
 const TableLevantamiento = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
@@ -77,6 +78,13 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     setOpenAlert(true)
     setApprove(isApproved)
   }
+
+  const handlePause = doc => {
+    setDoc(doc)
+    setApprove({ pendingReschedule: true })
+    setOpenAlert(true)
+  }
+
 
   const writeCallback = () => {
     setIsLoading(true)
@@ -296,26 +304,47 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       }
     },
     {
-      flex: 0.1,
+      flex: 0.3,
       minWidth: md ? 110 : 80,
       field: 'done',
-      headerName: 'Terminar',
+      headerName: 'Terminar / pausar',
       renderCell: params => {
         const { row } = params
+
+        const RenderButtons = () => {
+          return role === 7 && (
+            <>
+              <Button
+                    onClick={() => handleClickOpenDone(row)}
+                    variant='contained'
+                    color='success'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
+              </Button>
+              {
+                !row.pendingReschedule && (
+                  <Button
+                    onClick={() => handlePause(row)}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Pause sx={{ fontSize: 18 }} />
+              </Button>
+                )
+              }
+            </>
+          )
+        }
+
 
         return (
           <>
             {md ? (
               row.state === 7 ? (
                 <>
-                  <Button
-                    onClick={role === 7 ? () => handleClickOpenDone(row) : null}
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                  </Button>
+                  <RenderButtons />
                 </>
               ) : row.state === 6 ? (
                 'Sin asignar'
@@ -337,14 +366,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
                   }}
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Button
-                      onClick={role === 7 ? () => handleClickOpenDone(row) : null}
-                      variant='contained'
-                      color='success'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                    </Button>
+                    <RenderButtons />
                   </Container>
                 </Select>
               </>

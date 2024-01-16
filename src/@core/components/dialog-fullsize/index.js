@@ -420,8 +420,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     for (const key in values) {
       if (hasChanges[key]) {
         newData[key] = values[key]
+      if (key === 'start' && newData[key]) {
+        newData.pendingReschedule = false
       }
     }
+  }
 
     if (Object.keys(newData).length > 0) {
       setLoading(true)

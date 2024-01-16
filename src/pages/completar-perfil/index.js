@@ -77,7 +77,6 @@ const ProfileCompletion = () => {
 
 
   const [values, setValues] = useState({
-    rut: '',
     phone: '',
     opshift: [{ name: '', email: '', phone: '' }]
   });
@@ -121,25 +120,6 @@ const ProfileCompletion = () => {
       }
     }
 
-    if (prop === 'rut' && authUser.rut === 'No definido') {
-      // Formateo del RUT
-      newValue = event.target.value.replace(/[^0-9kK]/g, '');
-      newValue = `${newValue.length > 7 ? newValue.slice(-9, -7) + '.' : ''}${newValue.length > 4 ? newValue.slice(-7, -4) + '.' : ''}${newValue.length >= 2 ? newValue.slice(-4, -1) + '-' : ''}${newValue[newValue.length - 1] || ''}`;
-      newValue = newValue.trim();
-
-      // Validación del RUT
-      if (newValue && !/^(\d{1,3}\.){2}\d{3}-[\dkK]$/.test(newValue)) {
-        setErrors(prevErrors => ({ ...prevErrors, rut: 'Formato de RUT inválido' }));
-      } else {
-        setErrors(prevErrors => {
-          const newErrors = { ...prevErrors };
-          delete newErrors.rut;
-
-          return newErrors;
-        });
-      }
-    }
-
     // Actualizar el valor
     setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
 
@@ -158,14 +138,6 @@ const ProfileCompletion = () => {
         phoneFormatted = authUser.phone
       }
 
-      // Eliminar puntos y guión del RUT
-      let rutFormatted
-      if (authUser.rut === 'No definido'){
-        rutFormatted = values.rut.replace(/\./g, '');
-      } else {
-        rutFormatted = authUser.rut
-      }
-
       // Actualiza opshift
       let opshiftFormatted
       if (authUser.opshift === 'No definido'){
@@ -181,7 +153,6 @@ const ProfileCompletion = () => {
       const updatedValues = {
         ...values,
         phone: phoneFormatted,
-        rut: rutFormatted,
         opshift: opshiftFormatted
         // Asegúrate de incluir opshift si es necesario
       };
@@ -275,13 +246,12 @@ const validatePhone = (phone) => {
 
     // Verifica si los campos disponibles están vacíos
     const fieldsEmpty = (
-      (authUser.rut === 'No definido' && !values.rut) ||
       (authUser.phone === 'No definido' && !values.phone) ||
       (authUser.role === 2 && authUser.opshift === 'No definido' && values.opshift.some(op => !op.name || !op.email || !op.phone))
     );
 
     setIsButtonDisabled(errorsPresent || fieldsEmpty);
-  }, [errors, values.rut, values.phone, values.opshift, authUser.rut, authUser.phone, authUser.opshift]);
+  }, [errors, values.phone, values.opshift, authUser.phone, authUser.opshift]);
 
   return (
     <Box className='content-right'>
@@ -332,20 +302,6 @@ const validatePhone = (phone) => {
             </Box>
 
             <form onSubmit={onSubmit}>
-              {/* RUT */}
-              { authUser.rut === 'No definido' && (
-                <TextField
-                  fullWidth sx={{ mb: 4 }}
-                  type='tel'
-                  label='RUT'
-                  placeholder='RUT'
-                  onChange={handleChange('rut')}
-                  value={values.rut}
-                  error={!!errors.rut}
-                  inputProps={{ maxLength: 12 }}
-                />
-              )}
-
               {/* Teléfono */}
               { authUser.phone === 'No definido' && (
                 <TextField

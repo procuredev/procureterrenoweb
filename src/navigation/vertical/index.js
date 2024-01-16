@@ -45,19 +45,25 @@ const Navigation = () => {
         {
           path: '/levantamientos',
           title: 'Levantamientos',
-          subject: 'levantamientos',
+          subject: 'levantamientos'
         }
       ],
-
       authorizedRoles: [1, 7, 8]
     },
-    {
-      title: 'Documentos',
-      path: '/documentos',
-      icon: 'mdi:file-document-outline',
-      subject: 'documentos',
-      authorizedRoles: [1]
-    },
+    // {
+    //   title: 'Gabinete',
+    //   icon: 'mdi:folder-multiple',
+    //   path: '/gabinete',
+    //   subject: 'gabinete',
+    //   authorizedRoles: [1, 4, 5, 6, 7, 8, 9, 10]
+    // },
+    // {
+    //   title: 'Documentos',
+    //   path: '/documentos',
+    //   icon: 'mdi:file-document-outline',
+    //   subject: 'documentos',
+    //   authorizedRoles: [1]
+    // },
     {
       title: 'Mapa',
       path: '/mapa',
