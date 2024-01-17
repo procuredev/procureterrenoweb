@@ -10,15 +10,12 @@ import { unixToDate } from 'src/@core/components/unixToDate'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Select from '@mui/material/Select'
 import CustomChip from 'src/@core/components/mui/chip'
-import { Typography, IconButton } from '@mui/material'
+import { Typography, IconButton, Dialog, CircularProgress, DialogContent } from '@mui/material'
 import { Button } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import CardHeader from '@mui/material/CardHeader'
-import { DateRangePicker } from '@mui/lab'
-import { date } from 'yup/lib/locale'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -26,18 +23,13 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import { DialogDoneProject } from 'src/@core/components/dialog-doneProject'
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
-import { ArrowDropDown, Check, Clear, Edit } from '@mui/icons-material'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 
 import EngineeringIcon from '@mui/icons-material/Engineering'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import TableSpanning from 'src/views/table/mui/TableSpanning'
+import { Pause } from '@mui/icons-material'
 
 const TableLevantamiento = ({ rows, role, roleData }) => {
-  const [options, setOptions] = useState('')
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
   const [openDone, setOpenDone] = useState(false)
@@ -46,8 +38,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, getUserProyectistas } = useFirebase()
-  const [draftmen, setDraftmen] = useState([])
+  const { updateDocs, authUser, getUserData } = useFirebase()
+  const [isLoading, setIsLoading] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -87,9 +79,22 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
+  const handlePause = doc => {
+    setDoc(doc)
+    setApprove({ pendingReschedule: true })
+    setOpenAlert(true)
+  }
+
+
   const writeCallback = () => {
-    updateDocs(doc.id, approve, authUser)
-    setOpenAlert(false)
+    setIsLoading(true)
+    updateDocs(doc.id, approve, authUser).then(() => {
+    setIsLoading(false)
+    setOpenAlert(false)})
+    .catch((error) => {
+      setIsLoading(false)
+      console.error(error)
+    })
   }
 
   const handleCloseAlert = () => {
@@ -299,26 +304,47 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       }
     },
     {
-      flex: 0.1,
+      flex: 0.3,
       minWidth: md ? 110 : 80,
       field: 'done',
-      headerName: 'Terminar',
+      headerName: 'Terminar / pausar',
       renderCell: params => {
         const { row } = params
+
+        const RenderButtons = () => {
+          return role === 7 && (
+            <>
+              <Button
+                    onClick={() => handleClickOpenDone(row)}
+                    variant='contained'
+                    color='success'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
+              </Button>
+              {
+                !row.pendingReschedule && (
+                  <Button
+                    onClick={() => handlePause(row)}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                  >
+                    <Pause sx={{ fontSize: 18 }} />
+              </Button>
+                )
+              }
+            </>
+          )
+        }
+
 
         return (
           <>
             {md ? (
               row.state === 7 ? (
                 <>
-                  <Button
-                    onClick={role === 7 ? () => handleClickOpenDone(row) : null}
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                  </Button>
+                  <RenderButtons />
                 </>
               ) : row.state === 6 ? (
                 'Sin asignar'
@@ -340,14 +366,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
                   }}
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Button
-                      onClick={role === 7 ? () => handleClickOpenDone(row) : null}
-                      variant='contained'
-                      color='success'
-                      sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                    >
-                      <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                    </Button>
+                    <RenderButtons />
                   </Container>
                 </Select>
               </>
@@ -391,6 +410,11 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         ) : (
           <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
         )}
+        {<Dialog open={isLoading}>
+          <DialogContent>
+          <CircularProgress />
+          </DialogContent>
+          </Dialog>}
         {openEvents && (
           <FullScreenDialog
             open={openEvents}
@@ -398,6 +422,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             doc={doc}
             roleData={roleData}
             editButtonVisible={false}
+            canComment={authUser.role === 7}
           />
         )}
         {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} />}

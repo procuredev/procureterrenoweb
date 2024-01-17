@@ -2,8 +2,6 @@
 import { db } from 'src/configs/firebase'
 import { collection, doc, addDoc, query, getDoc, getDocs, updateDoc, where } from 'firebase/firestore'
 import { getEmailTemplate } from './emailTemplate'
-import { exists } from 'i18next'
-import { forEach } from 'lodash'
 
 // Importación de los datos del usuario según el id indicado
 const getUserData = async ids => {
@@ -13,11 +11,10 @@ const getUserData = async ids => {
     const docRef = doc(db, 'users', id)
     const docSnap = await getDoc(docRef)
 
-    if (docSnap.exists()) {
+    if (docSnap) {
       usersData.push(docSnap.data())
-    } else {
-      return undefined
     }
+
   }
 
   return usersData
@@ -464,13 +461,13 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
 
     // Se almacenan las constantes a usar en el email
-    const userName = requirementData.user
+    const userName = requirementData.userRole === 7 ? requirementData.petitioner : requirementData.user
     const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}`
     const requestNumber = requirementData.n_request
     const title = requirementData.title
     const engineering = requirementData.engineering ? 'Si' : 'No'
     const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-    const supervisor = requirementData.supervisorShift ? supervisorData.name : 'Por definir'
+    const supervisor = requirementData.supervisorShift ? (supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name) : '') : 'Por definir'
     const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
     const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
     const plant = requirementData.plant
@@ -498,7 +495,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       req: requirementId,
       emailType: 'reviewDocs',
       message: {
-        subject: `Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+        subject: `Solicitud de levantamiento: ${requirementData.title}`,
         html: emailHtml
       }
     })

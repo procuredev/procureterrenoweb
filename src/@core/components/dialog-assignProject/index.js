@@ -25,23 +25,22 @@ import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
 import { useFirebase } from 'src/context/useFirebase'
+import { CircularProgress } from '@mui/material'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-
-
 export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) => {
-  //falta evaluar la foto del proyectista
+  //TODO: evaluar la foto del proyectista
 
   // ** States
   const [draftmen, setDraftmen] = useState([])
+  const [loading, setLoading] = useState(false)
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
-
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -64,15 +63,24 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     }
   }
 
-  const onsubmit = id => {
+  const onSubmit = id => {
+    setLoading(true)
     if (draftmen.length > 0) {
-      updateDocs(id, {draftmen}, authUser)
-      setDraftmen([])
-      handleClose()
+      updateDocs(id, {draftmen, pendingReschedule: false}, authUser)
+        .then(() => {
+          setDraftmen([])
+          handleClose()
+          setLoading(false)
+        })
+        .catch(error => {
+          handleClose()
+          console.error(error)
+          setLoading(false)
+        })
     }
   }
 
-  const filterOptions = (options) => {
+  const filterOptions = options => {
     // Convierte las opciones seleccionadas en un array de nombres
     const selectedNames = draftmen.map(draftman => draftman.name)
 
@@ -95,7 +103,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
         handleClose()
       }}
     >
-      <DialogContent sx={{ px: { xs: 8, sm: 15 }, py: { xs: 8, sm: 12.5 }, position: 'relative' }}>
+      <DialogContent sx={{ px: { xs: 8, sm: 15 }, py: { xs: 8, sm: 12.5 }, position: 'relative', textAlign: 'center' }}>
         <IconButton
           size='small'
           onClick={() => {
@@ -112,95 +120,108 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
           </Typography>
           <Typography variant='body2'>{doc.title}</Typography>
         </Box>
-        <Autocomplete
-          autoHighlight
-          sx={{ mb: 8 }}
-          id='add-members'
-          options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
-          ListboxComponent={List}
-          getOptionLabel={option => option.name}
-          renderInput={params => <TextField {...params} size='small' placeholder='Seleccionar proyectistas...' />}
-          filterOptions={filterOptions} // Agrega este prop
-          renderOption={(props, option) => (
-            <ListItem {...props} onClick={() => handleListItemClick(option)}>
-              <ListItemAvatar>
-                {option.avatar ? (
-                  <Avatar src={`/images/avatars/${option.avatar}`} alt={option.name} sx={{ height: 28, width: 28 }} />
-                ) : (
-                  <CustomAvatar
-                    skin='light'
+        {loading ? (
+          <CircularProgress sx={{ mb: 5 }} />
+        ) : (
+          <Box>
+            <Autocomplete
+              autoHighlight
+              sx={{ mb: 8 }}
+              id='add-members'
+              options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
+              ListboxComponent={List}
+              getOptionLabel={option => option.name}
+              renderInput={params => <TextField {...params} size='small' placeholder='Seleccionar proyectistas...' />}
+              filterOptions={filterOptions} // Agrega este prop
+              renderOption={(props, option) => (
+                <ListItem {...props} onClick={() => handleListItemClick(option)}>
+                  <ListItemAvatar>
+                    {option.avatar ? (
+                      <Avatar
+                        src={`/images/avatars/${option.avatar}`}
+                        alt={option.name}
+                        sx={{ height: 28, width: 28 }}
+                      />
+                    ) : (
+                      <CustomAvatar
+                        skin='light'
+                        sx={{
+                          mr: 3,
+                          width: 28,
+                          height: 28,
+                          objectFit: 'contain',
+                          bgcolor: 'primary.main',
+                          color: 'white',
+                          fontSize: '.8rem'
+                        }}
+                      >
+                        {getInitials(option.name ? option.name : 'John Doe')}
+                      </CustomAvatar>
+                    )}
+                  </ListItemAvatar>
+                  <ListItemText primary={option.name} />
+                </ListItem>
+              )}
+            />
+            <Typography variant='h6'>{`${draftmen.length} Seleccionados`}</Typography>
+            <List dense sx={{ py: 4 }}>
+              {draftmen.map(draftman => {
+                return (
+                  <ListItem
+                    key={draftman.name}
                     sx={{
-                      mr: 3,
-                      width: 28,
-                      height: 28,
-                      objectFit: 'contain',
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      fontSize: '.8rem'
+                      p: 0,
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      '.MuiListItem-container:not(:last-child) &': { mb: 4 }
                     }}
                   >
-                    {getInitials(option.name ? option.name : 'John Doe')}
-                  </CustomAvatar>
-                )}
-              </ListItemAvatar>
-              <ListItemText primary={option.name} />
-            </ListItem>
-          )}
-        />
-        <Typography variant='h6'>{`${draftmen.length} Seleccionados`}</Typography>
-        <List dense sx={{ py: 4 }}>
-          {draftmen.map(draftman => {
-            return (
-              <ListItem
-                key={draftman.name}
-                sx={{
-                  p: 0,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  '.MuiListItem-container:not(:last-child) &': { mb: 4 }
-                }}
-              >
-                <ListItemAvatar>
-                  {draftman.avatar ? (
-                    <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} />
-                  ) : (
-                    <CustomAvatar
-                      skin='light'
+                    <ListItemAvatar>
+                      {draftman.avatar ? (
+                        <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} />
+                      ) : (
+                        <CustomAvatar
+                          skin='light'
+                          sx={{
+                            mr: 3,
+                            width: 34,
+                            height: 34,
+                            objectFit: 'contain',
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            fontSize: '.8rem'
+                          }}
+                        >
+                          {getInitials(draftman.name ? draftman.name : 'John Doe')}
+                        </CustomAvatar>
+                      )}
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={draftman.name}
+                      secondary={draftman.email}
                       sx={{
-                        mr: 3,
-                        width: 34,
-                        height: 34,
-                        objectFit: 'contain',
-                        bgcolor: 'primary.main',
-                        color: 'white',
-                        fontSize: '.8rem'
+                        m: 0,
+                        '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' }
                       }}
-                    >
-                      {getInitials(draftman.name ? draftman.name : 'John Doe')}
-                    </CustomAvatar>
-                  )}
-                </ListItemAvatar>
-                <ListItemText
-                  primary={draftman.name}
-                  secondary={draftman.email}
-                  sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
-                />
-                <ListItemSecondaryAction sx={{ right: 0 }}>
-                  <IconButton
-                    size='small'
-                    aria-haspopup='true'
-                    onClick={() => handleClickDelete(draftman.name)}
-                    aria-controls='modal-share-examples'
-                  >
-                    <Icon icon='mdi:delete-forever' fontSize={20} color='#f44336' />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
-            )
-          })}
-        </List>
+                    />
+                    <ListItemSecondaryAction sx={{ right: 0 }}>
+                      <IconButton
+                        size='small'
+                        aria-haspopup='true'
+                        onClick={() => handleClickDelete(draftman.name)}
+                        aria-controls='modal-share-examples'
+                      >
+                        <Icon icon='mdi:delete-forever' fontSize={20} color='#f44336' />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                )
+              })}
+            </List>
+          </Box>
+        )}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
+          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onSubmit(doc.id)}>
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Asignar Proyectistas
           </Button>

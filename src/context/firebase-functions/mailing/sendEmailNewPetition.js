@@ -11,11 +11,10 @@ const getUserData = async ids => {
     const docRef = doc(db, 'users', id)
     const docSnap = await getDoc(docRef)
 
-    if (docSnap.exists()) {
+    if (docSnap) {
       usersData.push(docSnap.data())
-    } else {
-      return undefined
     }
+
   }
 
   return usersData
@@ -197,7 +196,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         arrayCC = arrayCC.concat(procureUsersEmail)
 
         let mcDescription = values.mcDescription ? values.mcDescription : ''
-        let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` + `<p></p>` + mcDescription + `<p></p>` + `Procure procederá a generar una presupuesto especial para el caso indicado.`
+        let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` + `<p></p>` + mcDescription + `<p></p>` + `Procure procederá a generar un presupuesto especial para el caso indicado.`
         lastMessage = specialMessage + ' ' + lastMessage
         emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
 
@@ -215,7 +214,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         req: reqId,
         emailType: 'NewRequest',
         message: {
-          subject: `Solicitud de levantamiento: N°${requestNumber} - ${values.title}`,
+          subject: `Solicitud de levantamiento: ${values.title}`,
           html: emailHtml
         }
       })

@@ -62,7 +62,7 @@ const FormLayoutsBasic = () => {
   const [allowableEmails, setAllowableEmails] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, getDomainData } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
 
   // Acá se define en una constante los nombres de las plantas como un array
   // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
@@ -170,7 +170,7 @@ const FormLayoutsBasic = () => {
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
-  const basicKeys = ['name', 'rut', 'phone', 'email', 'company', 'role']
+  const basicKeys = ['name', 'email', 'company', 'role']
   let requiredKeys = [...basicKeys] // Utilizamos spread operator para crear una copia de basicKeys
 
   const validateForm = values => {
@@ -285,6 +285,8 @@ const FormLayoutsBasic = () => {
 
       try {
         await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)
+        // Inicia el estado de creación de perfil
+        setIsCreatingProfile(true)
         setDialog(true)
         setErrors({})
       } catch (error) {
@@ -305,6 +307,8 @@ const FormLayoutsBasic = () => {
       setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
       setDialog(true)
       setAlertMessage(message)
+      // Finaliza el estado de creación de perfil
+      setIsCreatingProfile(false)
     } catch (error) {
       console.log(error)
       setAttempts(attempts + 1) // Incrementar el contador de intentos

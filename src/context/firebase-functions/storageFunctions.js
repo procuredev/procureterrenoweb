@@ -1,9 +1,9 @@
 // ** Firebase Imports
 import { db } from 'src/configs/firebase'
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore'
 import { ref, getDownloadURL, uploadBytes, getStorage, uploadString } from 'firebase/storage'
 
-const uploadFilesToFirebaseStorage = async (files, idSolicitud) => {
+const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 'solicitud', petitionId = null) => {
   const storage = getStorage()
 
   if (files && files.length > 0) {
@@ -11,7 +11,9 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud) => {
       const arrayURL = []
 
       for (const file of files) {
-        const storageRef = ref(storage, `fotosSolicitud/${idSolicitud}/fotos/${file.name}`)
+        const storageRef = destination === 'blueprints'? ref(storage, `uploadedBlueprints/${idSolicitud}/blueprints/${file.name}`)
+         : destination === 'hlcDocuments'? ref(storage, `uploadedHlcDocuments/${idSolicitud}/hlcDocuments/${file.name}`)
+         : ref(storage, `fotosSolicitud/${idSolicitud}/fotos/${file.name}`)
 
         if (file) {
           // El formato de la cadena de datos es válido, puedes llamar a uploadString
@@ -27,13 +29,17 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud) => {
         }
       }
 
-      const solicitudRef = doc(db, 'solicitudes', idSolicitud)
+      const solicitudRef = destination === 'blueprints'? doc(db, 'solicitudes', petitionId, 'blueprints', idSolicitud)
+       : destination === 'hlcDocuments'? doc(db, 'solicitudes', petitionId, 'blueprints', idSolicitud) : doc(db, 'solicitudes', idSolicitud)
+
       const solicitudDoc = await getDoc(solicitudRef)
 
       if (solicitudDoc.exists()) {
         const fotos = arrayURL || []
 
-        await updateDoc(solicitudRef, { fotos })
+        destination === 'blueprints'? await updateDoc(solicitudRef, { storageBlueprints: arrayUnion(...fotos) })
+        : destination === 'hlcDocuments'? await updateDoc(solicitudRef, { storageHlcDocuments: arrayUnion(...fotos) })
+        : await updateDoc(solicitudRef, { fotos })
         console.log('URL de la foto actualizada exitosamente')
       } else {
         console.error('El documento de la solicitud no existe')

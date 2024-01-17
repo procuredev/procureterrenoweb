@@ -348,16 +348,28 @@ const TabAccount = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField fullWidth disabled id='outlined-disabled' label='Turno' value={authUser.shift} />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField fullWidth disabled id='outlined-disabled' label='Contraturno' value={authUser.opshift} />
-                </Grid>
+
+                {/* Contraturno */}
+                {authUser.opshift && Array.isArray(authUser.opshift) && authUser.opshift.length > 0 && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      disabled
+                      id='outlined-disabled'
+                      label='Contraturno'
+                      value={authUser.opshift.map(item => `${item.name} - ${item.email}`).join(', ')}
+                    />
+                  </Grid>
+                )}
+
+                {/* Planta */}
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     disabled
                     id='outlined-disabled'
-                    label='Contract Operator'
-                    value={authUser.opshift}
+                    label='Planta'
+                    value={authUser.plant.join(', ')}
                   />
                 </Grid>
                 <Grid item xs={12}>

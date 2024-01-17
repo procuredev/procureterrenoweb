@@ -10,6 +10,9 @@ import { getData } from './firestoreQuerys'
 // ** Genera contraseña unica y aleatoria
 const generatorPassword = require('generate-password')
 
+// ** Auth object
+const auth = getAuth()
+
 const formatAuthUser = async user => {
   const data = await getData(user.uid)
 
@@ -25,7 +28,10 @@ const formatAuthUser = async user => {
     shift: data ? data.shift || 'No definido' : 'No disponible',
     company: data ? data.company || 'No definido' : 'No disponible',
     contop: data ? data.contop || 'No definido' : 'No disponible',
-    opshift: data ? data.opshift || 'No definido' : 'No disponible'
+    opshift: data ? data.opshift || 'No definido' : 'No disponible',
+    registered: data ? true : false,
+    rut: data ? data.rut || 'No definido' : 'No disponible',
+    completedProfile: data ? data.completedProfile || false : false
   }
 }
 
@@ -118,6 +124,22 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
 const createUserInDatabase = (values, uid) => {
   const { name, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
 
+  // Lógica para calcular completedProfile
+  let completedProfile = false
+  if (company === 'Procure') {
+    completedProfile = true
+  } else if (company === 'MEL') {
+    if (role === 2) {
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+    } else if (role === 3 || role === 4) {
+      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut;
+    } else {
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+    }
+  }
+
+  console.log('completedProfile: ' + completedProfile)
+
   return new Promise(async (resolve, reject) => {
     try {
       await setDoc(doc(db, 'users', uid), {
@@ -130,7 +152,8 @@ const createUserInDatabase = (values, uid) => {
         ...(plant && { plant }),
         ...(engineering && { engineering }),
         ...(shift && { shift }),
-        ...(opshift && { opshift })
+        ...(opshift && { opshift }),
+        completedProfile: completedProfile
       })
 
       resolve('Usuario creado exitosamente en la base de datos')
@@ -172,24 +195,43 @@ async function signAdminFailure() {
 }
 
 const signGoogle = async () => {
-  const auth = getAuth();
   const provider = new GoogleAuthProvider()
-  provider.addScope('https://www.googleapis.com/auth/drive.file');
-  provider.addScope('https://www.googleapis.com/auth/drive.metadata.readonly');
-  provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-  provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+  provider.setCustomParameters({
+    hd: 'procure.cl'
+  })
+
+  //Asks for permissions for the app to access the user's Drive files.
+  provider.addScope('https://www.googleapis.com/auth/drive.file')
+  provider.addScope('https://www.googleapis.com/auth/drive.metadata.readonly')
+  provider.addScope('https://www.googleapis.com/auth/userinfo.email')
+  provider.addScope('https://www.googleapis.com/auth/userinfo.profile')
 
   signInWithPopup(auth, provider)
-  .then((result) => {
     // This gives you a Google Access Token. You can use it to access the Google API.
-    let credential = GoogleAuthProvider.credentialFromResult(result);
-    const token = credential.accessToken;
-    const params = {'access_token': token}
-    localStorage.setItem('oauth2-test-params', JSON.stringify(params));
-  }).catch((error) => {
-    console.log(error)
-  });
-  }
+    // Uncomment the following lines to save the token in the local storage
+    .then(result => {
+      window.alert('Ingreso exitoso')
+      let credential = GoogleAuthProvider.credentialFromResult(result)
+      const token = credential.accessToken
+      const params = { access_token: token }
+      localStorage.setItem('oauth2-test-params', JSON.stringify(params))
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
+const deleteCurrentUser = async () => {
+  const user = auth.currentUser
+  deleteUser(user)
+    .then(() => {
+      // User deleted.
+    })
+    .catch(error => {
+      console.error(error)
+      // ...
+    })
+}
 
 export {
   formatAuthUser,
@@ -201,4 +243,5 @@ export {
   signAdminBack,
   signAdminFailure,
   signGoogle,
+  deleteCurrentUser
 }

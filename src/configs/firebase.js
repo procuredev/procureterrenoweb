@@ -17,7 +17,8 @@ const firebaseConfigProduction = {
   storageBucket: process.env.NEXT_PUBLIC_PROD_STORAGEBUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_PROD_MESSAGINGSENDERID,
   appId: process.env.NEXT_PUBLIC_PROD_APPID,
-  measurementId: process.env.NEXT_PUBLIC_PROD_MEASUREMENTID
+  measurementId: process.env.NEXT_PUBLIC_PROD_MEASUREMENTID,
+  isMaintenanceMode: process.env.NEXT_PUBLIC_PROD_MAINTENANCE_MOD
 };
 
 const firebaseConfigDevelopment = {
@@ -26,7 +27,8 @@ const firebaseConfigDevelopment = {
   projectId: process.env.NEXT_PUBLIC_DEV_PROJECTID,
   storageBucket: process.env.NEXT_PUBLIC_DEV_STORAGEBUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_DEV_MESSAGINGSENDERID,
-  appId: process.env.NEXT_PUBLIC_DEV_APPID
+  appId: process.env.NEXT_PUBLIC_DEV_APPID,
+  isMaintenanceMode: process.env.NEXT_PUBLIC_DEV_MAINTENANCE_MOD
 };
 
 // Initialize Firebase
@@ -34,7 +36,7 @@ const firebaseConfigDevelopment = {
 let firebaseConfig
 
 if (typeof window !== 'undefined') {
-  if (window.location.hostname === 'procureterrenoweb.vercel.app') {
+  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
     firebaseConfig = firebaseConfigProduction;
   } else {
     firebaseConfig = firebaseConfigDevelopment
@@ -45,7 +47,9 @@ if (typeof window !== 'undefined') {
 
 const app = Firebase.initializeApp(firebaseConfig)
 
-const db = getFirestore(app);
+const db = getFirestore(app)
+
+const isUnderMaintenance = firebaseConfig.isMaintenanceMode
 
 
-export { Firebase, db, app}
+export { Firebase, db, app, isUnderMaintenance }

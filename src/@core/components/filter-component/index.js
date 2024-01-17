@@ -20,13 +20,19 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
   const theme = useTheme()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
 
+  // Gets the plural of a word
+  // TODO: Move this to a utils file for better organization + reusability
   const plural = word => {
     if (word === 'OT') return 'Con y sin OT'
 
     return ['a','e','i','o','u'].includes(word.charAt(word.length - 1)) ? word + 's' : word + 'es'
   }
 
+  // Gets the filter options by type
   const getFilterOptionsByType = type => {
+    // Returns an array of options by type of filter
+    // See the filter config file at parent component for info about the structure
+    // Currently the only filterConfig file is at src\@core\components\filter-configs\filterConfigs.js
     const optionsByType = Object.entries(filterConfig)
       .filter(([key, value]) => value.type === type && value.canSee.includes(authUser.role))
       .map(([key, value]) => ({
@@ -35,17 +41,22 @@ const FilterComponent = ({ filterConfig, activeFilters, handleFilterChange, hand
       }))
 
     const result = {}
+    // Gets the label for the filter type
     result[type] = optionsByType
 
     return result
   }
 
+  // Updates the filter options when the filter config changes
   useEffect(() => {
+    // Gets the types of the filter options
+    // The set is used to remove duplicates
     const types = [...new Set(Object.values(filterConfig).map(item => item.type))]
     const options = types.map(type => getFilterOptionsByType(type))
     setOptions(options)
   }, [filterConfig, authUser])
 
+  // Initializes the filter values when the filter options change
   useEffect(() => {
     const initializeValues = () => {
       const newValues = options.reduce((values, optionGroup) => {

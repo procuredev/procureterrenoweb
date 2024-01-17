@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 
+// Se importa dictionary
+import dictionary from 'src/@core/components/dictionary'
+
 // ** Firebase Imports
 import { db } from 'src/configs/firebase'
 import {
@@ -24,13 +27,14 @@ import { capitalize } from 'lodash'
 
 const moment = require('moment')
 
-// ** Trae colección de eventos
-const useEvents = (id, userParam) => {
+// ** Trae subcolecciones
+const useEvents = (id, userParam, path='events') => {
   const [data, setData] = useState([])
 
   useEffect(() => {
+    if (path.includes('//')) return
     if (userParam && id) {
-      const q = query(collection(db, 'solicitudes', id, 'events'), orderBy('date', 'desc'))
+      const q = query(collection(db, 'solicitudes', id, path), orderBy('date', 'desc'))
 
       const unsubscribe = onSnapshot(q, querySnapshot => {
         try {
@@ -53,13 +57,13 @@ const useEvents = (id, userParam) => {
       // Devuelve una función de limpieza que se ejecuta al desmontar el componente
       return () => unsubscribe()
     }
-  }, [userParam, id])
+  }, [userParam, id, path])
 
   return data
 }
 
 // ** Escucha cambios en los documentos en tiempo real
-const useSnapshot = (datagrid = false, userParam) => {
+const useSnapshot = (datagrid = false, userParam, control = false) => {
   const [data, setData] = useState([])
 
   useEffect(() => {
@@ -87,6 +91,20 @@ const useSnapshot = (datagrid = false, userParam) => {
             break
         }
       }
+
+      if (control) {
+        switch (userParam.role) {
+          case 1:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
+            break;
+          case 7:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8), where('supervisorShift', '==', userParam.shift[0]))
+            break;
+          default:
+            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
+            break;
+        }}
+
 
       const unsubscribe = onSnapshot(q, async querySnapshot => {
         try {
@@ -155,7 +173,7 @@ const getData = async id => {
 // getUserData agrupa funciones relacionadas con la colección 'users'
 // identifica que funcion debe ejecutar de acuerdo al parametro 'type' que se le proporcione
 // recibe el parametro (userParam = {shift : ''}) para establecer el valor por defecto en caso de recibir sólo los parametros type y plant.
-const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => {
+const getUserData = async (type, plant, userParam = { shift: '', name: '', email: '' }) => {
   const coll = collection(db, 'users') // Crear una referencia a la colección 'users' en la base de datos
   let allDocs = [] // Arreglo para almacenar los documentos extendidos
 
@@ -173,7 +191,7 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => 
         : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
     getAllPlantUsers: () => query(coll, where('plant', 'array-contains', plant)),
     getAllProcureUsers: () => query(coll, where('company', '==', 'Procure')),
-    getUserProyectistas: () => query(coll, where('role', '==', 8), where('shift', 'array-contains', userParam.shift[0])),
+    getUserProyectistas: () => query(coll, (where('shift', 'array-contains', userParam.shift[0]))),
     getPetitioner: () => query(coll, where('plant', 'array-contains', plant)),
     getReceiverUsers: () => query(coll, where('plant', 'array-contains', plant), where('role', '==', 2)),
     getUsersByRole: () => query(coll, where('role', '==', userParam.role))
@@ -224,9 +242,9 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => 
         const querySnapshot = await getDocs(query(coll, where('name', '==', userParam.name)))
 
         if (!querySnapshot.empty) {
-          const docSnapshot = querySnapshot.docs[0]
+          const docSnapshot = querySnapshot.docs[0].data()
 
-          return { email: docSnapshot.data().email, phone: docSnapshot.data().phone }
+          return docSnapshot
         }
 
         return null // Devolver nulo si no se encuentra el documento
@@ -306,34 +324,6 @@ const consultBlockDayInDB = async date => {
   }
 }
 
-// Función para conocer el estado de una Solicitud
-const requestState = (state) => {
-  let stateString
-  if (state == 0) {
-    stateString = 'Cancelado'
-  } else if (state == 1) {
-    stateString = 'Pendiente de revisión del Solicitante'
-  } else if (state == 2) {
-    stateString = 'Pendiente de revisión del Contract Operator'
-  } else if (state == 3) {
-    stateString = 'Pendiente de revisión de Procure'
-  } else if (state == 4) {
-    stateString = 'Pendiente de revisión de Procure'
-  } else if (state == 5) {
-    stateString = 'Pendiente de revisión de Procure'
-  } else if (state == 6) {
-    stateString = 'Agendado para Levantamiento'
-  } else if (state == 7) {
-    stateString = 'Levantamiento iniciado'
-  } else if (state == 8) {
-    stateString = 'Levantamiento finalizado'
-  } else {
-    stateString = 'Levantamiento finalizado'
-  }
-
-  return stateString
-}
-
 // Consultar si existe un número SAP en la base de datos de solicitudes
 const consultSAP = async sap => {
   // Definir la consulta con una condición de igualdad en el campo 'sap' y ordenar por fecha descendente
@@ -361,7 +351,7 @@ const consultSAP = async sap => {
         const userRef = doc(db, 'users', docItemData.uid)
         const userQuerySnapshot = await getDoc(userRef)
         const author = userQuerySnapshot.data().name
-        const reqState = requestState(docItemData.state)
+        const reqState = dictionary[docItemData.state].longTitle
 
         if (docItem.data().ot) {
           // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
@@ -410,23 +400,10 @@ const consultSAP = async sap => {
     }
 
     const messageParameters = (length) => {
-      let existen
-      let solicitudes
-      let tienen
 
-      if (length == 1) {
-        existen = 'Existe'
-        solicitudes = 'solicitud'
-        tienen = 'tiene'
-      } else if (length > 1) {
-        existen = 'Existen'
-        solicitudes = 'solicitudes'
-        tienen = 'tienen'
-      } else {
-        existen = 'Existe'
-        solicitudes = 'solicitud'
-        tienen = 'tiene'
-      }
+      const existen = length === 1 ? 'Existe' : 'Existen'
+      const solicitudes = length === 1 ? 'solicitud' : 'solicitudes'
+      const tienen = length === 1 ? 'tiene' : 'tienen'
 
       return {existe: existen, solicitud: solicitudes, tiene: tienen}
 
@@ -513,18 +490,20 @@ const consultDocs = async (type, options = {}) => {
         return resultsByPlants;
 
       case 'byState':
-        const states = [[1, 5], [6, 9], [10, 10]];
+        const currentDate = Timestamp.now();
+        const oneMonthAgo = Timestamp.fromDate(new Date(currentDate.toDate().setMonth(currentDate.toDate().getMonth() - 1)));
 
-        const resultsByState = await Promise.all(
-          states.map(async ([start, end]) => {
-            const qState = query(coll, where('state', '>=', start), where('state', '<=', end));
-            const snapshotState = await getDocs(qState);
+        // Consulta a Firestore para obtener documentos de los últimos 30 días
+        const qDate = query(coll, where('date', '>=', oneMonthAgo));
+        const snapshotDate = await getDocs(qDate);
 
-            return snapshotState.size;
-          })
-        );
+        // Crear un array de los datos de los documentos
+        const docsData = [];
+        snapshotDate.forEach(doc => {
+          docsData.push(doc.data());
+        });
 
-        return resultsByState;
+        return docsData;
 
       default:
         throw new Error(`Invalid type: ${type}`);
@@ -535,6 +514,116 @@ const consultDocs = async (type, options = {}) => {
     return null;
   }
 };
+
+const fetchPlaneProperties = async () => {
+  const docRef = doc(db, 'domain', 'blueprintProcureProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const resDeliverables = await docSnap.data().deliverables
+    const resDisciplines = await docSnap.data().disciplines
+
+
+    return {resDeliverables, resDisciplines }
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
+const fetchMelDisciplines = async () => {
+  const docRef = doc(db, 'domain', 'blueprintMelProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const resDisciplines = await docSnap.data().disciplines
+
+    return resDisciplines
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
+const fetchMelDeliverableType = async (discipline) => {
+  const shortDeliverableType = ['AR', 'BS', 'CL', 'EL', 'GN', 'IC', 'ME', 'PP', 'PR', 'ST', 'TC', 'VE']
+
+  const longDeliverableType = [
+    'arquitectura',
+    'hvca',
+    'civil',
+    'electrica',
+    'multi-disciplina',
+    'instrumentacion y control',
+    'mecanica',
+    'cañeria',
+    'proceso',
+    'estructura',
+    'comunicaciones',
+    'vendor'
+  ]
+
+  function getLongDefinition(item) {
+    const index = shortDeliverableType.indexOf(item)
+    if (index !== -1) {
+      return longDeliverableType[index]
+    } else {
+      return 'No se encontró definición corta para este tipo'
+    }
+  }
+
+  const deliverableType = getLongDefinition(discipline)
+
+  const docRef = doc(db, 'domain', 'blueprintMelProperties');
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists() && discipline) {
+    const resDeliverableType = await docSnap.data()[deliverableType]
+
+    return resDeliverableType
+  } else {
+    console.log('El documento no existe');
+  }
+};
+
+const fetchPetitionById = async id => {
+  const docRef = doc(db, 'solicitudes', id)
+  const docSnap = await getDoc(docRef)
+
+  if (docSnap.exists()) {
+    return { ...docSnap.data(), id: docSnap.id }
+  } else {
+    return undefined
+  }
+}
+
+const consultBluePrints = async (type, options = {}) => {
+  const coll = collection(db, 'blueprints')
+  let queryFunc
+
+  switch (type) {
+    case 'finished':
+      queryFunc = async () => {
+        const solicitudesRef = collection(db, 'solicitudes');
+        const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8));
+        let count = 0;
+
+        const solicitudesSnapshot = await getDocs(solicitudesQuery);
+
+        solicitudesSnapshot.forEach((doc) => {
+          if (doc.data().counterBlueprintCompleted > 0) {
+            count += doc.data().counterBlueprintCompleted;
+          }
+        });
+
+        return count;
+      }
+      break
+    default:
+      // Lanzar un error si el tipo no es válido
+      throw new Error(`Invalid type: ${type}`)
+  }
+
+  return queryFunc()
+}
 
 const consultObjetives = async (type, options = {}) => {
   const coll = collection(db, 'solicitudes')
@@ -622,21 +711,6 @@ const consultObjetives = async (type, options = {}) => {
       }
       break
 
-    case 'byState':
-      // Consulta para obtener el número de documentos por estado
-      queryFunc = async () => {
-        const q1 = query(coll, where('state', '==', 6))
-        const q2 = query(coll, where('state', '==', 7))
-        const q3 = query(coll, where('state', '>=', 8), where('state', '<', 10))
-        const queryAllStates = [q1, q2, q3]
-
-        const snapshots = await Promise.all(queryAllStates.map(getCountFromServer))
-        const documentsByState = snapshots.map(snapshot => snapshot.data().count)
-
-        return documentsByState
-      }
-      break
-
     default:
       // Lanzar un error si el tipo no es válido
       throw new Error(`Invalid type: ${type}`)
@@ -717,5 +791,10 @@ export {
   consultUserEmailInDB,
   consultDocs,
   consultObjetives,
-  getUsersWithSolicitudes
+  getUsersWithSolicitudes,
+  fetchPetitionById,
+  fetchPlaneProperties,
+  fetchMelDisciplines,
+  fetchMelDeliverableType,
+  consultBluePrints
 }
