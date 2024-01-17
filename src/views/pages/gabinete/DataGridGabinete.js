@@ -36,7 +36,6 @@ const DataGridGabinete = () => {
   const [designerAssigned, setDesignerAssigned] = useState(false)
   const [transmittalGenerated, setTransmittalGenerated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [update, setUpdate] = useState(false)
 
   const apiRef = useGridApiRef()
 
@@ -157,14 +156,6 @@ const DataGridGabinete = () => {
       }
     }
   }, []) */
-
-  useEffect(() => {
-    currentPetitionRef.current = currentPetition
-  }, [currentPetition])
-
-  useEffect(() => {
-    setUpdate(!update)
-  }, [currentPetition])
 
   useEffect(() => {
     if (currentPetition && currentPetition.id) {

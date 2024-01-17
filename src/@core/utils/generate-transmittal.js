@@ -52,7 +52,7 @@ export const generateTransmittal = (tableElement, selected, setTransmittalGenera
       // Obtiene el primer segmento, que debería ser el nombre del archivo
       const fileName = decodeURIComponent(fileNameSegments[0])
 
-      rows = [index + 1, value.id, value.description, value.revision]
+      rows = [index + 1, value.clientCode, value.description, value.revision]
     } else {
       // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
       rows = [index + 1, value.id, value.description, value.revision]
