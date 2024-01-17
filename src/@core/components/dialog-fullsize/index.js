@@ -292,7 +292,7 @@ const PhotoGallery = ({ photos }) => {
 }
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
-  let isPlanner = roleData && roleData.id === '5'
+  let isPlanner = roleData && roleData.id == '5'
 
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')

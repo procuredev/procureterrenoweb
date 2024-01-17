@@ -75,7 +75,7 @@ const DataGrid = () => {
     const role = async () => {
       if (authUser) {
         const role = await getDomainData('roles', authUser.role.toString())
-        setRoleData(role)
+        setRoleData({...role, id:authUser.role})
       }
     }
 
