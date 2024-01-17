@@ -106,8 +106,8 @@ const DataGridGabinete = () => {
     setCurrentPetition(currentDoc)
   }
 
-  const handleGenerateTransmittal = (tableElement, selected) => {
-    generateTransmittal(tableElement, selected, setTransmittalGenerated)
+  const handleGenerateTransmittal = (tableElement, selected, newCode) => {
+    generateTransmittal(tableElement, selected, setTransmittalGenerated, newCode)
   }
 
   const handleClickTransmittalGenerator = async currentPetition => {
@@ -134,7 +134,7 @@ const DataGridGabinete = () => {
       if (selected.size === 0) {
         return alert('Seleccione al menos un documento')
       } else {
-        handleGenerateTransmittal(tableElement, selected)
+        handleGenerateTransmittal(tableElement, selected, newCode)
       }
     } catch (error) {
       console.error('Error al generar Transmittal:', error)

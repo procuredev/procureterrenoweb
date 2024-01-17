@@ -6,7 +6,7 @@ import base64MEL from 'src/views/pages/gabinete/base64MEL'
 const callAddRegular = require('public/fonts/calibri-normal.js')
 const callAddBold = require('public/fonts/calibri-bold.js')
 
-export const generateTransmittal = (tableElement, selected, setTransmittalGenerated) => {
+export const generateTransmittal = (tableElement, selected, setTransmittalGenerated, newCode) => {
   const doc = new jsPDF('p', 'mm', 'letter', true, true)
 
   callAddRegular.call(doc)
@@ -151,6 +151,6 @@ export const generateTransmittal = (tableElement, selected, setTransmittalGenera
   })
 
   // Descarga el documento
-  doc.save('documento.pdf')
+  doc.save(`${newCode}.pdf`)
   setTransmittalGenerated(true)
 }

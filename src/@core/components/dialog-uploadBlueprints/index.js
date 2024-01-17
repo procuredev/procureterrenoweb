@@ -490,25 +490,26 @@ export const UploadBlueprintsDialog = ({
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='h5' sx={{ lineHeight: 3 }}>
-            {values.id || 'Sin código Procure'}
+            {`Código Procure: ${values.id}` || 'Sin código Procure'}
           </Typography>
-          {values.clientCode ||
-            (authUser.role === 8 || authUser.role === 7 ? (
-              <Typography
-                variant='h6'
-                sx={{ my: 2, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                onClick={() => {
-                  if (authUser.uid === doc.userId) {
-                    setGenerateClientCode(prev => !prev)
-                  }
-                }}
-              >
-                Generar código MEL
-                <ChevronRight sx={{ transform: generateClientCode ? 'rotate(90deg)' : '' }} />
-              </Typography>
-            ) : (
-              <Typography> Sin código MEL</Typography>
-            ))}
+          {values.clientCode ? (
+            `Código MEL: ${values.clientCode}`
+          ) : authUser.role === 8 || authUser.role === 7 ? (
+            <Typography
+              variant='h6'
+              sx={{ my: 2, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+              onClick={() => {
+                if (authUser.uid === doc.userId) {
+                  setGenerateClientCode(prev => !prev)
+                }
+              }}
+            >
+              Generar código MEL
+              <ChevronRight sx={{ transform: generateClientCode ? 'rotate(90deg)' : '' }} />
+            </Typography>
+          ) : (
+            <Typography> Sin código MEL</Typography>
+          )}
         </Box>
         <Chip label={values.revision} sx={{ textTransform: 'capitalize' }} color='primary' />
       </DialogTitle>
