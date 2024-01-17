@@ -355,8 +355,6 @@ export const UploadBlueprintsDialog = ({
     }
   })
 
-  console.log('files', files)
-
   const handleRemoveFile = file => {
     const uploadedFiles = files
     const filtered = uploadedFiles.filter(i => i.name !== file.name)

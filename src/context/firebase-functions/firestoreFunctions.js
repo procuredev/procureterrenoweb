@@ -501,7 +501,7 @@ const blockDayInDatabase = async (date, cause = '') => {
 // Este es un hook personalizado que recibe un id y devuelve los documentos de la colección 'blueprints' asociados a ese id.
 const useBlueprints = id => {
   // Se inicializa el estado 'data' con un array vacío.
-  const [data, setData] = useState([])
+  let [data, setData] = useState([])
 
   // Se utiliza el hook 'useEffect' para realizar operaciones secundarias después de que se haya renderizado el componente.
   useEffect(() => {
@@ -531,19 +531,16 @@ const useBlueprints = id => {
           const docIndex = allDocs.findIndex(existingDoc => existingDoc.id === doc.id)
           // Si el documento no existe en 'allDocs', se agrega. Si ya existe, se actualiza.
           if (docIndex === -1) {
-            allDocs.push({ id: doc.id, ...doc.data(), revisions })
+            const newDoc = { id: doc.id, ...doc.data(), revisions }
+            allDocs = [...allDocs, newDoc]
           } else {
-            // Crea una copia de 'allDocs'.
-            const allDocsCopy = [...allDocs]
-            // Actualiza el elemento en la copia.
-            allDocsCopy[docIndex] = { id: doc.id, ...doc.data(), revisions }
-            // Actualiza 'allDocs' con la copia.
-            allDocs = allDocsCopy
+            const updatedDoc = { id: doc.id, ...doc.data(), revisions }
+            allDocs[docIndex] = updatedDoc
           }
 
           //allDocs.push({ id: doc.id, ...doc.data(), revisions })
-          setData(allDocs)
         })
+        setData(allDocs)
       } catch (error) {
         // Si ocurre un error al obtener los documentos, se muestra en la consola.
         console.error('Error al obtener los planos:', error)
@@ -631,6 +628,13 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
 
 const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
   try {
+    const solicitudRef = doc(db, 'solicitudes', petition.id)
+    const solicitudDoc = await getDoc(solicitudRef)
+
+    if (solicitudDoc.data().otReadyToFinish) {
+      await updateDoc(solicitudRef, { otReadyToFinish: false })
+    }
+
     const idProject = '21286'
 
     // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
@@ -955,13 +959,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 
-  // Lee el documento de la 'solicitud'
-  const solicitudDoc = await getDoc(solicitudRef)
+  // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
+  const solicitudDocBefore = await getDoc(solicitudRef)
   const blueprintDoc = await getDoc(blueprintRef)
 
   if (blueprintDoc.data().blueprintCompleted && blueprintDoc.data().resumeBlueprint === false) {
     // Si el documento no tiene un campo 'counterBlueprintCompleted', créalo
-    if (!solicitudDoc.data().counterBlueprintCompleted) {
+    if (!solicitudDocBefore.data().counterBlueprintCompleted) {
       await updateDoc(solicitudRef, { counterBlueprintCompleted: 0 })
     }
 
@@ -974,8 +978,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     // Obtiene la cantidad de documentos en la subcolección
     const numBlueprints = blueprintsSnapshot.size
 
-    if (solicitudDoc.data().counterBlueprintCompleted === numBlueprints) {
-      await updateDoc(solicitudRef, { state: 9 })
+    // Lee el documento de la 'solicitud posterior al incremento de counterBlueprintCompleted'
+    const solicitudDocAfter = await getDoc(solicitudRef)
+
+    if (solicitudDocAfter.data().counterBlueprintCompleted === numBlueprints) {
+      await updateDoc(solicitudRef, { otReadyToFinish: true })
+    } else {
+      await updateDoc(solicitudRef, { otReadyToFinish: false })
     }
   }
 }
@@ -1044,6 +1053,28 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
   }
 }
 
+const finishPetition = async (currentPetition, authUser) => {
+  try {
+    const petitionRef = doc(db, 'solicitudes', currentPetition.id)
+    const petitionDoc = await getDoc(petitionRef)
+
+    const otFinished = petitionDoc.data().otFinished
+    const otReadyToFinish = petitionDoc.data().otReadyToFinish
+
+    if (!otFinished && otReadyToFinish) {
+      await updateDoc(petitionRef, {
+        otFinished: true,
+        otFinishedBy: { userName: authUser.displayName, userId: authUser.uid, userEmail: authUser.email },
+        otFinishedDate: new Date(),
+        state: 9
+      })
+    }
+  } catch (error) {
+    console.error('Error al finalizar la solicitud:', error)
+    throw new Error('Error al finalizar la solicitud')
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1057,5 +1088,6 @@ export {
   generateTransmittalCounter,
   updateSelectedDocuments,
   addComment,
-  updateUserData
+  updateUserData,
+  finishPetition
 }

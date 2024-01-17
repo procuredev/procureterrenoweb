@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
@@ -20,21 +20,27 @@ import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { generateTransmittal } from 'src/@core/utils/generate-transmittal'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
+import { DialogFinishOt } from 'src/@core/components/dialog-finishOt'
 import { el } from 'date-fns/locale'
 
 const DataGridGabinete = () => {
-  const [currentPetition, setCurrentPetition] = useState('')
+  const [currentPetition, setCurrentPetition] = useState(null)
   const [currentOT, setCurrentOT] = useState(null)
   const [currentAutoComplete, setCurrentAutoComplete] = useState(null)
   const [roleData, setRoleData] = useState({ name: 'admin' })
   const [open, setOpen] = useState(false)
   const [proyectistas, setProyectistas] = useState([])
   const [openCodeGenerator, setOpenCodeGenerator] = useState(false)
+  const [openFinishOt, setOpenFinishOt] = useState(false)
   const [blueprintGenerated, setBlueprintGenerated] = useState(false)
   const [designerAssigned, setDesignerAssigned] = useState(false)
   const [transmittalGenerated, setTransmittalGenerated] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [update, setUpdate] = useState(false)
 
   const apiRef = useGridApiRef()
+
+  const currentPetitionRef = useRef()
 
   const {
     useSnapshot,
@@ -42,7 +48,9 @@ const DataGridGabinete = () => {
     getUserData,
     useBlueprints,
     generateTransmittalCounter,
-    updateSelectedDocuments
+    updateSelectedDocuments,
+    finishPetition,
+    subscribeToPetition
   } = useFirebase()
 
   let petitions = useSnapshot(false, authUser, true)
@@ -60,8 +68,29 @@ const DataGridGabinete = () => {
     setOpenCodeGenerator(true)
   }
 
+  const finishOtCallback = () => {
+    setIsLoading(true)
+    finishPetition(currentPetition, authUser)
+      .then(() => {
+        setIsLoading(false)
+        setOpenAlert(false)
+      })
+      .catch(error => {
+        setIsLoading(false)
+        console.error(error)
+      })
+  }
+
   const handleCloseCodeGenerator = () => {
     setOpenCodeGenerator(false)
+  }
+
+  const handleClickOpenFinishOt = doc => {
+    setOpenFinishOt(true)
+  }
+
+  const handleCloseFinishOt = () => {
+    setOpenFinishOt(false)
   }
 
   const handleClickOpen = doc => {
@@ -94,17 +123,12 @@ const DataGridGabinete = () => {
 
       let tableElement = document.createElement('table')
       let numberOfDocuments = selected.size
-      console.log('Original selected:', selected)
 
       selected.forEach((value, key) => {
-        //console.log('key:', key)
-        console.log('value:', value)
         if (value.hasOwnProperty('storageHlcDocuments') && value.storageHlcDocuments !== null) {
           numberOfDocuments++
         }
       })
-
-      console.log('numberOfDocuments:', numberOfDocuments)
 
       tableElement.innerHTML = tableBody(newCode, numberOfDocuments)
 
@@ -118,6 +142,48 @@ const DataGridGabinete = () => {
       throw new Error('Error al generar Transmittal')
     }
   }
+
+  /*   useEffect(() => {
+    if (currentPetition && currentPetition.id) {
+      const idDoc = currentPetition.id
+      console.log('idDoc:', idDoc)
+      const unsubscribe = subscribeToPetition(idDoc, setCurrentPetition)
+
+      // Limpiar la suscripción al desmontar el componente
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe()
+        }
+      }
+    }
+  }, []) */
+
+  useEffect(() => {
+    currentPetitionRef.current = currentPetition
+  }, [currentPetition])
+
+  useEffect(() => {
+    setUpdate(!update)
+  }, [currentPetition])
+
+  useEffect(() => {
+    if (currentPetition && currentPetition.id) {
+      const idDoc = currentPetition.id
+
+      const unsubscribe = subscribeToPetition(idDoc, newPetition => {
+        if (JSON.stringify(newPetition) !== JSON.stringify(currentPetitionRef.current)) {
+          setCurrentPetition(newPetition)
+        }
+      })
+
+      // Limpiar la suscripción al desmontar el componente
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe()
+        }
+      }
+    }
+  }, [currentPetition])
 
   useEffect(() => {
     const fetchRoleAndProyectistas = async () => {
@@ -166,7 +232,7 @@ const DataGridGabinete = () => {
         <TextField
           sx={{ m: 2.5, width: '50%' }}
           label='Entregable'
-          value={currentPetition ? currentPetition.deliverable.map(item => item) : ''}
+          value={currentPetition && currentPetition.deliverable ? currentPetition.deliverable.map(item => item) : ''}
           id='form-props-read-only-input'
           InputProps={{ readOnly: true }}
         />
@@ -188,7 +254,15 @@ const DataGridGabinete = () => {
           )}
         />
 
-        {authUser.role === 8 ? (
+        {authUser.role === 5 || authUser.role === 6 ? (
+          <Button
+            variant='contained'
+            disabled={!currentPetition?.otReadyToFinish}
+            onClick={() => currentPetition && handleClickOpenFinishOt(currentPetition)}
+          >
+            Finalizar OT
+          </Button>
+        ) : authUser.role === 8 ? (
           <Button variant='contained' onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}>
             Generar nuevo documento
           </Button>
@@ -251,6 +325,9 @@ const DataGridGabinete = () => {
           roleData={roleData}
           setBlueprintGenerated={setBlueprintGenerated}
         />
+      )}
+      {openFinishOt && (
+        <DialogFinishOt open={openFinishOt} handleClose={handleCloseFinishOt} callback={finishOtCallback} />
       )}
     </Box>
   )
