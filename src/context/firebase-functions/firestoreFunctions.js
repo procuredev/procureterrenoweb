@@ -880,6 +880,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     6: () => ({
       ...updateData,
       sentByDesigner: approves,
+      sentBySupervisor: approves,
       approvedByContractAdmin: approves,
       storageBlueprints: approves ? blueprint.storageBlueprints : null
     }),

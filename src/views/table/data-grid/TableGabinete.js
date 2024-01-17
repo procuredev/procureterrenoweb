@@ -87,7 +87,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           .catch(err => console.error(err), setOpenAlert(false))
       : await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
+            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState(''), setDrawingTimeSelected('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
   }
