@@ -29,7 +29,7 @@ const Navigation = () => {
       title: 'Solicitudes',
       icon: 'mdi:file-document-multiple-outline',
       subject: 'solicitudes',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 10]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 9, 10]
     },
     {
       title: 'Calendario',
