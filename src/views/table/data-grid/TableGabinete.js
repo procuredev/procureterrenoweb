@@ -426,6 +426,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const RevisionComponent = ({ row, authUser }) => {
+    const date = new Date(row.date.seconds * 1000)
+    const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
+
     return row.revisions.map((revision, index) => (
       <Box
         key={index}
@@ -439,85 +442,69 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           backgroundColor: 'inherit',
           padding: 1,
           margin: 2,
-          borderRadius: 1
+          borderRadius: 1,
+          gap: 5
         }}
       >
-        <Box sx={{ width: '8%', overflow: 'hidden', height: 20, marginLeft: 80 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {revision.newRevision}
-          </Typography>
+        {authUser.role === 9 && <Box sx={{ flex: 0.12, overflow: 'hidden', height: 20 }}></Box>}
+        <Box sx={{ flex: 0.53, overflow: 'hidden', height: 20 }}></Box>
+        <Box sx={{ flex: 0.15, overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.newRevision}</Typography>
         </Box>
-        <Box sx={{ width: '13%', overflow: 'hidden', height: 20 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {revision.userName}
+        <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.userName}</Typography>
+        </Box>
+        {authUser.role === 9 && (
+          <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+            <Typography>{revision.lastTransmittal}</Typography>
+          </Box>
+        )}
+        <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.description}</Typography>
+        </Box>
+        <Box sx={{ flex: 0.5, overflow: 'hidden', height: 20 }}>
+          <Typography>
+            <Link
+              color='inherit'
+              key={index}
+              href={revision.storageBlueprints}
+              target='_blank'
+              rel='noreferrer'
+              variant='body1'
+              noWrap
+            >
+              {getFileName(revision.storageBlueprints)}
+            </Link>
           </Typography>
         </Box>
         {authUser.role === 9 && (
-          <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
-            <Typography
-              sx={{
-                fontSize: '0.875rem'
-              }}
-            >
-              {revision.lastTransmittal}
+          <Box sx={{ flex: 0.5, overflow: 'hidden', height: 20 }}>
+            <Typography>
+              {revision.storageHlcDocuments ? (
+                <Link
+                  color='inherit'
+                  key={index}
+                  href={revision.storageHlcDocuments}
+                  target='_blank'
+                  rel='noreferrer'
+                  variant='body1'
+                  noWrap
+                >
+                  {getFileName(revision.storageHlcDocuments)}
+                </Link>
+              ) : (
+                ''
+              )}
             </Typography>
           </Box>
         )}
-        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {revision.description}
-          </Typography>
+        <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+          <Typography>{formattedDate}</Typography>
         </Box>
-        <Box sx={{ width: '26%', overflow: 'hidden', height: 20 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {getFileName(revision.storageBlueprints)}
-          </Typography>
+        <Box sx={{ flex: 0.3, overflow: 'hidden', height: 20 }}>
+          <Typography>{revision.remarks}</Typography>
         </Box>
-        {authUser.role === 9 && (
-          <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
-            <Typography
-              sx={{
-                fontSize: '0.875rem'
-              }}
-            >
-              {revision.storageHlcDocuments ? getFileName(revision.storageHlcDocuments) : ''}
-            </Typography>
-          </Box>
-        )}
-        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {unixToDate(revision.date.seconds)}
-          </Typography>
-        </Box>
-        <Box sx={{ width: '10%', overflow: 'hidden', height: 20 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem'
-            }}
-          >
-            {revision.remarks}
-          </Typography>
-        </Box>
+        {authUser.role === 9 && <Box sx={{ flex: 0.3, overflow: 'hidden', height: 20 }}></Box>}
       </Box>
     ))
   }
@@ -782,9 +769,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: 0.2,
+      flex: 0.28,
       renderCell: params => {
         const { row } = params
+
+        const date = new Date(row.date.seconds * 1000)
+        const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
 
         return (
           <Box
@@ -794,7 +784,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }}
           >
             <Typography noWrap sx={{ textOverflow: 'clip' }}>
-              {unixToDate(row.date.seconds)[0]}
+              {formattedDate}
             </Typography>
           </Box>
         )
