@@ -307,6 +307,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
+  const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
+
   const [hasChanges, setHasChanges] = useState({
     title: false,
     plant: false,
@@ -324,6 +327,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
+  // Función para desplegar el acordeón de Información Adicional
+  const toggleAdditionalInfo = () => {
+    setAdditionalInfoVisible(!additionalInfoVisible)
+  }
+
   const PetitionerContactComponent = () => (
     <>
       {petitioner && <Typography>{petitioner}</Typography>}
@@ -336,6 +344,30 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     </>
   )
 
+  const PetitionerOpshiftContactComponent = () => (
+    <>
+      {petitionerContact.opshift && petitionerContact.opshift.map((opshiftItem, index) => (
+      <div key={index}>
+        {index > 0 && <br />}
+        <Typography>{'Contraturno ' + Number(index+1) + ':'}</Typography>
+        <Typography>{opshiftItem.name}</Typography>
+        <Typography>{opshiftItem.email}</Typography>
+        <Typography>{opshiftItem.phone}</Typography>
+      </div>
+    ))}
+    </>
+  )
+
+  const DeliverableComponent = () => (
+    <>
+      {values.deliverable && values.deliverable.map((deliverableItem, index) => (
+      <div key={index}>
+        <Typography>{deliverableItem}</Typography>
+      </div>
+    ))}
+    </>
+  )
+
   const initialValues = doc
     ? {
         title: doc.title,
@@ -343,8 +375,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         petitioner: doc.petitioner,
         plant: doc.plant,
         area: doc.area,
+        contop: doc.contop,
         date: moment(doc.date.toDate()),
         start: doc.start && moment(doc.start.toDate()),
+        type: doc.type,
+        detention: doc.detention,
+        deliverable: doc.deliverable,
+        objective: doc.objective,
         ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
@@ -626,6 +663,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     date,
     plant,
     area,
+    contop,
+    objective,
+    type,
+    detention,
+    deliverable,
     id,
     ot,
     end,
@@ -716,6 +758,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
+                  editable={false}
+                  label='Tipo de Levantamiento'
+                  id='objective'
+                  initialValue={objective}
+                  value={values.objective}
+                  onChange={handleInputChange('objective')}
+                  required={true}
+                  multiline={true}
+                />
+                <CustomListItem
                   selectable={true}
                   options={areas}
                   editable={editable && roleData && roleData.canEditValues}
@@ -735,6 +787,25 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.area}
                   onChange={handleInputChange('area')}
                 />
+                <CustomListItem
+                  editable={false}
+                  label='Contract Operator'
+                  id='contop'
+                  initialValue={contop}
+                  value={values.contop}
+                  required={true}
+                  multiline={true}
+                />
+                <CustomListItem
+                      editable={false}
+                      label='Estado Operacional'
+                      id='type'
+                      initialValue={type}
+                      value={values.type}
+                      onChange={handleInputChange('type')}
+                      required={true}
+                      multiline={true}
+                    />
                 <CustomListItem
                   editable={false}
                   label='Solicitante'
@@ -769,6 +840,42 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   required={isPlanner}
                 />
                 <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
+
+                {/* Información Adicional */}
+                <ListItem>
+                  <Button onClick={toggleAdditionalInfo}>
+                    {additionalInfoVisible ? 'Ocultar Información Adicional' : 'Mostrar Información Adicional'}
+                  </Button>
+                </ListItem>
+
+                {additionalInfoVisible && (
+                  <>
+                    {petitionerContact.opshift && petitionerContact.opshift[0].name && (
+                    <CustomListItem
+                    editable={false}
+                    label='Contraturno del Solicitante'
+                    id='opshift'
+                    initialValue={<PetitionerOpshiftContactComponent />}
+                    />
+                    )}
+                    <CustomListItem
+                      editable={false}
+                      label='¿Máquina detenida?'
+                      id='detention'
+                      initialValue={detention}
+                      value={values.detention}
+                      onChange={handleInputChange('detention')}
+                      required={true}
+                      multiline={true}
+                    />
+                    <CustomListItem
+                      editable={false}
+                      label='Entregables'
+                      id='deliverable'
+                      initialValue={<DeliverableComponent/>}
+                    />
+                  </>
+                )}
 
                 {values.fotos ? (
                  <ListItem>

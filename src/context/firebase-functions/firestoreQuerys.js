@@ -163,7 +163,7 @@ const getData = async id => {
 // getUserData agrupa funciones relacionadas con la colección 'users'
 // identifica que funcion debe ejecutar de acuerdo al parametro 'type' que se le proporcione
 // recibe el parametro (userParam = {shift : ''}) para establecer el valor por defecto en caso de recibir sólo los parametros type y plant.
-const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => {
+const getUserData = async (type, plant, userParam = { shift: '', name: '', email: '' }) => {
   const coll = collection(db, 'users') // Crear una referencia a la colección 'users' en la base de datos
   let allDocs = [] // Arreglo para almacenar los documentos extendidos
 
@@ -232,9 +232,9 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '' }) => 
         const querySnapshot = await getDocs(query(coll, where('name', '==', userParam.name)))
 
         if (!querySnapshot.empty) {
-          const docSnapshot = querySnapshot.docs[0]
+          const docSnapshot = querySnapshot.docs[0].data()
 
-          return { email: docSnapshot.data().email, phone: docSnapshot.data().phone }
+          return docSnapshot
         }
 
         return null // Devolver nulo si no se encuentra el documento
