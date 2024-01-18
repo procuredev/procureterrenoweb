@@ -306,6 +306,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
+  const [plantsNames, setPlantsNames] = useState([])
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -323,7 +324,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment, getDomainData } = useFirebase()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -388,6 +389,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...(doc.fotos && { fotos: doc.fotos })
       }
     : {}
+
+
+  useEffect(() => {
+    // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
+    const getPlantNames = async () => {
+    const plants = await getDomainData('plants')
+    let plantsArray = Object.keys(plants)
+    plantsArray.sort()
+    plantsArray = [...plantsArray, 'Sucursal Santiago']
+    setPlantsNames(plantsArray)
+    }
+    getPlantNames()
+  },[])
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -769,7 +783,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <CustomListItem
                   selectable={true}
-                  options={areas}
+                  options={plantsNames}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Planta'
                   id='plant'
@@ -797,15 +811,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
-                      editable={false}
-                      label='Estado Operacional'
-                      id='type'
-                      initialValue={type}
-                      value={values.type}
-                      onChange={handleInputChange('type')}
-                      required={true}
-                      multiline={true}
-                    />
+                  editable={false}
+                  label='Estado Operacional'
+                  id='type'
+                  initialValue={type}
+                  value={values.type}
+                  onChange={handleInputChange('type')}
+                  required={true}
+                  multiline={true}
+                />
                 <CustomListItem
                   editable={false}
                   label='Solicitante'
