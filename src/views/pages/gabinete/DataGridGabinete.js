@@ -142,21 +142,6 @@ const DataGridGabinete = () => {
     }
   }
 
-  /*   useEffect(() => {
-    if (currentPetition && currentPetition.id) {
-      const idDoc = currentPetition.id
-      console.log('idDoc:', idDoc)
-      const unsubscribe = subscribeToPetition(idDoc, setCurrentPetition)
-
-      // Limpiar la suscripción al desmontar el componente
-      return () => {
-        if (typeof unsubscribe === 'function') {
-          unsubscribe()
-        }
-      }
-    }
-  }, []) */
-
   useEffect(() => {
     if (currentPetition && currentPetition.id) {
       const idDoc = currentPetition.id
