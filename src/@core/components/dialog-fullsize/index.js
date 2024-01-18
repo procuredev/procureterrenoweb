@@ -358,6 +358,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     </>
   )
 
+  const DeliverableComponent = () => (
+    <>
+      {values.deliverable && values.deliverable.map((deliverableItem, index) => (
+      <div key={index}>
+        <Typography>{deliverableItem}</Typography>
+      </div>
+    ))}
+    </>
+  )
+
   const initialValues = doc
     ? {
         title: doc.title,
@@ -370,6 +380,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         start: doc.start && moment(doc.start.toDate()),
         type: doc.type,
         detention: doc.detention,
+        deliverable: doc.deliverable,
         objective: doc.objective,
         ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
@@ -656,6 +667,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     objective,
     type,
     detention,
+    deliverable,
     id,
     ot,
     end,
@@ -855,6 +867,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       onChange={handleInputChange('detention')}
                       required={true}
                       multiline={true}
+                    />
+                    <CustomListItem
+                      editable={false}
+                      label='Entregables'
+                      id='deliverable'
+                      initialValue={<DeliverableComponent/>}
                     />
                   </>
                 )}
