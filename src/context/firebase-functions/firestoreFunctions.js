@@ -344,14 +344,14 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged,
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor,
           newState: state.planner,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
         // Planificador modifica solicitud hecha por Supervisor (any --> any)
         {
           condition: approves && emergencyBySupervisor,
-          newState: latestEvent.newState,
+          newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
           log: 'Modificado sin cambiar de estado por Planificador'
         }
       ]
