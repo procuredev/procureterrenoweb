@@ -501,10 +501,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
           <Typography>{formattedDate}</Typography>
         </Box>
-        <Box sx={{ flex: 0.3, overflow: 'hidden', height: 20 }}>
+        <Box sx={{ flex: 0.35, overflow: 'hidden', height: 20 }}>
           <Typography>{revision.remarks}</Typography>
         </Box>
-        {authUser.role === 9 && <Box sx={{ flex: 0.3, overflow: 'hidden', height: 20 }}></Box>}
+        {authUser.role === 9 && <Box sx={{ flex: 0.2, overflow: 'hidden', height: 20 }}></Box>}
       </Box>
     ))
   }
