@@ -426,93 +426,95 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const RevisionComponent = ({ row, authUser }) => {
-    const date = new Date(row.date.seconds * 1000)
-    const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
+    return row.revisions.map((revision, index) => {
+      const date = new Date(revision.date.seconds * 1000)
+      const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
 
-    return row.revisions.map((revision, index) => (
-      <Box
-        key={index}
-        sx={{
-          display: 'inline-flex',
-          flexDirection: 'row',
-          flexWrap: 'nowrap',
-          width: '100%',
-          alignContent: 'center',
-          overflow: 'hidden',
-          backgroundColor: 'inherit',
-          padding: 1,
-          margin: 2,
-          borderRadius: 1,
-          gap: 5
-        }}
-      >
-        {authUser.role === 9 && <Box sx={{ flex: 0.07, overflow: 'hidden', height: 20 }}></Box>}
-        <Box sx={{ flex: role === 9 ? 0.15 : 0.4, overflow: 'hidden', height: 20 }}></Box>
-        <Box sx={{ flex: role === 9 ? 0.06 : 0.2, overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.newRevision}</Typography>
-        </Box>
-        <Box sx={{ flex: role === 9 ? 0.1 : 0.25, overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.userName}</Typography>
-        </Box>
-        {authUser.role === 9 && (
-          <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
-            <Typography>{revision.lastTransmittal}</Typography>
+      return (
+        <Box
+          key={index}
+          sx={{
+            display: 'inline-flex',
+            flexDirection: 'row',
+            flexWrap: 'nowrap',
+            width: '100%',
+            alignContent: 'center',
+            overflow: 'hidden',
+            backgroundColor: 'inherit',
+            padding: 1,
+            margin: 2,
+            borderRadius: 1,
+            gap: 5
+          }}
+        >
+          {authUser.role === 9 && <Box sx={{ flex: 0.07, overflow: 'hidden', height: 20 }}></Box>}
+          <Box sx={{ flex: role === 9 ? 0.16 : 0.35, overflow: 'hidden', height: 20 }}></Box>
+          <Box sx={{ flex: role === 9 ? 0.05 : 0.07, overflow: 'hidden', height: 20 }}>
+            <Typography>{revision.newRevision}</Typography>
           </Box>
-        )}
-        <Box sx={{ flex: role === 9 ? 0.12 : 0.2, overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.description}</Typography>
-        </Box>
-        <Box sx={{ flex: role === 9 ? 0.15 : 0.5, overflow: 'hidden', height: 20 }}>
-          <Typography>
-            <Link
-              color='inherit'
-              key={index}
-              href={revision.storageBlueprints}
-              target='_blank'
-              rel='noreferrer'
-              variant='body1'
-              noWrap
-            >
-              {getFileName(revision.storageBlueprints)}
-            </Link>
-          </Typography>
-        </Box>
-        {authUser.role === 9 && (
-          <Box sx={{ flex: role === 9 ? 0.09 : 0.5, overflow: 'hidden', height: 20 }}>
+          <Box sx={{ flex: role === 9 ? 0.1 : 0.17, overflow: 'hidden', height: 20 }}>
+            <Typography>{revision.userName}</Typography>
+          </Box>
+          {authUser.role === 9 && (
+            <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
+              <Typography>{revision.lastTransmittal}</Typography>
+            </Box>
+          )}
+          <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
+            <Typography>{revision.description}</Typography>
+          </Box>
+          <Box sx={{ flex: role === 9 ? 0.15 : 0.44, overflow: 'hidden', height: 20 }}>
             <Typography>
-              {revision.storageHlcDocuments ? (
-                <Link
-                  color='inherit'
-                  key={index}
-                  href={revision.storageHlcDocuments}
-                  target='_blank'
-                  rel='noreferrer'
-                  variant='body1'
-                  noWrap
-                >
-                  {getFileName(revision.storageHlcDocuments)}
-                </Link>
-              ) : (
-                ''
-              )}
+              <Link
+                color='inherit'
+                key={index}
+                href={revision.storageBlueprints}
+                target='_blank'
+                rel='noreferrer'
+                variant='body1'
+                noWrap
+              >
+                {getFileName(revision.storageBlueprints)}
+              </Link>
             </Typography>
           </Box>
-        )}
-        <Box sx={{ flex: role === 9 ? 0.09 : 0.28, overflow: 'hidden', height: 20 }}>
-          <Typography>{formattedDate}</Typography>
+          {authUser.role === 9 && (
+            <Box sx={{ flex: role === 9 ? 0.09 : 0.5, overflow: 'hidden', height: 20 }}>
+              <Typography>
+                {revision.storageHlcDocuments ? (
+                  <Link
+                    color='inherit'
+                    key={index}
+                    href={revision.storageHlcDocuments}
+                    target='_blank'
+                    rel='noreferrer'
+                    variant='body1'
+                    noWrap
+                  >
+                    {getFileName(revision.storageHlcDocuments)}
+                  </Link>
+                ) : (
+                  ''
+                )}
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ flex: role === 9 ? 0.09 : 0.1, overflow: 'hidden', height: 20 }}>
+            <Typography>{formattedDate}</Typography>
+          </Box>
+          <Box sx={{ flex: role === 9 ? 0.12 : 0.18, overflow: 'hidden', height: 20 }}>
+            <Typography>{revision.remarks}</Typography>
+          </Box>
+          {authUser.role === 9 && <Box sx={{ flex: role === 9 ? 0.06 : 0.3, overflow: 'hidden', height: 20 }}></Box>}
         </Box>
-        <Box sx={{ flex: role === 9 ? 0.12 : 0.3, overflow: 'hidden', height: 20 }}>
-          <Typography>{revision.remarks}</Typography>
-        </Box>
-        {authUser.role === 9 && <Box sx={{ flex: role === 9 ? 0.06 : 0.3, overflow: 'hidden', height: 20 }}></Box>}
-      </Box>
-    ))
+      )
+    })
   }
 
   const columns = [
     {
       field: 'title',
-      flex: role === 9 ? 0.15 : 0.4,
+      flex: role === 9 ? 0.15 : 0.35,
       minWidth: 120,
       headerName: 'Código Procure / MEL',
       renderCell: params => {
@@ -566,7 +568,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      flex: role === 9 ? 0.06 : 0.2,
+      flex: role === 9 ? 0.06 : 0.1,
       renderCell: params => {
         const { row } = params
 
@@ -582,7 +584,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      flex: role === 9 ? 0.1 : 0.25,
+      flex: role === 9 ? 0.1 : 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -614,7 +616,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex: role === 9 ? 0.12 : 0.2,
+      flex: role === 9 ? 0.12 : 0.3,
       renderCell: params => {
         const { row } = params
 
@@ -769,7 +771,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: role === 9 ? 0.09 : 0.28,
+      flex: role === 9 ? 0.09 : 0.15,
       renderCell: params => {
         const { row } = params
 
@@ -793,7 +795,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      flex: role === 9 ? 0.1 : 0.3,
+      flex: role === 9 ? 0.1 : 0.2,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
