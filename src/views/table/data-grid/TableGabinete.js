@@ -446,23 +446,23 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           gap: 5
         }}
       >
-        {authUser.role === 9 && <Box sx={{ flex: 0.12, overflow: 'hidden', height: 20 }}></Box>}
-        <Box sx={{ flex: 0.53, overflow: 'hidden', height: 20 }}></Box>
-        <Box sx={{ flex: 0.15, overflow: 'hidden', height: 20 }}>
+        {authUser.role === 9 && <Box sx={{ flex: 0.07, overflow: 'hidden', height: 20 }}></Box>}
+        <Box sx={{ flex: role === 9 ? 0.15 : 0.4, overflow: 'hidden', height: 20 }}></Box>
+        <Box sx={{ flex: role === 9 ? 0.06 : 0.2, overflow: 'hidden', height: 20 }}>
           <Typography>{revision.newRevision}</Typography>
         </Box>
-        <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+        <Box sx={{ flex: role === 9 ? 0.1 : 0.25, overflow: 'hidden', height: 20 }}>
           <Typography>{revision.userName}</Typography>
         </Box>
         {authUser.role === 9 && (
-          <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+          <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
             <Typography>{revision.lastTransmittal}</Typography>
           </Box>
         )}
-        <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+        <Box sx={{ flex: role === 9 ? 0.12 : 0.2, overflow: 'hidden', height: 20 }}>
           <Typography>{revision.description}</Typography>
         </Box>
-        <Box sx={{ flex: 0.5, overflow: 'hidden', height: 20 }}>
+        <Box sx={{ flex: role === 9 ? 0.15 : 0.5, overflow: 'hidden', height: 20 }}>
           <Typography>
             <Link
               color='inherit'
@@ -478,7 +478,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           </Typography>
         </Box>
         {authUser.role === 9 && (
-          <Box sx={{ flex: 0.5, overflow: 'hidden', height: 20 }}>
+          <Box sx={{ flex: role === 9 ? 0.09 : 0.5, overflow: 'hidden', height: 20 }}>
             <Typography>
               {revision.storageHlcDocuments ? (
                 <Link
@@ -498,13 +498,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             </Typography>
           </Box>
         )}
-        <Box sx={{ flex: 0.25, overflow: 'hidden', height: 20 }}>
+        <Box sx={{ flex: role === 9 ? 0.09 : 0.28, overflow: 'hidden', height: 20 }}>
           <Typography>{formattedDate}</Typography>
         </Box>
-        <Box sx={{ flex: 0.35, overflow: 'hidden', height: 20 }}>
+        <Box sx={{ flex: role === 9 ? 0.12 : 0.3, overflow: 'hidden', height: 20 }}>
           <Typography>{revision.remarks}</Typography>
         </Box>
-        {authUser.role === 9 && <Box sx={{ flex: 0.2, overflow: 'hidden', height: 20 }}></Box>}
+        {authUser.role === 9 && <Box sx={{ flex: role === 9 ? 0.06 : 0.3, overflow: 'hidden', height: 20 }}></Box>}
       </Box>
     ))
   }
@@ -512,7 +512,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'title',
-      flex: 0.4,
+      flex: role === 9 ? 0.15 : 0.4,
       minWidth: 120,
       headerName: 'Código Procure / MEL',
       renderCell: params => {
@@ -566,7 +566,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      flex: 0.2,
+      flex: role === 9 ? 0.06 : 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -582,7 +582,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      flex: 0.25,
+      flex: role === 9 ? 0.1 : 0.25,
       renderCell: params => {
         const { row } = params
 
@@ -598,7 +598,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
-      flex: 0.25,
+      flex: role === 9 ? 0.12 : 0.25,
       renderCell: params => {
         const { row } = params
 
@@ -614,7 +614,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex: 0.2,
+      flex: role === 9 ? 0.12 : 0.2,
       renderCell: params => {
         const { row } = params
 
@@ -640,7 +640,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      flex: 0.5,
+      flex: role === 9 ? 0.15 : 0.5,
       renderCell: params => {
         const { row } = params
 
@@ -704,7 +704,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'storageHlcDocuments',
       headerName: 'HLC',
-      flex: 0.5,
+      flex: role === 9 ? 0.09 : 0.5,
       renderCell: params => {
         const { row } = params
 
@@ -769,7 +769,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: 0.28,
+      flex: role === 9 ? 0.09 : 0.28,
       renderCell: params => {
         const { row } = params
 
@@ -793,7 +793,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      flex: 0.3,
+      flex: role === 9 ? 0.1 : 0.3,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -846,7 +846,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-      flex: 0.3,
+      flex: role === 9 ? 0.1 : 0.3,
       minWidth: 80,
       renderCell: params => {
         const { row } = params
