@@ -52,7 +52,6 @@ import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 import { useDropzone } from 'react-dropzone'
-import areas from '../plants-areas'
 import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
 import { object } from 'yup'
 
@@ -307,6 +306,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
   const [plantsNames, setPlantsNames] = useState([])
+  const [areas, setAreas] = useState([])
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -402,6 +402,31 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
     getPlantNames()
   },[])
+
+  // useEffect para setear las áreas según la planta seleccionada.
+  // TODO: Funcionamiento correcto pero carga lenta
+  useEffect(() => {
+    const findAreas = async (plant) => {
+      const plantData = await getDomainData('plants', plant)
+      let areasArray = []
+      for (const area in plantData) {
+        // Accede al valor de "name" dentro de cada propiedad de plantData
+        const areaName = plantData[area].name
+        areasArray.push(`${area} - ${areaName}`)
+      }
+
+      areasArray.sort()
+
+      try {
+        setAreas(areasArray)
+      } catch (error) {
+        console.log('Error: ' + error)
+      }
+    }
+
+    findAreas(values.plant)
+
+  },[values.plant])
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -793,7 +818,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <CustomListItem
                   selectable={true}
-                  options={(areas.find(area => area.name === values?.plant)?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0])) || values?.area || []}
+                  options={areas}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
