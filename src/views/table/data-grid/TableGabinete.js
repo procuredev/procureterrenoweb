@@ -475,7 +475,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           {authUser.role === 9 && <Box sx={{ flex: 0.07, overflow: 'hidden', height: 20 }}></Box>}
           <Box
             sx={{
-              flex: role === 9 && !xlDown ? 0.16 : role !== 9 && !xlDown ? 0.35 : role === 9 ? 0.21 : 0.41,
+              flex: role === 9 && !xlDown ? 0.16 : role !== 9 && !xlDown ? 0.35 : role === 9 ? 0.2 : 0.41,
               overflow: 'hidden',
               height: 20
             }}
@@ -532,7 +532,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Typography>
             </Box>
           )}
-          <Box sx={{ flex: role === 9 ? 0.09 : 0.15, overflow: 'hidden', height: 20 }}>
+          <Box
+            sx={{
+              flex: role === 9 && !xlDown ? 0.09 : role !== 9 && !xlDown ? 0.1 : role === 9 ? 0.09 : 0.11,
+              overflow: 'hidden',
+              height: 20
+            }}
+          >
             <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{formattedDate}</Typography>
           </Box>
           <Box
@@ -592,7 +598,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     noWrap
                     sx={{
                       textOverflow: 'clip',
-                      fontSize: sm ? '0.8rem' : '1rem',
+                      fontSize: xlDown ? '0.8rem' : '1rem',
                       textDecoration: 'none',
                       transition: 'text-decoration 0.2s',
                       '&:hover': {
@@ -602,7 +608,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   >
                     {row.id || 'Sin código Procure'}
                   </Typography>
-                  <Typography variant='caption'>{row.clientCode || 'Sin código MEL'}</Typography>
+                  <Typography variant='caption' sx={{ fontSize: xlDown ? '0.6rem' : '0.8rem' }}>
+                    {row.clientCode || 'Sin código MEL'}
+                  </Typography>
                   {row.id === currentRow && row.revisions.length === 0 && (
                     <Typography sx={{ mt: 1 }}>Sin eventos en historial</Typography>
                   )}
