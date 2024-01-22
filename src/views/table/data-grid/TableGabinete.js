@@ -252,10 +252,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         color={color}
         sx={{
           padding: '0rem!important',
-          margin: '0rem!important',
+          margin: '0.15rem!important',
           maxWidth: '25px',
           maxHeight: '25px',
-          minWidth: resume && !xlDown ? '120px' : '80px',
+          minWidth: resume && !xlDown ? '120px' : resume ? '80px' : '40px',
           minHeight: '25px'
         }}
       >
