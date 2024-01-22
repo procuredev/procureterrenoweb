@@ -7,7 +7,9 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import { CircularProgress } from '@mui/material'
 
-export default function DialogFinishOt({ open, handleClose, callback, isLoading = false }) {
+export default function DialogFinishOt({ open, handleClose, callback, isLoading, petitionFinished }) {
+  console.log('currentOTChild', petitionFinished)
+
   return (
     <Dialog
       open={open}
@@ -15,13 +17,15 @@ export default function DialogFinishOt({ open, handleClose, callback, isLoading 
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>Finalizar flujo de la solicitud</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>
+        {`${petitionFinished ? 'Reanudar' : 'Finalizar'} flujo de la solicitud`}
+      </DialogTitle>
       <DialogContent>
         {isLoading ? (
           <CircularProgress />
         ) : (
           <DialogContentText id='alert-dialog-description'>
-            ¿Estás segur@ de que quieres finalizar la solicitud?
+            {`¿Estás segur@ de que quieres ${petitionFinished ? 'Reanudar' : 'Finalizar'} la solicitud?`}
           </DialogContentText>
         )}
       </DialogContent>

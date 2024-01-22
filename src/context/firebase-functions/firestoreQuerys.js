@@ -101,17 +101,17 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
       if (control) {
         switch (userParam.role) {
           case 1:
-            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
+            q = query(collection(db, 'solicitudes'), where('state', '>=', 8))
             break
           case 7:
             q = query(
               collection(db, 'solicitudes'),
-              where('state', '==', 8),
+              where('state', '>=', 8),
               where('supervisorShift', '==', userParam.shift[0])
             )
             break
           default:
-            q = query(collection(db, 'solicitudes'), where('state', '==', 8))
+            q = query(collection(db, 'solicitudes'), where('state', '>=', 8))
             break
         }
       }

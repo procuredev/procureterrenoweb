@@ -221,13 +221,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     return 'Aprobado1'
   }
 
-  const renderButton = (row, approve, color, IconComponent, resume = false) => {
+  const renderButton = (row, approve, color, IconComponent, disabled, resume = false) => {
     const handleClick = () => handleClickOpenAlert(row, approve)
 
     return (
       <Button
         onClick={handleClick}
         variant='contained'
+        disabled={disabled}
         color={color}
         sx={{
           margin: '2px',
@@ -243,12 +244,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     )
   }
 
-  const renderButtons = (row, flexDirection, canApprove, canReject, canResume = false) => {
+  const renderButtons = (row, flexDirection, canApprove, canReject, disabled, canResume = false) => {
     return (
       <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
         {canReject && renderButton(row, false, 'error', CancelOutlined)}
-        {canResume && renderButton(row, true, 'info', AutorenewOutlined, true)}
+        {canResume && renderButton(row, true, 'info', AutorenewOutlined, disabled, true)}
       </Container>
     )
   }
@@ -851,7 +852,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       flex: role === 9 ? 0.1 : 0.3,
       minWidth: 80,
       renderCell: params => {
-        const { row } = params
+        const { row, currentPetition } = params
 
         const canApprove = checkRoleAndApproval(authUser.role, row)
         const canReject = checkRoleAndApproval(authUser.role, row)
@@ -860,7 +861,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const flexDirection = md ? 'row' : 'column'
 
-        const buttons = renderButtons(row, flexDirection, canApprove, canReject, canResume)
+        const disabled = petition?.otFinished
+
+        console.log('disabled', disabled)
+
+        const buttons = renderButtons(row, flexDirection, canApprove, canReject, disabled, canResume)
 
         return (
           <>

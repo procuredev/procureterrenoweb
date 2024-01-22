@@ -1056,8 +1056,11 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
 
 const finishPetition = async (currentPetition, authUser) => {
   try {
+    console.log('currentPetition:', currentPetition)
     const petitionRef = doc(db, 'solicitudes', currentPetition.id)
     const petitionDoc = await getDoc(petitionRef)
+
+    console.log('petitionDoc:', petitionDoc.data())
 
     const otFinished = petitionDoc.data().otFinished
     const otReadyToFinish = petitionDoc.data().otReadyToFinish
@@ -1068,6 +1071,13 @@ const finishPetition = async (currentPetition, authUser) => {
         otFinishedBy: { userName: authUser.displayName, userId: authUser.uid, userEmail: authUser.email },
         otFinishedDate: new Date(),
         state: 9
+      })
+    } else {
+      await updateDoc(petitionRef, {
+        otFinished: false,
+        otFinishedBy: { userName: authUser.displayName, userId: authUser.uid, userEmail: authUser.email },
+        otFinishedDate: new Date(),
+        state: 8
       })
     }
   } catch (error) {

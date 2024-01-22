@@ -20,7 +20,7 @@ import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 import { generateTransmittal } from 'src/@core/utils/generate-transmittal'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
-import { DialogFinishOt } from 'src/@core/components/dialog-finishOt'
+import DialogFinishOt from 'src/@core/components/dialog-finishOt'
 import { el } from 'date-fns/locale'
 
 const DataGridGabinete = () => {
@@ -72,7 +72,7 @@ const DataGridGabinete = () => {
     finishPetition(currentPetition, authUser)
       .then(() => {
         setIsLoading(false)
-        setOpenAlert(false)
+        setOpenFinishOt(false)
       })
       .catch(error => {
         setIsLoading(false)
@@ -142,23 +142,32 @@ const DataGridGabinete = () => {
     }
   }
 
+  const petitionFinished = currentPetition?.otFinished
+
   useEffect(() => {
     if (currentPetition && currentPetition.id) {
       const idDoc = currentPetition.id
 
       const unsubscribe = subscribeToPetition(idDoc, newPetition => {
+        // Compara el nuevo valor con el ref actual
         if (JSON.stringify(newPetition) !== JSON.stringify(currentPetitionRef.current)) {
           setCurrentPetition(newPetition)
+          currentPetitionRef.current = newPetition // Actualiza el ref
         }
       })
 
-      // Limpiar la suscripción al desmontar el componente
+      // Devuelve una función para limpiar la suscripción
       return () => {
         if (typeof unsubscribe === 'function') {
           unsubscribe()
         }
       }
     }
+  }, [currentPetition])
+
+  // Actualizar el ref cuando `currentPetition` cambie
+  useEffect(() => {
+    currentPetitionRef.current = currentPetition
   }, [currentPetition])
 
   useEffect(() => {
@@ -231,15 +240,29 @@ const DataGridGabinete = () => {
         />
 
         {authUser.role === 5 || authUser.role === 6 ? (
+          currentPetition?.otFinished ? (
+            <Button
+              variant='contained'
+              disabled={!currentPetition?.otReadyToFinish}
+              onClick={() => currentPetition && handleClickOpenFinishOt(currentPetition)}
+            >
+              Reanudar OT
+            </Button>
+          ) : (
+            <Button
+              variant='contained'
+              disabled={!currentPetition?.otReadyToFinish}
+              onClick={() => currentPetition && handleClickOpenFinishOt(currentPetition)}
+            >
+              Finalizar OT
+            </Button>
+          )
+        ) : authUser.role === 8 ? (
           <Button
             variant='contained'
-            disabled={!currentPetition?.otReadyToFinish}
-            onClick={() => currentPetition && handleClickOpenFinishOt(currentPetition)}
+            disabled={currentPetition?.otFinished}
+            onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
           >
-            Finalizar OT
-          </Button>
-        ) : authUser.role === 8 ? (
-          <Button variant='contained' onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}>
             Generar nuevo documento
           </Button>
         ) : authUser.role === 7 ? (
@@ -247,6 +270,7 @@ const DataGridGabinete = () => {
             <Button
               sx={{ width: '50%', m: 2.5 }}
               variant='contained'
+              disabled={currentPetition?.otFinished}
               onClick={() => currentPetition && handleClickOpen(currentPetition)}
             >
               Asignar proyectista
@@ -255,6 +279,7 @@ const DataGridGabinete = () => {
         ) : authUser.role === 9 ? (
           <Button
             variant='contained'
+            disabled={currentPetition?.otFinished}
             onClick={() => currentPetition && handleClickTransmittalGenerator(currentPetition, blueprints)}
           >
             Generar Transmittal
@@ -267,7 +292,11 @@ const DataGridGabinete = () => {
         currentPetition &&
         currentPetition.designerReview &&
         currentPetition.designerReview.find(user => user.userId === authUser.uid) ? (
-          <Button variant='contained' onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}>
+          <Button
+            variant='contained'
+            disabled={currentPetition?.otFinished}
+            onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
+          >
             Generar nuevo documento
           </Button>
         ) : (
@@ -303,7 +332,13 @@ const DataGridGabinete = () => {
         />
       )}
       {openFinishOt && (
-        <DialogFinishOt open={openFinishOt} handleClose={handleCloseFinishOt} callback={finishOtCallback} />
+        <DialogFinishOt
+          open={openFinishOt}
+          handleClose={handleCloseFinishOt}
+          callback={finishOtCallback}
+          isLoading={isLoading}
+          petitionFinished={petitionFinished}
+        />
       )}
     </Box>
   )
