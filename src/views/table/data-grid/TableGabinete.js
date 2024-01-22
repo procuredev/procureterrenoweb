@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
-
+import { makeStyles } from '@mui/styles'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
@@ -95,6 +95,26 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const handleCloseAlert = () => {
     setOpenAlert(false)
   }
+
+  const theme = useTheme()
+  const sm = useMediaQuery(theme.breakpoints.up('sm'))
+  const md = useMediaQuery(theme.breakpoints.up('md'))
+  const xl = useMediaQuery(theme.breakpoints.up('xl'))
+
+  const smDown = useMediaQuery(theme.breakpoints.down('sm'))
+  const mdDown = useMediaQuery(theme.breakpoints.down('md'))
+  const lgDown = useMediaQuery(theme.breakpoints.down('lg'))
+  const xlDown = useMediaQuery(theme.breakpoints.down('xl'))
+
+  const useStyles = makeStyles({
+    root: {
+      '& .MuiDataGrid-columnHeaderTitle': {
+        fontSize: xlDown ? '0.5rem' : '0.8rem' // Cambia esto al tamaño de fuente que desees
+      }
+    }
+  })
+
+  const classes = useStyles()
 
   const storage = getStorage()
 
@@ -231,22 +251,29 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         disabled={disabled}
         color={color}
         sx={{
-          margin: '2px',
+          padding: '0rem!important',
+          margin: '0rem!important',
           maxWidth: '25px',
           maxHeight: '25px',
-          minWidth: resume ? '120px' : '25px',
+          minWidth: resume && !xlDown ? '120px' : '80px',
           minHeight: '25px'
         }}
       >
-        <IconComponent sx={{ fontSize: 18 }} />
-        {resume ? <Typography sx={{ textOverflow: 'clip' }}> Reanudar</Typography> : ''}
+        <IconComponent sx={{ fontSize: 18, fontSize: xlDown ? '0.8rem' : '1rem' }} />
+        {resume ? (
+          <Typography sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.7rem' : '1rem' }}> Reanudar</Typography>
+        ) : (
+          ''
+        )}
       </Button>
     )
   }
 
   const renderButtons = (row, flexDirection, canApprove, canReject, disabled, canResume = false) => {
     return (
-      <Container sx={{ display: 'flex', flexDirection: { flexDirection } }}>
+      <Container
+        sx={{ display: 'flex', flexDirection: { flexDirection }, padding: '0rem!important', margin: '0rem!important' }}
+      >
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
         {canReject && renderButton(row, false, 'error', CancelOutlined)}
         {canResume && renderButton(row, true, 'info', AutorenewOutlined, disabled, true)}
@@ -397,9 +424,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     }
   }, [rows, openUploadDialog, currentRow])
 
-  const theme = useTheme()
-  const md = useMediaQuery(theme.breakpoints.up('md'))
-
   useEffect(() => {
     const fetchProyectistas = async () => {
       const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
@@ -445,24 +469,30 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             padding: 1,
             margin: 2,
             borderRadius: 1,
-            gap: 5
+            gap: 3
           }}
         >
           {authUser.role === 9 && <Box sx={{ flex: 0.07, overflow: 'hidden', height: 20 }}></Box>}
-          <Box sx={{ flex: role === 9 ? 0.16 : 0.35, overflow: 'hidden', height: 20 }}></Box>
+          <Box
+            sx={{
+              flex: role === 9 && !xlDown ? 0.16 : role !== 9 && !xlDown ? 0.35 : role === 9 ? 0.21 : 0.41,
+              overflow: 'hidden',
+              height: 20
+            }}
+          ></Box>
           <Box sx={{ flex: role === 9 ? 0.05 : 0.07, overflow: 'hidden', height: 20 }}>
-            <Typography>{revision.newRevision}</Typography>
+            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.newRevision}</Typography>
           </Box>
           <Box sx={{ flex: role === 9 ? 0.1 : 0.17, overflow: 'hidden', height: 20 }}>
-            <Typography>{revision.userName}</Typography>
+            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.userName}</Typography>
           </Box>
           {authUser.role === 9 && (
             <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
-              <Typography>{revision.lastTransmittal}</Typography>
+              <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.lastTransmittal}</Typography>
             </Box>
           )}
           <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
-            <Typography>{revision.description}</Typography>
+            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.description}</Typography>
           </Box>
           <Box sx={{ flex: role === 9 ? 0.15 : 0.44, overflow: 'hidden', height: 20 }}>
             <Typography>
@@ -474,6 +504,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 rel='noreferrer'
                 variant='body1'
                 noWrap
+                sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
               >
                 {getFileName(revision.storageBlueprints)}
               </Link>
@@ -491,6 +522,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     rel='noreferrer'
                     variant='body1'
                     noWrap
+                    sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
                   >
                     {getFileName(revision.storageHlcDocuments)}
                   </Link>
@@ -500,13 +532,27 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Typography>
             </Box>
           )}
-          <Box sx={{ flex: role === 9 ? 0.09 : 0.1, overflow: 'hidden', height: 20 }}>
-            <Typography>{formattedDate}</Typography>
+          <Box sx={{ flex: role === 9 ? 0.09 : 0.15, overflow: 'hidden', height: 20 }}>
+            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{formattedDate}</Typography>
           </Box>
-          <Box sx={{ flex: role === 9 ? 0.12 : 0.18, overflow: 'hidden', height: 20 }}>
-            <Typography>{revision.remarks}</Typography>
+          <Box
+            sx={{
+              flex: role === 9 && !xlDown ? 0.12 : role !== 9 && !xlDown ? 0.18 : role === 9 ? 0.16 : 0.2,
+              overflow: 'hidden',
+              height: 20
+            }}
+          >
+            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.remarks}</Typography>
           </Box>
-          {authUser.role === 9 && <Box sx={{ flex: role === 9 ? 0.06 : 0.3, overflow: 'hidden', height: 20 }}></Box>}
+          {authUser.role === 9 && (
+            <Box
+              sx={{
+                flex: role === 9 && !xlDown ? 0.06 : role !== 9 && !xlDown ? 0.3 : role === 9 ? 0.02 : 0.2,
+                overflow: 'hidden',
+                height: 20
+              }}
+            ></Box>
+          )}
         </Box>
       )
     })
@@ -539,13 +585,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     handleOpenUploadDialog(row)
                   }}
                 >
-                  <OpenInNew />
+                  <OpenInNew sx={{ fontSize: xlDown ? '1rem' : '1.2rem' }} />
                 </IconButton>
                 <Box>
                   <Typography
                     noWrap
                     sx={{
                       textOverflow: 'clip',
+                      fontSize: sm ? '0.8rem' : '1rem',
                       textDecoration: 'none',
                       transition: 'text-decoration 0.2s',
                       '&:hover': {
@@ -575,7 +622,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <Box sx={{ overflow: 'hidden' }}>
-            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
               {row.revision || 'N/A'}
             </Typography>
           </Box>
@@ -591,7 +638,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <Box sx={{ overflow: 'hidden' }}>
-            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
               {row.userName || 'N/A'}
             </Typography>
           </Box>
@@ -607,7 +654,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         return (
           <Box sx={{ overflow: 'hidden' }}>
-            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
               {row.lastTransmittal || 'N/A'}
             </Typography>
           </Box>
@@ -632,7 +679,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             }}
           >
             <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
-              <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+              <Typography
+                noWrap
+                sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+              >
                 {row.description || 'Sin descripción'}
               </Typography>
             </Box>
@@ -670,6 +720,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                       rel='noreferrer'
                       variant='body1'
                       noWrap
+                      sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
                     >
                       {getFileName(content, index)}
                     </Link>
@@ -734,13 +785,17 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                       rel='noreferrer'
                       variant='body1'
                       noWrap
+                      sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
                     >
                       {getFileName(content, index)}
                     </Link>
                   </Typography>
                 ))
               ) : (
-                <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                <Typography
+                  noWrap
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                >
                   Sin HLC
                 </Typography>
               )}
@@ -772,7 +827,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: role === 9 ? 0.09 : 0.15,
+      flex: role === 9 && !xlDown ? 0.09 : role !== 9 && !xlDown ? 0.15 : role === 9 ? 0.11 : 0.17,
       renderCell: params => {
         const { row } = params
 
@@ -786,7 +841,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               overflow: 'hidden'
             }}
           >
-            <Typography noWrap sx={{ textOverflow: 'clip' }}>
+            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
               {formattedDate}
             </Typography>
           </Box>
@@ -839,7 +894,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Select>
                 )
               ) : (
-                <Typography>{renderStatus(row)}</Typography>
+                <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{renderStatus(row)}</Typography>
               )}
             </Box>
           </>
@@ -850,7 +905,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       field: 'clientApprove',
       headerName: 'Cliente',
       flex: role === 9 ? 0.1 : 0.3,
-      minWidth: 80,
+      minWidth: 60,
       renderCell: params => {
         const { row, currentPetition } = params
 
@@ -868,13 +923,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const buttons = renderButtons(row, flexDirection, canApprove, canReject, disabled, canResume)
 
         return (
-          <>
+          <Box sx={{ padding: '0rem!important', margin: '0rem!important' }}>
             <Box
               sx={{
                 display: 'flex',
                 width: '100%',
+                padding: '0rem!important',
+                margin: '0rem!important',
                 justifyContent: 'space-between',
-                alignContent: 'center',
+                alignContent: 'right',
                 flexDirection: 'column',
                 overflow: 'hidden'
               }}
@@ -931,7 +988,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 ''
               )}
             </Box>
-          </>
+          </Box>
         )
       }
     }
@@ -951,12 +1008,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             minHeight: '200px'
           }
         }}
+        classes={{ root: classes.root }}
         slotProps={{
           baseCheckbox: {
             sx: {
               '& .MuiSvgIcon-root': {
                 color: theme.palette.primary.main,
-                opacity: 0.7
+                opacity: 0.7,
+                fontSize: xlDown ? '1rem' : '1.2rem',
+                padding: '0rem',
+                margin: '0rem'
               }
             }
           }
