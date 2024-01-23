@@ -30,7 +30,7 @@ export const generateTransmittal = (tableElement, selected, setTransmittalGenera
       newSelected.push([
         `${value[1].id}_REV_${value[1].revision}_HLC`,
         {
-          id: `${value[1].id}_REV_${value[1].revision}_HLC`,
+          id: `${value[1].clientCode}_REV_${value[1].revision}_HLC`,
           description: `Hoja de Levantamiento de Comentarios ${value[1].description}`,
           revision: '-'
         }
