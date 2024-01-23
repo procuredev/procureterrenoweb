@@ -245,6 +245,7 @@ const DataGridGabinete = () => {
               variant='contained'
               disabled={!currentPetition?.otReadyToFinish}
               onClick={() => currentPetition && handleClickOpenFinishOt(currentPetition)}
+              color='info'
             >
               Reanudar OT
             </Button>
