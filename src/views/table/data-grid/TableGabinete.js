@@ -612,7 +612,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {row.clientCode || 'Sin código MEL'}
                   </Typography>
                   {row.id === currentRow && row.revisions.length === 0 && (
-                    <Typography sx={{ mt: 1 }}>Sin eventos en historial</Typography>
+                    <Typography sx={{ mt: 1, fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                      Sin eventos en historial
+                    </Typography>
                   )}
                 </Box>
               </Box>
@@ -624,7 +626,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      flex: role === 9 ? 0.06 : 0.1,
+      flex: role === 9 ? 0.07 : 0.15,
       renderCell: params => {
         const { row } = params
 
@@ -735,13 +737,20 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Typography>
                 ))
               ) : (
-                <Typography noWrap sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip' }}>
+                <Typography
+                  noWrap
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                >
                   Sin entregable
                 </Typography>
               )}
 
               <IconButton
-                sx={{ my: 'auto', ml: 2, p: 0 }}
+                sx={{
+                  my: 'auto',
+                  ml: 2,
+                  p: 0
+                }}
                 onClick={
                   (authUser.uid === row.userId && !row.sentByDesigner) ||
                   ((authUser.role === 6 || authUser.role === 7) &&
@@ -756,7 +765,17 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     : null
                 }
               >
-                {row.storageBlueprints ? null : <Upload />}
+                {row.storageBlueprints ? null : (
+                  <Upload
+                    sx={{
+                      fontSize: xlDown ? '1rem' : '1.2rem',
+                      color:
+                        authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
+                          ? theme.palette.success
+                          : theme.palette.grey[500]
+                    }}
+                  />
+                )}
               </IconButton>
             </Box>
           </Box>
