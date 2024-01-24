@@ -236,8 +236,9 @@ const FormLayoutsSolicitud = () => {
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
+      const costCenterIsRequired = (authUser.role === 7 && key === 'costCenter') ? false : true
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && excludedFields) {
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && costCenterIsRequired && excludedFields) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
@@ -725,7 +726,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Centro de Costos */}
             <CustomTextField
-              required
+              required={authUser.role!=7}
               type='text'
               label='Centro de Costos'
               value={values.costCenter}

@@ -592,7 +592,7 @@ export function solicitudValidator(values) {
 
   for (const key in values) {
     let keyStringName = keyMap[key] || [key]
-    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag', 'end', 'ot', 'urgency', 'mcDescription']
+    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag', 'end', 'ot', 'urgency', 'mcDescription', 'costCenter']
 
     if (typeof values[key] === 'string' && !nonRequiredFields.includes(key)) {
       if (values[key].trim() === '') {
