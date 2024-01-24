@@ -173,6 +173,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const end = values.end ? values.end.toLocaleDateString() : 'Por definir'
       const plant = values.plant
       const area = values.area ? values.area : 'No indicado'
+      const costCenter = values.costCenter ? values.costCenter : 'No indicado'
       const functionalLocation = values.fnlocation ? values.fnlocation : 'No indicado'
       const contractOperator = userContOp
       const petitioner = values.petitioner ? values.petitioner : 'No indicado'
@@ -198,11 +199,11 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         let mcDescription = values.mcDescription ? values.mcDescription : ''
         let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` + `<p></p>` + mcDescription + `<p></p>` + `Procure procederá a generar un presupuesto especial para el caso indicado.`
         lastMessage = specialMessage + ' ' + lastMessage
-        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, costCenter, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
 
       } else {
         // Llamada al html del email con las constantes previamente indicadads
-        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, costCenter, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
       }
 
 

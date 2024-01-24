@@ -10,6 +10,7 @@ export const getEmailTemplate = (
   end,
   plant,
   area,
+  costCenter,
   functionalLocation,
   contractOperator,
   petitioner,
@@ -56,6 +57,10 @@ export const getEmailTemplate = (
         <tr>
           <td style="text-align:left; padding-left:15px;"><strong>Área:</strong></td>
           <td>${area}</td>
+        </tr>
+        <tr>
+          <td style="text-align:left; padding-left:15px;"><strong>Centro de Costos:</strong></td>
+          <td>${costCenter}</td>
         </tr>
         <tr>
           <td style="text-align:left; padding-left:15px;"><strong>Functional Location:</strong></td>
