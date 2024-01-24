@@ -305,6 +305,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
+  const [allDomainData, setAllDomainData] = useState({})
+  const [objectivesArray, setObjectivesArray] = useState([])
+  const [objectivesObject, setObjectivesObject] = useState({})
   const [plantsData, setPlantsData] = useState({})
   const [plantsNames, setPlantsNames] = useState([])
   const [areas, setAreas] = useState([])
@@ -394,25 +397,33 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     : {}
 
 
-  // useEffect(() => {
-  //   // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
-  //   const getPlantNames = async () => {
-  //     const plants = await getDomainData('plants')
-  //     let plantsArray = Object.keys(plants)
-  //     plantsArray.sort()
-  //     setPlantsNames(plantsArray)
-  //   }
-  //   getPlantNames()
-  // },[])
-
   useEffect(() => {
     // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
-    const getPlantsData = async () => {
-      const plants = await getDomainData('plants')
-      setPlantsData(plants)
+    const getAllDomainData = async () => {
+      const domain = await getDomainData()
+      setAllDomainData(domain)
+      setPlantsData(domain.plants)
+      setObjectivesObject(domain.objectives)
     }
-    getPlantsData()
+    getAllDomainData()
   },[])
+
+  useEffect(() => {
+    const getObjectives = async () => {
+      // Obtener las claves de 'objectives'
+      const asd = Object.keys(objectivesObject);
+
+      // Ordenar alfabéticamente
+      asd.sort();
+
+      // Establecer en el estado
+      setObjectivesArray(asd);
+    };
+
+    getObjectives();
+  }, [objectivesObject]);
+
+  console.log(objectivesArray)
 
   useEffect(() => {
     // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
@@ -424,7 +435,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     getPlantNames()
   },[plantsData])
 
-  // useEffect para setear las áreas según la planta seleccionada.
+  // useEffect para setear las áreas según la p lanta seleccionada.
   // TODO: Funcionamiento correcto pero carga lenta
   useEffect(() => {
 
@@ -822,14 +833,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
-                  editable={false}
+                  selectable={true}
+                  options={objectivesArray}
+                  editable={editable && roleData && roleData.canEditValues}
                   label='Tipo de Levantamiento'
                   id='objective'
                   initialValue={objective}
                   value={values.objective}
                   onChange={handleInputChange('objective')}
-                  required={true}
-                  multiline={true}
                 />
                 <CustomListItem
                   selectable={true}

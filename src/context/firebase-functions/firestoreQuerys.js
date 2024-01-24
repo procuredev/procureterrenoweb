@@ -141,22 +141,55 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
 
 // Función para obtener los datos de un documento de la colección 'domain'
 // Se pedirá como parámetro obligatorio el documento que quiere obtener (plants, roles, deliverables, etc)
+// Si no se selecciona document; vale decir que document es null, se deberá entregar la información de toda la colección 'domain'
 // Como parámetro opcional se ingresará el campo que quiere obtener de ese documento
 // Si no se indica el parámetro field, se retornarán todos los campos existentes en ese documento
-const getDomainData = async (document, field=null) => {
+const getDomainData = async (document = null, field = null) => {
+  const collectionRef = collection(db, 'domain')
 
-  let returnedData
-  const docRef = doc(db, 'domain', document)
-  const docSnap = await getDoc(docRef)
-  const docData = docSnap.data()
+  try {
+    if (document === null) {
+      // Si no se selecciona document; vale decir que document es null, se deberá entregar la información de toda la colección 'domain'
 
-  if (field != null) {
-    returnedData = docData[field]
-  } else {
-    returnedData = docData
+      const querySnapshot = await getDocs(collectionRef)
+      const allData = {}
+
+      querySnapshot.forEach((doc) => {
+        allData[doc.id] = doc.data()
+      })
+      return allData
+
+    } else {
+      // En cualquier otro caso, se deberá especificar el documento dentro de domain el cual se requiere
+
+      const docRef = doc(collectionRef, document)
+      const docSnap = await getDoc(docRef)
+
+      if (docSnap.exists()) {
+        // Si el 'document' indicado existe dentro de 'domain'
+        const docData = docSnap.data()
+
+        if (field !== null && field in docData) {
+          // Si dentro del documento se requiere especificar el campo el cual se requiere, se debe indicar mediante 'field'
+          return docData[field]
+        } else if (field === null) {
+          // Si no se especifica el campo dentro del documento, se entregará toda la data del 'document'
+          return docData
+        } else {
+          // En cualquier otro caso, se maneja el error
+          console.error(`El campo '${field}' no existe en el documento.`)
+          return null;
+        }
+      } else {
+        // Si el 'document' indicado no existe, se maneja el error
+        console.error(`El documento con ID '${document}' no existe.`)
+        return null;
+      }
+    }
+  } catch (error) {
+    console.error('Error al obtener datos:', error)
+    return null;
   }
-
-  return returnedData
 }
 
 const getData = async id => {
