@@ -59,7 +59,8 @@ const FormLayoutsSolicitud = () => {
     tag: '',
     end: null,
     ot: '',
-    urgency: ''
+    urgency: '',
+    costCenter: ''
   }
 
   // ** Hooks
@@ -128,7 +129,7 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'mcDescription']
+    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'mcDescription', 'costCenter']
     const selectFields = ['plant', 'area', 'petitioner', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
@@ -250,17 +251,19 @@ const FormLayoutsSolicitud = () => {
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    tag: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
+    tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
-    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag']
+    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
+      const costCenterIsRequired = (authUser.role === 7 && key === 'costCenter') ? false : true
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && excludedFields) {
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && costCenterIsRequired && excludedFields) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
@@ -773,6 +776,18 @@ const FormLayoutsSolicitud = () => {
               disabled={authUser.role === 3}
               helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
               defaultValue=''
+            />
+
+            {/* Centro de Costos */}
+            <CustomTextField
+              required={authUser.role!=7}
+              type='text'
+              label='Centro de Costos'
+              value={values.costCenter}
+              onChange={handleChange('costCenter')}
+              error={errors.costCenter}
+              inputProps={{ maxLength: 25 }}
+              helper='Ingresa el código del Centro de Costos.'
             />
 
             {/* Functional Location */}

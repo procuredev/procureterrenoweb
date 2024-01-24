@@ -320,7 +320,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     ot: false,
     supervisorShift: false,
     description: false,
-    fotos: false
+    fotos: false,
+    costCenter: false
   })
 
   const theme = useTheme()
@@ -376,6 +377,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         petitioner: doc.petitioner,
         plant: doc.plant,
         area: doc.area,
+        costCenter: doc.costCenter,
         contop: doc.contop,
         date: moment(doc.date.toDate()),
         start: doc.start && moment(doc.start.toDate()),
@@ -702,6 +704,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     date,
     plant,
     area,
+    costCenter,
     contop,
     objective,
     type,
@@ -825,6 +828,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   initialValue={area}
                   value={values.area}
                   onChange={handleInputChange('area')}
+                />
+                <CustomListItem
+                  editable={editable && roleData && roleData.canEditValues}
+                  label='Centro de Costos'
+                  id='costCenter'
+                  initialValue={costCenter}
+                  value={values.costCenter}
+                  onChange={handleInputChange('costCenter')}
+                  disabled={!isPlanner}
                 />
                 <CustomListItem
                   editable={false}
