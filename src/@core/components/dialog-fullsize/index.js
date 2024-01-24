@@ -305,6 +305,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
+  const [plantsData, setPlantsData] = useState({})
   const [plantsNames, setPlantsNames] = useState([])
   const [areas, setAreas] = useState([])
 
@@ -393,23 +394,44 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     : {}
 
 
+  // useEffect(() => {
+  //   // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
+  //   const getPlantNames = async () => {
+  //     const plants = await getDomainData('plants')
+  //     let plantsArray = Object.keys(plants)
+  //     plantsArray.sort()
+  //     setPlantsNames(plantsArray)
+  //   }
+  //   getPlantNames()
+  // },[])
+
+  useEffect(() => {
+    // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
+    const getPlantsData = async () => {
+      const plants = await getDomainData('plants')
+      setPlantsData(plants)
+    }
+    getPlantsData()
+  },[])
+
   useEffect(() => {
     // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
     const getPlantNames = async () => {
-    const plants = await getDomainData('plants')
-    let plantsArray = Object.keys(plants)
-    plantsArray.sort()
-    plantsArray = [...plantsArray, 'Sucursal Santiago']
-    setPlantsNames(plantsArray)
+      let plantsArray = Object.keys(plantsData)
+      plantsArray.sort()
+      setPlantsNames(plantsArray)
     }
     getPlantNames()
-  },[])
+  },[plantsData])
 
   // useEffect para setear las áreas según la planta seleccionada.
   // TODO: Funcionamiento correcto pero carga lenta
   useEffect(() => {
+
     const findAreas = async (plant) => {
-      const plantData = await getDomainData('plants', plant)
+      //const plantData = await getDomainData('plants', plant)
+      const plantData = plantsData[plant]
+
       let areasArray = []
       for (const area in plantData) {
         // Accede al valor de "name" dentro de cada propiedad de plantData
@@ -428,7 +450,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
     findAreas(values.plant)
 
-  },[values.plant])
+  },[values.plant, plantsData])
 
   // Establece los contactos del Solicitante
   useEffect(() => {
