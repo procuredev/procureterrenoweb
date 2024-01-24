@@ -1954,7 +1954,7 @@
   resolved "https://registry.npmjs.org/@mui/types/-/types-7.2.4.tgz"
   integrity sha512-LBcwa8rN84bKF+f5sDyku42w1NTxaPgPyYKODsh01U1fVstTClbUoSA96oyRBnSNyEiAVjKm6Gwx9vjR+xyqHA==
 
-"@mui/utils@^5.10.9", "@mui/utils@^5.13.7", "@mui/utils@^5.14.1", "@mui/utils@^5.14.16", "@mui/utils@^5.14.3", "@mui/utils@^5.14.4":
+"@mui/utils@^5.10.9", "@mui/utils@^5.13.7", "@mui/utils@^5.14.1", "@mui/utils@^5.14.16", "@mui/utils@^5.14.4":
   version "5.14.20"
   resolved "https://registry.npmjs.org/@mui/utils/-/utils-5.14.20.tgz"
   integrity sha512-Y6yL5MoFmtQml20DZnaaK1znrCEwG6/vRSzW8PKOTrzhyqKIql0FazZRUR7sA5EPASgiyKZfq0FPwISRXm5NdA==
@@ -1980,7 +1980,21 @@
     prop-types "^15.8.1"
     reselect "^4.1.8"
 
-"@mui/x-data-grid-pro@^6.18.4", "@mui/x-data-grid-pro@6.18.7":
+"@mui/x-data-grid-pro@^6.18.7":
+  version "6.19.1"
+  resolved "https://registry.npmjs.org/@mui/x-data-grid-pro/-/x-data-grid-pro-6.19.1.tgz"
+  integrity sha512-E9WOUvSxyLnin6F5npqBjTbHMN1ovJ7Jige9SadvKCmXtVS88HU/OtYWNnzVPrLtnIoOrI3yxdqltqzcC2kfOw==
+  dependencies:
+    "@babel/runtime" "^7.23.2"
+    "@mui/utils" "^5.14.16"
+    "@mui/x-data-grid" "6.19.1"
+    "@mui/x-license-pro" "6.10.2"
+    "@types/format-util" "^1.0.3"
+    clsx "^2.0.0"
+    prop-types "^15.8.1"
+    reselect "^4.1.8"
+
+"@mui/x-data-grid-pro@6.18.7":
   version "6.18.7"
   resolved "https://registry.npmjs.org/@mui/x-data-grid-pro/-/x-data-grid-pro-6.18.7.tgz"
   integrity sha512-NuL3o7sHmbx85mYRMW5UG8E3I3ogBtLp1xPBzpNrsrkbzpH6Ec45OzGzu1y9NljC2GfNpdbZhKirYLqFkQt7+A==
@@ -1994,13 +2008,13 @@
     prop-types "^15.8.1"
     reselect "^4.1.8"
 
-"@mui/x-data-grid@6.11.1":
-  version "6.11.1"
-  resolved "https://registry.npmjs.org/@mui/x-data-grid/-/x-data-grid-6.11.1.tgz"
-  integrity sha512-qFyuf6R/JOG46Y62scwH0C7s+xVqfRFU/gv4rUWS9m+EYsabAXTx/g+Mq2t+ZGdaaGZlrpKDavr2PwitbpTMaw==
+"@mui/x-data-grid@^6.18.7", "@mui/x-data-grid@6.19.1":
+  version "6.19.1"
+  resolved "https://registry.npmjs.org/@mui/x-data-grid/-/x-data-grid-6.19.1.tgz"
+  integrity sha512-qtmt+XAOdxwb7p3vjk4HcfncAOe+0HzpcC6o6G+rzk9Hqq6MgG3yODrN9mRc/ONg0fD0eVlqDogXxNtJhcFmTQ==
   dependencies:
-    "@babel/runtime" "^7.22.6"
-    "@mui/utils" "^5.14.3"
+    "@babel/runtime" "^7.23.2"
+    "@mui/utils" "^5.14.16"
     clsx "^2.0.0"
     prop-types "^15.8.1"
     reselect "^4.1.8"
@@ -8155,12 +8169,7 @@ utrie@^1.0.2:
   dependencies:
     base64-arraybuffer "^1.0.2"
 
-uuid@^8.0.0:
-  version "8.3.2"
-  resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
-  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
-uuid@^8.3.0:
+uuid@^8.0.0, uuid@^8.3.0:
   version "8.3.2"
   resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
