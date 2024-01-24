@@ -78,7 +78,8 @@ const newDoc = async (values, userParam) => {
     ot,
     end,
     urgency,
-    mcDescription
+    mcDescription,
+    costCenter
   } = values
 
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
@@ -106,6 +107,7 @@ const newDoc = async (values, userParam) => {
       user,
       userEmail,
       userRole,
+      costCenter,
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
       engineering,
