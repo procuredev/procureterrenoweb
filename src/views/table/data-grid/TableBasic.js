@@ -113,7 +113,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       },
       6: {
         approve: hasPrevState && !createdBySupervisor,
-        edit: (hasPrevState && !createdBySupervisor) || row.pendingReschedule,
+        edit: (hasPrevState && !createdBySupervisor),
         reject: [5, 6].includes(row.state) && !createdBySupervisor
       },
       7: {
