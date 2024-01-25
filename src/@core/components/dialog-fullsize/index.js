@@ -305,12 +305,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
-  const [allDomainData, setAllDomainData] = useState({})
   const [objectivesArray, setObjectivesArray] = useState([])
-  const [objectivesObject, setObjectivesObject] = useState({})
-  const [plantsData, setPlantsData] = useState({})
+  const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
-  const [areas, setAreas] = useState([])
+  const [areasArray, setAreasArray] = useState([])
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -397,71 +395,52 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     : {}
 
 
+  // useEffect para buscar toda la información de la colección domain en la base de datos
   useEffect(() => {
-    // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
     const getAllDomainData = async () => {
-      const domain = await getDomainData()
-      setAllDomainData(domain)
-      setPlantsData(domain.plants)
-      setObjectivesObject(domain.objectives)
-    }
-    getAllDomainData()
-  },[])
-
-  useEffect(() => {
-    const getObjectives = async () => {
-      // Obtener las claves de 'objectives'
-      const asd = Object.keys(objectivesObject);
-
-      // Ordenar alfabéticamente
-      asd.sort();
-
-      // Establecer en el estado
-      setObjectivesArray(asd);
-    };
-
-    getObjectives();
-  }, [objectivesObject]);
-
-  console.log(objectivesArray)
-
-  useEffect(() => {
-    // Función para buscar los nombres de plantas dentro de la Tabla de Dominio
-    const getPlantNames = async () => {
-      let plantsArray = Object.keys(plantsData)
-      plantsArray.sort()
-      setPlantsNames(plantsArray)
-    }
-    getPlantNames()
-  },[plantsData])
-
-  // useEffect para setear las áreas según la p lanta seleccionada.
-  // TODO: Funcionamiento correcto pero carga lenta
-  useEffect(() => {
-
-    const findAreas = async (plant) => {
-      //const plantData = await getDomainData('plants', plant)
-      const plantData = plantsData[plant]
-
-      let areasArray = []
-      for (const area in plantData) {
-        // Accede al valor de "name" dentro de cada propiedad de plantData
-        const areaName = plantData[area].name
-        areasArray.push(`${area} - ${areaName}`)
-      }
-
-      areasArray.sort()
-
       try {
-        setAreas(areasArray)
+        // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        const domain = await getDomainData()
+
+        // Manejo de errores para evitar Warning en Consola
+        if (!domain) {
+          console.error('No se encontraron los datos o datos son indefinidos o null.')
+          return
+        }
+
+        // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
+        const plantsArray = Object.keys(domain.plants || {})
+        plantsArray.sort()
+        setPlantsNames(plantsArray)
+
+        // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
+        const objectives = Object.keys(domain.objectives || {})
+        objectives.sort()
+        setObjectivesArray(objectives)
+
+        // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
+        const deliverables = Object.keys(domain.deliverables || {})
+        deliverables.sort()
+        setDeliverablesArray(deliverables)
+
+        // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
+        const plantData = domain.plants[values.plant]
+        const areas = Object.keys(plantData || {}).map((area) => `${area} - ${plantData[area].name}`)
+        areas.sort()
+        setAreasArray(areas)
+
       } catch (error) {
-        console.log('Error: ' + error)
+        console.error('Error fetching data:', error)
       }
     }
 
-    findAreas(values.plant)
+    getAllDomainData()
+  }, [values.plant])
 
-  },[values.plant, plantsData])
+
+
+
+
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -845,7 +824,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 <CustomListItem
                   selectable={true}
                   options={plantsNames}
-                  editable={editable && roleData && roleData.canEditValues}
+                  editable={false}
                   label='Planta'
                   id='plant'
                   initialValue={plant}
@@ -854,7 +833,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <CustomListItem
                   selectable={true}
-                  options={areas}
+                  options={areasArray}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
@@ -952,11 +931,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       required={true}
                       multiline={true}
                     />
-                    <CustomListItem
+                    {/* <CustomListItem
                       editable={false}
                       label='Entregables'
                       id='deliverable'
                       initialValue={<DeliverableComponent/>}
+                    /> */}
+                    <CustomListItem
+                      selectable={true}
+                      options={deliverablesArray}
+                      editable={editable && roleData && roleData.canEditValues}
+                      label='Entregables'
+                      id='deliverable'
+                      initialValue={deliverable}
+                      value={values.deliverable}
+                      onChange={handleInputChange('deliverable')}
                     />
                   </>
                 )}
