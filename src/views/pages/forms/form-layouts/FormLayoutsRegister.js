@@ -32,6 +32,7 @@ import DialogActions from '@mui/material/DialogActions'
 
 // **Validar RUT
 import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
+import { number } from 'yup'
 
 const FormLayoutsBasic = () => {
   let initialValues = {
@@ -60,6 +61,8 @@ const FormLayoutsBasic = () => {
   const [newUID, setNewUID] = useState('')
   const [plantsNames, setPlantsNames] = useState([])
   const [allowableEmails, setAllowableEmails] = useState([])
+  const [procureRoles, setProcureRoles] = useState([])
+  const [melRoles, setMelRoles] = useState([])
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
@@ -80,10 +83,22 @@ const FormLayoutsBasic = () => {
     setAllowableEmails(array)
   }
 
+  const getRolesDomains = async () => {
+    const roles = await getDomainData('roles')
+    const rolesArray = Object.keys(roles).map(key => ({ id: Number(key), ...roles[key] }))
+
+    const rolesMelArray = rolesArray.filter(objeto => [2, 3, 4].includes(objeto.id))
+    const rolesProcureArray = rolesArray.filter(objeto => ![2, 3, 4].includes(objeto.id))
+
+    setProcureRoles(rolesProcureArray)
+    setMelRoles(rolesMelArray)
+  };
+
   // Obtener los nombres de las plantas cuando el componente se monta
   useEffect(() => {
     getPlantNames()
     getAllowableEmailDomains()
+    getRolesDomains()
   }, [])
 
   const handleChange = prop => (event, data) => {
@@ -202,10 +217,9 @@ const FormLayoutsBasic = () => {
         // Validaciones específicas para cada clave utilizando switch case
         switch (key) {
           case 'email':
-            console.log(allowableEmails)
             const emailParts = values.email.split('@')
             const emailConcat = allowableEmails.join(' y ')
-            console.log(emailParts)
+
             if (!allowableEmails.includes(emailParts[1])) {
               newErrors['email'] = `Solo se permiten correos de ${emailConcat}`
             }
@@ -371,6 +385,7 @@ const FormLayoutsBasic = () => {
     }
   }
 
+  const rolesToDisplay = values.company === 'MEL' ? melRoles : procureRoles
 
   return (
     <Card>
@@ -466,16 +481,11 @@ const FormLayoutsBasic = () => {
                   onChange={handleChange('role')}
                   error={errors.role ? true : false}
                 >
-                  {values.company === 'Procure' && <MenuItem value={1}>Admin</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={2}>Solicitante</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={3}>Contract Operator</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={4}>Contract Owner</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={5}>Planificador</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={6}>Administrador de Contrato</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={7}>Supervisor</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={8}>Proyectista</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={9}>Control Documental</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={10}>Gerente</MenuItem>}
+                  {rolesToDisplay.map(role => (
+                    <MenuItem key={role.id} value={role.id}>
+                      {role.name}
+                    </MenuItem>
+                  ))}
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
