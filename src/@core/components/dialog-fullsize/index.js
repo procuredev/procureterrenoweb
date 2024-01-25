@@ -430,16 +430,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         setAreasArray(areas)
 
       } catch (error) {
-        console.error('Error fetching data:', error)
+        console.error('Error buscando los datos:', error)
       }
     }
 
     getAllDomainData()
   }, [values.plant])
-
-
-
-
 
 
   // Establece los contactos del Solicitante
