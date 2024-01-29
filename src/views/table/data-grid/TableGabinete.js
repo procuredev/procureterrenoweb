@@ -493,6 +493,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   console.log('expandedRows :', expandedRows)
 
+  const filteredRows = transformedRows.filter(row => {
+    return !row.isRevision || expandedRows.has(row.parentId)
+  })
+
   const columns = [
     {
       field: 'id',
@@ -1257,9 +1261,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
           return ''
         }}
-        rows={transformedRows}
+        rows={filteredRows}
         useGridApiRef
-        useKeepGroupedColumnsHidden
         columns={columns}
         columnVisibilityModel={{
           clientApprove: authUser.role === 9,
