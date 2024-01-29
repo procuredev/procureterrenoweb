@@ -4,7 +4,13 @@ import { makeStyles } from '@mui/styles'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import { GridToolbar, DataGridPremium, esES } from '@mui/x-data-grid-premium'
+import {
+  GridToolbar,
+  DataGridPremium,
+  esES,
+  useGridApiRef,
+  useKeepGroupedColumnsHidden
+} from '@mui/x-data-grid-premium'
 
 import { Container } from '@mui/system'
 import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
@@ -19,9 +25,11 @@ import {
   IconButton,
   Dialog,
   DialogActions,
-  DialogContent
+  DialogContent,
+  Checkbox
 } from '@mui/material'
-
+import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
+import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
 import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
@@ -43,6 +51,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [remarksState, setRemarksState] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
   const [error, setError] = useState('')
+  const [expandedRows, setExpandedRows] = useState(new Set())
 
   const [drawingTimeSelected, setDrawingTimeSelected] = useState({
     start: null,
@@ -435,192 +444,135 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }, [authUser.shift])
 
   const getFileName = (content, index) => {
-    // Divide la URL en segmentos separados por '%2F'
-    const urlSegments = content.split('%2F')
+    if (typeof content === 'string') {
+      const urlSegments = content.split('%2F')
+      const encodedFileName = urlSegments[urlSegments.length - 1]
+      const fileNameSegments = encodedFileName.split('?')
+      const fileName = decodeURIComponent(fileNameSegments[0])
 
-    // Obtiene el último segmento, que debería ser el nombre del archivo
-    const encodedFileName = urlSegments[urlSegments.length - 1]
-
-    // Divide el nombre del archivo en segmentos separados por '?'
-    const fileNameSegments = encodedFileName.split('?')
-
-    // Obtiene el primer segmento, que debería ser el nombre del archivo
-    const fileName = decodeURIComponent(fileNameSegments[0])
-
-    return fileName
+      return fileName
+    } else {
+      // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+      return ''
+    }
   }
 
-  const RevisionComponent = ({ row, authUser }) => {
-    return row.revisions.map((revision, index) => {
-      const date = new Date(revision.date.seconds * 1000)
-      const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
+  const transformDataForGrouping = rows => {
+    return rows
+      .map(item => {
+        // Transforma las revisiones en subfilas
+        const revisionsTransformed = item.revisions.map((rev, index) => ({
+          ...rev,
+          id: `${item.id}-rev-${index}`, // ID único para cada revisión
+          parentId: item.id, // ID de la fila principal
+          isRevision: true // Marca las revisiones para renderizado especial
+        }))
 
-      return (
-        <Box
-          key={index}
-          sx={{
-            display: 'inline-flex',
-            flexDirection: 'row',
-            flexWrap: 'nowrap',
-            width: '100%',
-            alignContent: 'center',
-            overflow: 'hidden',
-            backgroundColor: 'inherit',
-            padding: 1,
-            margin: 2,
-            borderRadius: 1,
-            gap: 3
-          }}
-        >
-          {authUser.role === 9 && <Box sx={{ flex: 0.07, overflow: 'hidden', height: 20 }}></Box>}
-          <Box
-            sx={{
-              flex: role === 9 && !xlDown ? 0.16 : role !== 9 && !xlDown ? 0.35 : role === 9 ? 0.2 : 0.41,
-              overflow: 'hidden',
-              height: 20
-            }}
-          ></Box>
-          <Box sx={{ flex: role === 9 ? 0.05 : 0.07, overflow: 'hidden', height: 20 }}>
-            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.newRevision}</Typography>
-          </Box>
-          <Box sx={{ flex: role === 9 ? 0.1 : 0.17, overflow: 'hidden', height: 20 }}>
-            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.userName}</Typography>
-          </Box>
-          {authUser.role === 9 && (
-            <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
-              <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.lastTransmittal}</Typography>
-            </Box>
-          )}
-          <Box sx={{ flex: role === 9 ? 0.12 : 0.25, overflow: 'hidden', height: 20 }}>
-            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.description}</Typography>
-          </Box>
-          <Box sx={{ flex: role === 9 ? 0.15 : 0.44, overflow: 'hidden', height: 20 }}>
-            <Typography>
-              <Link
-                color='inherit'
-                key={index}
-                href={revision.storageBlueprints}
-                target='_blank'
-                rel='noreferrer'
-                variant='body1'
-                noWrap
-                sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
-              >
-                {getFileName(revision.storageBlueprints)}
-              </Link>
-            </Typography>
-          </Box>
-          {authUser.role === 9 && (
-            <Box sx={{ flex: role === 9 ? 0.09 : 0.5, overflow: 'hidden', height: 20 }}>
-              <Typography>
-                {revision.storageHlcDocuments ? (
-                  <Link
-                    color='inherit'
-                    key={index}
-                    href={revision.storageHlcDocuments}
-                    target='_blank'
-                    rel='noreferrer'
-                    variant='body1'
-                    noWrap
-                    sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
-                  >
-                    {getFileName(revision.storageHlcDocuments)}
-                  </Link>
-                ) : (
-                  ''
-                )}
-              </Typography>
-            </Box>
-          )}
-          <Box
-            sx={{
-              flex: role === 9 && !xlDown ? 0.09 : role !== 9 && !xlDown ? 0.1 : role === 9 ? 0.09 : 0.11,
-              overflow: 'hidden',
-              height: 20
-            }}
-          >
-            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{formattedDate}</Typography>
-          </Box>
-          <Box
-            sx={{
-              flex: role === 9 && !xlDown ? 0.12 : role !== 9 && !xlDown ? 0.18 : role === 9 ? 0.16 : 0.2,
-              overflow: 'hidden',
-              height: 20
-            }}
-          >
-            <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{revision.remarks}</Typography>
-          </Box>
-          {authUser.role === 9 && (
-            <Box
-              sx={{
-                flex: role === 9 && !xlDown ? 0.06 : role !== 9 && !xlDown ? 0.3 : role === 9 ? 0.02 : 0.2,
-                overflow: 'hidden',
-                height: 20
-              }}
-            ></Box>
-          )}
-        </Box>
-      )
+        return [item, ...revisionsTransformed] // Combina fila principal con sus revisiones
+      })
+      .flat()
+  }
+
+  // En el cuerpo del componente TableGabinete
+  const transformedRows = transformDataForGrouping(rows)
+
+  console.log('transformedRows :', transformedRows)
+
+  const handleToggleRow = rowId => {
+    setExpandedRows(prevExpandedRows => {
+      const newExpandedRows = new Set(prevExpandedRows)
+      if (newExpandedRows.has(rowId)) {
+        newExpandedRows.delete(rowId)
+      } else {
+        newExpandedRows.add(rowId)
+      }
+
+      return newExpandedRows
     })
   }
 
+  console.log('expandedRows :', expandedRows)
+
   const columns = [
     {
-      field: 'title',
+      field: 'id',
       flex: role === 9 ? 0.15 : 0.35,
       minWidth: 120,
       headerName: 'Código Procure / MEL',
+
       renderCell: params => {
         const { row } = params
 
-        return (
-          <>
-            <Tooltip
-              title={row.id}
-              placement='bottom-end'
-              key={row.id}
-              leaveTouchDelay={0}
-              //TransitionComponent={Fade}
-              TransitionProps={{ timeout: 0 }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
-                <IconButton
-                  sx={{ p: 0 }}
-                  id={row.id}
-                  onClick={() => {
-                    handleOpenUploadDialog(row)
-                  }}
-                >
-                  <OpenInNew sx={{ fontSize: xlDown ? '1rem' : '1.2rem' }} />
-                </IconButton>
-                <Box>
-                  <Typography
-                    noWrap
-                    sx={{
-                      textOverflow: 'clip',
-                      fontSize: xlDown ? '0.8rem' : '1rem',
-                      textDecoration: 'none',
-                      transition: 'text-decoration 0.2s',
-                      '&:hover': {
-                        textDecoration: 'underline'
-                      }
+        const isGroupedRow = !params.row.treeDataGroupingField
+
+        const isExpanded = expandedRows.has(params.row.id)
+        console.log('isExpanded :', isExpanded)
+
+        const toggleIcon = isGroupedRow ? (
+          isExpanded ? (
+            <KeyboardArrowDownSharpIcon onClick={() => handleToggleRow(params.row.id)} />
+          ) : (
+            <KeyboardArrowRightSharpIcon onClick={() => handleToggleRow(params.row.id)} />
+          )
+        ) : (
+          false
+        )
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          return ''
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          return (
+            <>
+              <Tooltip
+                title={row.id}
+                placement='bottom-end'
+                key={row.id}
+                leaveTouchDelay={0}
+                //TransitionComponent={Fade}
+                TransitionProps={{ timeout: 0 }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
+                  {toggleIcon}
+                  <IconButton
+                    sx={{ p: 0 }}
+                    id={row.id}
+                    onClick={() => {
+                      handleOpenUploadDialog(row)
                     }}
                   >
-                    {row.id || 'Sin código Procure'}
-                  </Typography>
-                  <Typography variant='caption' sx={{ fontSize: xlDown ? '0.6rem' : '0.8rem' }}>
-                    {row.clientCode || 'Sin código MEL'}
-                  </Typography>
-                  {row.id === currentRow && row.revisions.length === 0 && (
-                    <Typography sx={{ mt: 1, fontSize: xlDown ? '0.8rem' : '1rem' }}>
-                      Sin eventos en historial
+                    <OpenInNew sx={{ fontSize: xlDown ? '1rem' : '1.2rem' }} />
+                  </IconButton>
+
+                  <Box>
+                    <Typography
+                      noWrap
+                      sx={{
+                        textOverflow: 'clip',
+                        fontSize: xlDown ? '0.8rem' : '1rem',
+                        textDecoration: 'none',
+                        transition: 'text-decoration 0.2s',
+                        '&:hover': {
+                          textDecoration: 'underline'
+                        }
+                      }}
+                    >
+                      {row.id || 'Sin código Procure'}
                     </Typography>
-                  )}
+                    <Typography variant='caption' sx={{ fontSize: xlDown ? '0.6rem' : '0.8rem' }}>
+                      {row.clientCode || 'Sin código MEL'}
+                    </Typography>
+                    {row.id === currentRow && row.revisions.length === 0 && (
+                      <Typography sx={{ mt: 1, fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                        Sin eventos en historial
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            </Tooltip>
-          </>
-        )
+              </Tooltip>
+            </>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -630,13 +582,33 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (
-          <Box sx={{ overflow: 'hidden' }}>
-            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
-              {row.revision || 'N/A'}
-            </Typography>
-          </Box>
-        )
+        let revisionContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra la descripción de la revisión
+          revisionContent = row.newRevision
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                {revisionContent || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la descripción general
+          revisionContent = row.revision
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                {revisionContent || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -646,13 +618,33 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (
-          <Box sx={{ overflow: 'hidden' }}>
-            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
-              {row.userName || 'N/A'}
-            </Typography>
-          </Box>
-        )
+        let userNameContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra la descripción de la revisión
+          userNameContent = row.userName
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                {userNameContent || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la descripción general
+          userNameContent = row.userName
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                {userNameContent || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -662,13 +654,33 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (
-          <Box sx={{ overflow: 'hidden' }}>
-            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
-              {row.lastTransmittal || 'N/A'}
-            </Typography>
-          </Box>
-        )
+        let lastTransmittalContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra la descripción de la revisión
+          lastTransmittalContent = row.lastTransmittal
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                {lastTransmittalContent || ''}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la descripción general
+          lastTransmittalContent = row.lastTransmittal
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                {lastTransmittalContent || ''}
+              </Typography>
+            </Box>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -678,26 +690,59 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (
-          <Box
-            sx={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignContent: 'center',
-              flexDirection: 'column'
-            }}
-          >
-            <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
-              <Typography
-                noWrap
-                sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
-              >
-                {row.description || 'Sin descripción'}
-              </Typography>
+        let descriptionContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra la descripción de la revisión
+          descriptionContent = row.description
+
+          return (
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column'
+              }}
+            >
+              <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
+                <Typography
+                  noWrap
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                >
+                  {descriptionContent || 'Sin descripción'}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-        )
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la descripción general
+          descriptionContent = row.description
+
+          return (
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column'
+              }}
+            >
+              <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
+                <Typography
+                  noWrap
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                >
+                  {descriptionContent || 'Sin descripción'}
+                </Typography>
+              </Box>
+            </Box>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -707,79 +752,112 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (
-          <Box
-            sx={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignContent: 'center',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}
-          >
-            <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
-              {row.storageBlueprints ? (
-                row.storageBlueprints.map((content, index) => (
-                  <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
-                    <Link
-                      color='inherit'
-                      key={index}
-                      href={content}
-                      target='_blank'
-                      rel='noreferrer'
-                      variant='body1'
-                      noWrap
-                      sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
-                    >
-                      {getFileName(content, index)}
-                    </Link>
-                  </Typography>
-                ))
-              ) : (
-                <Typography
-                  noWrap
-                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
-                >
-                  Sin entregable
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          return (
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
+              <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
+                <Typography>
+                  <Link
+                    color='inherit'
+                    href={row.storageBlueprints}
+                    target='_blank'
+                    rel='noreferrer'
+                    variant='body1'
+                    noWrap
+                    sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                  >
+                    {getFileName(row.storageBlueprints)}
+                  </Link>
                 </Typography>
-              )}
-
-              <IconButton
-                sx={{
-                  my: 'auto',
-                  ml: 2,
-                  p: 0
-                }}
-                onClick={
-                  (authUser.uid === row.userId && !row.sentByDesigner) ||
-                  ((authUser.role === 6 || authUser.role === 7) &&
-                    row.sentByDesigner &&
-                    !row.approvedByDocumentaryControl) ||
-                  (authUser.role === 9 &&
-                    (row.approvedBySupervisor ||
-                      row.approvedByContractAdmin ||
-                      (row.approvedByDocumentaryControl && row.sentByDesigner)))
-                    ? //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
-                      () => handleOpenUploadDialog(row)
-                    : null
-                }
-              >
-                {row.storageBlueprints ? null : (
-                  <Upload
-                    sx={{
-                      fontSize: xlDown ? '1rem' : '1.2rem',
-                      color:
-                        authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
-                          ? theme.palette.success
-                          : theme.palette.grey[500]
-                    }}
-                  />
-                )}
-              </IconButton>
+              </Box>
             </Box>
-          </Box>
-        )
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          return (
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
+              <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
+                {row.storageBlueprints && Array.isArray(row.storageBlueprints) ? (
+                  row.storageBlueprints.map((content, index) => (
+                    <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
+                      <Link
+                        color='inherit'
+                        key={index}
+                        href={content}
+                        target='_blank'
+                        rel='noreferrer'
+                        variant='body1'
+                        noWrap
+                        sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                      >
+                        {getFileName(content, index)}
+                      </Link>
+                    </Typography>
+                  ))
+                ) : (
+                  <Typography
+                    noWrap
+                    sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                  >
+                    Sin entregable
+                  </Typography>
+                )}
+
+                <IconButton
+                  sx={{
+                    my: 'auto',
+                    ml: 2,
+                    p: 0
+                  }}
+                  onClick={
+                    (authUser.uid === row.userId && !row.sentByDesigner) ||
+                    ((authUser.role === 6 || authUser.role === 7) &&
+                      row.sentByDesigner &&
+                      !row.approvedByDocumentaryControl) ||
+                    (authUser.role === 9 &&
+                      (row.approvedBySupervisor ||
+                        row.approvedByContractAdmin ||
+                        (row.approvedByDocumentaryControl && row.sentByDesigner)))
+                      ? //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                        () => handleOpenUploadDialog(row)
+                      : null
+                  }
+                >
+                  {row.storageBlueprints ? null : (
+                    <Upload
+                      sx={{
+                        fontSize: xlDown ? '1rem' : '1.2rem',
+                        color:
+                          authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
+                            ? theme.palette.success
+                            : theme.palette.grey[500]
+                      }}
+                    />
+                  )}
+                </IconButton>
+              </Box>
+            </Box>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -789,66 +867,99 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
-        return (
-          <Box
-            sx={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignContent: 'center',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}
-          >
-            <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
-              {row.storageHlcDocuments ? (
-                row.storageHlcDocuments.map((content, index) => (
-                  <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
-                    <Link
-                      color='inherit'
-                      key={index}
-                      href={content}
-                      target='_blank'
-                      rel='noreferrer'
-                      variant='body1'
-                      noWrap
-                      sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
-                    >
-                      {getFileName(content, index)}
-                    </Link>
-                  </Typography>
-                ))
-              ) : (
-                <Typography
-                  noWrap
-                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
-                >
-                  Sin HLC
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          return (
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
+              <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
+                <Typography>
+                  <Link
+                    color='inherit'
+                    href={row.storageBlueprints}
+                    target='_blank'
+                    rel='noreferrer'
+                    variant='body1'
+                    noWrap
+                    sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                  >
+                    {getFileName(row.storageHlcDocuments)}
+                  </Link>
                 </Typography>
-              )}
-
-              <IconButton
-                sx={{
-                  my: 'auto',
-                  ml: 2,
-                  p: 0,
-                  color:
-                    authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
-                      ? theme.palette.success
-                      : theme.palette.grey[500]
-                }}
-                color='success'
-                onClick={
-                  authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
-                    ? () => handleOpenUploadDialog(row)
-                    : null
-                }
-              >
-                {row.storageHlcDocuments ? null : <Upload />}
-              </IconButton>
+              </Box>
             </Box>
-          </Box>
-        )
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          return (
+            <Box
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignContent: 'center',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
+              <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
+                {row.storageHlcDocuments && Array.isArray(row.storageHlcDocuments) ? (
+                  row.storageHlcDocuments.map((content, index) => (
+                    <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
+                      <Link
+                        color='inherit'
+                        key={index}
+                        href={content}
+                        target='_blank'
+                        rel='noreferrer'
+                        variant='body1'
+                        noWrap
+                        sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                      >
+                        {getFileName(content, index)}
+                      </Link>
+                    </Typography>
+                  ))
+                ) : (
+                  <Typography
+                    noWrap
+                    sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                  >
+                    Sin HLC
+                  </Typography>
+                )}
+
+                <IconButton
+                  sx={{
+                    my: 'auto',
+                    ml: 2,
+                    p: 0,
+                    color:
+                      authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
+                        ? theme.palette.success
+                        : theme.palette.grey[500]
+                  }}
+                  color='success'
+                  onClick={
+                    authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
+                      ? () => handleOpenUploadDialog(row)
+                      : null
+                  }
+                >
+                  {row.storageHlcDocuments ? null : <Upload />}
+                </IconButton>
+              </Box>
+            </Box>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -856,23 +967,64 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       headerName: 'Inicio',
       flex: role === 9 && !xlDown ? 0.09 : role !== 9 && !xlDown ? 0.15 : role === 9 ? 0.11 : 0.17,
       renderCell: params => {
-        const { row } = params
+        if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
+          const { row } = params
 
-        const date = new Date(row.date.seconds * 1000)
-        const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
+          let dateContent
 
-        return (
-          <Box
-            sx={{
-              width: '100%',
-              overflow: 'hidden'
-            }}
-          >
-            <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
-              {formattedDate}
-            </Typography>
-          </Box>
-        )
+          if (row.isRevision && expandedRows.has(params.row.parentId)) {
+            // Asegúrate de que seconds es un número.
+            const seconds = Number(row.date.seconds)
+            if (!isNaN(seconds)) {
+              const date = new Date(seconds * 1000)
+              const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
+              dateContent = formattedDate
+            } else {
+              // Maneja el caso donde seconds no es un número.
+              dateContent = 'Fecha inválida'
+            }
+
+            return (
+              <Box
+                sx={{
+                  width: '100%',
+                  overflow: 'hidden'
+                }}
+              >
+                <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                  {dateContent}
+                </Typography>
+              </Box>
+            )
+          } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+            // Para las filas principales, muestra la descripción general
+            // Asegúrate de que row.date.seconds es un número.
+            const seconds = Number(row.date?.seconds)
+            if (!isNaN(seconds)) {
+              const date = new Date(seconds * 1000)
+              const formattedDate = date.toISOString().split('T')[0].split('-').reverse().join('/')
+              dateContent = formattedDate
+            } else {
+              // Maneja el caso donde seconds no es un número.
+              dateContent = 'Fecha inválida'
+            }
+
+            return (
+              <Box
+                sx={{
+                  width: '100%',
+                  overflow: 'hidden'
+                }}
+              >
+                <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                  {dateContent}
+                </Typography>
+              </Box>
+            )
+          } else {
+            return null
+          }
+        }
       }
     },
     {
@@ -889,8 +1041,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const buttons = renderButtons(row, flexDirection, canApprove, canReject)
 
-        return (
-          <>
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Renderiza la descripción para una fila de revisión
+          return (
             <Box
               sx={{
                 display: 'flex',
@@ -901,31 +1054,57 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 overflow: 'hidden'
               }}
             >
-              {canApprove || canReject ? (
-                md ? (
-                  buttons
-                ) : (
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    size='small'
-                    IconComponent={() => <MoreHorizIcon />}
-                    sx={{
-                      '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                    }}
-                  >
-                    {buttons}
-                  </Select>
-                )
-              ) : (
-                <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{renderStatus(row)}</Typography>
-              )}
+              <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
+                <Typography
+                  noWrap
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                >
+                  {row.remarks || 'Sin Observasión'}
+                </Typography>
+              </Box>
             </Box>
-          </>
-        )
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          return (
+            <>
+              <Box
+                sx={{
+                  display: 'flex',
+                  width: '100%',
+                  justifyContent: 'space-between',
+                  alignContent: 'center',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}
+              >
+                {canApprove || canReject ? (
+                  md ? (
+                    buttons
+                  ) : (
+                    <Select
+                      labelId='demo-simple-select-label'
+                      id='demo-simple-select'
+                      size='small'
+                      IconComponent={() => <MoreHorizIcon />}
+                      sx={{
+                        '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
+                        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                        '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                        '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                      }}
+                    >
+                      {buttons}
+                    </Select>
+                  )
+                ) : (
+                  <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{renderStatus(row)}</Typography>
+                )}
+              </Box>
+            </>
+          )
+        } else {
+          return null
+        }
       }
     },
     {
@@ -945,78 +1124,82 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
         const disabled = petition?.otFinished
 
-        console.log('disabled', disabled)
-
         const buttons = renderButtons(row, flexDirection, canApprove, canReject, disabled, canResume)
 
-        return (
-          <Box sx={{ padding: '0rem!important', margin: '0rem!important' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                width: '100%',
-                padding: '0rem!important',
-                margin: '0rem!important',
-                justifyContent: 'space-between',
-                alignContent: 'right',
-                flexDirection: 'column',
-                overflow: 'hidden'
-              }}
-            >
-              {canApprove || canReject ? (
-                md ? (
-                  buttons
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          return ''
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          return (
+            <Box sx={{ padding: '0rem!important', margin: '0rem!important' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  width: '100%',
+                  padding: '0rem!important',
+                  margin: '0rem!important',
+                  justifyContent: 'space-between',
+                  alignContent: 'right',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}
+              >
+                {canApprove || canReject ? (
+                  md ? (
+                    buttons
+                  ) : (
+                    <Select
+                      labelId='demo-simple-select-label'
+                      id='demo-simple-select'
+                      size='small'
+                      IconComponent={() => <MoreHorizIcon />}
+                      sx={{
+                        '& .MuiSvgIcon-root': {
+                          position: 'absolute',
+                          margin: '20%',
+                          pointerEvents: 'none !important'
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                        '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                        '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                      }}
+                    >
+                      {buttons}
+                    </Select>
+                  )
+                ) : canGenerateBlueprint ? (
+                  'Generar Transmittal'
+                ) : canResume ? (
+                  md ? (
+                    buttons
+                  ) : (
+                    <Select
+                      labelId='demo-simple-select-label'
+                      id='demo-simple-select'
+                      size='small'
+                      IconComponent={() => <MoreHorizIcon />}
+                      sx={{
+                        '& .MuiSvgIcon-root': {
+                          position: 'absolute',
+                          margin: '20%',
+                          pointerEvents: 'none !important'
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                        '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
+                        '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
+                      }}
+                    >
+                      {buttons}
+                    </Select>
+                  )
                 ) : (
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    size='small'
-                    IconComponent={() => <MoreHorizIcon />}
-                    sx={{
-                      '& .MuiSvgIcon-root': {
-                        position: 'absolute',
-                        margin: '20%',
-                        pointerEvents: 'none !important'
-                      },
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                    }}
-                  >
-                    {buttons}
-                  </Select>
-                )
-              ) : canGenerateBlueprint ? (
-                'Generar Transmittal'
-              ) : canResume ? (
-                md ? (
-                  buttons
-                ) : (
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    size='small'
-                    IconComponent={() => <MoreHorizIcon />}
-                    sx={{
-                      '& .MuiSvgIcon-root': {
-                        position: 'absolute',
-                        margin: '20%',
-                        pointerEvents: 'none !important'
-                      },
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                      '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                    }}
-                  >
-                    {buttons}
-                  </Select>
-                )
-              ) : (
-                ''
-              )}
+                  ''
+                )}
+              </Box>
             </Box>
-          </Box>
-        )
+          )
+        } else {
+          return null
+        }
       }
     }
   ]
@@ -1045,17 +1228,38 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 fontSize: xlDown ? '1rem' : '1.2rem',
                 padding: '0rem',
                 margin: '0rem'
+              },
+              '& .MuiCheckbox-root': {
+                // Asegúrate de no aplicar estilos que podrían ocultar el checkbox si es necesario
               }
             }
           }
         }}
         apiRef={apiRef}
         checkboxSelection={authUser.role === 9}
-        isRowSelectable={params =>
-          (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
-          params.row.approvedByDocumentaryControl === true
-        }
-        rows={rows}
+        isRowSelectable={params => {
+          if (params.row.revision && typeof params.row.revision === 'string') {
+            return (
+              (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
+              params.row.approvedByDocumentaryControl === true
+            )
+          }
+
+          return false // o alguna otra lógica por defecto si 'revision' no está disponible
+        }}
+        getRowId={row => row.id}
+        getRowClassName={params => {
+          // Aquí puedes verificar si la fila es una revisión y aplicar una clase condicional
+          const row = apiRef.current.getRow(params.id)
+          if (row && row.isRevision) {
+            return 'no-checkbox' // Asume que tienes una clase CSS que oculta el checkbox
+          }
+
+          return ''
+        }}
+        rows={transformedRows}
+        useGridApiRef
+        useKeepGroupedColumnsHidden
         columns={columns}
         columnVisibilityModel={{
           clientApprove: authUser.role === 9,
@@ -1065,7 +1269,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         sortingModel={defaultSortingModel}
         getRowHeight={row => (row.id === currentRow ? 'auto' : 'auto')}
-        getDetailPanelContent={({ row }) => <RevisionComponent row={row} authUser={authUser} />}
+        isRowExpanded={row => expandedRows.has(row.id)}
       />
       <AlertDialogGabinete
         open={openAlert}
