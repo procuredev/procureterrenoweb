@@ -173,7 +173,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         approve:
           (role === 7 &&
             row.revision !== 'iniciado' &&
-            (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
+            (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
             row.sentByDesigner === true &&
             row.approvedBySupervisor === false &&
             row.approvedByDocumentaryControl === false &&
@@ -186,7 +186,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         reject:
           role === 7 &&
           row.revision !== 'iniciado' &&
-          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
+          (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
           row.approvedByDocumentaryControl === false &&
@@ -500,8 +500,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'id',
-      flex: role === 9 ? 0.15 : 0.35,
-      minWidth: 120,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 1,
+      minWidth: role === 9 && !xlDown ? 350 : role !== 9 && !xlDown ? 355 : role !== 9 ? 290 : 282,
       headerName: 'Código Procure / MEL',
 
       renderCell: params => {
@@ -582,7 +582,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      flex: role === 9 ? 0.07 : 0.15,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.2,
+      minWidth: role === 9 && !xlDown ? 20 : role !== 9 && !xlDown ? 20 : role !== 9 ? 20 : 20,
       renderCell: params => {
         const { row } = params
 
@@ -618,7 +619,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      flex: role === 9 ? 0.1 : 0.2,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
+      minWidth: role === 9 && !xlDown ? 190 : role !== 9 && !xlDown ? 190 : role !== 9 ? 155 : 160,
       renderCell: params => {
         const { row } = params
 
@@ -654,7 +656,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
-      flex: role === 9 ? 0.12 : 0.25,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
+      minWidth: role === 9 && !xlDown ? 180 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 160,
       renderCell: params => {
         const { row } = params
 
@@ -690,7 +693,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      flex: role === 9 ? 0.12 : 0.3,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.5,
+      minWidth: role === 9 && !xlDown ? 200 : role !== 9 && !xlDown ? 200 : role !== 9 ? 170 : 190,
       renderCell: params => {
         const { row } = params
 
@@ -752,7 +756,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      flex: role === 9 ? 0.15 : 0.5,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 1,
+      minWidth: role === 9 && !xlDown ? 450 : role !== 9 && !xlDown ? 445 : role !== 9 ? 365 : 365,
       renderCell: params => {
         const { row } = params
 
@@ -867,7 +872,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'storageHlcDocuments',
       headerName: 'HLC',
-      flex: role === 9 ? 0.09 : 0.5,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
+      minWidth: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row } = params
 
@@ -969,7 +975,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      flex: role === 9 && !xlDown ? 0.09 : role !== 9 && !xlDown ? 0.15 : role === 9 ? 0.11 : 0.17,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
+      minWidth: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 120 : role !== 9 ? 100 : 120,
       renderCell: params => {
         if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
           const { row } = params
@@ -1034,7 +1041,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      flex: role === 9 ? 0.1 : 0.2,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
+      minWidth: role === 9 && !xlDown ? 195 : role !== 9 && !xlDown ? 195 : role !== 9 ? 165 : 180,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -1114,8 +1122,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-      flex: role === 9 ? 0.1 : 0.3,
-      minWidth: 60,
+      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
+      minWidth: role === 9 && !xlDown ? 160 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row, currentPetition } = params
 
@@ -1213,7 +1221,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       <DataGridPremium
         sx={{
           height: '100%',
-          maxHeight: '1000px',
+          maxHeight: !xlDown ? '700px' : '400px',
           width: '100%',
           '& .MuiDataGrid-cell--withRenderer': {
             alignItems: 'baseline'
