@@ -506,7 +506,7 @@ const useBlueprints = id => {
   // Se utiliza el hook 'useEffect' para realizar operaciones secundarias después de que se haya renderizado el componente.
   useEffect(() => {
     // Si no se proporciona un id, se detiene la ejecución de la función.
-    if (!id) return
+    if (!id) return undefined
 
     // Se establece un listener en la colección 'blueprints' asociada al id proporcionado.
     const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {

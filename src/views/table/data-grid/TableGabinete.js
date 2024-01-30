@@ -155,7 +155,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         approve:
           role === 6 &&
           row.revision !== 'iniciado' &&
-          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
+          (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
           (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
           row.approvedByDocumentaryControl === false &&
@@ -163,7 +163,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         reject:
           role === 6 &&
           row.revision !== 'iniciado' &&
-          (row.revision.charCodeAt(0) >= 65 || row.revision.charCodeAt(0) >= 48) &&
+          (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
           (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
           row.approvedByDocumentaryControl === false &&
@@ -478,6 +478,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
   console.log('transformedRows :', transformedRows)
 
+  const filteredRows = transformedRows.filter(row => {
+    return !row.isRevision || expandedRows.has(row.parentId)
+  })
+
   const handleToggleRow = rowId => {
     setExpandedRows(prevExpandedRows => {
       const newExpandedRows = new Set(prevExpandedRows)
@@ -492,10 +496,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   console.log('expandedRows :', expandedRows)
-
-  const filteredRows = transformedRows.filter(row => {
-    return !row.isRevision || expandedRows.has(row.parentId)
-  })
 
   const columns = [
     {
@@ -573,15 +573,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Tooltip>
             </>
           )
-        } else {
-          return null
         }
       }
     },
     {
       field: 'revision',
       headerName: 'REVISION',
-      width: role === 9 && !xlDown ? 90 : role !== 9 && !xlDown ? 90 : role !== 9 ? 70 : 70,
+      width: role === 9 && !xlDown ? 95 : role !== 9 && !xlDown ? 95 : role !== 9 ? 80 : 80,
       renderCell: params => {
         const { row } = params
 
@@ -609,8 +607,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Typography>
             </Box>
           )
-        } else {
-          return null
         }
       }
     },
@@ -645,8 +641,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Typography>
             </Box>
           )
-        } else {
-          return null
         }
       }
     },
@@ -681,8 +675,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Typography>
             </Box>
           )
-        } else {
-          return null
         }
       }
     },
@@ -743,8 +735,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Box>
             </Box>
           )
-        } else {
-          return null
         }
       }
     },
@@ -858,8 +848,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Box>
             </Box>
           )
-        } else {
-          return null
         }
       }
     },
@@ -960,8 +948,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Box>
             </Box>
           )
-        } else {
-          return null
         }
       }
     },
@@ -995,7 +981,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 }}
               >
                 <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
-                  {dateContent}
+                  {new Date(seconds * 1000).toISOString()}
                 </Typography>
               </Box>
             )
@@ -1024,8 +1010,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 </Typography>
               </Box>
             )
-          } else {
-            return null
           }
         }
       }
@@ -1105,8 +1089,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Box>
             </>
           )
-        } else {
-          return null
         }
       }
     },
@@ -1199,8 +1181,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Box>
             </Box>
           )
-        } else {
-          return null
         }
       }
     }
