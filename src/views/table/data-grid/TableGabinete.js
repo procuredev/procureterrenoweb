@@ -500,8 +500,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'id',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 1,
-      minWidth: role === 9 && !xlDown ? 350 : role !== 9 && !xlDown ? 355 : role !== 9 ? 290 : 282,
+      width: role === 9 && !xlDown ? 350 : role !== 9 && !xlDown ? 355 : role !== 9 ? 290 : 282,
       headerName: 'Código Procure / MEL',
 
       renderCell: params => {
@@ -582,8 +581,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.2,
-      minWidth: role === 9 && !xlDown ? 20 : role !== 9 && !xlDown ? 20 : role !== 9 ? 20 : 20,
+      width: role === 9 && !xlDown ? 90 : role !== 9 && !xlDown ? 90 : role !== 9 ? 70 : 70,
       renderCell: params => {
         const { row } = params
 
@@ -619,8 +617,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
-      minWidth: role === 9 && !xlDown ? 190 : role !== 9 && !xlDown ? 190 : role !== 9 ? 155 : 160,
+      width: role === 9 && !xlDown ? 190 : role !== 9 && !xlDown ? 190 : role !== 9 ? 155 : 160,
       renderCell: params => {
         const { row } = params
 
@@ -656,8 +653,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
-      minWidth: role === 9 && !xlDown ? 180 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 160,
+      width: role === 9 && !xlDown ? 180 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 160,
       renderCell: params => {
         const { row } = params
 
@@ -693,8 +689,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.5,
-      minWidth: role === 9 && !xlDown ? 200 : role !== 9 && !xlDown ? 200 : role !== 9 ? 170 : 190,
+      width: role === 9 && !xlDown ? 200 : role !== 9 && !xlDown ? 200 : role !== 9 ? 170 : 190,
       renderCell: params => {
         const { row } = params
 
@@ -756,8 +751,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 1,
-      minWidth: role === 9 && !xlDown ? 450 : role !== 9 && !xlDown ? 445 : role !== 9 ? 365 : 365,
+      width: role === 9 && !xlDown ? 450 : role !== 9 && !xlDown ? 460 : role !== 9 ? 365 : 365,
       renderCell: params => {
         const { row } = params
 
@@ -872,8 +866,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'storageHlcDocuments',
       headerName: 'HLC',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
-      minWidth: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
+      width: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row } = params
 
@@ -975,8 +968,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Inicio',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
-      minWidth: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 120 : role !== 9 ? 100 : 120,
+      width: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 120 : role !== 9 ? 100 : 120,
       renderCell: params => {
         if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
           const { row } = params
@@ -1041,8 +1033,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
-      minWidth: role === 9 && !xlDown ? 195 : role !== 9 && !xlDown ? 195 : role !== 9 ? 165 : 180,
+      width: role === 9 && !xlDown ? 195 : role !== 9 && !xlDown ? 195 : role !== 9 ? 165 : 180,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -1122,8 +1113,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-      //flex: role === 9 && !xlDown ? 0.07 : role !== 9 && !xlDown ? 0.11 : role !== 9 ? 0.15 : 0.1,
-      minWidth: role === 9 && !xlDown ? 160 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
+      width: role === 9 && !xlDown ? 160 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row, currentPetition } = params
 
