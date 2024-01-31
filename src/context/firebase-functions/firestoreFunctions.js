@@ -498,59 +498,53 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
-// Este es un hook personalizado que recibe un id y devuelve los documentos de la colección 'blueprints' asociados a ese id.
 const useBlueprints = id => {
-  // Se inicializa el estado 'data' con un array vacío.
-  let [data, setData] = useState([])
+  const [data, setData] = useState([])
 
-  // Se utiliza el hook 'useEffect' para realizar operaciones secundarias después de que se haya renderizado el componente.
   useEffect(() => {
-    // Si no se proporciona un id, se detiene la ejecución de la función.
     if (!id) return undefined
 
-    // Se establece un listener en la colección 'blueprints' asociada al id proporcionado.
-    const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {
-      // Se inicializa un array vacío para almacenar todos los documentos.
-      try {
-        let allDocs = []
-        // Se limpia el estado 'data'.
-        setData([])
-        // Se recorren todos los documentos en la colección 'blueprints'.
-        docSnapshot.forEach(doc => {
-          // Se inicializa un array vacío para almacenar las revisiones de cada documento.
-          let revisions = []
-          // Se establece un listener en la subcolección 'revisions' de cada documento.
-          onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
-            // Se recorren todos los documentos en la subcolección 'revisions' y se agregan al array 'revisions'.
-            revisionSnapshot.forEach(revisionDoc => {
-              revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
-            })
-          })
+    const unsubscribeAll = [] // Almacenará todas las desuscripciones
 
-          // Se busca el documento en el array 'allDocs'.
+    const blueprintsRef = collection(db, `solicitudes/${id}/blueprints`)
+
+    const unsubscribeBlueprints = onSnapshot(blueprintsRef, docSnapshot => {
+      let allDocs = []
+
+      docSnapshot.docs.forEach(doc => {
+        const docData = doc.data()
+        const revisionsRef = collection(doc.ref, 'revisions')
+
+        // Suscribirse a cambios en 'revisions'
+        const unsubscribeRevisions = onSnapshot(query(revisionsRef, orderBy('date', 'desc')), revisionSnapshot => {
+          const revisions = revisionSnapshot.docs.map(revDoc => ({
+            id: revDoc.id,
+            ...revDoc.data()
+          }))
+
+          const newDoc = { id: doc.id, ...docData, revisions }
           const docIndex = allDocs.findIndex(existingDoc => existingDoc.id === doc.id)
-          // Si el documento no existe en 'allDocs', se agrega. Si ya existe, se actualiza.
           if (docIndex === -1) {
-            const newDoc = { id: doc.id, ...doc.data(), revisions }
-            allDocs = [...allDocs, newDoc]
+            allDocs.push(newDoc)
           } else {
-            const updatedDoc = { id: doc.id, ...doc.data(), revisions }
-            allDocs[docIndex] = updatedDoc
+            allDocs[docIndex] = newDoc
           }
 
-          //allDocs.push({ id: doc.id, ...doc.data(), revisions })
+          // Actualizar el estado solo cuando se han procesado todos los documentos.
+          if (allDocs.length === docSnapshot.docs.length) {
+            setData([...allDocs])
+          }
         })
-        setData(allDocs)
-      } catch (error) {
-        // Si ocurre un error al obtener los documentos, se muestra en la consola.
-        console.error('Error al obtener los planos:', error)
-      }
+
+        unsubscribeAll.push(unsubscribeRevisions)
+      })
     })
 
-    // Cuando el componente se desmonta, se cancela la suscripción al listener.
+    unsubscribeAll.push(unsubscribeBlueprints)
 
-    return () => unsubscribe()
-  }, [id]) // El hook 'useEffect' se ejecuta cada vez que cambia el id.
+    // Limpieza: desuscribirse de todos los listeners cuando el componente se desmonta o el ID cambia
+    return () => unsubscribeAll.forEach(unsubscribe => unsubscribe())
+  }, [id])
 
   return [data, setData]
 }

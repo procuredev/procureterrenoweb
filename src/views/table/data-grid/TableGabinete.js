@@ -476,8 +476,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   // En el cuerpo del componente TableGabinete
   const transformedRows = transformDataForGrouping(rows)
 
-  console.log('transformedRows :', transformedRows)
-
   const filteredRows = transformedRows.filter(row => {
     return !row.isRevision || expandedRows.has(row.parentId)
   })
@@ -495,12 +493,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     })
   }
 
-  console.log('expandedRows :', expandedRows)
-
   const columns = [
     {
       field: 'id',
-      width: role === 9 && !xlDown ? 350 : role !== 9 && !xlDown ? 355 : role !== 9 ? 290 : 282,
+      width: role === 9 && !xlDown ? 355 : role !== 9 && !xlDown ? 360 : role !== 9 ? 290 : 285,
       headerName: 'Código Procure / MEL',
 
       renderCell: params => {
@@ -509,7 +505,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const isGroupedRow = !params.row.treeDataGroupingField
 
         const isExpanded = expandedRows.has(params.row.id)
-        console.log('isExpanded :', isExpanded)
 
         const toggleIcon = isGroupedRow ? (
           isExpanded ? (
@@ -858,6 +853,25 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       renderCell: params => {
         const { row } = params
 
+        const canUploadHlc = row => {
+          if (row.revision && typeof params.row.revision === 'string' && row.revisions.length > 0) {
+            const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
+            const lastRevision = sortedRevisions[0]
+
+            if (
+              (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48) &&
+              row.approvedByDocumentaryControl === true &&
+              !('lastTransmittal' in lastRevision)
+            ) {
+              return theme.palette.success
+            }
+
+            return theme.palette.grey[500]
+          }
+
+          return theme.palette.grey[500]
+        }
+
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
           return (
             <Box
@@ -931,10 +945,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     my: 'auto',
                     ml: 2,
                     p: 0,
-                    color:
-                      authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
-                        ? theme.palette.success
-                        : theme.palette.grey[500]
+                    color: canUploadHlc(row),
+                    opacity: 0.7
                   }}
                   color='success'
                   onClick={
@@ -1220,10 +1232,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         apiRef={apiRef}
         checkboxSelection={authUser.role === 9}
         isRowSelectable={params => {
-          if (params.row.revision && typeof params.row.revision === 'string') {
+          if (params.row.revision && typeof params.row.revision === 'string' && params.row.revisions.length > 0) {
+            const sortedRevisions = [...params.row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
+            const lastRevision = sortedRevisions[0]
+
             return (
               (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
-              params.row.approvedByDocumentaryControl === true
+              params.row.approvedByDocumentaryControl === true &&
+              !('lastTransmittal' in lastRevision)
             )
           }
 
