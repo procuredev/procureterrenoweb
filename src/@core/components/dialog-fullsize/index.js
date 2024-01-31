@@ -30,8 +30,19 @@ import {
   Tooltip,
   MenuItem,
   InputLabel,
-  Select
+  Select,
+  Autocomplete
 } from '@mui/material'
+
+import {
+  CustomTextField,
+  CustomSelect,
+  CustomAutocomplete,
+  StyledInfoIcon,
+  StyledTooltip,
+  HeadingTypography,
+  FileList
+} from 'src/@core/components/custom-form/index'
 
 import {
   Timeline,
@@ -138,6 +149,73 @@ function CustomListItem({
       )}
     </>
   )
+}
+
+function CustomAutocompleteItem({
+  selectable,
+  options,
+  editable,
+  label,
+  id,
+  initialValue,
+  value,
+  onChange,
+  error,
+  helper,
+  required,
+}) {
+  return (
+    <Grid item xs={12}>
+      <FormControl fullWidth>
+        <Box display='flex' alignItems='center'>
+          {editable && selectable ? (
+            <Autocomplete
+              getOptionLabel={(option) => option.name || option}
+              multiple
+              fullWidth
+              options={options}
+              value={value}
+              onChange={(_, newValue) => onChange({ target: { value: newValue } })}
+              renderTags={(tagValue, getTagProps) =>
+                tagValue.map((option, index) => (
+                  <Chip
+                    key={index}
+                    label={option.name || option}
+                    {...getTagProps({ index })}
+                    disabled={!editable}
+                    clickable={editable}
+                    onDelete={() => {
+                      // Agregar lógica de eliminación si es necesario
+                    }}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={label}
+                  InputLabelProps={{ required: required }}
+                  error={error ? true : false}
+                  helperText={error}
+                />
+              )}
+            />
+          ) : (
+            <ListItem id={`list-${label}`} divider={!editable}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <Typography component='div' sx={{ width: '30%' }}>
+                  {label}
+                </Typography>
+                <Typography component='div' sx={{ width: '70%' }}>
+                  {value.join(', ')}
+                </Typography>
+              </Box>
+            </ListItem>
+          )}
+        </Box>
+      </FormControl>
+    </Grid>
+  );
 }
 
 function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
@@ -933,7 +1011,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       id='deliverable'
                       initialValue={<DeliverableComponent/>}
                     /> */}
-                    <CustomListItem
+                    <CustomAutocompleteItem
                       selectable={true}
                       options={deliverablesArray}
                       editable={editable && roleData && roleData.canEditValues}
