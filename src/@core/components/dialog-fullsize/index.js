@@ -156,12 +156,9 @@ function CustomAutocompleteItem({
   options,
   editable,
   label,
-  id,
-  initialValue,
   value,
   onChange,
   error,
-  helper,
   required,
 }) {
   return (
@@ -185,7 +182,8 @@ function CustomAutocompleteItem({
                     disabled={!editable}
                     clickable={editable}
                     onDelete={() => {
-                      // Agregar lógica de eliminación si es necesario
+                      const newValue = value.filter((v, i) => i !== index)
+                      onChange({ target: { value: newValue } })
                     }}
                   />
                 ))
@@ -215,7 +213,7 @@ function CustomAutocompleteItem({
         </Box>
       </FormControl>
     </Grid>
-  );
+  )
 }
 
 function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
