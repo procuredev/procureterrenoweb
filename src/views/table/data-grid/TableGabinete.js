@@ -993,7 +993,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 }}
               >
                 <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
-                  {new Date(seconds * 1000).toISOString()}
+                  {dateContent}
                 </Typography>
               </Box>
             )
