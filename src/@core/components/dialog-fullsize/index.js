@@ -35,16 +35,6 @@ import {
 } from '@mui/material'
 
 import {
-  CustomTextField,
-  CustomSelect,
-  CustomAutocomplete,
-  StyledInfoIcon,
-  StyledTooltip,
-  HeadingTypography,
-  FileList
-} from 'src/@core/components/custom-form/index'
-
-import {
   Timeline,
   TimelineItem,
   TimelineSeparator,
@@ -381,6 +371,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
+  const [domainData, setDomainData] = useState({})
   const [objectivesArray, setObjectivesArray] = useState([])
   const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
@@ -471,7 +462,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     : {}
 
 
-  // useEffect para buscar toda la información de la colección domain en la base de datos
+  // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
   useEffect(() => {
     const getAllDomainData = async () => {
       try {
@@ -485,22 +476,39 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         }
 
         // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
-        const plantsArray = Object.keys(domain.plants || {})
+        setDomainData(domain)
+
+
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getAllDomainData()
+  }, [])
+
+  // useEffect para buscar toda la información de la colección domain en la base de datos
+  useEffect(() => {
+    const getSpecificDomainData = async () => {
+      try {
+
+        // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
+        const plantsArray = Object.keys(domainData.plants || {})
         plantsArray.sort()
         setPlantsNames(plantsArray)
 
         // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
-        const objectives = Object.keys(domain.objectives || {})
+        const objectives = Object.keys(domainData.objectives || {})
         objectives.sort()
         setObjectivesArray(objectives)
 
         // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const deliverables = Object.keys(domain.deliverables || {})
+        const deliverables = Object.keys(domainData.deliverables || {})
         deliverables.sort()
         setDeliverablesArray(deliverables)
 
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
-        const plantData = domain.plants[values.plant]
+        const plantData = domainData.plants[values.plant]
         const areas = Object.keys(plantData || {}).map((area) => `${area} - ${plantData[area].name}`)
         areas.sort()
         setAreasArray(areas)
@@ -510,8 +518,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       }
     }
 
-    getAllDomainData()
-  }, [values.plant])
+    getSpecificDomainData()
+  }, [domainData, values.plant])
 
 
   // Establece los contactos del Solicitante
