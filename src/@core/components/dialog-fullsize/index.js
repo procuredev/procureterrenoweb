@@ -475,7 +475,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           return
         }
 
-        // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
+        // Se almacena la información de Tabla de Dominio en una variable de Entorno
         setDomainData(domain)
 
 
@@ -487,7 +487,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     getAllDomainData()
   }, [])
 
-  // useEffect para buscar toda la información de la colección domain en la base de datos
+  // useEffect para buscar información específica de la colección domain en la base de datos
   useEffect(() => {
     const getSpecificDomainData = async () => {
       try {

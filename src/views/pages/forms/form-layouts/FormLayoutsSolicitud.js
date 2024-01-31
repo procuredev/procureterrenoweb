@@ -84,6 +84,7 @@ const FormLayoutsSolicitud = () => {
   // const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
   //const [userInputMC, setUserInputMC] = useState("")
   //const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false)
+  const [domainData, setDomainData] = useState({})
   const [objectivesOptions, setObjectivesOptions] = useState([])
   const [deliverablesOptions, setDeliverablesOptions] = useState([])
   const [urgencyTypesOptions, setUrgencyTypesOptions] = useState([])
@@ -308,6 +309,7 @@ const FormLayoutsSolicitud = () => {
     const getAllDomainData = async () => {
       try {
         // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        console.log('Se llama a Firestore para buscar data en Tabla de Dominio')
         const domain = await getDomainData()
 
         // Manejo de errores para evitar Warning en Consola
@@ -316,28 +318,45 @@ const FormLayoutsSolicitud = () => {
           return
         }
 
+        // Se almacena la información de Tabla de Dominio en una variable de entorno
+        setDomainData(domain)
+
+
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getAllDomainData()
+  }, [])
+
+  // useEffect para buscar información específica de la colección domain en la base de datos
+  useEffect(() => {
+    const getSpecificDomainData = async () => {
+      try {
+
         // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
-        const objectives = Object.keys(domain.objectives || {})
+        const objectives = Object.keys(domainData.objectives || {})
         objectives.sort()
         setObjectivesOptions(objectives)
 
         // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const urgencyTypes = Object.keys(domain.urgencyTypes || {})
+        const urgencyTypes = Object.keys(domainData.urgencyTypes || {})
         urgencyTypes.sort()
         setUrgencyTypesOptions(urgencyTypes)
 
         // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const operationalStatus = Object.keys(domain.operationalStatus || {})
+        const operationalStatus = Object.keys(domainData.operationalStatus || {})
         operationalStatus.sort()
         setOperationalStatusOptions(operationalStatus)
 
         // Se reordena la información de urgencys (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const deliverables = Object.keys(domain.deliverables || {})
+        const deliverables = Object.keys(domainData.deliverables || {})
         deliverables.sort()
         setDeliverablesOptions(deliverables)
 
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
-        const plantData = domain.plants[values.plant]
+        const plantData = domainData.plants[values.plant]
         const areas = Object.keys(plantData || {}).map((area) => `${area} - ${plantData[area].name}`)
         areas.sort()
         setAreas(areas)
@@ -347,8 +366,8 @@ const FormLayoutsSolicitud = () => {
       }
     }
 
-    getAllDomainData()
-  }, [values.plant])
+    getSpecificDomainData()
+  }, [domainData, values.plant])
 
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
