@@ -61,7 +61,8 @@ const AppCalendar = () => {
 
   // ** Vars
   const { skin, direction } = settings
-  const { authUser, useSnapshot, getRoleData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
+  const { authUser, useSnapshot, getRoleData, getDomainData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
+
   // ** Hook para obtener los datos de la base de datos
   const data = useSnapshot(false, authUser)
   // ** Hook para obtener el tema
@@ -101,7 +102,7 @@ const AppCalendar = () => {
   useEffect(() => {
     const role = async () => {
       if (authUser) {
-        const role = await getRoleData(authUser.role.toString())
+        const role = await getDomainData(authUser.role.toString())
         setRoleData(role)
       }
     }
