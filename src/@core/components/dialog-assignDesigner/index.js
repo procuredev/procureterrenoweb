@@ -30,8 +30,6 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-
-
 export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, setDesignerAssigned }) => {
   //TODO: Evaluar la foto del proyectista
   // ** States
@@ -43,30 +41,28 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
 
   useEffect(() => {
     if (doc && doc.designerReview && doc.designerReview.length > 0) {
-      setDesignerReviewState(doc.designerReview);
-      console.log(doc.designerReview)
+      setDesignerReviewState(doc.designerReview)
     }
-  }, [doc]);
+  }, [doc])
 
-  const filterOptions = (options) => {
-
+  const filterOptions = options => {
     // Convierte las opciones seleccionadas y las existentes en doc.designerReview en arrays de nombres
-    const selectedNamesFromState = designerReviewState.map(designer => designer.name);
+    const selectedNamesFromState = designerReviewState.map(designer => designer.name)
 
-    let selectedNamesFromDoc = [];
+    let selectedNamesFromDoc = []
     if (doc && doc.designerReview) {
-      selectedNamesFromDoc = doc.designerReview.map(designer => designer.name);
+      selectedNamesFromDoc = doc.designerReview.map(designer => designer.name)
     }
 
-    const allSelectedNames = [...selectedNamesFromState, ...selectedNamesFromDoc];
+    const allSelectedNames = [...selectedNamesFromState, ...selectedNamesFromDoc]
 
     // Filtra las opciones y devuelve solo las que no están en el array de nombres seleccionados
-    return options.filter(option => !allSelectedNames.includes(option.name));
+    return options.filter(option => !allSelectedNames.includes(option.name))
   }
 
   useEffect(() => {
-    setFilteredOptions(proyectistas);
-  }, [proyectistas]);
+    setFilteredOptions(proyectistas)
+  }, [proyectistas])
 
   if (!doc) return null
 
@@ -105,10 +101,10 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
       }
     })
     console.log(designerReview)
-      updateDocs(id, {designerReview}, authUser)
-      setDesignerReviewState([])
-      setDesignerAssigned(true)
-      handleClose()
+    updateDocs(id, { designerReview }, authUser)
+    setDesignerReviewState([])
+    setDesignerAssigned(true)
+    handleClose()
   }
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
@@ -240,4 +236,3 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
     </Dialog>
   )
 }
-

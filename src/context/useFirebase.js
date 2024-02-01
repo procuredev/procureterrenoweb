@@ -32,7 +32,8 @@ import {
   generateTransmittalCounter,
   updateSelectedDocuments,
   addComment,
-  updateUserData
+  updateUserData,
+  finishPetition
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -51,7 +52,8 @@ import {
   fetchPlaneProperties,
   fetchMelDisciplines,
   fetchMelDeliverableType,
-  consultBluePrints
+  consultBluePrints,
+  subscribeToPetition
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -128,7 +130,9 @@ const FirebaseContextProvider = props => {
     consultBluePrints,
     deleteCurrentUser,
     addComment,
-    updateUserData
+    updateUserData,
+    finishPetition,
+    subscribeToPetition
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

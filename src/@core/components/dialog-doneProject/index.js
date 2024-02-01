@@ -33,8 +33,6 @@ const Transition = forwardRef(function Transition(props, ref) {
 })
 
 export const DialogDoneProject = ({ open, doc, handleClose }) => {
-  //falta evaluar la foto del proyectista
-
   // ** States
 
   const [draftmen, setDraftmen] = useState([])
@@ -68,10 +66,10 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
     if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setHours(inputValue)
+      setUprisingTimeSelected(inputValue)
       setError('') // Limpia el mensaje de error si existe
     } else {
-      setHours('')
+      setUprisingTimeSelected('')
       setError('Por favor, ingrese un número mayor a 1.')
     }
   }
