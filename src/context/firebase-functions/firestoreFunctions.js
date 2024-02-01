@@ -195,8 +195,8 @@ const processFieldChanges = (incomingFields, currentDoc) => {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
 
-    //console.log(value)
-    //console.log(currentFieldValue)
+    //console.log('value: ', value)
+    //console.log('currentFieldValue: ', currentFieldValue)
 
     if (key === 'start' || key === 'end') {
       value = moment(value.toDate()).toDate().getTime()
@@ -509,33 +509,51 @@ const useBlueprints = id => {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    if (!id) return
+    if (!id) return undefined
 
-    const unsubscribe = onSnapshot(collection(db, `solicitudes/${id}/blueprints`), docSnapshot => {
-      try {
-        const allDocs = []
-        setData([])
-        docSnapshot.forEach(doc => {
-          const revisions = []
+    const unsubscribeAll = [] // Almacenará todas las desuscripciones
 
-          onSnapshot(query(collection(doc.ref, 'revisions'), orderBy('date', 'desc')), revisionSnapshot => {
-            revisionSnapshot.forEach(revisionDoc => {
-              revisions.push({ id: revisionDoc.id, ...revisionDoc.data() })
-            })
-          })
+    const blueprintsRef = collection(db, `solicitudes/${id}/blueprints`)
 
-          allDocs.push({ id: doc.id, ...doc.data(), revisions })
-          setData(allDocs)
+    const unsubscribeBlueprints = onSnapshot(blueprintsRef, docSnapshot => {
+      let allDocs = []
+
+      docSnapshot.docs.forEach(doc => {
+        const docData = doc.data()
+        const revisionsRef = collection(doc.ref, 'revisions')
+
+        // Suscribirse a cambios en 'revisions'
+        const unsubscribeRevisions = onSnapshot(query(revisionsRef, orderBy('date', 'desc')), revisionSnapshot => {
+          const revisions = revisionSnapshot.docs.map(revDoc => ({
+            id: revDoc.id,
+            ...revDoc.data()
+          }))
+
+          const newDoc = { id: doc.id, ...docData, revisions }
+          const docIndex = allDocs.findIndex(existingDoc => existingDoc.id === doc.id)
+          if (docIndex === -1) {
+            allDocs.push(newDoc)
+          } else {
+            allDocs[docIndex] = newDoc
+          }
+
+          // Actualizar el estado solo cuando se han procesado todos los documentos.
+          if (allDocs.length === docSnapshot.docs.length) {
+            setData([...allDocs])
+          }
         })
-      } catch (error) {
-        console.error('Error al obtener los planos:', error)
-      }
+
+        unsubscribeAll.push(unsubscribeRevisions)
+      })
     })
 
-    return () => unsubscribe()
+    unsubscribeAll.push(unsubscribeBlueprints)
+
+    // Limpieza: desuscribirse de todos los listeners cuando el componente se desmonta o el ID cambia
+    return () => unsubscribeAll.forEach(unsubscribe => unsubscribe())
   }, [id])
 
-  return data
+  return [data, setData]
 }
 
 function formatCount(count) {
@@ -611,6 +629,13 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
 
 const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
   try {
+    const solicitudRef = doc(db, 'solicitudes', petition.id)
+    const solicitudDoc = await getDoc(solicitudRef)
+
+    if (solicitudDoc.data().otReadyToFinish) {
+      await updateDoc(solicitudRef, { otReadyToFinish: false })
+    }
+
     const idProject = '21286'
 
     // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
@@ -856,6 +881,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     6: () => ({
       ...updateData,
       sentByDesigner: approves,
+      sentBySupervisor: approves,
       approvedByContractAdmin: approves,
       storageBlueprints: approves ? blueprint.storageBlueprints : null
     }),
@@ -885,7 +911,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         ? {
             ...updateData,
             approvedByClient: blueprint.blueprintCompleted ? false : approves,
-            approvedByDocumentaryControl: approves,
+            approvedByDocumentaryControl: true,
             storageBlueprints:
               approves &&
               ((!blueprint.blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1))
@@ -935,13 +961,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 
-  // Lee el documento de la 'solicitud'
-  const solicitudDoc = await getDoc(solicitudRef)
+  // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
+  const solicitudDocBefore = await getDoc(solicitudRef)
   const blueprintDoc = await getDoc(blueprintRef)
 
   if (blueprintDoc.data().blueprintCompleted && blueprintDoc.data().resumeBlueprint === false) {
     // Si el documento no tiene un campo 'counterBlueprintCompleted', créalo
-    if (!solicitudDoc.data().counterBlueprintCompleted) {
+    if (!solicitudDocBefore.data().counterBlueprintCompleted) {
       await updateDoc(solicitudRef, { counterBlueprintCompleted: 0 })
     }
 
@@ -954,8 +980,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     // Obtiene la cantidad de documentos en la subcolección
     const numBlueprints = blueprintsSnapshot.size
 
-    if (solicitudDoc.data().counterBlueprintCompleted === numBlueprints) {
-      await updateDoc(solicitudRef, { state: 9 })
+    // Lee el documento de la 'solicitud posterior al incremento de counterBlueprintCompleted'
+    const solicitudDocAfter = await getDoc(solicitudRef)
+
+    if (solicitudDocAfter.data().counterBlueprintCompleted === numBlueprints) {
+      await updateDoc(solicitudRef, { otReadyToFinish: true })
+    } else {
+      await updateDoc(solicitudRef, { otReadyToFinish: false })
     }
   }
 }
@@ -1012,7 +1043,7 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
         date: Timestamp.fromDate(new Date()),
         remarks: 'transmittal generado',
         lastTransmittal: newCode,
-        storageHlcDocuments: id[1].storageHlcDocuments[0]
+        storageHlcDocuments: id[1].storageHlcDocuments ? id[1].storageHlcDocuments[0] : null
       }
 
       // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
@@ -1021,6 +1052,38 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
   } catch (error) {
     console.error('Error al actualizar documentos seleccionados:', error)
     throw new Error('Error al actualizar documentos seleccionados')
+  }
+}
+
+const finishPetition = async (currentPetition, authUser) => {
+  try {
+    console.log('currentPetition:', currentPetition)
+    const petitionRef = doc(db, 'solicitudes', currentPetition.id)
+    const petitionDoc = await getDoc(petitionRef)
+
+    console.log('petitionDoc:', petitionDoc.data())
+
+    const otFinished = petitionDoc.data().otFinished
+    const otReadyToFinish = petitionDoc.data().otReadyToFinish
+
+    if (!otFinished && otReadyToFinish) {
+      await updateDoc(petitionRef, {
+        otFinished: true,
+        otFinishedBy: { userName: authUser.displayName, userId: authUser.uid, userEmail: authUser.email },
+        otFinishedDate: new Date(),
+        state: 9
+      })
+    } else {
+      await updateDoc(petitionRef, {
+        otFinished: false,
+        otFinishedBy: { userName: authUser.displayName, userId: authUser.uid, userEmail: authUser.email },
+        otFinishedDate: new Date(),
+        state: 8
+      })
+    }
+  } catch (error) {
+    console.error('Error al finalizar la solicitud:', error)
+    throw new Error('Error al finalizar la solicitud')
   }
 }
 
@@ -1037,5 +1100,6 @@ export {
   generateTransmittalCounter,
   updateSelectedDocuments,
   addComment,
-  updateUserData
+  updateUserData,
+  finishPetition
 }

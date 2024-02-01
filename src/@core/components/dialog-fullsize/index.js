@@ -82,7 +82,7 @@ function CustomListItem({
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
-          {selectable ? (
+            {selectable ? (
               <>
                 <InputLabel variant='standard'>
                   {label} {required && <span>*</span>}
@@ -108,19 +108,21 @@ function CustomListItem({
                     })}
                 </Select>
               </>
-            ) : <TextField
-              onChange={onChange}
-              label={label}
-              id={`${id}-input`}
-              defaultValue={initialValue}
-              disabled={disabled}
-              required={required}
-              value={value}
-              size='small'
-              variant='standard'
-              fullWidth={true}
-              multiline={multiline}
-            /> }
+            ) : (
+              <TextField
+                onChange={onChange}
+                label={label}
+                id={`${id}-input`}
+                defaultValue={initialValue}
+                disabled={disabled}
+                required={required}
+                value={value}
+                size='small'
+                variant='standard'
+                fullWidth={true}
+                multiline={multiline}
+              />
+            )}
           </StyledFormControl>
         </ListItem>
       ) : (
@@ -263,7 +265,10 @@ const PhotoGallery = ({ photos }) => {
 
   return (
     <Box sx={{ display: 'contents' }}>
-      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}>
+      <IconButton
+        sx={{ my: 'auto', display: !isOverflowing && 'none' }}
+        onClick={() => (document.getElementById('gallery').scrollLeft -= 200)}
+      >
         <ChevronLeft />
       </IconButton>
       <Box
@@ -274,7 +279,7 @@ const PhotoGallery = ({ photos }) => {
           flexWrap: 'nowrap',
           height: '140px',
           overflow: 'auto',
-          scrollBehavior:'smooth',
+          scrollBehavior: 'smooth',
           '::-webkit-scrollbar': { height: '4px', backgroundColor: theme.palette.background.default },
           '::-webkit-scrollbar-thumb': { backgroundColor: theme.palette.divider },
           '::-webkit-scrollbar-track': { backgroundColor: theme.palette.divider }
@@ -284,7 +289,10 @@ const PhotoGallery = ({ photos }) => {
           <PhotoItem key={index} photoUrl={fotoUrl} />
         ))}
       </Box>
-      <IconButton sx={{ my: 'auto', display: !isOverflowing && 'none' }} onClick={() => (document.getElementById('gallery').scrollLeft += 200)}>
+      <IconButton
+        sx={{ my: 'auto', display: !isOverflowing && 'none' }}
+        onClick={() => (document.getElementById('gallery').scrollLeft += 200)}
+      >
         <ChevronRight />
       </IconButton>
     </Box>
@@ -468,8 +476,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     if (Object.keys(newData).length > 0) {
       setLoading(true)
       await updateDocs(id, newData, authUser)
-      .then(() => {
-        setLoading(false)})
+        .then(() => {
+          setLoading(false)
+        })
         .catch(error => {
           setLoading(false)
           alert(error), console.log(error)
@@ -595,7 +604,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const fileList = (
-    <Grid container spacing={2} sx={{p:4, justifyContent:'center'}}>
+    <Grid container spacing={2} sx={{ p: 4, justifyContent: 'center' }}>
       {files.map(file => (
         <Grid item key={file.name}>
           <Paper
@@ -686,14 +695,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   return (
     <Dialog
-      sx={{ '& .MuiPaper-root': { maxWidth: '800px', width:'100%'} }}
+      sx={{ '& .MuiPaper-root': { maxWidth: '800px', width: '100%' } }}
       open={open}
       onClose={() => handleClose()}
       TransitionComponent={Transition}
       scroll='body'
     >
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
-      <Paper sx={{ margin: 'auto', padding: small? 0 : '30px', overflowY: 'hidden' }}>
+      <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
             <Skeleton />
@@ -713,15 +722,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   sx={{ width: 'auto' }}
                 />
                 <Box>
-                {canComment && (
-                <Button
-                  onClick={() => setCommentDialog(true)}
-                  variant='outlined'
-                  sx={{mx:2}}
-                >
-                 Agregar Comentario
-                </Button>
-            )}
+                  {canComment && (
+                    <Button onClick={() => setCommentDialog(true)} variant='outlined' sx={{ mx: 2 }}>
+                      Agregar Comentario
+                    </Button>
+                  )}
                   {/*Botón para editar*/}
                   {editButtonVisible && !isPlanner ? (
                     <IconButton
@@ -782,7 +787,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <CustomListItem
                   selectable={true}
-                  options={(areas.find(area => area.name === values?.plant)?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0])) || values?.area || []}
+                  options={
+                    areas
+                      .find(area => area.name === values?.plant)
+                      ?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0]) ||
+                    values?.area ||
+                    []
+                  }
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
@@ -890,15 +901,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 )}
 
                 {values.fotos ? (
-                 <ListItem>
-                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                  <Typography component='div' sx={{ width: '30%' }}>
-                    Archivos adjuntos
-                  </Typography>
-                  <Box sx={{ width: '70%', display:'inline-flex', justifyContent:'space-between' }}>
-                      <PhotoGallery photos={fotos} />
-                  </Box>
-                </Box>
+                  <ListItem>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      <Typography component='div' sx={{ width: '30%' }}>
+                        Archivos adjuntos
+                      </Typography>
+                      <Box sx={{ width: '70%', display: 'inline-flex', justifyContent: 'space-between' }}>
+                        <PhotoGallery photos={fotos} />
+                      </Box>
+                    </Box>
                   </ListItem>
                 ) : doc.user === authUser.displayName ? (
                   <ListItem>
@@ -934,11 +945,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                         {files.length ? (
                           <Fragment>
                             <List>{fileList}</List>
-                            <Box className='buttons' sx={{alignSelf:'center', textAlign: 'center'}} >
-                              <Button color='error' sx={{m:2}} variant='outlined' onClick={handleRemoveAllFiles}>
+                            <Box className='buttons' sx={{ alignSelf: 'center', textAlign: 'center' }}>
+                              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
                                 Quitar todo
                               </Button>
-                              <Button color='primary' sx={{m:2}} variant='outlined' onClick={handleSubmitAllFiles}>
+                              <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
                                 Subir archivos
                               </Button>
                             </Box>
@@ -1083,20 +1094,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width:'100%', height:'auto' } }}>
+      <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>
-          <TextField
-          value={comment}
-          onChange={(e)=>setComment(e.target.value)}
-          multiline
-          rows={5}
-          fullWidth
-          />
+          <TextField value={comment} onChange={e => setComment(e.target.value)} multiline rows={5} fullWidth />
         </DialogContent>
         <DialogActions>
-        <Button onClick={()=>setCommentDialog(false)}>Cerrar</Button>
-        <Button onClick={()=>{setLoading(true), handleSubmitComment()}} disabled={loading}>Enviar comentario</Button>
+          <Button onClick={() => setCommentDialog(false)}>Cerrar</Button>
+          <Button
+            onClick={() => {
+              setLoading(true), handleSubmitComment()
+            }}
+            disabled={loading}
+          >
+            Enviar comentario
+          </Button>
         </DialogActions>
       </Dialog>
 

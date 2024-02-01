@@ -8,7 +8,9 @@ import { useFirebase } from 'src/context/useFirebase'
 
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { DataGrid, esES } from '@mui/x-data-grid'
+import { DataGridPro, esES } from '@mui/x-data-grid-pro'
+import { DataGrid } from '@mui/x-data-grid'
+
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
 
