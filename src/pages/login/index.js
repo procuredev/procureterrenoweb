@@ -123,7 +123,7 @@ const LoginPage = () => {
     signInWithEmailAndPassword(email, password)
       .then(user => {
         // Manejar la respuesta exitosa
-        console.log(user)
+        // console.log(user)
       })
       .catch(error => {
         // Manejar el error y mostrar el mensaje al usuario
@@ -289,10 +289,10 @@ const LoginPage = () => {
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>
                 Entrar
               </Button>
-              <Button fullWidth size='large' onClick={(e) => handleSignGoogle(e)} variant='contained' sx={{ mb:3}}>
+              {/* <Button fullWidth size='large' onClick={(e) => handleSignGoogle(e)} variant='contained' sx={{ mb:3}}>
                 Entrar con Google
               </Button>
-              <Typography variant='body1' fontSize={12} align='center'>Solo disponible para usuarios registrados Procure</Typography>
+              <Typography variant='body1' fontSize={12} align='center'>Solo disponible para usuarios registrados Procure</Typography> */}
             </form>
           </BoxWrapper>
         </Paper>

@@ -78,7 +78,8 @@ const newDoc = async (values, userParam) => {
     ot,
     end,
     urgency,
-    mcDescription
+    mcDescription,
+    costCenter
   } = values
 
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
@@ -106,6 +107,7 @@ const newDoc = async (values, userParam) => {
       user,
       userEmail,
       userRole,
+      costCenter,
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
       engineering,
@@ -344,14 +346,14 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged,
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor,
           newState: state.planner,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
         // Planificador modifica solicitud hecha por Supervisor (any --> any)
         {
           condition: approves && emergencyBySupervisor,
-          newState: latestEvent.newState,
+          newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
           log: 'Modificado sin cambiar de estado por Planificador'
         }
       ]
@@ -391,11 +393,16 @@ function getNextState(role, approves, latestEvent, userRole) {
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
         },
-
         {
           condition: approves && approves.hasOwnProperty('designerReview'),
           newState: state.draftsman,
           log: 'Proyectistas agregados por Supervisor'
+        },
+        // Supervisor pausa el levantamiento y retrocede a adm contrato
+        {
+          condition: approves && approves.hasOwnProperty('pendingReschedule') && approves.pendingReschedule === true,
+          newState: state.contAdmin,
+          log: 'Pausado por Supervisor'
         }
 
         // Caso para cuando supervisor cambia fecha al momento de asignar proyectistas o antes (6 --> 1)

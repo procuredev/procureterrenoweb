@@ -472,6 +472,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
     const plant = requirementData.plant
     const area = requirementData.area ? requirementData.area : 'No indicado'
+    const costCenter = requirementData.costCenter ? requirementData.costCenter : 'No indicado'
     const functionalLocation = (requirementData.fnlocation && requirementData.fnlocation !== '') ? requirementData.fnlocation : 'No indicado'
     const contractOperator = requirementData.contop
     const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
@@ -485,7 +486,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
     const lastMessage = ''
 
     // Llamada al html del email con las constantes previamente indicadads
-    const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+    const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, costCenter, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
 
     // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
     updateDoc(docRef, {

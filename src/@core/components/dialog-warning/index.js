@@ -23,7 +23,7 @@ export default function AlertDialog({open, handleClose, callback, approves, load
         <DialogContent>
           {loading ? <CircularProgress /> :
           <DialogContentText id="alert-dialog-description">
-            ¿Estás segur@ de que quieres {(approves === undefined) ? 'modificar' : (approves ? 'aprobar' : 'rechazar')} la solicitud?
+            ¿Estás segur@ de que quieres {(approves === undefined) ? 'modificar' : (approves ? approves?.pendingReschedule ? 'pausar' : 'aprobar' : 'rechazar')} la solicitud?
           </DialogContentText> }
         </DialogContent>
         <DialogActions>

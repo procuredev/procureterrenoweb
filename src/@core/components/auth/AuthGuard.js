@@ -54,24 +54,24 @@ const AuthGuard = props => {
   if ((loading || !authUser) && router.asPath !== '/nuevo-usuario/') {
     return fallback
   }
-  if (!authUser.registered) {
-    setTimeout(() => {
-      deleteCurrentUser()
-    }, 5000)
+  // if (!authUser.registered) {
+  //   setTimeout(() => {
+  //     deleteCurrentUser()
+  //   }, 5000)
 
-    return (
-      <>
-        <Dialog open={true}>
-          <DialogTitle>Usuario no registrado</DialogTitle>
-          <DialogContent sx={{ mb: 3 }}>
-            No estás registrado en Prosite. Contacta al administrador de la plataforma para crear tu cuenta. Serás
-            redirigido al login en {seconds} segundos.
-          </DialogContent>
-        </Dialog>
-        {children}
-      </>
-    )
-  }
+  //   return (
+  //     <>
+  //       <Dialog open={true}>
+  //         <DialogTitle>Usuario no registrado</DialogTitle>
+  //         <DialogContent sx={{ mb: 3 }}>
+  //           No estás registrado en Prosite. Contacta al administrador de la plataforma para crear tu cuenta. Serás
+  //           redirigido al login en {seconds} segundos.
+  //         </DialogContent>
+  //       </Dialog>
+  //       {children}
+  //     </>
+  //   )
+  // }
 
   return <>{children}</>
 }

@@ -469,6 +469,7 @@ export function solicitudValidator(values) {
   //const valTitle = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
   //const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
   const valSap = /^[0-9+]{0,10}$/
+  const valCostCenter = /^[0-9+]{0,25}$/
   const valFnLocation = /^[a-zA-Z0-9 -./]{0,25}$/ // /^[0-9+]{4,6}$/
 
   const validations = {
@@ -480,6 +481,10 @@ export function solicitudValidator(values) {
       validate: value => valDescription.test(value),
       message: 'La descripción no admite caracteres especiales.'
     }, */
+    costCenter: {
+      validate: value => valCostCenter.test(value),
+      message: 'El Centro de Costos solo recibe campos numéricos y debe tener de 0 a 25 caracteres.'
+    },
     sap: {
       validate: value => valSap.test(value),
       message: 'El SAP solo recibe campos numéricos y debe tener de 8 a 10 caracteres.'
@@ -581,12 +586,13 @@ export function solicitudValidator(values) {
     receiver: 'Destinatarios',
     description: 'Descripción',
     urlvideo: 'URL de video',
-    tag: 'TAG'
+    tag: 'TAG',
+    costCenter: 'Centro de Costos'
   }
 
   for (const key in values) {
     let keyStringName = keyMap[key] || [key]
-    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag', 'end', 'ot', 'urgency', 'mcDescription']
+    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag', 'end', 'ot', 'urgency', 'mcDescription', 'costCenter']
 
     if (typeof values[key] === 'string' && !nonRequiredFields.includes(key)) {
       if (values[key].trim() === '') {
