@@ -8,6 +8,8 @@ import { useFirebase } from 'src/context/useFirebase'
 import Box from '@mui/material/Box'
 import { useGridApiRef } from '@mui/x-data-grid'
 import { Autocomplete } from '@mui/material'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 
 // ** Custom Components Imports
 
@@ -17,9 +19,15 @@ import TextField from '@mui/material/TextField'
 // ** Demo Components Imports
 import tableBody from 'public/html/table.js'
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
 import { generateTransmittal } from 'src/@core/utils/generate-transmittal'
 import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
+import DialogErrorTransmittal from 'src/@core/components/dialog-errorTransmittal'
 import DialogFinishOt from 'src/@core/components/dialog-finishOt'
 import { el } from 'date-fns/locale'
 
@@ -36,6 +44,7 @@ const DataGridGabinete = () => {
   const [designerAssigned, setDesignerAssigned] = useState(false)
   const [transmittalGenerated, setTransmittalGenerated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [errorTransmittal, setErrorTransmittal] = useState(false)
 
   const apiRef = useGridApiRef()
 
@@ -62,6 +71,12 @@ const DataGridGabinete = () => {
 
   //let blueprints = useBlueprints(currentPetition?.id)
   const [blueprints, setBlueprints] = useBlueprints(currentPetition?.id)
+
+  const theme = useTheme()
+  const smDown = useMediaQuery(theme.breakpoints.down('sm'))
+  const mdDown = useMediaQuery(theme.breakpoints.down('md'))
+  const lgDown = useMediaQuery(theme.breakpoints.down('lg'))
+  const xlDown = useMediaQuery(theme.breakpoints.down('xl'))
 
   const handleClickOpenCodeGenerator = doc => {
     setOpenCodeGenerator(true)
@@ -106,6 +121,10 @@ const DataGridGabinete = () => {
     setCurrentPetition(currentDoc)
   }
 
+  const handleCloseErrorTransmittal = () => {
+    setErrorTransmittal(false)
+  }
+
   const handleGenerateTransmittal = (tableElement, selected, newCode) => {
     generateTransmittal(tableElement, selected, setTransmittalGenerated, newCode)
   }
@@ -132,7 +151,7 @@ const DataGridGabinete = () => {
       tableElement.innerHTML = tableBody(newCode, numberOfDocuments)
 
       if (selected.size === 0) {
-        return alert('Seleccione al menos un documento')
+        setErrorTransmittal(true)
       } else {
         handleGenerateTransmittal(tableElement, selected, newCode)
       }
@@ -234,7 +253,10 @@ const DataGridGabinete = () => {
               {...params}
               label='Proyectistas asignados'
               readOnly={true}
-              sx={{ '& .MuiInputBase-inputAdornedStart': { display: 'none' } }}
+              sx={{
+                '& .MuiInputBase-inputAdornedStart': { display: 'none' },
+                '& .MuiSvgIcon-root': { display: 'none' }
+              }}
             />
           )}
         />
@@ -242,6 +264,7 @@ const DataGridGabinete = () => {
         {authUser.role === 5 || authUser.role === 6 ? (
           currentPetition?.otFinished ? (
             <Button
+              sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
               variant='contained'
               disabled={!currentPetition?.otReadyToFinish}
               onClick={() => currentPetition && handleClickOpenFinishOt(currentPetition)}
@@ -251,6 +274,7 @@ const DataGridGabinete = () => {
             </Button>
           ) : (
             <Button
+              sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
               variant='contained'
               disabled={!currentPetition?.otReadyToFinish}
               onClick={() => currentPetition && handleClickOpenFinishOt(currentPetition)}
@@ -260,6 +284,7 @@ const DataGridGabinete = () => {
           )
         ) : authUser.role === 8 ? (
           <Button
+            sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
             disabled={currentPetition?.otFinished}
             onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
@@ -269,7 +294,7 @@ const DataGridGabinete = () => {
         ) : authUser.role === 7 ? (
           <>
             <Button
-              sx={{ width: '50%', m: 2.5 }}
+              sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
               variant='contained'
               disabled={currentPetition?.otFinished}
               onClick={() => currentPetition && handleClickOpen(currentPetition)}
@@ -279,6 +304,7 @@ const DataGridGabinete = () => {
           </>
         ) : authUser.role === 9 ? (
           <Button
+            sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
             disabled={currentPetition?.otFinished}
             onClick={() => currentPetition && handleClickTransmittalGenerator(currentPetition, blueprints)}
@@ -294,6 +320,7 @@ const DataGridGabinete = () => {
         currentPetition.designerReview &&
         currentPetition.designerReview.find(user => user.userId === authUser.uid) ? (
           <Button
+            sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
             disabled={currentPetition?.otFinished}
             onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
@@ -341,6 +368,7 @@ const DataGridGabinete = () => {
           petitionFinished={petitionFinished}
         />
       )}
+      {errorTransmittal && <DialogErrorTransmittal open={errorTransmittal} handleClose={handleCloseErrorTransmittal} />}
     </Box>
   )
 }
