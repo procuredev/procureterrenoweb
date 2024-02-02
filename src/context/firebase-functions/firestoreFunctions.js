@@ -516,6 +516,12 @@ const useBlueprints = id => {
     const blueprintsRef = collection(db, `solicitudes/${id}/blueprints`)
 
     const unsubscribeBlueprints = onSnapshot(blueprintsRef, docSnapshot => {
+      if (docSnapshot.docs.length === 0) {
+        setData([])
+
+        return
+      }
+
       let allDocs = []
 
       docSnapshot.docs.forEach(doc => {
