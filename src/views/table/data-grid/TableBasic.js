@@ -17,6 +17,8 @@ import {
   GridColDef,
   GridRowsProp
 } from '@mui/x-data-grid-premium'
+import * as ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
 
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
@@ -32,6 +34,15 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
   const { updateDocs, authUser } = useFirebase()
+
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState({
+    // ... otros estados de visibilidad de columnas ...
+    end: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    actions: roleData.canApprove,
+    plant: false,
+    area: false
+  })
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -265,6 +276,16 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
+      field: 'plant',
+      headerName: 'Planta',
+      valueGetter: params => params.row.plant
+    },
+    {
+      field: 'area',
+      headerName: 'Área',
+      valueGetter: params => params.row.area
+    },
+    {
       field: 'supervisorShift',
       maxWidth: 80,
       headerName: 'Turno',
@@ -383,8 +404,61 @@ const TableBasic = ({ rows, role, roleData }) => {
   function CustomToolbar() {
     return (
       <GridToolbarContainer>
-        <GridToolbarExport />
+        <Button onClick={handleExport}>Exportar</Button>
+
+        {/* <GridToolbarExport csvOptions={{ fileName: 'Data', utf8WithBom: true }} onExport={handleExport} /> */}
       </GridToolbarContainer>
+    )
+  }
+
+  const handleExport = async options => {
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Hoja 1')
+
+    // columnas en el libro de Excel
+    worksheet.columns = [
+      { header: 'Solicitud', key: 'title', width: 40 },
+      { header: 'Descripción', key: 'description', width: 40 },
+      { header: 'Estado', key: 'state', width: 25 },
+      { header: 'Creación', key: 'date', width: 12 },
+      { header: 'Inicio', key: 'start', width: 12 },
+      { header: 'Término', key: 'end', width: 12 },
+      { header: 'Planta', key: 'plant', width: 40 },
+      { header: 'Área', key: 'area', width: 50 },
+      { header: 'Turno', key: 'supervisorShift', width: 10 },
+      { header: 'OT', key: 'ot', width: 10 },
+      { header: 'Estado Operacional', key: 'type', width: 10 },
+      { header: 'Maquina Detenida', key: 'detention', width: 10 },
+      { header: 'Tipo de Levantamiento', key: 'objective', width: 20 },
+      { header: 'Contract Operator', key: 'contop', width: 20 },
+      { header: 'Autor', key: 'user', width: 20 }
+    ]
+
+    rows.forEach(row => {
+      const stateValue = row.state
+      worksheet.addRow({
+        title: row.title,
+        description: row.description,
+        state: dictionary[stateValue].title,
+        date: unixToDate(row.date.seconds)[0],
+        start: unixToDate(row.start.seconds)[0],
+        end: unixToDate(row.end.seconds)[0],
+        plant: row.plant,
+        area: row.area,
+        supervisorShift: row.supervisorShift,
+        ot: row.ot,
+        type: row.type,
+        detention: row.detention,
+        objective: row.objective,
+        contop: row.contop,
+        user: row.user
+      })
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    saveAs(
+      new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      'Data.xlsx'
     )
   }
 
@@ -400,11 +474,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           hideFooterSelectedRowCount
           rows={rows}
           columns={columns}
-          columnVisibilityModel={{
-            end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
-            supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
-            actions: roleData.canApprove
-          }}
+          columnVisibilityModel={columnVisibilityModel}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           slots={{
             toolbar: CustomToolbar
