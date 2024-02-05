@@ -49,7 +49,6 @@ import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@m
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
-import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 import { useDropzone } from 'react-dropzone'
@@ -402,7 +401,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment, getDomainData } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment, getDomainData, domainDictionary } = useFirebase()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -852,8 +851,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
-                  label={state || state === 0 ? dictionary[state].details : 'Cargando...'}
-                  color={state || state === 0 ? dictionary[state].color : 'primary'}
+                  label={state || state === 0 ? domainDictionary[state].details : 'Cargando...'}
+                  color={state || state === 0 ? domainDictionary[state].color : 'primary'}
                   sx={{ width: 'auto' }}
                 />
                 <Box>
@@ -1158,7 +1157,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                   : element.userName}
                               </Typography>
                               <Typography variant='body2'>
-                                {dictionary[element.newState]?.details || element.comment}
+                                {domainDictionary[element.newState]?.details || element.comment}
                               </Typography>
                             </TimelineContent>
                           </TimelineItem>
@@ -1204,7 +1203,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                               {status} por {element.userName}
                             </Typography>
                             <Typography variant='body2'>
-                              {dictionary[element.newState]?.details || element.comment}
+                              {domainDictionary[element.newState]?.details || element.comment}
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>
