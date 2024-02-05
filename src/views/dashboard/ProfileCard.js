@@ -9,7 +9,6 @@ import { styled, useTheme } from '@mui/material/styles'
 import { Height } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import { useFirebase } from 'src/context/useFirebase'
-import dictionary from 'src/@core/components/dictionary/index'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
