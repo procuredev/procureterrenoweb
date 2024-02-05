@@ -24,7 +24,7 @@ const ProfileCard = () => {
   // ** Hook
   const theme = useTheme()
   const router = useRouter()
-  const { authUser } = useFirebase()
+  const { authUser, domainDictionary } = useFirebase()
 
   return (
     <Card sx={{ position: 'relative', height: 'auto' }}>
@@ -35,7 +35,7 @@ const ProfileCard = () => {
             <Box component='span' sx={{ fontWeight: 'bold', mb: 4.5 }}>
               {authUser &&
                 (authUser.displayName || typeof authUser.role === 'number'
-                  ? dictionary[authUser.role] && dictionary[authUser.role].name
+                  ? domainDictionary[authUser.role] && domainDictionary[authUser.role].name
                   : 'No definido')}
             </Box>
             ! 👋
