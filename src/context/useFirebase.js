@@ -57,7 +57,6 @@ import {
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
-import dictionary from 'src/@core/components/dictionary'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
