@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
 
-import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 // import useColumnResizer from 'src/@core/hooks/useColumnResizer'
@@ -24,9 +23,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
-  const { updateDocs, authUser } = useFirebase()
-
-
+  const { updateDocs, authUser, domainDictionary } = useFirebase()
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -211,8 +208,8 @@ const TableBasic = ({ rows, role, roleData }) => {
         return (
           <CustomChip
             size='small'
-            color={dictionary[state].color}
-            label={dictionary[state].title}
+            color={domainDictionary[state].color}
+            label={domainDictionary[state].title}
             sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )
