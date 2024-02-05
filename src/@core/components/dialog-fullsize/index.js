@@ -501,25 +501,29 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       try {
 
         // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
-        const plantsArray = Object.keys(domainData.plants || {})
-        plantsArray.sort()
-        setPlantsNames(plantsArray)
+        if (domainData && domainData.plants) {
+          const plants = Object.keys(domainData.plants).sort()
+          setPlantsNames(plants)
+        }
 
         // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
-        const objectives = Object.keys(domainData.objectives || {})
-        objectives.sort()
-        setObjectivesArray(objectives)
+        if (domainData && domainData.objectives) {
+          const objectives = Object.keys(domainData.objectives).sort()
+          setObjectivesArray(objectives)
+        }
 
         // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const deliverables = Object.keys(domainData.deliverables || {})
-        deliverables.sort()
-        setDeliverablesArray(deliverables)
+        if (domainData && domainData.deliverables) {
+          const deliverables = Object.keys(domainData.deliverables).sort()
+          setDeliverablesArray(deliverables)
+        }
 
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
-        const plantData = domainData.plants[values.plant]
-        const areas = Object.keys(plantData || {}).map((area) => `${area} - ${plantData[area].name}`)
-        areas.sort()
-        setAreasArray(areas)
+        const plantData = domainData?.plants?.[values.plant] || {};
+        if (plantData) {
+          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort()
+          setAreasArray(areas)
+        }
 
       } catch (error) {
         console.error('Error buscando los datos:', error)

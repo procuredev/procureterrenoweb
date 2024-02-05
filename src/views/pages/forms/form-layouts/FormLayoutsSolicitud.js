@@ -335,30 +335,35 @@ const FormLayoutsSolicitud = () => {
       try {
 
         // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
-        const objectives = Object.keys(domainData.objectives || {})
-        objectives.sort()
-        setObjectivesOptions(objectives)
+        if (domainData && domainData.objectives) {
+          const objectives = Object.keys(domainData.objectives).sort();
+          setObjectivesOptions(objectives);
+        }
 
         // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const urgencyTypes = Object.keys(domainData.urgencyTypes || {})
-        urgencyTypes.sort()
-        setUrgencyTypesOptions(urgencyTypes)
+        if (domainData && domainData.urgencyTypes) {
+          const urgencyTypes = Object.keys(domainData.urgencyTypes).sort();
+          setUrgencyTypesOptions(urgencyTypes);
+        }
 
         // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const operationalStatus = Object.keys(domainData.operationalStatus || {})
-        operationalStatus.sort()
-        setOperationalStatusOptions(operationalStatus)
+        if (domainData && domainData.operationalStatus) {
+          const operationalStatus = Object.keys(domainData.operationalStatus).sort();
+          setOperationalStatusOptions(operationalStatus);
+        }
 
         // Se reordena la información de urgencys (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
-        const deliverables = Object.keys(domainData.deliverables || {})
-        deliverables.sort()
-        setDeliverablesOptions(deliverables)
+        if (domainData && domainData.deliverables) {
+          const deliverables = Object.keys(domainData.deliverables).sort();
+          setDeliverablesOptions(deliverables);
+        }
 
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
-        const plantData = domainData.plants[values.plant]
-        const areas = Object.keys(plantData || {}).map((area) => `${area} - ${plantData[area].name}`)
-        areas.sort()
-        setAreas(areas)
+        const plantData = domainData?.plants?.[values.plant] || {};
+        if (plantData) {
+          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort();
+          setAreas(areas);
+        }
 
       } catch (error) {
         console.error('Error buscando los datos:', error)
