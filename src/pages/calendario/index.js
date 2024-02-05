@@ -102,7 +102,7 @@ const AppCalendar = () => {
   useEffect(() => {
     const role = async () => {
       if (authUser) {
-        const role = await getDomainData(authUser.role.toString())
+        const role = await getDomainData('roles', authUser.role.toString())
         setRoleData(role)
       }
     }
