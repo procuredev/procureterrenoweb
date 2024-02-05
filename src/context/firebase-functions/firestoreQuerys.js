@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
 
-// Se importa dictionary
-import dictionary from 'src/@core/components/dictionary'
-
 // ** Firebase Imports
 import { db } from 'src/configs/firebase'
 import {
@@ -391,6 +388,8 @@ const consultBlockDayInDB = async date => {
 
 // Consultar si existe un número SAP en la base de datos de solicitudes
 const consultSAP = async sap => {
+  const domainDictionary = await getDomainData('dictionary')
+
   // Definir la consulta con una condición de igualdad en el campo 'sap' y ordenar por fecha descendente
   const sapQuery = query(collection(db, `solicitudes`), where('sap', '==', sap), orderBy('date', 'desc'))
 
@@ -416,7 +415,7 @@ const consultSAP = async sap => {
         const userRef = doc(db, 'users', docItemData.uid)
         const userQuerySnapshot = await getDoc(userRef)
         const author = userQuerySnapshot.data().name
-        const reqState = dictionary[docItemData.state].longTitle
+        const reqState = domainDictionary[docItemData.state].longTitle
 
         if (docItem.data().ot) {
           // Si el documento tiene una OT asignada, agregarlo al arreglo 'sapWithOt'
