@@ -227,6 +227,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Creación',
       flex: 0.4,
       minWidth: 90,
+      valueGetter: params => unixToDate(params.row.date.seconds)[0],
       renderCell: params => {
         const { row } = params
 
@@ -238,6 +239,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Inicio',
       flex: 0.4,
       minWidth: 90,
+      valueGetter: params => unixToDate(params.row.start.seconds)[0],
       renderCell: params => {
         const { row } = params
 
@@ -249,6 +251,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Término',
       flex: 0.4,
       minWidth: 90,
+      valueGetter: params => unixToDate(params.row.end?.seconds)[0],
       renderCell: params => {
         const { row } = params
 
