@@ -220,6 +220,12 @@ const TableBasic = ({ rows, role, roleData }) => {
             sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )
+      },
+      valueGetter: params => {
+        const stateValue = params.row.state
+        // Utiliza el mismo diccionario para obtener el título correspondiente al valor del estado
+
+        return dictionary[stateValue] ? dictionary[stateValue].title : 'Desconocido'
       }
     },
     {
