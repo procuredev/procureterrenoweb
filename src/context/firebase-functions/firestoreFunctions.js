@@ -346,8 +346,20 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor,
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState < state.planner,
           newState: state.planner,
+          log: 'Modificado sin cambio de fecha por Planificador'
+        },
+        // Planificador modifica sin cambios de fecha (any --> planner)
+        {
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState >= state.planner && latestEvent.newState < state.supervisor,
+          newState: latestEvent.newState,
+          log: 'Modificado sin cambio de fecha por Planificador'
+        },
+        // Planificador modifica sin cambios de fecha (any --> planner)
+        {
+          condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.supervisor,
+          newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
         // Planificador modifica solicitud hecha por Supervisor (any --> any)
@@ -516,6 +528,12 @@ const useBlueprints = id => {
     const blueprintsRef = collection(db, `solicitudes/${id}/blueprints`)
 
     const unsubscribeBlueprints = onSnapshot(blueprintsRef, docSnapshot => {
+      if (docSnapshot.docs.length === 0) {
+        setData([])
+
+        return
+      }
+
       let allDocs = []
 
       docSnapshot.docs.forEach(doc => {
@@ -945,8 +963,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         : {
             ...updateData,
             approvedByDocumentaryControl: approves,
-            sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0),
-            sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0),
+            sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentByDesigner,
+            sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentBySupervisor,
             storageBlueprints:
               approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
           }

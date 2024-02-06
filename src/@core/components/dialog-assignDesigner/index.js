@@ -126,7 +126,6 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
         <IconButton
           size='small'
           onClick={() => {
-            setDesignerReviewState([])
             handleClose()
           }}
           sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
