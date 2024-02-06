@@ -30,7 +30,8 @@ import {
   Tooltip,
   MenuItem,
   InputLabel,
-  Select
+  Select,
+  Autocomplete
 } from '@mui/material'
 
 import {
@@ -48,11 +49,9 @@ import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@m
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
-import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 import { useDropzone } from 'react-dropzone'
-import areas from '../plants-areas'
 import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
 import { object } from 'yup'
 
@@ -140,6 +139,71 @@ function CustomListItem({
         )
       )}
     </>
+  )
+}
+
+function CustomAutocompleteItem({
+  selectable,
+  options,
+  editable,
+  label,
+  value,
+  onChange,
+  error,
+  required,
+}) {
+  return (
+    <Grid item xs={12}>
+      <FormControl fullWidth>
+        <Box display='flex' alignItems='center'>
+          {editable && selectable ? (
+            <Autocomplete
+              getOptionLabel={(option) => option.name || option}
+              multiple
+              fullWidth
+              options={options}
+              value={value}
+              onChange={(_, newValue) => onChange({ target: { value: newValue } })}
+              renderTags={(tagValue, getTagProps) =>
+                tagValue.map((option, index) => (
+                  <Chip
+                    key={index}
+                    label={option.name || option}
+                    {...getTagProps({ index })}
+                    disabled={!editable}
+                    clickable={editable}
+                    onDelete={() => {
+                      const newValue = value.filter((v, i) => i !== index)
+                      onChange({ target: { value: newValue } })
+                    }}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={label}
+                  InputLabelProps={{ required: required }}
+                  error={error ? true : false}
+                  helperText={error}
+                />
+              )}
+            />
+          ) : (
+            <ListItem id={`list-${label}`} divider={!editable}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <Typography component='div' sx={{ width: '30%' }}>
+                  {label}
+                </Typography>
+                <Typography component='div' sx={{ width: '70%' }}>
+                  {value.join(', ')}
+                </Typography>
+              </Box>
+            </ListItem>
+          )}
+        </Box>
+      </FormControl>
+    </Grid>
   )
 }
 
@@ -300,7 +364,7 @@ const PhotoGallery = ({ photos }) => {
 }
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
-  let isPlanner = roleData && roleData.id === '5'
+  let isPlanner = roleData && roleData.id == '5'
 
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
@@ -314,6 +378,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
+  const [domainData, setDomainData] = useState({})
+  const [objectivesArray, setObjectivesArray] = useState([])
+  const [deliverablesArray, setDeliverablesArray] = useState([])
+  const [plantsNames, setPlantsNames] = useState([])
+  const [areasArray, setAreasArray] = useState([])
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -332,7 +401,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment } = useFirebase()
+  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment, getDomainData, domainDictionary } = useFirebase()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -398,6 +467,72 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...(doc.fotos && { fotos: doc.fotos })
       }
     : {}
+
+
+  // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
+  useEffect(() => {
+    const getAllDomainData = async () => {
+      try {
+        // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        const domain = await getDomainData()
+
+        // Manejo de errores para evitar Warning en Consola
+        if (!domain) {
+          console.error('No se encontraron los datos o datos son indefinidos o null.')
+
+          return
+        }
+
+        // Se almacena la información de Tabla de Dominio en una variable de Entorno
+        setDomainData(domain)
+
+
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getAllDomainData()
+  }, [])
+
+  // useEffect para buscar información específica de la colección domain en la base de datos
+  useEffect(() => {
+    const getSpecificDomainData = async () => {
+      try {
+
+        // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
+        if (domainData && domainData.plants) {
+          const plants = Object.keys(domainData.plants).sort()
+          setPlantsNames(plants)
+        }
+
+        // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
+        if (domainData && domainData.objectives) {
+          const objectives = Object.keys(domainData.objectives).sort()
+          setObjectivesArray(objectives)
+        }
+
+        // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
+        if (domainData && domainData.deliverables) {
+          const deliverables = Object.keys(domainData.deliverables).sort()
+          setDeliverablesArray(deliverables)
+        }
+
+        // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
+        const plantData = domainData?.plants?.[values.plant] || {};
+        if (plantData) {
+          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort()
+          setAreasArray(areas)
+        }
+
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getSpecificDomainData()
+  }, [domainData, values.plant])
+
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -717,8 +852,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Chip
-                  label={state || state === 0 ? dictionary[state].details : 'Cargando...'}
-                  color={state || state === 0 ? dictionary[state].color : 'primary'}
+                  label={state || state === 0 ? domainDictionary[state].details : 'Cargando...'}
+                  color={state || state === 0 ? domainDictionary[state].color : 'primary'}
                   sx={{ width: 'auto' }}
                 />
                 <Box>
@@ -766,19 +901,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   multiline={true}
                 />
                 <CustomListItem
-                  editable={false}
+                  selectable={true}
+                  options={objectivesArray}
+                  editable={editable && roleData && roleData.canEditValues}
                   label='Tipo de Levantamiento'
                   id='objective'
                   initialValue={objective}
                   value={values.objective}
                   onChange={handleInputChange('objective')}
-                  required={true}
-                  multiline={true}
                 />
                 <CustomListItem
                   selectable={true}
-                  options={areas}
-                  editable={editable && roleData && roleData.canEditValues}
+                  options={plantsNames}
+                  editable={false}
                   label='Planta'
                   id='plant'
                   initialValue={plant}
@@ -787,13 +922,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <CustomListItem
                   selectable={true}
-                  options={
-                    areas
-                      .find(area => area.name === values?.plant)
-                      ?.allAreas?.map(area => Object.keys(area)[0] + ' - ' + Object.values(area)[0]) ||
-                    values?.area ||
-                    []
-                  }
+                  options={areasArray}
                   editable={editable && roleData && roleData.canEditValues}
                   label='Área'
                   id='area'
@@ -891,11 +1020,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       required={true}
                       multiline={true}
                     />
-                    <CustomListItem
+                    {/* <CustomListItem
                       editable={false}
                       label='Entregables'
                       id='deliverable'
                       initialValue={<DeliverableComponent/>}
+                    /> */}
+                    <CustomAutocompleteItem
+                      selectable={true}
+                      options={deliverablesArray}
+                      editable={editable && roleData && roleData.canEditValues}
+                      label='Entregables'
+                      id='deliverable'
+                      initialValue={deliverable}
+                      value={values.deliverable}
+                      onChange={handleInputChange('deliverable')}
                     />
                   </>
                 )}
@@ -1019,7 +1158,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                   : element.userName}
                               </Typography>
                               <Typography variant='body2'>
-                                {dictionary[element.newState]?.details || element.comment}
+                                {domainDictionary[element.newState]?.details || element.comment}
                               </Typography>
                             </TimelineContent>
                           </TimelineItem>
@@ -1065,7 +1204,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                               {status} por {element.userName}
                             </Typography>
                             <Typography variant='body2'>
-                              {dictionary[element.newState]?.details || element.comment}
+                              {domainDictionary[element.newState]?.details || element.comment}
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>

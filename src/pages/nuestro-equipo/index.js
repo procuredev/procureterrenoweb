@@ -161,7 +161,6 @@ const NuestroEquipo = () => {
 
     fetchUsers()
   }, [])
-  console.log(procureUsers, "procureUsers")
 
   // Declaración de varibles: array usuarios, prioridad (orden en que serán mostrados), jon (cargo)
   let users = [] // array que almacenará los usuarios que cumplen con las condiciones

@@ -40,7 +40,7 @@ import {
   useEvents,
   useSnapshot,
   getData,
-  getRoleData,
+  getDomainData,
   getUserData,
   consultBlockDayInDB,
   consultSAP,
@@ -63,6 +63,7 @@ const FirebaseContextProvider = props => {
   const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
+  const [domainDictionary, setDomainDictionary] = useState({})
 
   // ** Variables
   const auth = getAuth(app)
@@ -74,11 +75,14 @@ const FirebaseContextProvider = props => {
       if (!authState) {
         setAuthUser(null)
         setLoading(false)
+        setDomainDictionary(null)
       } else {
         setLoading(true)
         const formattedUser = await formatAuthUser(authState)
         setAuthUser(formattedUser)
         setLoading(false)
+        const dictionary = await getDomainData('dictionary')
+        setDomainDictionary(dictionary)
       }
     })
 
@@ -90,6 +94,7 @@ const FirebaseContextProvider = props => {
     auth,
     loading,
     isCreatingProfile,
+    domainDictionary,
     setIsCreatingProfile,
     signOut,
     resetPassword,
@@ -104,7 +109,7 @@ const FirebaseContextProvider = props => {
     updateUserPhone,
     useSnapshot,
     signAdminFailure,
-    getRoleData,
+    getDomainData,
     getData,
     getUserData,
     uploadFilesToFirebaseStorage,

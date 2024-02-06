@@ -32,7 +32,7 @@ import DialogActions from '@mui/material/DialogActions'
 
 // **Validar RUT
 import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
-import areas from 'src/@core/components/plants-areas'
+import { number } from 'yup'
 
 const FormLayoutsBasic = () => {
   let initialValues = {
@@ -59,10 +59,47 @@ const FormLayoutsBasic = () => {
   const [opShiftOptions, setOpShiftOptions] = useState([])
   const [oldEmail, setOldEmail] = useState('')
   const [newUID, setNewUID] = useState('')
+  const [plantsNames, setPlantsNames] = useState([])
+  const [allowableEmails, setAllowableEmails] = useState([])
+  const [procureRoles, setProcureRoles] = useState([])
+  const [melRoles, setMelRoles] = useState([])
 
   // ** Hooks
-  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile } = useFirebase()
+  const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
 
+  // Acá se define en una constante los nombres de las plantas como un array
+  // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
+  const getPlantNames = async () => {
+    const plants = await getDomainData('plants')
+    let plantsArray = Object.keys(plants)
+    plantsArray.sort()
+    plantsArray = [...plantsArray, 'Sucursal Santiago']
+    setPlantsNames(plantsArray)
+  }
+
+  const getAllowableEmailDomains = async () => {
+    const domains = await getDomainData('allowableDomains')
+    const array = Object.keys(domains)
+    setAllowableEmails(array)
+  }
+
+  const getRolesDomains = async () => {
+    const roles = await getDomainData('roles')
+    const rolesArray = Object.keys(roles).map(key => ({ id: Number(key), ...roles[key] }))
+
+    const rolesMelArray = rolesArray.filter(objeto => [2, 3, 4].includes(objeto.id))
+    const rolesProcureArray = rolesArray.filter(objeto => ![2, 3, 4].includes(objeto.id))
+
+    setProcureRoles(rolesProcureArray)
+    setMelRoles(rolesMelArray)
+  };
+
+  // Obtener los nombres de las plantas cuando el componente se monta
+  useEffect(() => {
+    getPlantNames()
+    getAllowableEmailDomains()
+    getRolesDomains()
+  }, [])
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -140,9 +177,7 @@ const FormLayoutsBasic = () => {
     }
   }
 
-  const santiago = 'Sucursal Santiago'
-  let names = areas.map(plant => plant.name)
-  names = names.concat(santiago)
+
 
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
@@ -158,8 +193,8 @@ const FormLayoutsBasic = () => {
     const newErrors = {}
 
     switch (true) {
-      case values.role === 2 && !values.plant.includes(santiago):
-        requiredKeys.push('plant') // Utilizamos push para agregar elementos al array
+      case values.role === 2 && !values.plant.includes('Sucursal Santiago'):
+        requiredKeys.push('shift', 'plant') // Utilizamos push para agregar elementos al array
         break
       case values.role === 3:
         requiredKeys.push('plant')
@@ -181,6 +216,14 @@ const FormLayoutsBasic = () => {
 
         // Validaciones específicas para cada clave utilizando switch case
         switch (key) {
+          case 'email':
+            const emailParts = values.email.split('@')
+            const emailConcat = allowableEmails.join(' y ')
+
+            if (!allowableEmails.includes(emailParts[1])) {
+              newErrors['email'] = `Solo se permiten correos de ${emailConcat}`
+            }
+            break
           case 'rut':
             if (isRutLike(values.rut)) {
               values.rut = formatRut(values.rut)
@@ -342,6 +385,7 @@ const FormLayoutsBasic = () => {
     }
   }
 
+  const rolesToDisplay = values.company === 'MEL' ? melRoles : procureRoles
 
   return (
     <Card>
@@ -437,16 +481,11 @@ const FormLayoutsBasic = () => {
                   onChange={handleChange('role')}
                   error={errors.role ? true : false}
                 >
-                  {values.company === 'Procure' && <MenuItem value={1}>Admin</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={2}>Solicitante</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={3}>Contract Operator</MenuItem>}
-                  {values.company === 'MEL' && <MenuItem value={4}>Contract Owner</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={5}>Planificador</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={6}>Administrador de Contrato</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={7}>Supervisor</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={8}>Proyectista</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={9}>Control Documental</MenuItem>}
-                  {values.company === 'Procure' && <MenuItem value={10}>Gerente</MenuItem>}
+                  {rolesToDisplay.map(role => (
+                    <MenuItem key={role.id} value={role.id}>
+                      {role.name}
+                    </MenuItem>
+                  ))}
                 </Select>
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
@@ -459,7 +498,7 @@ const FormLayoutsBasic = () => {
                   <Autocomplete
                     multiple={true} //{values.role === 3}
                     fullWidth
-                    options={names}
+                    options={plantsNames}
                     value={values.plant}
                     onChange={handleChange('plant')}
                     renderInput={params => (
@@ -477,7 +516,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Ingeniería Integrada */}
-            {values.company === 'MEL' && values.role === 2 && values.plant.includes(santiago) && (
+            {values.company === 'MEL' && values.role === 2 && values.plant.includes('Sucursal Santiago') && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Ingeniería integrada</InputLabel>
@@ -496,7 +535,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Turno */}
-            {[2, 7, 8].includes(values.role) && !values.plant.includes(santiago) && (
+            {[2, 7, 8].includes(values.role) && !values.plant.includes('Sucursal Santiago') && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Turno</InputLabel>
@@ -521,7 +560,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Contraturno */}
-            {values.company === 'MEL' && values.role === 2 && !values.plant.includes(santiago) && (
+            {values.company === 'MEL' && values.role === 2 && !values.plant.includes('Sucursal Santiago') && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Contraturno</InputLabel>

@@ -21,13 +21,13 @@ const DataGridLevantamientos = () => {
   const [value, setValue] = useState('1')
   const [roleData, setRoleData] = useState({ name: 'admin' })
 
-  const { useSnapshot, authUser, getRoleData } = useFirebase()
+  const { useSnapshot, authUser, getDomainData } = useFirebase()
   const data = useSnapshot(true, authUser)
 
   useEffect(() => {
     const role = async () => {
       if (authUser) {
-        const role = await getRoleData(authUser.role.toString())
+        const role = await getDomainData('roles', authUser.role.toString())
         setRoleData(role)
       }
     }

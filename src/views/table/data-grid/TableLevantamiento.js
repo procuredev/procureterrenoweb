@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useFirebase } from 'src/context/useFirebase'
-import dictionary from 'src/@core/components/dictionary/index'
 import { unixToDate } from 'src/@core/components/unixToDate'
 
 // ** MUI Imports
@@ -38,7 +37,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData } = useFirebase()
+  const { updateDocs, authUser, getUserData, domainDictionary } = useFirebase()
   const [isLoading, setIsLoading] = useState(false)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
@@ -190,8 +189,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         return (
           <CustomChip
             size='small'
-            color={dictionary[state].color}
-            label={dictionary[state].title}
+            color={domainDictionary[state].color}
+            label={domainDictionary[state].title}
             sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )
