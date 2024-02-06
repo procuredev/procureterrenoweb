@@ -488,7 +488,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           columnVisibilityModel={columnVisibilityModel}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           slots={{
-            toolbar: CustomToolbar
+            //toolbar: CustomToolbar
           }}
         />
         <AlertDialog

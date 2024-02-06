@@ -346,13 +346,19 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState == (state.contOperator || state.contOwner),
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState < state.planner,
           newState: state.planner,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState >= state.planner,
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState >= state.planner && latestEvent.newState < state.supervisor,
+          newState: latestEvent.newState,
+          log: 'Modificado sin cambio de fecha por Planificador'
+        },
+        // Planificador modifica sin cambios de fecha (any --> planner)
+        {
+          condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.supervisor,
           newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
