@@ -19,6 +19,7 @@ import {
 } from '@mui/x-data-grid-premium'
 import * as ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
+import { getWeek, addDays } from 'date-fns'
 
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
@@ -407,43 +408,57 @@ const TableBasic = ({ rows, role, roleData }) => {
 
     // columnas en el libro de Excel
     worksheet.columns = [
-      { header: 'Solicitud', key: 'title', width: 40 },
-      { header: 'Descripción', key: 'description', width: 40 },
-      { header: 'Estado', key: 'state', width: 25 },
+      { header: 'Semana', key: 'week', width: 10 },
+      { header: 'Planta', key: 'plant', width: 40 },
+      { header: 'Área', key: 'area', width: 50 },
+      { header: 'OT', key: 'ot', width: 10 },
+      { header: 'Turno', key: 'supervisorShift', width: 10 },
       { header: 'Creación', key: 'date', width: 12 },
       { header: 'Inicio', key: 'start', width: 12 },
       { header: 'Término', key: 'end', width: 12 },
-      { header: 'Planta', key: 'plant', width: 40 },
-      { header: 'Área', key: 'area', width: 50 },
-      { header: 'Turno', key: 'supervisorShift', width: 10 },
-      { header: 'OT', key: 'ot', width: 10 },
+      { header: 'Fecha Límite', key: 'deadline', width: 12 },
+      { header: 'Autor', key: 'user', width: 20 },
+      { header: 'Solicitante', key: 'petitioner', width: 20 },
+      { header: 'Centro de Costo', key: 'costCenter', width: 10 },
+      { header: 'SAP', key: 'sap', width: 5 },
+      { header: 'Título', key: 'title', width: 40 },
+      { header: 'Descripción', key: 'description', width: 40 },
+      { header: 'Estado', key: 'state', width: 25 },
       { header: 'Estado Operacional', key: 'type', width: 10 },
       { header: 'Maquina Detenida', key: 'detention', width: 10 },
       { header: 'Tipo de Levantamiento', key: 'objective', width: 20 },
       { header: 'Entregables', key: 'deliverable', width: 20 },
-      { header: 'Contract Operator', key: 'contop', width: 20 },
-      { header: 'Autor', key: 'user', width: 20 }
+      { header: 'Contract Operator', key: 'contop', width: 20 }
     ]
 
     rows.forEach(row => {
       const stateValue = row.state
+      const start = new Date(row.start.seconds * 1000)
+      const week = getWeek(start)
+      const deadline = addDays(start, 21)
+
       worksheet.addRow({
+        week: week,
+        plant: row.plant,
+        area: row.area,
+        ot: row.ot,
+        supervisorShift: row.supervisorShift,
+        date: unixToDate(row.date.seconds)[0],
+        start: unixToDate(row.start.seconds)[0],
+        end: row.end ? unixToDate(row.end.seconds)[0] : 'sin fecha de término',
+        deadline: deadline,
+        user: row.user,
+        pettioner: row.petitioner,
+        costCenter: row.costCenter,
+        sap: row.sap,
         title: row.title,
         description: row.description,
         state: dictionary[stateValue].title,
-        date: unixToDate(row.date.seconds)[0],
-        start: unixToDate(row.start.seconds)[0],
-        end: unixToDate(row.end.seconds)[0],
-        plant: row.plant,
-        area: row.area,
-        supervisorShift: row.supervisorShift,
-        ot: row.ot,
         type: row.type,
         detention: row.detention,
         objective: row.objective,
-        deliverable: row.deliverable.map(item => item),
-        contop: row.contop,
-        user: row.user
+        deliverable: row.deliverable.join(', '),
+        contop: row.contop
       })
     })
 
