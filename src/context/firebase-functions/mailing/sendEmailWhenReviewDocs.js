@@ -138,6 +138,13 @@ const getUsersOnCopyAndMessage = (
           message = `la solicitud ha sido aceptada por Procure` // Se agrega mensaje que irá en el e-mail
           break
 
+        // && prevState es 6 && newState es 5 -> Solicitud replanificada por Planificador
+        case '6-5':
+          sendTo = plannerEmail
+          arrayCC = [...admContEmail] // Siginifca que hay que mandarle e-mail al Planificador y Adm.Contrato
+          message = `la solicitud ha sido actualizada por nuestro Planificador ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
         // && prevState es 6 && newState es 1 -> Solicitud replanificada por Procure
         case '6-1':
           sendTo = requesterEmail
@@ -450,59 +457,64 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
   const onCC = usersOnCopyAndMessage.arrayCC
   const message = usersOnCopyAndMessage.message
 
-  // Email dirigido a quien hizo la solicitud, con copia a quien corresponda
-  try {
-    const newDoc = {} // Se genera un elemento vacío
-    const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
-    const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
+  console.log(message)
 
-    const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
+  if (message != ''){
+    // Email dirigido a quien hizo la solicitud, con copia a quien corresponda
 
-    const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
+    try {
+      const newDoc = {} // Se genera un elemento vacío
+      const addedDoc = await addDoc(collectionRef, newDoc) // Se agrega este elemento vacío a la colección mail
+      const mailId = addedDoc.id // Se obtiene el id del elemento recién agregado
 
-    // Se almacenan las constantes a usar en el email
-    const userName = requirementData.userRole === 7 ? requirementData.petitioner : requirementData.user
-    const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}`
-    const requestNumber = requirementData.n_request
-    const title = requirementData.title
-    const engineering = requirementData.engineering ? 'Si' : 'No'
-    const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-    const supervisor = requirementData.supervisorShift ? (supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name) : '') : 'Por definir'
-    const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
-    const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
-    const plant = requirementData.plant
-    const area = requirementData.area ? requirementData.area : 'No indicado'
-    const costCenter = requirementData.costCenter ? requirementData.costCenter : 'No indicado'
-    const functionalLocation = (requirementData.fnlocation && requirementData.fnlocation !== '') ? requirementData.fnlocation : 'No indicado'
-    const contractOperator = requirementData.contop
-    const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
-    const sapNumber = (requirementData.sap && requirementData.sap !== '') ? requirementData.sap : 'No indicado'
-    const operationalType = requirementData.type ? requirementData.type : 'No indicado'
-    const machineDetention = requirementData.detention ? requirementData.detention : 'No indicado'
-    const jobType = requirementData.objective
-    const deliverable = requirementData.deliverable.join(', ')
-    const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
-    const description = requirementData.description
-    const lastMessage = ''
+      const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
 
-    // Llamada al html del email con las constantes previamente indicadads
-    const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, costCenter, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+      const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
 
-    // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
-    updateDoc(docRef, {
-      to: sendTo,
-      cc: onCC,
-      date: fechaCompleta,
-      req: requirementId,
-      emailType: 'reviewDocs',
-      message: {
-        subject: `Solicitud de levantamiento: ${requirementData.title}`,
-        html: emailHtml
-      }
-    })
-    console.log('E-mail de actualizacion enviado con éxito.')
-  } catch (error) {
-    console.error('Error al enviar email:', error)
-    throw error
+      // Se almacenan las constantes a usar en el email
+      const userName = requirementData.userRole === 7 ? requirementData.petitioner : requirementData.user
+      const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}`
+      const requestNumber = requirementData.n_request
+      const title = requirementData.title
+      const engineering = requirementData.engineering ? 'Si' : 'No'
+      const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
+      const supervisor = requirementData.supervisorShift ? (supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name) : '') : 'Por definir'
+      const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
+      const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
+      const plant = requirementData.plant
+      const area = requirementData.area ? requirementData.area : 'No indicado'
+      const costCenter = requirementData.costCenter ? requirementData.costCenter : 'No indicado'
+      const functionalLocation = (requirementData.fnlocation && requirementData.fnlocation !== '') ? requirementData.fnlocation : 'No indicado'
+      const contractOperator = requirementData.contop
+      const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
+      const sapNumber = (requirementData.sap && requirementData.sap !== '') ? requirementData.sap : 'No indicado'
+      const operationalType = requirementData.type ? requirementData.type : 'No indicado'
+      const machineDetention = requirementData.detention ? requirementData.detention : 'No indicado'
+      const jobType = requirementData.objective
+      const deliverable = requirementData.deliverable.join(', ')
+      const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
+      const description = requirementData.description
+      const lastMessage = ''
+
+      // Llamada al html del email con las constantes previamente indicadads
+      const emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, costCenter, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+
+      // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
+      updateDoc(docRef, {
+        to: sendTo,
+        cc: onCC,
+        date: fechaCompleta,
+        req: requirementId,
+        emailType: 'reviewDocs',
+        message: {
+          subject: `Solicitud de levantamiento: ${requirementData.title}`,
+          html: emailHtml
+        }
+      })
+      console.log('E-mail de actualizacion enviado con éxito.')
+    } catch (error) {
+      console.error('Error al enviar email:', error)
+      throw error
+    }
   }
 }
