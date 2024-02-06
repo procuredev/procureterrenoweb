@@ -276,16 +276,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       }
     },
     {
-      field: 'plant',
-      headerName: 'Planta',
-      valueGetter: params => params.row.plant
-    },
-    {
-      field: 'area',
-      headerName: 'Área',
-      valueGetter: params => params.row.area
-    },
-    {
       field: 'supervisorShift',
       maxWidth: 80,
       headerName: 'Turno',
@@ -430,6 +420,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       { header: 'Estado Operacional', key: 'type', width: 10 },
       { header: 'Maquina Detenida', key: 'detention', width: 10 },
       { header: 'Tipo de Levantamiento', key: 'objective', width: 20 },
+      { header: 'Entregables', key: 'deliverable', width: 20 },
       { header: 'Contract Operator', key: 'contop', width: 20 },
       { header: 'Autor', key: 'user', width: 20 }
     ]
@@ -450,10 +441,13 @@ const TableBasic = ({ rows, role, roleData }) => {
         type: row.type,
         detention: row.detention,
         objective: row.objective,
+        deliverable: row.deliverable.map(item => item),
         contop: row.contop,
         user: row.user
       })
     })
+
+    worksheet.getRow(1).font = { bold: true, size: 13 }
 
     const buffer = await workbook.xlsx.writeBuffer()
     saveAs(
