@@ -479,6 +479,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         // Manejo de errores para evitar Warning en Consola
         if (!domain) {
           console.error('No se encontraron los datos o datos son indefinidos o null.')
+
           return
         }
 

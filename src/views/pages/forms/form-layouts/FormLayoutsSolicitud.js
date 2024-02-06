@@ -313,9 +313,11 @@ const FormLayoutsSolicitud = () => {
 
         // Manejo de errores para evitar Warning en Consola
         if (!domain) {
+
           console.error('No se encontraron los datos o datos son indefinidos o null.')
           return
         }
+
 
         // Se almacena la información de Tabla de Dominio en una variable de entorno
         setDomainData(domain)

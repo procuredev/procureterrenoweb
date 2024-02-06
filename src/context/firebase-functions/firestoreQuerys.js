@@ -170,6 +170,7 @@ const getDomainData = async (document = null, field = null) => {
       querySnapshot.forEach((doc) => {
         allData[doc.id] = doc.data()
       })
+
       return allData
 
     } else {
@@ -183,25 +184,35 @@ const getDomainData = async (document = null, field = null) => {
         const docData = docSnap.data()
 
         if (field !== null && field in docData) {
+
           // Si dentro del documento se requiere especificar el campo el cual se requiere, se debe indicar mediante 'field'
           return docData[field]
+
         } else if (field === null) {
+
           // Si no se especifica el campo dentro del documento, se entregará toda la data del 'document'
           return docData
+
         } else {
+
           // En cualquier otro caso, se maneja el error
           console.error(`El campo '${field}' no existe en el documento.`)
-          return null;
+          return null
+
         }
       } else {
+
         // Si el 'document' indicado no existe, se maneja el error
         console.error(`El documento con ID '${document}' no existe.`)
-        return null;
+        return null
+
       }
     }
   } catch (error) {
+
     console.error('Error al obtener datos:', error)
-    return null;
+    return null
+
   }
 }
 
