@@ -1238,6 +1238,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
             return (
               (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
+              params.row.storageBlueprints &&
               params.row.approvedByDocumentaryControl === true &&
               !('lastTransmittal' in lastRevision)
             )

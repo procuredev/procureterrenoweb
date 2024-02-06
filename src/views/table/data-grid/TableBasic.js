@@ -18,7 +18,7 @@ import {
 } from '@mui/x-data-grid-premium'
 import * as ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
-import { getWeek, addDays } from 'date-fns'
+import { getWeek, addDays, format, differenceInDays } from 'date-fns'
 
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
@@ -36,7 +36,6 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const { updateDocs, authUser, domainDictionary } = useFirebase()
 
-
   const [columnVisibilityModel, setColumnVisibilityModel] = useState({
     // ... otros estados de visibilidad de columnas ...
     end: [1, 5, 6, 7, 8, 9, 10].includes(role),
@@ -45,7 +44,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     plant: false,
     area: false
   })
-
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -239,7 +237,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const stateValue = params.row.state
         // Utiliza el mismo diccionario para obtener el título correspondiente al valor del estado
 
-        return dictionary[stateValue] ? dictionary[stateValue].title : 'Desconocido'
+        return domainDictionary[stateValue] ? domainDictionary[stateValue].title : 'Desconocido'
       }
     },
     {
@@ -418,16 +416,17 @@ const TableBasic = ({ rows, role, roleData }) => {
       { header: 'Creación', key: 'date', width: 12 },
       { header: 'Inicio', key: 'start', width: 12 },
       { header: 'Término', key: 'end', width: 12 },
-      { header: 'Fecha Límite', key: 'deadline', width: 12 },
+      { header: 'Fecha Límite', key: 'deadline', width: 14 },
+      { header: 'Días por Vencer', key: 'daysToDeadline', width: 18 },
       { header: 'Autor', key: 'user', width: 20 },
       { header: 'Solicitante', key: 'petitioner', width: 20 },
-      { header: 'Centro de Costo', key: 'costCenter', width: 10 },
+      { header: 'Centro de Costo', key: 'costCenter', width: 15 },
       { header: 'SAP', key: 'sap', width: 5 },
       { header: 'Título', key: 'title', width: 40 },
       { header: 'Descripción', key: 'description', width: 40 },
       { header: 'Estado', key: 'state', width: 25 },
-      { header: 'Estado Operacional', key: 'type', width: 10 },
-      { header: 'Maquina Detenida', key: 'detention', width: 10 },
+      { header: 'Estado Operacional', key: 'type', width: 15 },
+      { header: 'Maquina Detenida', key: 'detention', width: 15 },
       { header: 'Tipo de Levantamiento', key: 'objective', width: 20 },
       { header: 'Entregables', key: 'deliverable', width: 20 },
       { header: 'Contract Operator', key: 'contop', width: 20 }
@@ -438,6 +437,8 @@ const TableBasic = ({ rows, role, roleData }) => {
       const start = new Date(row.start.seconds * 1000)
       const week = getWeek(start)
       const deadline = addDays(start, 21)
+      const daysToDeadline = differenceInDays(deadline, new Date())
+      //const icon = daysToDeadline > 7 ? '🟢' : daysToDeadline >= 0 ? '🟡' : '🔴'
 
       worksheet.addRow({
         week: week,
@@ -445,17 +446,18 @@ const TableBasic = ({ rows, role, roleData }) => {
         area: row.area,
         ot: row.ot,
         supervisorShift: row.supervisorShift,
-        date: unixToDate(row.date.seconds)[0],
-        start: unixToDate(row.start.seconds)[0],
-        end: row.end ? unixToDate(row.end.seconds)[0] : 'sin fecha de término',
+        date: format(new Date(row.date.seconds * 1000), 'dd-MM-yyyy'),
+        start: format(new Date(row.start.seconds * 1000), 'dd-MM-yyyy'),
+        end: row.end ? format(new Date(row.end.seconds * 1000), 'dd-MM-yyyy') : 'sin fecha de término',
         deadline: deadline,
+        daysToDeadline: daysToDeadline,
         user: row.user,
-        pettioner: row.petitioner,
+        petitioner: row.petitioner,
         costCenter: row.costCenter,
         sap: row.sap,
         title: row.title,
         description: row.description,
-        state: dictionary[stateValue].title,
+        state: domainDictionary[stateValue].title,
         type: row.type,
         detention: row.detention,
         objective: row.objective,
@@ -467,9 +469,11 @@ const TableBasic = ({ rows, role, roleData }) => {
     worksheet.getRow(1).font = { bold: true, size: 13 }
 
     const buffer = await workbook.xlsx.writeBuffer()
+    const dateTime = format(new Date(), 'yyyy-MM-dd/HH:mm:ss')
+
     saveAs(
       new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-      'Data.xlsx'
+      `Data${dateTime}.xlsx`
     )
   }
 
@@ -488,7 +492,16 @@ const TableBasic = ({ rows, role, roleData }) => {
           columnVisibilityModel={columnVisibilityModel}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           slots={{
-            toolbar: CustomToolbar
+            toolbar:
+              authUser.role === 1 ||
+              authUser.role === 5 ||
+              authUser.role === 6 ||
+              authUser.role === 7 ||
+              authUser.role === 8 ||
+              authUser.role === 9 ||
+              authUser.role === 10
+                ? CustomToolbar
+                : null
           }}
         />
         <AlertDialog
