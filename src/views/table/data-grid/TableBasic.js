@@ -9,6 +9,16 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import { DataGridPro, esES } from '@mui/x-data-grid-pro'
 import { DataGrid } from '@mui/x-data-grid'
+import {
+  DataGridPremium,
+  GridToolbarContainer,
+  GridToolbarExport,
+  GridColDef,
+  GridRowsProp
+} from '@mui/x-data-grid-premium'
+import * as ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
+import { getWeek, addDays } from 'date-fns'
 
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
@@ -23,7 +33,19 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
+
   const { updateDocs, authUser, domainDictionary } = useFirebase()
+
+
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState({
+    // ... otros estados de visibilidad de columnas ...
+    end: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    actions: roleData.canApprove,
+    plant: false,
+    area: false
+  })
+
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -112,7 +134,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       },
       6: {
         approve: hasPrevState && !createdBySupervisor,
-        edit: (hasPrevState && !createdBySupervisor),
+        edit: hasPrevState && !createdBySupervisor,
         reject: [5, 6].includes(row.state) && !createdBySupervisor
       },
       7: {
@@ -154,7 +176,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       setDoc(updatedDoc)
     }
   }, [rows])
-
 
   const columns = [
     {
@@ -213,6 +234,12 @@ const TableBasic = ({ rows, role, roleData }) => {
             sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
           />
         )
+      },
+      valueGetter: params => {
+        const stateValue = params.row.state
+        // Utiliza el mismo diccionario para obtener el título correspondiente al valor del estado
+
+        return dictionary[stateValue] ? dictionary[stateValue].title : 'Desconocido'
       }
     },
     {
@@ -220,6 +247,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Creación',
       flex: 0.4,
       minWidth: 90,
+      valueGetter: params => unixToDate(params.row.date.seconds)[0],
       renderCell: params => {
         const { row } = params
 
@@ -231,6 +259,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Inicio',
       flex: 0.4,
       minWidth: 90,
+      valueGetter: params => unixToDate(params.row.start.seconds)[0],
       renderCell: params => {
         const { row } = params
 
@@ -242,6 +271,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Término',
       flex: 0.4,
       minWidth: 90,
+      valueGetter: params => unixToDate(params.row.end?.seconds)[0],
       renderCell: params => {
         const { row } = params
 
@@ -318,14 +348,14 @@ const TableBasic = ({ rows, role, roleData }) => {
               </Button>
             )}
             {canReject && (
-               <Button
-               onClick={() => handleClickOpenAlert(row, false)}
-               variant='contained'
-               color='error'
-               sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-             >
-               <Clear sx={{ fontSize: 18 }} />
-             </Button>
+              <Button
+                onClick={() => handleClickOpenAlert(row, false)}
+                variant='contained'
+                color='error'
+                sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+              >
+                <Clear sx={{ fontSize: 18 }} />
+              </Button>
             )}
           </Container>
         )
@@ -364,10 +394,89 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   ]
 
+  function CustomToolbar() {
+    return (
+      <GridToolbarContainer>
+        <Button onClick={handleExport}>Exportar</Button>
+
+        {/* <GridToolbarExport csvOptions={{ fileName: 'Data', utf8WithBom: true }} onExport={handleExport} /> */}
+      </GridToolbarContainer>
+    )
+  }
+
+  const handleExport = async options => {
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Hoja 1')
+
+    // columnas en el libro de Excel
+    worksheet.columns = [
+      { header: 'Semana', key: 'week', width: 10 },
+      { header: 'Planta', key: 'plant', width: 40 },
+      { header: 'Área', key: 'area', width: 50 },
+      { header: 'OT', key: 'ot', width: 10 },
+      { header: 'Turno', key: 'supervisorShift', width: 10 },
+      { header: 'Creación', key: 'date', width: 12 },
+      { header: 'Inicio', key: 'start', width: 12 },
+      { header: 'Término', key: 'end', width: 12 },
+      { header: 'Fecha Límite', key: 'deadline', width: 12 },
+      { header: 'Autor', key: 'user', width: 20 },
+      { header: 'Solicitante', key: 'petitioner', width: 20 },
+      { header: 'Centro de Costo', key: 'costCenter', width: 10 },
+      { header: 'SAP', key: 'sap', width: 5 },
+      { header: 'Título', key: 'title', width: 40 },
+      { header: 'Descripción', key: 'description', width: 40 },
+      { header: 'Estado', key: 'state', width: 25 },
+      { header: 'Estado Operacional', key: 'type', width: 10 },
+      { header: 'Maquina Detenida', key: 'detention', width: 10 },
+      { header: 'Tipo de Levantamiento', key: 'objective', width: 20 },
+      { header: 'Entregables', key: 'deliverable', width: 20 },
+      { header: 'Contract Operator', key: 'contop', width: 20 }
+    ]
+
+    rows.forEach(row => {
+      const stateValue = row.state
+      const start = new Date(row.start.seconds * 1000)
+      const week = getWeek(start)
+      const deadline = addDays(start, 21)
+
+      worksheet.addRow({
+        week: week,
+        plant: row.plant,
+        area: row.area,
+        ot: row.ot,
+        supervisorShift: row.supervisorShift,
+        date: unixToDate(row.date.seconds)[0],
+        start: unixToDate(row.start.seconds)[0],
+        end: row.end ? unixToDate(row.end.seconds)[0] : 'sin fecha de término',
+        deadline: deadline,
+        user: row.user,
+        pettioner: row.petitioner,
+        costCenter: row.costCenter,
+        sap: row.sap,
+        title: row.title,
+        description: row.description,
+        state: dictionary[stateValue].title,
+        type: row.type,
+        detention: row.detention,
+        objective: row.objective,
+        deliverable: row.deliverable.join(', '),
+        contop: row.contop
+      })
+    })
+
+    worksheet.getRow(1).font = { bold: true, size: 13 }
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    saveAs(
+      new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      'Data.xlsx'
+    )
+  }
+
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGrid
+        <DataGridPremium
           initialState={{
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }]
@@ -376,12 +485,11 @@ const TableBasic = ({ rows, role, roleData }) => {
           hideFooterSelectedRowCount
           rows={rows}
           columns={columns}
-          columnVisibilityModel={{
-            end: xl && [1, 5, 6, 7, 8, 9, 10].includes(role),
-            supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
-            actions: roleData.canApprove
-          }}
+          columnVisibilityModel={columnVisibilityModel}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+          slots={{
+            toolbar: CustomToolbar
+          }}
         />
         <AlertDialog
           open={openAlert}
