@@ -9,7 +9,6 @@ import { styled, useTheme } from '@mui/material/styles'
 import { Height } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import { useFirebase } from 'src/context/useFirebase'
-import dictionary from 'src/@core/components/dictionary/index'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
@@ -24,7 +23,7 @@ const ProfileCard = () => {
   // ** Hook
   const theme = useTheme()
   const router = useRouter()
-  const { authUser } = useFirebase()
+  const { authUser, domainDictionary } = useFirebase()
 
   return (
     <Card sx={{ position: 'relative', height: 'auto' }}>
@@ -35,7 +34,7 @@ const ProfileCard = () => {
             <Box component='span' sx={{ fontWeight: 'bold', mb: 4.5 }}>
               {authUser &&
                 (authUser.displayName || typeof authUser.role === 'number'
-                  ? dictionary[authUser.role] && dictionary[authUser.role].name
+                  ? domainDictionary[authUser.role] && domainDictionary[authUser.role].name
                   : 'No definido')}
             </Box>
             ! 👋

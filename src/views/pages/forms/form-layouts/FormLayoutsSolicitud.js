@@ -27,7 +27,6 @@ import {
 
 // ** Custom Components
 import Icon from 'src/@core/components/icon'
-import plants from 'src/@core/components/plants-areas/index'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 import {
@@ -65,7 +64,7 @@ const FormLayoutsSolicitud = () => {
   }
 
   // ** Hooks
-  const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData } = useFirebase()
+  const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData, getDomainData} = useFirebase()
   const router = useRouter()
 
   // ** States
@@ -81,8 +80,36 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+
+  // const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
+  //const [userInputMC, setUserInputMC] = useState("")
+  //const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false)
+  const [domainData, setDomainData] = useState({})
+  const [objectivesOptions, setObjectivesOptions] = useState([])
+  const [deliverablesOptions, setDeliverablesOptions] = useState([])
+  const [urgencyTypesOptions, setUrgencyTypesOptions] = useState([])
+  const [operationalStatusOptions, setOperationalStatusOptions] = useState([])
+
+  /*
+  const handleCloseDialogMC = () => {
+    setIsDialogOpenMC(false)
+  };
+
+  const handleConfirmDialogMC = () => {
+    if (values.deliverable.includes('Memoria de Cálculo')) {
+      // Procesa userInput solo si 'Memoria de Cálculo' está seleccionado
+      //console.log("El usuario confirmó Memoria de Cálculo con descripción:", userInputMC)
+    } else {
+      setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' no está seleccionado
+    }
+    setIsDialogOpenMC(false)
+    setHasDialogMCBeenShown(true) // Asume que el usuario terminó con este diálogo
+  }
+  */
+
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
+
 
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
@@ -131,7 +158,7 @@ const FormLayoutsSolicitud = () => {
             receiver: [...fixed]
           }))
 
-          findAreas(newValue)
+          //findAreas(newValue)
         }
         break
       }
@@ -277,17 +304,78 @@ const FormLayoutsSolicitud = () => {
     return newErrors
   }
 
-  const findAreas = plant => {
-    let setOfAreas = plants.find(obj => obj.name == plant)
-    if (setOfAreas) {
-      let areaNames = setOfAreas.allAreas.map(
-        element => Object.keys(element).toString() + ' - ' + Object.values(element).toString()
-      )
-      setAreas(Object.values(areaNames))
-    } else {
-      setAreas(['No aplica'])
+  // useEffect para buscar toda la información de la colección domain en la base de datos
+  useEffect(() => {
+    const getAllDomainData = async () => {
+      try {
+        // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        const domain = await getDomainData()
+
+        // Manejo de errores para evitar Warning en Consola
+        if (!domain) {
+
+          console.error('No se encontraron los datos o datos son indefinidos o null.')
+
+          return
+
+        }
+
+
+        // Se almacena la información de Tabla de Dominio en una variable de entorno
+        setDomainData(domain)
+
+
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
     }
-  }
+
+    getAllDomainData()
+  }, [])
+
+  // useEffect para buscar información específica de la colección domain en la base de datos
+  useEffect(() => {
+    const getSpecificDomainData = async () => {
+      try {
+
+        // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
+        if (domainData && domainData.objectives) {
+          const objectives = Object.keys(domainData.objectives).sort()
+          setObjectivesOptions(objectives)
+        }
+
+        // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
+        if (domainData && domainData.urgencyTypes) {
+          const urgencyTypes = Object.keys(domainData.urgencyTypes).sort()
+          setUrgencyTypesOptions(urgencyTypes)
+        }
+
+        // Se reordena la información de deliverables (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
+        if (domainData && domainData.operationalStatus) {
+          const operationalStatus = Object.keys(domainData.operationalStatus).sort()
+          setOperationalStatusOptions(operationalStatus)
+        }
+
+        // Se reordena la información de urgencys (Entregables) en domain, para que sean arreglos ordenados alfabéticamente.
+        if (domainData && domainData.deliverables) {
+          const deliverables = Object.keys(domainData.deliverables).sort()
+          setDeliverablesOptions(deliverables)
+        }
+
+        // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
+        const plantData = domainData?.plants?.[values.plant] || {}
+        if (plantData) {
+          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort()
+          setAreas(areas)
+        }
+
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getSpecificDomainData()
+  }, [domainData, values.plant])
 
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
@@ -500,7 +588,6 @@ const FormLayoutsSolicitud = () => {
       let onlyPlant = plant[0]
       let userOption = authUser.displayName
       setValues({ ...values, plant: onlyPlant, petitioner: userOption })
-      findAreas(onlyPlant)
     }
   }, [authUser, isUploading])
 
@@ -574,7 +661,7 @@ const FormLayoutsSolicitud = () => {
                 {/* Tipo de Urgencia */}
                 <CustomSelect
                   required
-                  options={['Urgencia', 'Emergencia', 'Oportunidad']}
+                  options={urgencyTypesOptions}
                   label='Tipo de urgencia'
                   value={values.urgency}
                   onChange={handleChange('urgency')}
@@ -670,13 +757,7 @@ const FormLayoutsSolicitud = () => {
             {/* Planta */}
             <CustomSelect
             required
-              options={
-                authUser.role === 7 ||
-                (authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants'))
-
-                  ? plants
-                  : [...authUser.plant]
-              }
+              options={[...authUser.plant]}
               label='Planta'
               value={values.plant}
               onChange={handleChange('plant')}
@@ -780,7 +861,7 @@ const FormLayoutsSolicitud = () => {
             {/* Estado Operacional */}
             <CustomSelect
               required
-              options={['Normal', 'Outage', 'Shutdown']}
+              options={operationalStatusOptions}
               label='Estado Operacional Planta'
               value={values.type}
               onChange={handleChange('type')}
@@ -816,14 +897,7 @@ const FormLayoutsSolicitud = () => {
             {/* Tipo de Levantamiento */}
             <CustomSelect
               required
-              options={[
-                'Análisis fotogramétrico',
-                'Análisis GPR',
-                'Inspección Dron',
-                'Levantamiento 3D',
-                'Levantamiento 3D GPS',
-                'Topografía'
-              ]}
+              options={objectivesOptions}
               label='Tipo de Levantamiento'
               value={values.objective}
               onChange={handleChange('objective')}
@@ -835,15 +909,7 @@ const FormLayoutsSolicitud = () => {
             {/* Entregables */}
             <CustomAutocomplete
               required
-              options={[
-                'Sketch',
-                'Plano de Fabricación',
-                'Plano de Diseño',
-                'Memoria de Cálculo',
-                'Informe',
-                'Nube de Puntos',
-                'Ortofotografía'
-              ]}
+              options={deliverablesOptions}
               label='Entregables del levantamiento'
               value={values.deliverable}
               onChange={handleChange('deliverable')}

@@ -6,7 +6,7 @@ import base64MEL from 'src/views/pages/gabinete/base64MEL'
 const callAddRegular = require('public/fonts/calibri-normal.js')
 const callAddBold = require('public/fonts/calibri-bold.js')
 
-export const generateTransmittal = (tableElement, selected) => {
+export const generateTransmittal = (tableElement, selected, setTransmittalGenerated, newCode) => {
   const doc = new jsPDF('p', 'mm', 'letter', true, true)
 
   callAddRegular.call(doc)
@@ -21,8 +21,24 @@ export const generateTransmittal = (tableElement, selected) => {
   const columns = ['ÍTEM', 'CÓDIGO CLIENTE', 'DESCRIPCIÓN', 'REV']
   // Define las filas de la tabla
   let rows = []
+  let newSelected = []
 
-  const data = Array.from(selected).map(([key, value], index) => {
+  Array.from(selected).forEach((value, index) => {
+    newSelected.push(value)
+
+    if (value[1].storageHlcDocuments) {
+      newSelected.push([
+        `${value[1].id}_REV_${value[1].revision}_HLC`,
+        {
+          id: `${value[1].clientCode}_REV_${value[1].revision}_HLC`,
+          description: `Hoja de Levantamiento de Comentarios ${value[1].description}`,
+          revision: '-'
+        }
+      ])
+    }
+  })
+
+  const data = newSelected.map(([key, value], index) => {
     if (value.storageBlueprints) {
       // Divide la URL en segmentos separados por '%2F'
       const urlSegments = value.storageBlueprints[0].split('%2F')
@@ -36,10 +52,10 @@ export const generateTransmittal = (tableElement, selected) => {
       // Obtiene el primer segmento, que debería ser el nombre del archivo
       const fileName = decodeURIComponent(fileNameSegments[0])
 
-      rows = [index+1, value.id, value.description, value.revision]
+      rows = [index + 1, value.clientCode, value.description, value.revision]
     } else {
       // Devuelve valores predeterminados o vacíos para los objetos que no tienen `storageBlueprints`
-      rows = [index+1, value.id, value.description, value.revision]
+      rows = [index + 1, value.id, value.description, value.revision]
     }
 
     return rows
@@ -84,17 +100,16 @@ export const generateTransmittal = (tableElement, selected) => {
     }
   })
 
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const signatureY = doc.lastAutoTable.finalY;
-  const estimatedContentHeight = 75; // Estimar la altura del contenido que sigue
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const signatureY = doc.lastAutoTable.finalY
+  const estimatedContentHeight = 75 // Estimar la altura del contenido que sigue
 
   // Evaluar si el contenido que sigue se ajusta en la página actual
-  const pageBreak = signatureY + estimatedContentHeight > pageHeight;
+  const pageBreak = signatureY + estimatedContentHeight > pageHeight
 
   if (pageBreak) {
-    doc.addPage('p', 'mm', 'letter', true, true);
+    doc.addPage('p', 'mm', 'letter', true, true)
   }
-
 
   doc.setFont('Calibri', 'bold')
   doc.text(
@@ -136,5 +151,6 @@ export const generateTransmittal = (tableElement, selected) => {
   })
 
   // Descarga el documento
-  doc.save('documento.pdf')
+  doc.save(`${newCode}.pdf`)
+  setTransmittalGenerated(true)
 }
