@@ -197,6 +197,7 @@ const getDomainData = async (document = null, field = null) => {
 
           // En cualquier otro caso, se maneja el error
           console.error(`El campo '${field}' no existe en el documento.`)
+
           return null
 
         }
@@ -204,6 +205,7 @@ const getDomainData = async (document = null, field = null) => {
 
         // Si el 'document' indicado no existe, se maneja el error
         console.error(`El documento con ID '${document}' no existe.`)
+
         return null
 
       }
@@ -211,6 +213,7 @@ const getDomainData = async (document = null, field = null) => {
   } catch (error) {
 
     console.error('Error al obtener datos:', error)
+
     return null
 
   }

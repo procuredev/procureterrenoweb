@@ -315,7 +315,9 @@ const FormLayoutsSolicitud = () => {
         if (!domain) {
 
           console.error('No se encontraron los datos o datos son indefinidos o null.')
+
           return
+
         }
 
 
