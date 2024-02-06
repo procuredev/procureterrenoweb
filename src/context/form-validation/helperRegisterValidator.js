@@ -5,7 +5,7 @@ export function registerValidator(values) {
   const valEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const valPhone = /^[0-9+]{8,12}$/
   const valRoleMel = [2, 3, 4]
-  const valRoleProcure = [1, 5, 6, 7, 8, 9, 10]
+  const valRoleProcure = [1, 5, 6, 7, 8, 9, 10, 11]
   const valShiftMel = ['P', 'Q']
   const valShiftProcure = ['A', 'B']
 
@@ -83,20 +83,25 @@ export function registerValidator(values) {
     shift: {
       validate: value => {
         if (values.company === 'MEL' && (values.role === 3 || values.role === 4)) {
+
           return true
-        } else if (
-          values.company === 'Procure' &&
-          (values.role === 1 || values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10)
-        ) {
+
+        } else if (values.company === 'Procure' && (values.role === 1 || values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10 || values.role === 11)) {
+
           return true
+
         } else if (values.company === 'MEL' && values.role === 2) {
+
           if (values.plant.includes('Sucursal Santiago')) {
             return true
           } else {
             return value.every(val => valShiftMel.includes(val))
           }
+
         } else if (values.company === 'Procure' && (values.role === 7 || values.role === 8)) {
+
           return value.every(val => valShiftProcure.includes(val))
+
         }
 
         return false

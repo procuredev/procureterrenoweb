@@ -17,23 +17,8 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Custom Components
-import CustomAvatar from 'src/@core/components/mui/avatar'
-
-// ** Utils Import
-import { getInitials } from 'src/@core/utils/get-initials'
-
 // ** Context
 import { useFirebase } from 'src/context/useFirebase'
-
-// ** Styled Components
-const BadgeContentSpan = styled('span')(({ theme }) => ({
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
-  backgroundColor: theme.palette.success.main,
-  boxShadow: `0 0 0 2px ${theme.palette.background.paper}`
-}))
 
 const UserDropdown = props => {
   // ** Props
@@ -45,7 +30,7 @@ const UserDropdown = props => {
 
   // ** Hooks
   const router = useRouter()
-  const { auth, authUser, signOut } = useFirebase()
+  const { auth, authUser, signOut, domainRoles } = useFirebase()
 
   // ** Vars
   const { direction } = settings
@@ -102,27 +87,11 @@ const UserDropdown = props => {
 
     userEmail = authUser.email
 
-    // Condicional que renderizará en rol como un string según el rol del usuario conectado
-    if (authUser.role == 1) {
-      userRole = 'Admin'
-    } else if (authUser.role == 2) {
-      userRole = 'Solicitante'
-    } else if (authUser.role == 3) {
-      userRole = 'Contract Operator'
-    } else if (authUser.role == 4) {
-      userRole = 'Contract Owner'
-    } else if (authUser.role == 5) {
-      userRole = 'Planificador'
-    } else if (authUser.role == 6) {
-      userRole = 'Administrador de Contrato'
-    } else if (authUser.role == 7) {
-      userRole = 'Supervisor'
-    } else if (authUser.role == 8) {
-      userRole = 'Proyectista'
-    } else if (authUser.role == 9) {
-      userRole = 'Control Documental'
-    } else if (authUser.role == 10) {
-      userRole = 'Gerencia'
+    if (domainRoles){
+      const role = domainRoles[authUser.role]
+      if (role){
+        userRole = role.name
+      }
     }
   }
 
