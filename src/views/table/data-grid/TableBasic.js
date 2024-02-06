@@ -239,7 +239,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const stateValue = params.row.state
         // Utiliza el mismo diccionario para obtener el título correspondiente al valor del estado
 
-        return dictionary[stateValue] ? dictionary[stateValue].title : 'Desconocido'
+        return domainDictionary[stateValue] ? domainDictionary[stateValue].title : 'Desconocido'
       }
     },
     {
@@ -455,7 +455,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         sap: row.sap,
         title: row.title,
         description: row.description,
-        state: dictionary[stateValue].title,
+        state: domainDictionary[stateValue].title,
         type: row.type,
         detention: row.detention,
         objective: row.objective,
