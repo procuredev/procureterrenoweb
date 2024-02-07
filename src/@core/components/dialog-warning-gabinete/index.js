@@ -36,6 +36,12 @@ export default function AlertDialogGabinete({
   const [toggleRemarks, setToggleRemarks] = useState(false)
 
   const handleDateChangeWrapper = dateField => date => {
+    if (!date) {
+      console.error('La fecha proporcionada es nula')
+
+      return
+    }
+
     date.minutes(0)
 
     const handleDateChange = date => {
