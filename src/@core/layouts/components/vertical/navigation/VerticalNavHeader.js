@@ -12,6 +12,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
+import { useState } from 'react'
 
 // ** Styled Components
 const MenuHeaderWrapper = styled(Box)(({ theme }) => ({
@@ -38,7 +39,6 @@ const StyledLink = styled(Link)({
 const VerticalNavHeader = props => {
   // ** Props
   const {
-    hidden,
     navHover,
     settings,
     saveSettings,
@@ -53,6 +53,7 @@ const VerticalNavHeader = props => {
   // ** Hooks & Vars
   const theme = useTheme()
   const { mode, direction, navCollapsed } = settings
+  const [hidden, setHidden] = useState(false)
   const menuCollapsedStyles = navCollapsed && !navHover ? { opacity: 0 } : { opacity: 1 }
 
   const svgFillSecondary = () => {
@@ -109,10 +110,22 @@ const VerticalNavHeader = props => {
 
   return (
     <MenuHeaderWrapper className='nav-header' sx={{ pl: menuHeaderPaddingLeft() }}>
-      {userNavMenuBranding ? (
-        userNavMenuBranding(props)
+      {navCollapsed ? ( // Verifica si el menú está oculto
+        <StyledLink href='/'>
+          {/* Aquí va el logo alternativo cuando el menú está oculto */}
+          <Box sx={{ my: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <svg id='Capa_1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 446' height={50}>
+              <rect x='100.1' y='29.94' fill='#92c13d' width='173.39' height='346.78' />
+              <path
+                fill={theme.palette.background.paper}
+                d='m110.08,293.9v-.41c0-40.77,31.46-74.92,75.96-74.92s75.54,33.73,75.54,74.51v.42c0,40.77-31.46,74.92-75.96,74.92s-75.54-33.74-75.54-74.51Zm124.8,0v-.41c0-28.15-20.49-51.54-49.26-51.54s-48.84,22.97-48.84,51.12v.42c0,28.15,20.49,51.53,49.26,51.53s48.84-22.97,48.84-51.12Z'
+              />
+            </svg>
+          </Box>
+        </StyledLink>
       ) : (
         <StyledLink href='/'>
+          {/* Aquí va el logo principal cuando el menú está mostrado */}
           <Box sx={{ my: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <svg id='Capa_1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 446' height={50}>
               <rect x='417.1' y='29.94' fill='#92c13d' width='173.39' height='346.78' />
