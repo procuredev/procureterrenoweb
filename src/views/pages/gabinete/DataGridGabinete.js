@@ -7,7 +7,7 @@ import { useFirebase } from 'src/context/useFirebase'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import { useGridApiRef } from '@mui/x-data-grid'
-import { Autocomplete } from '@mui/material'
+import { Autocomplete, ListItemText, ListItem, List } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 
@@ -45,6 +45,8 @@ const DataGridGabinete = () => {
   const [transmittalGenerated, setTransmittalGenerated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorTransmittal, setErrorTransmittal] = useState(false)
+  const [openTransmittalDialog, setOpenTransmittalDialog] = useState(false)
+  const [selectedDocs, setSelectedDocs] = useState([])
 
   const apiRef = useGridApiRef()
 
@@ -127,6 +129,14 @@ const DataGridGabinete = () => {
 
   const handleGenerateTransmittal = (tableElement, selected, newCode) => {
     generateTransmittal(tableElement, selected, setTransmittalGenerated, newCode)
+  }
+
+  const handleOpenTransmittalDialog = () => {
+    // Obtén los documentos seleccionados del apiRef de DataGrid
+    const selectedDocuments = apiRef.current.getSelectedRows()
+    setSelectedDocs(Array.from(selectedDocuments.values()))
+    console.log(selectedDocuments)
+    setOpenTransmittalDialog(true)
   }
 
   const handleClickTransmittalGenerator = async currentPetition => {
@@ -307,7 +317,7 @@ const DataGridGabinete = () => {
             sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
             disabled={currentPetition?.otFinished}
-            onClick={() => currentPetition && handleClickTransmittalGenerator(currentPetition, blueprints)}
+            onClick={handleOpenTransmittalDialog}
           >
             Generar Transmittal
           </Button>
@@ -350,6 +360,41 @@ const DataGridGabinete = () => {
         proyectistas={proyectistas}
         setDesignerAssigned={setDesignerAssigned}
       />
+      <Dialog
+        open={openTransmittalDialog}
+        onClose={() => setOpenTransmittalDialog(false)}
+        aria-labelledby='alert-dialog-title'
+        aria-describedby='alert-dialog-description'
+      >
+        <DialogTitle id='alert-dialog-title'>{'Generar Transmittal'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id='alert-dialog-description'>
+            ¿Está seguro de que desea generar un transmittal para los siguientes documentos?
+          </DialogContentText>
+          <List>
+            {Array.from(selectedDocs.values()).map(doc => (
+              <ListItem key={doc.id}>
+                <ListItemText primary={doc.id} secondary={doc.clientCode} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenTransmittalDialog(false)} color='primary'>
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              handleClickTransmittalGenerator(currentPetition)
+              setOpenTransmittalDialog(false)
+            }}
+            color='primary'
+            autoFocus
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
       {openCodeGenerator && (
         <DialogCodeGenerator
           open={openCodeGenerator}

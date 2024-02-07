@@ -438,7 +438,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       const week = getWeek(start)
       const deadline = addDays(start, 21)
       const daysToDeadline = differenceInDays(deadline, new Date())
-      //const icon = daysToDeadline > 7 ? '🟢' : daysToDeadline >= 0 ? '🟡' : '🔴'
 
       worksheet.addRow({
         week: week,
