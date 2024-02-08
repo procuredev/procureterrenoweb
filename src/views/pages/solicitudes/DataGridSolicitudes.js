@@ -6,11 +6,15 @@ import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
 import { Tooltip, Grid, Box, Tab } from '@mui/material'
-import { TabContext, TabList, TabPanel } from '@mui/lab'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import TabPanel from '@mui/lab/TabPanel'
 
 // ** Custom Components Imports
-import { FilterComponent, generateFilterConfig, filterByLabel } from 'src/@core/components'
+import FilterComponent from 'src/@core/components/filter-component'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
+import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
+import filterByLabel from 'src/@core/components/custom-filters/customFilters'
 
 const DataGrid = () => {
   const [values, setValues] = useState({})
