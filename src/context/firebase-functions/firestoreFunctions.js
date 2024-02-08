@@ -23,6 +23,7 @@ import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 import { getUnixTime, setDayOfYear } from 'date-fns'
+import { addDays } from 'date-fns'
 import { async } from '@firebase/util'
 import { timestamp } from '@antfu/utils'
 import { blue } from '@mui/material/colors'
@@ -82,6 +83,9 @@ const newDoc = async (values, userParam) => {
     costCenter
   } = values
 
+  // Calcula el valor de 'deadline' sumando 21 días a 'start'.
+  const deadline = addDays(new Date(start), 21)
+
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
@@ -107,6 +111,7 @@ const newDoc = async (values, userParam) => {
       user,
       userEmail,
       userRole,
+      deadline,
       costCenter,
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
