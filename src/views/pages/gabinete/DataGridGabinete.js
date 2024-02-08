@@ -200,15 +200,17 @@ const DataGridGabinete = () => {
   }, [currentPetition])
 
   useEffect(() => {
-    const fetchRoleAndProyectistas = async () => {
-      if (authUser) {
-        // Cargar los proyectistas
-        const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
-        setProyectistas(resProyectistas)
+    if (currentPetition) {
+      const fetchRoleAndProyectistas = async () => {
+        if (authUser) {
+          // Cargar los proyectistas
+          const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
+          setProyectistas(resProyectistas)
+        }
       }
-    }
 
-    fetchRoleAndProyectistas()
+      fetchRoleAndProyectistas()
+    }
   }, [authUser])
 
   useEffect(() => {
