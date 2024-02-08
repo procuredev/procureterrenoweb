@@ -94,6 +94,12 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   }
 
   const handleDateChangeWrapper = dateField => date => {
+    if (!date) {
+      console.error('La fecha proporcionada es nula')
+
+      return
+    }
+
     const handleDateChange = date => {
       const fieldValue = moment(date.toDate())
       const updatedHours = { ...uprisingTimeSelected }
