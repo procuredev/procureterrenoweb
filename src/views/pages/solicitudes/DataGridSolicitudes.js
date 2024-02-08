@@ -5,19 +5,12 @@ import { useState, useEffect } from 'react'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import Tooltip from '@mui/material/Tooltip'
-import Grid from '@mui/material/Grid'
-import Box from '@mui/material/Box'
-import Tab from '@mui/material/Tab'
-import TabContext from '@mui/lab/TabContext'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
+import { Tooltip, Grid, Box, Tab } from '@mui/material'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
 
 // ** Custom Components Imports
-import FilterComponent from 'src/@core/components/filter-component'
+import { FilterComponent, generateFilterConfig, filterByLabel } from 'src/@core/components'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
-import filterByLabel from 'src/@core/components/custom-filters/customFilters'
 
 const DataGrid = () => {
   const [values, setValues] = useState({})
@@ -47,7 +40,8 @@ const DataGrid = () => {
   // Tab content filters based on the user role
   const tabContent = authUser
     ? [
-        { // Filters all rejected requests.
+        {
+          // Filters all rejected requests.
           // TODO: Delete filter for role 5
           data: data.filter(doc => doc.state !== 0),
           label: 'Todas las solicitudes',
@@ -75,7 +69,7 @@ const DataGrid = () => {
     const role = async () => {
       if (authUser) {
         const role = await getDomainData('roles', authUser.role.toString())
-        setRoleData({...role, id:authUser.role.toString()})
+        setRoleData({ ...role, id: authUser.role.toString() })
       }
     }
 

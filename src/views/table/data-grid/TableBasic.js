@@ -392,6 +392,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   ]
 
+  // Esta es una función que se utiliza para crear una barra de herramientas personalizada para el componente DataGrid.
   function CustomToolbar() {
     return (
       <GridToolbarContainer>
@@ -402,12 +403,16 @@ const TableBasic = ({ rows, role, roleData }) => {
     )
   }
 
+  // handleExport es una función asíncrona que se utiliza para exportar los datos de la tabla a un archivo de Excel.
   const handleExport = async options => {
+    // Se crea un nuevo libro de trabajo de Excel.
     const workbook = new ExcelJS.Workbook()
+    // Se añade una nueva hoja de trabajo al libro de trabajo y se le asigna el nombre 'Hoja 1'.
     const worksheet = workbook.addWorksheet('Hoja 1')
 
-    // columnas en el libro de Excel
+    // Se definen las columnas de la hoja de trabajo.
     worksheet.columns = [
+      // Cada objeto en este array define una columna. La propiedad 'header' es el nombre de la columna que se mostrará en la hoja de trabajo, y la propiedad 'key' es la clave que se utilizará para obtener el valor de la columna de cada fila de datos.
       { header: 'Semana', key: 'week', width: 10 },
       { header: 'Planta', key: 'plant', width: 40 },
       { header: 'Área', key: 'area', width: 50 },
@@ -432,13 +437,16 @@ const TableBasic = ({ rows, role, roleData }) => {
       { header: 'Contract Operator', key: 'contop', width: 20 }
     ]
 
+    // Se recorren todas las filas de datos.
     rows.forEach(row => {
+      // Para cada fila, se crea un nuevo objeto con las propiedades correspondientes a las columnas definidas anteriormente.
       const stateValue = row.state
       const start = new Date(row.start.seconds * 1000)
       const week = getWeek(start)
       const deadline = addDays(start, 21)
       const daysToDeadline = differenceInDays(deadline, new Date())
 
+      // Luego, este objeto se añade a la hoja de trabajo como una nueva fila.
       worksheet.addRow({
         week: week,
         plant: row.plant,
@@ -465,8 +473,10 @@ const TableBasic = ({ rows, role, roleData }) => {
       })
     })
 
+    // Se establece el formato de la primera fila (la fila de encabezado) a negrita y tamaño de fuente 13.
     worksheet.getRow(1).font = { bold: true, size: 13 }
 
+    // Se escribe el libro de trabajo en un buffer y se guarda en el sistema de archivos local como un archivo .xlsx.
     const buffer = await workbook.xlsx.writeBuffer()
     const dateTime = format(new Date(), 'yyyy-MM-dd/HH:mm:ss')
 
