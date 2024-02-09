@@ -55,7 +55,7 @@ const Navigation = () => {
       icon: 'mdi:folder-multiple',
       path: '/gabinete',
       subject: 'gabinete',
-      authorizedRoles: [1, 4, 5, 6, 7, 8, 9, 10]
+      authorizedRoles: [1, 5, 6, 7, 8, 9, 10]
     },
     {
       title: 'Documentos',
