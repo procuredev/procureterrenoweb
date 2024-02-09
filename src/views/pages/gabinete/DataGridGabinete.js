@@ -211,7 +211,7 @@ const DataGridGabinete = () => {
 
       fetchRoleAndProyectistas()
     }
-  }, [authUser])
+  }, [authUser, currentPetition])
 
   useEffect(() => {
     if (transmittalGenerated) {

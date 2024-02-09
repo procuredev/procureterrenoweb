@@ -14,7 +14,9 @@ import {
   Switch,
   Box
 } from '@mui/material'
-import { AdapterMoment, LocalizationProvider, MobileDateTimePicker } from '@mui/x-date-pickers'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker'
 
 //import moment from 'moment'
 import moment from 'moment-timezone'

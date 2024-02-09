@@ -14,6 +14,9 @@ import {
 
 import { Container } from '@mui/system'
 import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
+
+import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
+import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
 import {
   Button,
   Select,
@@ -28,8 +31,6 @@ import {
   DialogContent,
   Checkbox
 } from '@mui/material'
-import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
-import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
 import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
