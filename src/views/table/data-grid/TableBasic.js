@@ -45,6 +45,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     area: false
   })
 
+  const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
+
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
   }
@@ -245,7 +247,8 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Creación',
       flex: 0.4,
       minWidth: 90,
-      valueGetter: params => unixToDate(params.row.date.seconds)[0],
+      valueGetter: params => new Date(params.row.date.seconds * 1000),
+      //valueGetter: params => unixToDate(params.row.date.seconds)[0],
       renderCell: params => {
         const { row } = params
 
@@ -500,6 +503,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           columns={columns}
           columnVisibilityModel={columnVisibilityModel}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+          sortingModel={defaultSortingModel}
           slots={{
             toolbar:
               authUser.role === 1 ||
