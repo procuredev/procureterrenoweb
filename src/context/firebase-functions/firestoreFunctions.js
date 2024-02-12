@@ -85,6 +85,7 @@ const newDoc = async (values, userParam) => {
 
   // Calcula el valor de 'deadline' sumando 21 días a 'start'.
   const deadline = addDays(new Date(start), 21)
+  const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
 
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
@@ -112,6 +113,7 @@ const newDoc = async (values, userParam) => {
       userEmail,
       userRole,
       deadline,
+      daysToDeadline,
       costCenter,
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
@@ -196,6 +198,16 @@ async function increaseAndGetNewOTValue() {
 const processFieldChanges = (incomingFields, currentDoc) => {
   const changedFields = {}
 
+  const addDays = (date, days) => {
+    if (!(date instanceof Date)) {
+      date = new Date(date)
+    }
+    const newDate = new Date(date)
+    newDate.setDate(newDate.getDate() + days)
+
+    return newDate.getTime()
+  }
+
   for (const key in incomingFields) {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
@@ -213,6 +225,21 @@ const processFieldChanges = (incomingFields, currentDoc) => {
       if (key === 'start' || key === 'end') {
         value = value && Timestamp.fromDate(moment(value).toDate())
         currentFieldValue = currentFieldValue && Timestamp.fromDate(moment(currentFieldValue).toDate())
+
+        // Verificar si se actualizó 'start' para actualizar 'deadline'
+        if (key === 'start') {
+          const newDeadline = new Date(addDays(value.toDate(), 21))
+
+          console.log('newDeadline: ', newDeadline)
+          changedFields.deadline = newDeadline
+
+          const today = new Date()
+          const millisecondsInDay = 1000 * 60 * 60 * 24
+
+          const daysToDeadline = Math.floor((newDeadline - today.getTime()) / millisecondsInDay)
+
+          changedFields.daysToDeadline = daysToDeadline
+        }
       }
       changedFields[key] = value
       incomingFields[key] = currentFieldValue || 'none'
