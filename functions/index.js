@@ -549,18 +549,20 @@ exports.scheduledFirestoreExport = functions.pubsub
 
 // Función para calcular la diferencia en días entre dos fechas
 const calculateDaysToDeadline = deadlineTimestamp => {
-  const now = new Date() // Fecha actual
+  const now = new Date() // Fecha actual // today 00:00
+  const today = new Date(now) // Fecha de hoy, ajustando la hora a medianoche
+  today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
   const deadlineDate = new Date(deadlineTimestamp * 1000)
 
   // Calcula la diferencia en días
-  const diffTime = deadlineDate - now
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffTime = deadlineDate - today
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
 
   return diffDays
 }
 
 exports.updateDaysToDeadlineOnSchedule = functions.pubsub
-  .schedule('every day 00:00')
+  .schedule('every day 15:25')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const db = admin.firestore()
@@ -569,22 +571,17 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
     const snapshot = await solicitudesRef.get()
 
     snapshot.forEach(doc => {
-      let data = doc.data()
-      let deadlineTimestamp
-      if (data.deadline) {
-        deadlineTimestamp = data.deadline.seconds
-      } else {
-        // Si 'deadline' no existe, se establece a 21 días después de 'start'
-        const startDate = new Date(data.start.seconds * 1000)
-        const deadlineDate = new Date(startDate)
-        deadlineDate.setDate(startDate.getDate() + 21)
-        deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
-        // Actualiza el documento con el nuevo 'deadline'
-        doc.ref.update({ deadline: admin.firestore.Timestamp.fromDate(deadlineDate) })
-      }
-      const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
+      if (doc.data().deadline) {
+        console.log('doc.data().deadline:', doc.data().deadline)
+        const deadlineTimestamp = doc.data().deadline.seconds
 
-      // Actualiza el documento con los días hasta la fecha límite
-      doc.ref.update({ daysToDeadline: daysToDeadline })
+        console.log('deadlineTimestamp:', deadlineTimestamp)
+
+        const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
+        console.log('daysToDeadline:', daysToDeadline)
+
+        // Actualiza el documento con los días hasta la fecha límite
+        doc.ref.update({ daysToDeadline: daysToDeadline })
+      }
     })
   })
