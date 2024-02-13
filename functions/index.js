@@ -548,40 +548,58 @@ exports.scheduledFirestoreExport = functions.pubsub
 // * Función TEST
 
 // Función para calcular la diferencia en días entre dos fechas
+
 const calculateDaysToDeadline = deadlineTimestamp => {
-  const now = new Date() // Fecha actual // today 00:00
-  const today = new Date(now) // Fecha de hoy, ajustando la hora a medianoche
+  const today = new Date()
   today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
   const deadlineDate = new Date(deadlineTimestamp * 1000)
-
-  // Calcula la diferencia en días
-  const diffTime = deadlineDate - today
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+  const diffTime = Math.abs(deadlineDate - today)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
   return diffDays
 }
 
 exports.updateDaysToDeadlineOnSchedule = functions.pubsub
-  .schedule('every day 15:25')
+  .schedule('every day 00:00')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const db = admin.firestore()
     const solicitudesRef = db.collection('solicitudes')
 
     const snapshot = await solicitudesRef.get()
+    const updatePromises = []
 
-    snapshot.forEach(doc => {
-      if (doc.data().deadline) {
-        console.log('doc.data().deadline:', doc.data().deadline)
-        const deadlineTimestamp = doc.data().deadline.seconds
+    snapshot.forEach(docSnapshot => {
+      const data = docSnapshot.data()
+      let deadlineTimestamp
 
-        console.log('deadlineTimestamp:', deadlineTimestamp)
-
-        const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
-        console.log('daysToDeadline:', daysToDeadline)
-
-        // Actualiza el documento con los días hasta la fecha límite
-        doc.ref.update({ daysToDeadline: daysToDeadline })
+      if (data.deadline) {
+        deadlineTimestamp = data.deadline.seconds
+      } else {
+        // Si 'deadline' no existe, se establece a 21 días después de 'start'
+        const startDate = new Date(data.start.seconds * 1000)
+        const deadlineDate = new Date(startDate)
+        deadlineDate.setDate(startDate.getDate() + 21)
+        deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
+        // Preparar para actualizar el documento con el nuevo 'deadline'
+        updatePromises.push(
+          docSnapshot.ref.update({
+            deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
+          })
+        )
       }
+
+      const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
+      // Preparar para actualizar el documento con los días hasta la fecha límite
+      updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
     })
+
+    // Espera a que todas las operaciones de actualización se completen
+    await Promise.all(updatePromises)
+      .then(() => {
+        console.log('Todos los documentos han sido actualizados con éxito.')
+      })
+      .catch(error => {
+        console.error('Error al actualizar documentos:', error)
+      })
   })
