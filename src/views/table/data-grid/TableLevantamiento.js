@@ -43,19 +43,16 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
   const handleClickOpen = doc => {
-
     setDoc(doc)
     setOpen(true)
   }
 
   const handleClickOpenEvents = doc => {
-
     setDoc(doc)
     setOpenEvents(true)
   }
 
   const handleClickOpenDone = doc => {
-
     setDoc(doc)
     setOpenDone(true)
   }
@@ -84,16 +81,17 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     setOpenAlert(true)
   }
 
-
   const writeCallback = () => {
     setIsLoading(true)
-    updateDocs(doc.id, approve, authUser).then(() => {
-    setIsLoading(false)
-    setOpenAlert(false)})
-    .catch((error) => {
-      setIsLoading(false)
-      console.error(error)
-    })
+    updateDocs(doc.id, approve, authUser)
+      .then(() => {
+        setIsLoading(false)
+        setOpenAlert(false)
+      })
+      .catch(error => {
+        setIsLoading(false)
+        console.error(error)
+      })
   }
 
   const handleCloseAlert = () => {
@@ -127,7 +125,6 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     fetchProyectistas()
   }, [authUser.shift])
 
-
   const columns = [
     {
       field: 'title',
@@ -151,18 +148,20 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
                 <OpenInNewOutlined sx={{ fontSize: 18 }} />
               </IconButton>
 
-              <Typography sx={{
+              <Typography
+                sx={{
                   textDecoration: 'none',
                   transition: 'text-decoration 0.2s',
                   '&:hover': {
                     textDecoration: 'underline'
                   }
                 }}
-                variant='string'>{row.title}
-                </Typography>
+                variant='string'
+              >
+                {row.title}
+              </Typography>
             </Box>
           </Tooltip>
-
         )
       }
     },
@@ -311,18 +310,18 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         const { row } = params
 
         const RenderButtons = () => {
-          return role === 7 && (
-            <>
-              <Button
-                    onClick={() => handleClickOpenDone(row)}
-                    variant='contained'
-                    color='success'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-              </Button>
-              {
-                !row.pendingReschedule && (
+          return (
+            role === 7 && (
+              <>
+                <Button
+                  onClick={() => handleClickOpenDone(row)}
+                  variant='contained'
+                  color='success'
+                  sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
+                >
+                  <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
+                </Button>
+                {!row.pendingReschedule && (
                   <Button
                     onClick={() => handlePause(row)}
                     variant='contained'
@@ -330,13 +329,12 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
                   >
                     <Pause sx={{ fontSize: 18 }} />
-              </Button>
-                )
-              }
-            </>
+                  </Button>
+                )}
+              </>
+            )
           )
         }
-
 
         return (
           <>
@@ -393,7 +391,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             assign: md,
             done: md,
 
-            actions: roleData.canApprove
+            actions: roleData.canApprove,
+            assign: authUser.role === 7
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           sortingModel={defaultSortingModel}
@@ -409,11 +408,13 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         ) : (
           <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
         )}
-        {<Dialog open={isLoading}>
-          <DialogContent>
-          <CircularProgress />
-          </DialogContent>
-          </Dialog>}
+        {
+          <Dialog open={isLoading}>
+            <DialogContent>
+              <CircularProgress />
+            </DialogContent>
+          </Dialog>
+        }
         {openEvents && (
           <FullScreenDialog
             open={openEvents}

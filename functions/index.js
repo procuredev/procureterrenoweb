@@ -560,7 +560,7 @@ const calculateDaysToDeadline = deadlineTimestamp => {
 }
 
 exports.updateDaysToDeadlineOnSchedule = functions.pubsub
-  .schedule('every day 16:33')
+  .schedule('every day 17:30')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const db = admin.firestore()
