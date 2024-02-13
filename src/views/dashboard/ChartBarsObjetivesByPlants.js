@@ -15,26 +15,24 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
   const theme = useTheme()
 
   const plants = [
-    {name:'Los Colorados', initial:'PCLC'},
-    {name:'Laguna Seca 1', initial:'LSL1'},
-    {name:'Laguna Seca 2', initial:'LSL2'},
-    {name:'Chancado y Correas', initial:'CHCO'},
-    {name:'Puerto Coloso', initial:'PCOL'},
-    {name:'Instalacones Cátodo', initial:'ICAT'}
+    { name: 'Los Colorados', initial: 'PCLC' },
+    { name: 'Laguna Seca 1', initial: 'LSL1' },
+    { name: 'Laguna Seca 2', initial: 'LSL2' },
+    { name: 'Chancado y Correas', initial: 'CHCO' },
+    { name: 'Puerto Coloso', initial: 'PCOL' },
+    { name: 'Instalacones Cátodo', initial: 'ICAT' }
   ]
 
   const query1Results = objetivesByPlants.map(result => result.query1)
   const query2Results = objetivesByPlants.map(result => result.query2)
   const resObjByPlants2 = query1Results.map((el, index) => ({ x: plants[index], y: el }))
 
-
   const chartData = plants.map((plant, index) => ({
     name: plant.name,
     initial: plant.initial,
     query1: query1Results && query1Results[index],
     query2: query2Results && query2Results[index]
-  }));
-
+  }))
 
   const options = {
     tooltip: {
@@ -64,7 +62,7 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
         distributed: false,
         columnWidth: '51%',
         endingShape: 'rounded',
-        startingShape: 'rounded',
+        startingShape: 'rounded'
       }
     },
     legend: { show: false },
@@ -80,12 +78,12 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
     },
     series: [
       {
-        name: 'Levantamientos',
-        data: chartData.map(item => item.query1),
+        name: 'Total de Levantamientos',
+        data: chartData.map(item => item.query1)
       },
       {
         name: 'Levantamientos activos',
-        data: chartData.map(item => item.query2),
+        data: chartData.map(item => item.query2)
       }
     ],
     xaxis: {
@@ -117,15 +115,10 @@ const ChartBarsObjetivesByPlants = ({ objetivesByPlants }) => {
         titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
       />
       <CardContent sx={{ pt: { xs: `${theme.spacing(6)} !important`, md: `${theme.spacing(0)} !important` } }}>
-        <ReactApexcharts
-          type='bar'
-          height={150}
-          options={options}
-          series={options.series}
-        />
+        <ReactApexcharts type='bar' height={150} options={options} series={options.series} />
       </CardContent>
     </Card>
-  );
+  )
 }
 
 export default ChartBarsObjetivesByPlants
