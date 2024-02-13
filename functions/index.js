@@ -548,12 +548,12 @@ exports.scheduledFirestoreExport = functions.pubsub
 // * Función TEST
 
 // Función para calcular la diferencia en días entre dos fechas
-const calculateDaysToDeadline = (startTimestamp, deadlineTimestamp) => {
-  const startDate = new Date(startTimestamp * 1000)
+const calculateDaysToDeadline = deadlineTimestamp => {
+  const now = new Date() // Fecha actual
   const deadlineDate = new Date(deadlineTimestamp * 1000)
 
   // Calcula la diferencia en días
-  const diffTime = Math.abs(deadlineDate - startDate)
+  const diffTime = deadlineDate - now
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
   return diffDays
@@ -569,35 +569,22 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
     const snapshot = await solicitudesRef.get()
 
     snapshot.forEach(doc => {
-      const startTimestamp = doc.data().start.seconds
-      const deadlineTimestamp = doc.data().deadline.seconds
-
-      const daysToDeadline = calculateDaysToDeadline(startTimestamp, deadlineTimestamp)
+      let data = doc.data()
+      let deadlineTimestamp
+      if (data.deadline) {
+        deadlineTimestamp = data.deadline.seconds
+      } else {
+        // Si 'deadline' no existe, se establece a 21 días después de 'start'
+        const startDate = new Date(data.start.seconds * 1000)
+        const deadlineDate = new Date(startDate)
+        deadlineDate.setDate(startDate.getDate() + 21)
+        deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
+        // Actualiza el documento con el nuevo 'deadline'
+        doc.ref.update({ deadline: admin.firestore.Timestamp.fromDate(deadlineDate) })
+      }
+      const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
 
       // Actualiza el documento con los días hasta la fecha límite
       doc.ref.update({ daysToDeadline: daysToDeadline })
     })
   })
-
-/* exports.updateDaysToDeadlineOnWrite = functions.firestore
-  .document('solicitudes/{solicitudId}')
-  .onWrite((change, context) => {
-    // Accede a los datos previos y nuevos para ver si `start` o `deadline` cambiaron
-    const beforeData = change.before.data()
-    const afterData = change.after.data()
-
-    if (
-      beforeData.start.seconds !== afterData.start.seconds ||
-      beforeData.deadline.seconds !== afterData.deadline.seconds
-    ) {
-      const startTimestamp = afterData.start.seconds
-      const deadlineTimestamp = afterData.deadline.seconds
-
-      const daysToDeadline = calculateDaysToDeadline(startTimestamp, deadlineTimestamp)
-
-      // Actualiza el documento con los nuevos días hasta la fecha límite
-      return change.after.ref.update({ daysToDeadline: daysToDeadline })
-    } else {
-      return null
-    }
-  }) */

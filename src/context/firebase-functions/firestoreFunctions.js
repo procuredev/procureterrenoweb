@@ -236,7 +236,7 @@ const processFieldChanges = (incomingFields, currentDoc) => {
           const today = new Date()
           const millisecondsInDay = 1000 * 60 * 60 * 24
 
-          const daysToDeadline = Math.floor((newDeadline - today.getTime()) / millisecondsInDay)
+          const daysToDeadline = Math.ceil((newDeadline - today) / millisecondsInDay)
 
           changedFields.daysToDeadline = daysToDeadline
         }
