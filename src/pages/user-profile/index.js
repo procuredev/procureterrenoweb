@@ -363,7 +363,8 @@ const TabAccount = () => {
                 )}
 
                 {/* Planta */}
-                <Grid item xs={12} sm={6}>
+                {authUser.plant && authUser.plant != 'No definido' &&(
+                  <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     disabled
@@ -372,6 +373,8 @@ const TabAccount = () => {
                     value={authUser.plant.join(', ')}
                   />
                 </Grid>
+                )}
+
                 <Grid item xs={12}>
                   <Button variant='contained' sx={{ mr: 3 }} onClick={handleSubmit}>
                     Guardar cambios
