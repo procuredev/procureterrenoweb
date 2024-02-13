@@ -554,13 +554,13 @@ const calculateDaysToDeadline = deadlineTimestamp => {
   today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
   const deadlineDate = new Date(deadlineTimestamp * 1000)
   const diffTime = Math.abs(deadlineDate - today)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
 
   return diffDays
 }
 
 exports.updateDaysToDeadlineOnSchedule = functions.pubsub
-  .schedule('every day 00:00')
+  .schedule('every day 16:33')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const db = admin.firestore()
