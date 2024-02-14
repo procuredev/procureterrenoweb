@@ -28,6 +28,8 @@ import { useDropzone } from 'react-dropzone'
 import { Timeline, timelineOppositeContentClasses } from '@mui/lab'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { useFirebase } from 'src/context/useFirebase'
+import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import BorderColorIcon from '@mui/icons-material/BorderColor'
 
 import moment from 'moment-timezone'
 import 'moment/locale/es'
@@ -492,24 +494,38 @@ export const UploadBlueprintsDialog = ({
           <Typography variant='h5' sx={{ lineHeight: 3 }}>
             {`Código Procure: ${values.id}` || 'Sin código Procure'}
           </Typography>
-          {values.clientCode ? (
-            `Código MEL: ${values.clientCode}`
-          ) : authUser.role === 8 || authUser.role === 7 ? (
-            <Typography
-              variant='h6'
-              sx={{ my: 2, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-              onClick={() => {
-                if (authUser.uid === doc.userId) {
-                  setGenerateClientCode(prev => !prev)
-                }
-              }}
-            >
-              Generar código MEL
-              <ChevronRight sx={{ transform: generateClientCode ? 'rotate(90deg)' : '' }} />
-            </Typography>
-          ) : (
-            <Typography> Sin código MEL</Typography>
-          )}
+          <Typography variant='h6' sx={{ my: 2, display: 'flex', alignItems: 'center' }}>
+            Código MEL:
+            {values.clientCode ? (
+              <Typography variant='h6' sx={{ ml: 2 }}>
+                {values.clientCode}
+              </Typography>
+            ) : authUser.role === 8 || authUser.role === 7 ? (
+              <>
+                <Button
+                  component='label'
+                  role={undefined}
+                  variant='contained'
+                  tabIndex={-1}
+                  startIcon={<BorderColorIcon />}
+                  size='small'
+                  sx={{ ml: 2, opacity: 0.9 }}
+                  onClick={() => {
+                    if (authUser.uid === doc.userId) {
+                      setGenerateClientCode(prev => !prev)
+                    }
+                  }}
+                >
+                  Crear código MEL
+                  {/* <VisuallyHiddenInput type='file' /> */}
+                </Button>
+              </>
+            ) : (
+              <Typography variant='h6' sx={{ ml: 2 }}>
+                Sin código MEL
+              </Typography>
+            )}
+          </Typography>
         </Box>
         <Chip label={values.revision} sx={{ textTransform: 'capitalize' }} color='primary' />
       </DialogTitle>
@@ -530,23 +546,25 @@ export const UploadBlueprintsDialog = ({
                 editable={doc && authUser.uid === doc.userId}
                 label='Descripción'
                 id='description'
-                initialValue={description}
+                initialValue='agregue la descripción del documento'
                 value={values.description}
                 onChange={handleInputChange('description')}
                 required={false}
                 inputProps={{
                   endAdornment: description !== values.description && (
                     <InputAdornment position='end'>
-                      <Button
-                        onClick={() => {
-                          if (authUser.uid === doc.userId) {
-                            submitDescription()
-                          }
-                        }}
-                      >
-                        {' '}
-                        Guardar descripción{' '}
-                      </Button>
+                      {values.description.length > 0 ? (
+                        <Button
+                          onClick={() => {
+                            if (authUser.uid === doc.userId) {
+                              submitDescription()
+                            }
+                          }}
+                        >
+                          {' '}
+                          Guardar descripción{' '}
+                        </Button>
+                      ) : null}
                     </InputAdornment>
                   )
                 }}
