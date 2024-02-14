@@ -190,6 +190,9 @@ export const UploadBlueprintsDialog = ({
   const [errorDialog, setErrorDialog] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
 
+  const [isDescriptionSaved, setIsDescriptionSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
   const theme = useTheme()
   const { updateDocs, authUser, addDescription, uploadFilesToFirebaseStorage } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
@@ -323,11 +326,20 @@ export const UploadBlueprintsDialog = ({
   }
 
   const submitDescription = async () => {
-    await addDescription(petitionId, currentRow, values.description)
-      .then(() => {
-        setBlueprintGenerated(true)
-      })
-      .catch(err => console.error(err))
+    setIsSaving(true)
+    try {
+      await addDescription(petitionId, currentRow, values.description)
+        .then(() => {
+          setIsDescriptionSaved(true)
+          setBlueprintGenerated(true)
+        })
+        .catch(err => console.error(err))
+      setIsDescriptionSaved(true)
+      setBlueprintGenerated(true)
+    } catch (err) {
+      console.error(err)
+    }
+    setIsSaving(false)
   }
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -545,26 +557,30 @@ export const UploadBlueprintsDialog = ({
               <CustomListItem
                 editable={doc && authUser.uid === doc.userId}
                 label='Descripción'
+                placeholder='Agregue la descripción del documento'
+                InputLabelProps={{
+                  shrink: true
+                }}
                 id='description'
-                initialValue='agregue la descripción del documento'
+                //defaultValue='Agregue la descripción del documento'
+                //labelClassName='Agregue la descripción del documento'
+                //labelClassName={this.props.classes['input-label']}
+                initialValue={description}
                 value={values.description}
-                onChange={handleInputChange('description')}
+                onChange={e => {
+                  handleInputChange('description')(e)
+                  setIsDescriptionSaved(false) // Restablecer el estado al cambiar la descripción
+                }}
                 required={false}
                 inputProps={{
-                  endAdornment: description !== values.description && (
+                  endAdornment: (
                     <InputAdornment position='end'>
-                      {values.description.length > 0 ? (
-                        <Button
-                          onClick={() => {
-                            if (authUser.uid === doc.userId) {
-                              submitDescription()
-                            }
-                          }}
-                        >
-                          {' '}
-                          Guardar descripción{' '}
+                      {!isDescriptionSaved && (
+                        <Button onClick={submitDescription} disabled={isSaving}>
+                          {isSaving ? 'Guardando...' : 'Guardar descripción'}
                         </Button>
-                      ) : null}
+                      )}
+                      {/* {isDescriptionSaved && <Typography color='success.main'>Descripción guardada!</Typography>} */}
                     </InputAdornment>
                   )
                 }}
