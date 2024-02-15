@@ -580,7 +580,6 @@ export const UploadBlueprintsDialog = ({
                           {isSaving ? 'Guardando...' : 'Guardar descripción'}
                         </Button>
                       )}
-                      {/* {isDescriptionSaved && <Typography color='success.main'>Descripción guardada!</Typography>} */}
                     </InputAdornment>
                   )
                 }}

@@ -554,13 +554,14 @@ const calculateDaysToDeadline = deadlineTimestamp => {
   today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
   const deadlineDate = new Date(deadlineTimestamp * 1000)
   const diffTime = deadlineDate - today
+  //math.round() redondea hacia arriba el valor a un número entero
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
 
   return diffDays
 }
 
 exports.updateDaysToDeadlineOnSchedule = functions.pubsub
-  .schedule('every day 10:45')
+  .schedule('every day 00:00')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const db = admin.firestore()
@@ -581,7 +582,7 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
         const startDate = new Date(data.start.seconds * 1000)
         const deadlineDate = new Date(startDate)
         deadlineDate.setDate(startDate.getDate() + 21)
-        // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970)
+        // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
         deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
         // Preparar para actualizar el documento con el nuevo 'deadline'
         updatePromises.push(
