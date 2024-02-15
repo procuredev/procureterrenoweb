@@ -64,7 +64,16 @@ const FormLayoutsSolicitud = () => {
   }
 
   // ** Hooks
-  const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData, getDomainData} = useFirebase()
+  const {
+    authUser,
+    newDoc,
+    uploadFilesToFirebaseStorage,
+    consultBlockDayInDB,
+    consultSAP,
+    getUserData,
+    getDomainData,
+    consultOT
+  } = useFirebase()
   const router = useRouter()
 
   // ** States
@@ -110,7 +119,6 @@ const FormLayoutsSolicitud = () => {
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
-
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
     const startDate = moment(values.start)
@@ -131,7 +139,17 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'mcDescription', 'costCenter']
+    const strFields = [
+      'title',
+      'description',
+      'sap',
+      'fnlocation',
+      'tag',
+      'urlVideo',
+      'ot',
+      'mcDescription',
+      'costCenter'
+    ]
     const selectFields = ['plant', 'area', 'petitioner', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
@@ -170,7 +188,9 @@ const FormLayoutsSolicitud = () => {
           if (newValue.includes('Memoria de Cálculo')) {
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
-              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:')
+              setAlertMessage(
+                'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:'
+              )
 
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
@@ -194,7 +214,7 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event
-        console.log(event, "eventStart")
+        console.log(event, 'eventStart')
         setValues({
           ...values,
           start: startDate
@@ -227,7 +247,7 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const handleBlur = async e => {
+  const handleBlurSap = async e => {
     if (values.sap.length > 0) {
       const resultSap = await consultSAP(e.target.value)
 
@@ -248,6 +268,34 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  const handleBlurOt = async e => {
+    // Asumiendo que values.ot ya contiene el valor actualizado para OT
+    if (values.ot.length > 0) {
+      const resultOt = await consultOT(e.target.value) // Asegúrate de tener una función consultOT implementada
+
+      if (resultOt.exist) {
+        // Maneja el caso en que OT ya exista
+        setAlertMessage(resultOt.msj)
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          ot: 'Existe una solicitud con ese número de OT.'
+        }))
+      } else {
+        // Maneja el caso de un nuevo OT
+        setValues({
+          ...values,
+          ot: e.target.value
+        })
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          ot: ''
+        }))
+      }
+
+      return resultOt
+    }
+  }
+
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
@@ -263,9 +311,17 @@ const FormLayoutsSolicitud = () => {
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
-      const costCenterIsRequired = (authUser.role === 7 && key === 'costCenter') ? false : true
+      const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && costCenterIsRequired && excludedFields) {
+      if (
+        key !== 'fnlocation' &&
+        key !== 'sap' &&
+        key !== 'tag' &&
+        key !== 'urlvideo' &&
+        key !== 'mcDescription' &&
+        costCenterIsRequired &&
+        excludedFields
+      ) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
@@ -313,18 +369,13 @@ const FormLayoutsSolicitud = () => {
 
         // Manejo de errores para evitar Warning en Consola
         if (!domain) {
-
           console.error('No se encontraron los datos o datos son indefinidos o null.')
 
           return
-
         }
-
 
         // Se almacena la información de Tabla de Dominio en una variable de entorno
         setDomainData(domain)
-
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -337,7 +388,6 @@ const FormLayoutsSolicitud = () => {
   useEffect(() => {
     const getSpecificDomainData = async () => {
       try {
-
         // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
         if (domainData && domainData.objectives) {
           const objectives = Object.keys(domainData.objectives).sort()
@@ -365,10 +415,11 @@ const FormLayoutsSolicitud = () => {
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
         const plantData = domainData?.plants?.[values.plant] || {}
         if (plantData) {
-          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort()
+          const areas = Object.keys(plantData)
+            .map(area => `${area} - ${plantData[area].name}`)
+            .sort()
           setAreas(areas)
         }
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -455,7 +506,9 @@ const FormLayoutsSolicitud = () => {
     const formErrors = validateForm(values)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+
+    const isUrgent =
+      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
 
@@ -489,21 +542,21 @@ const FormLayoutsSolicitud = () => {
               }
             }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
+            end:
+              authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
             mcDescription: values.mcDescription ? values.mcDescription : null
-
           },
           authUser
         )
 
         await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
-        setIsUploading(false),
-        setButtonDisabled(false),
-        handleRemoveAllFiles(),
-        setAlertMessage('Documento creado exitosamente'),
-        setValues(initialValues),
-        setErrors({})
-      })
+          setIsUploading(false),
+            setButtonDisabled(false),
+            handleRemoveAllFiles(),
+            setAlertMessage('Documento creado exitosamente'),
+            setValues(initialValues),
+            setErrors({})
+        })
       } catch (error) {
         setAlertMessage(error.message)
         setIsUploading(false) // Se cierra el spinner en caso de error
@@ -643,7 +696,6 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-
             {/* Datos exclusivos para cuando el Supervisor ingresa la Solicitud */}
             {authUser.role === 7 && (
               <>
@@ -656,6 +708,7 @@ const FormLayoutsSolicitud = () => {
                   error={errors.ot}
                   inputProps={{ maxLength: 5 }}
                   helper='Ingresa el número de OT.'
+                  onBlur={handleBlurOt}
                 />
 
                 {/* Tipo de Urgencia */}
@@ -756,7 +809,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <CustomSelect
-            required
+              required
               options={[...authUser.plant]}
               label='Planta'
               value={values.plant}
@@ -771,7 +824,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Área */}
             <CustomSelect
-            required
+              required
               options={areas}
               label='Área'
               value={values.area}
@@ -807,7 +860,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Centro de Costos */}
             <CustomTextField
-              required={authUser.role!=7}
+              required={authUser.role != 7}
               type='text'
               label='Centro de Costos'
               value={values.costCenter}
@@ -841,11 +894,14 @@ const FormLayoutsSolicitud = () => {
 
             {/* Solicitante */}
             <CustomSelect
-            required
+              required
               options={
-                (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                authUser.role === 3 ||
+                authUser.role === 7 ||
+                authUser.plant === 'allPlants' ||
+                authUser.plant === 'Solicitante Santiago'
                   ? petitioners.map(item => ({ name: item.name }))
-                  : [authUser.displayName])
+                  : [authUser.displayName]
               }
               label='Solicitante'
               value={values.petitioner}
@@ -888,7 +944,7 @@ const FormLayoutsSolicitud = () => {
               label='Número SAP'
               value={values.sap}
               onChange={handleChange('sap')}
-              onBlur={handleBlur}
+              onBlur={handleBlurSap}
               error={errors.sap}
               inputProps={{ maxLength: 10 }}
               helper='Rellena este campo sólo si conoces el número SAP'
@@ -936,7 +992,7 @@ const FormLayoutsSolicitud = () => {
             {/* Destinatarios */}
             <CustomAutocomplete
               required
-              isOptionEqualToValue={(option, value) => (option.name === value.name)}
+              isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}
               label='Destinatarios'
               value={values.receiver}

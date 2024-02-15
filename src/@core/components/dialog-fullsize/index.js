@@ -48,6 +48,7 @@ import {
 import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
+import DialogExistingOt from 'src/@core/components/dialog-existing-ot'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
@@ -142,23 +143,14 @@ function CustomListItem({
   )
 }
 
-function CustomAutocompleteItem({
-  selectable,
-  options,
-  editable,
-  label,
-  value,
-  onChange,
-  error,
-  required,
-}) {
+function CustomAutocompleteItem({ selectable, options, editable, label, value, onChange, error, required }) {
   return (
     <Grid item xs={12}>
       <FormControl fullWidth>
         <Box display='flex' alignItems='center'>
           {editable && selectable ? (
             <Autocomplete
-              getOptionLabel={(option) => option.name || option}
+              getOptionLabel={option => option.name || option}
               multiple
               fullWidth
               options={options}
@@ -179,7 +171,7 @@ function CustomAutocompleteItem({
                   />
                 ))
               }
-              renderInput={(params) => (
+              renderInput={params => (
                 <TextField
                   {...params}
                   label={label}
@@ -383,6 +375,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
   const [areasArray, setAreasArray] = useState([])
+  const [existingOT, setExistingOT] = useState(false)
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -401,7 +394,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment, getDomainData, domainDictionary } = useFirebase()
+
+  const {
+    updateDocs,
+    useEvents,
+    authUser,
+    getUserData,
+    uploadFilesToFirebaseStorage,
+    addComment,
+    getDomainData,
+    domainDictionary,
+    consultOT
+  } = useFirebase()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -424,25 +428,31 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const PetitionerOpshiftContactComponent = () => (
     <>
-      {petitionerContact.opshift && petitionerContact.opshift.map((opshiftItem, index) => (
-      <div key={index}>
-        {index > 0 && <br />}
-        <Typography>{'Contraturno ' + Number(index+1) + ':'}</Typography>
-        <Typography>{opshiftItem.name}</Typography>
-        <Typography>{opshiftItem.email}</Typography>
-        <Typography>{opshiftItem.phone}</Typography>
-      </div>
-    ))}
+      {petitionerContact.opshift &&
+        petitionerContact.opshift.map((opshiftItem, index) => (
+          <div key={index}>
+            {index > 0 && <br />}
+            <Typography>{'Contraturno ' + Number(index + 1) + ':'}</Typography>
+            <Typography>{opshiftItem.name}</Typography>
+            <Typography>{opshiftItem.email}</Typography>
+            <Typography>{opshiftItem.phone}</Typography>
+          </div>
+        ))}
     </>
   )
 
+  const handleCloseExistingOt = () => {
+    setExistingOT(false)
+  }
+
   const DeliverableComponent = () => (
     <>
-      {values.deliverable && values.deliverable.map((deliverableItem, index) => (
-      <div key={index}>
-        <Typography>{deliverableItem}</Typography>
-      </div>
-    ))}
+      {values.deliverable &&
+        values.deliverable.map((deliverableItem, index) => (
+          <div key={index}>
+            <Typography>{deliverableItem}</Typography>
+          </div>
+        ))}
     </>
   )
 
@@ -468,7 +478,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       }
     : {}
 
-
   // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
   useEffect(() => {
     const getAllDomainData = async () => {
@@ -485,8 +494,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         // Se almacena la información de Tabla de Dominio en una variable de Entorno
         setDomainData(domain)
-
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -499,7 +506,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   useEffect(() => {
     const getSpecificDomainData = async () => {
       try {
-
         // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
         if (domainData && domainData.plants) {
           const plants = Object.keys(domainData.plants).sort()
@@ -519,12 +525,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         }
 
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
-        const plantData = domainData?.plants?.[values.plant] || {};
+        const plantData = domainData?.plants?.[values.plant] || {}
         if (plantData) {
-          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort()
+          const areas = Object.keys(plantData)
+            .map(area => `${area} - ${plantData[area].name}`)
+            .sort()
           setAreasArray(areas)
         }
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -532,7 +539,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
     getSpecificDomainData()
   }, [domainData, values.plant])
-
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -559,6 +565,21 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const handleOpenAlert = async () => {
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
+
+    // Primero, verifica si OT ha cambiado y si es necesario verificar su existencia
+    if (hasChanges.ot && values.ot) {
+      setLoading(true) // Muestra un indicador de carga, si es aplicable
+      const resultOt = await consultOT(values.ot)
+      setLoading(false) // Oculta el indicador de carga
+
+      if (resultOt.exist) {
+        // Si la OT ya existe, muestra un mensaje de error y detén la ejecución
+        setExistingOT(true)
+
+        return // Detiene la ejecución para evitar abrir el diálogo de alerta
+      }
+    }
+
     if (roleData.id === '5') {
       // Agrega end y ot
       if (!end && hasChanges.end && !ot && hasChanges.ot) {
@@ -602,11 +623,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     for (const key in values) {
       if (hasChanges[key]) {
         newData[key] = values[key]
-      if (key === 'start' && newData[key]) {
-        newData.pendingReschedule = false
+        if (key === 'start' && newData[key]) {
+          newData.pendingReschedule = false
+        }
       }
     }
-  }
 
     if (Object.keys(newData).length > 0) {
       setLoading(true)
@@ -1003,12 +1024,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {additionalInfoVisible && (
                   <>
                     {petitionerContact.opshift && petitionerContact.opshift[0].name && (
-                    <CustomListItem
-                    editable={false}
-                    label='Contraturno del Solicitante'
-                    id='opshift'
-                    initialValue={<PetitionerOpshiftContactComponent />}
-                    />
+                      <CustomListItem
+                        editable={false}
+                        label='Contraturno del Solicitante'
+                        id='opshift'
+                        initialValue={<PetitionerOpshiftContactComponent />}
+                      />
                     )}
                     <CustomListItem
                       editable={false}
@@ -1233,6 +1254,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
+      {existingOT && <DialogExistingOt open={existingOT} handleClose={handleCloseExistingOt} />}
       <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>
