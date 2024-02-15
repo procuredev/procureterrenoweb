@@ -431,7 +431,7 @@ const FormLayoutsSolicitud = () => {
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
-    const maxSizeBytes = 5 * 1024 * 1024 // 5 MB in bytes
+    const maxSizeBytes = 10 * 1024 * 1024 // 5 MB in bytes
 
     const isValidImage = file => {
       const extension = file.name.split('.').pop().toLowerCase()
