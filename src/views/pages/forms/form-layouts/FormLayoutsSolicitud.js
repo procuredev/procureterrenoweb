@@ -156,13 +156,19 @@ const FormLayoutsSolicitud = () => {
     switch (true) {
       case strFields.includes(prop): {
         newValue = event.target.value
+
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
+
+        if (prop === 'ot') {
+          newValue = Number(newValue)
+        }
 
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
       }
       case selectFields.includes(prop): {
         newValue = event.target.value
+        newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         if (prop === 'objective' && newValue === 'Análisis GPR') {
           handleGPRSelected()
@@ -269,30 +275,38 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleBlurOt = async e => {
-    // Asumiendo que values.ot ya contiene el valor actualizado para OT
-    if (values.ot.length > 0) {
-      const resultOt = await consultOT(e.target.value) // Asegúrate de tener una función consultOT implementada
+    const otValue = e.target.value.trim() // .trim() devuelve el valor sin espacios extra
+
+    //console.log('otValue: ', otValue)
+
+    // Verifica si el campo OT tiene algún valor antes de hacer la consulta
+    if (otValue.length > 0) {
+      const resultOt = await consultOT(otValue)
+      //console.log('resultOt: ', resultOt)
 
       if (resultOt.exist) {
-        // Maneja el caso en que OT ya exista
-        setAlertMessage(resultOt.msj)
+        setAlertMessage(resultOt.msj) // Muestra en Dialog el mensaje de error específico para el campo OT
+        // Si existe un OT, establece el mensaje de error específicamente para el campo OT
         setErrors(prevErrors => ({
           ...prevErrors,
           ot: 'Existe una solicitud con ese número de OT.'
         }))
       } else {
-        // Maneja el caso de un nuevo OT
-        setValues({
-          ...values,
-          ot: e.target.value
-        })
-        setErrors(prevErrors => ({
-          ...prevErrors,
-          ot: ''
-        }))
-      }
+        // Si OT no existe, limpia el mensaje de error para OT para asegurar que antiguos mensajes de error no permanezcan después de corregir el valor
+        setErrors(prevErrors => {
+          const newErrors = { ...prevErrors }
+          delete newErrors.ot // Elimina el mensaje de error para OT
 
-      return resultOt
+          return newErrors
+        })
+      }
+    } else {
+      // Si el campo OT está vacío, podrías querer manejar este caso también
+      // Por ejemplo, estableciendo un mensaje de error indicando que el campo no puede estar vacío
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        ot: 'El campo OT no puede estar vacío.'
+      }))
     }
   }
 
@@ -301,6 +315,7 @@ const FormLayoutsSolicitud = () => {
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
   }
@@ -701,6 +716,7 @@ const FormLayoutsSolicitud = () => {
               <>
                 {/* Número de OT Procure */}
                 <CustomTextField
+                  type='text'
                   required
                   label='OT'
                   value={values.ot}

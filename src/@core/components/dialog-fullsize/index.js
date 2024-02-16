@@ -75,7 +75,8 @@ function CustomListItem({
   multiline = false,
   selectable = false,
   options = [],
-  initialValue
+  initialValue,
+  inputProps
 }) {
   return (
     <>
@@ -121,6 +122,7 @@ function CustomListItem({
                 variant='standard'
                 fullWidth={true}
                 multiline={multiline}
+                inputProps={inputProps}
               />
             )}
           </StyledFormControl>
@@ -617,6 +619,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
   }
 
+  const validationRegex = {
+    //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
+    //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
+  }
+
   const writeCallback = async () => {
     const newData = {}
 
@@ -667,7 +679,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   // Función onchange utilizando currying
   const handleInputChange = field => event => {
-    const fieldValue = event.target.value
+    let fieldValue = event.target.value
+
+    fieldValue = validationRegex[field] ? fieldValue.replace(validationRegex[field], '') : fieldValue
+
+    // Si el campo es 'ot', convierte el valor a un número
+    if (field === 'ot') {
+      fieldValue = Number(fieldValue)
+    }
     setValues({ ...values, [field]: fieldValue })
     setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] })
   }
@@ -1011,6 +1030,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('ot')}
                   disabled={!isPlanner}
                   required={isPlanner}
+                  inputProps={{ maxLength: 5 }}
                 />
                 <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
 
