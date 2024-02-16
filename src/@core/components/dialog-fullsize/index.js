@@ -464,7 +464,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
-        ...(doc.fotos && { fotos: doc.fotos })
+        ...(doc.fotos && { fotos: doc.fotos }),
+        ...(doc.draftmen && { draftmen: doc.draftmen })
       }
     : {}
 
@@ -822,6 +823,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     userRole,
     petitioner,
     fotos,
+    draftmen,
     uid
   } = doc
 
@@ -1129,7 +1131,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const isStateDecreased = element.newState < element.prevState
 
                       if (isModifiedStart || isStateDecreased) return 'Modificado'
-                      if (isDraftmenAssigned) return 'Proyectistas asignados'
+                      if (isDraftmenAssigned) return `Proyectistas asignados`
                       if (isHoursEstablished) return 'Levantamiento finalizado'
                       if (hasPreviousDoc) return 'Modificación aceptada'
                       if (emergencyApprovedByContop) return 'Emergencia aprobada'
@@ -1183,7 +1185,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
                       if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
                       if (isModifiedStart || isStateDecreased) return 'Modificado'
-                      if (isDraftmenAssigned) return 'Proyectistas asignados'
+                      if (isDraftmenAssigned) return `Proyectistas asignados`
                       if (isHoursEstablished) return 'Levantamiento finalizado'
 
                       return 'Aprobado'
@@ -1201,7 +1203,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           </TimelineSeparator>
                           <TimelineContent>
                             <Typography variant='body1'>
-                              {status} por {element.userName}
+                              {status} por {element.userName} {status === 'Proyectistas asignados' && element.draftmen ? `: ${element.draftmen.map(x => x.name).join(', ')}` : (status === 'Proyectistas asignados' ? values.draftmen.map(x => x.name).join(', ') : '')}
                             </Typography>
                             <Typography variant='body2'>
                               {domainDictionary[element.newState]?.details || element.comment}
