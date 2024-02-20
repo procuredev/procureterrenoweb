@@ -22,7 +22,7 @@ const Navigation = () => {
       path: '/nueva-solicitud',
       icon: 'mdi:email-outline',
       subject: 'nueva-solicitud',
-      authorizedRoles: [1, 2, 3, 7]
+      authorizedRoles: [1, 2, 3, 5, 7]
     },
     {
       path: '/solicitudes',

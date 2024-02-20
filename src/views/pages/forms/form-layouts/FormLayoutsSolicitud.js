@@ -843,7 +843,7 @@ const FormLayoutsSolicitud = () => {
             <CustomSelect
             required
               options={
-                (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                (authUser.role === 3 || authUser.role === 5 || authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
                   ? petitioners.map(item => ({ name: item.name }))
                   : [authUser.displayName])
               }
