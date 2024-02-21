@@ -82,8 +82,6 @@ const newDoc = async (values, userParam) => {
     costCenter
   } = values
 
-  console.log(values)
-
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
