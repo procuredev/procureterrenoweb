@@ -615,8 +615,6 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
   const onCC = usersOnCopyAndMessage.arrayCC
   const message = usersOnCopyAndMessage.message
 
-  console.log(message)
-
   if (message != ''){
     // Email dirigido a quien hizo la solicitud, con copia a quien corresponda
 
@@ -630,7 +628,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
 
       // Se almacenan las constantes a usar en el email
-      const userName = requirementData.userRole === 7 ? requirementData.petitioner : requirementData.user
+      const userName = requirementData.userRole === (5 || 7) ? requirementData.petitioner : requirementData.user
       const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}, ${message}`
       const requestNumber = requirementData.n_request
       const title = requirementData.title
