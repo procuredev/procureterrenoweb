@@ -502,6 +502,11 @@ const consultSAP = async sap => {
 }
 
 const consultOT = async ot => {
+  console.log('ot:', ot, typeof ot)
+  // Si ot es igual a 0, retorna un error
+  if (ot === 0) {
+    return { exist: true, msj: 'El número de OT no puede ser 0.' }
+  }
   const solicitudesRef = collection(db, 'solicitudes')
 
   // Crear una consulta para buscar solicitudes con el mismo número de OT

@@ -48,13 +48,14 @@ import {
 import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
-import DialogExistingOt from 'src/@core/components/dialog-existing-ot'
+import DialogErrorOt from 'src/@core/components/dialog-error-ot'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 import { useDropzone } from 'react-dropzone'
 import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
 import { object } from 'yup'
+import { set } from 'lodash'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -377,7 +378,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
   const [areasArray, setAreasArray] = useState([])
-  const [existingOT, setExistingOT] = useState(false)
+  const [errorOT, setErrorOT] = useState(false)
+  const [errorOtMesage, setErrorOtMesage] = useState(false)
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -443,8 +445,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     </>
   )
 
-  const handleCloseExistingOt = () => {
-    setExistingOT(false)
+  const handleCloseErrorOt = () => {
+    setErrorOT(false)
+    setErrorOtMesage('')
   }
 
   const DeliverableComponent = () => (
@@ -568,15 +571,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleOpenAlert = async () => {
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
 
-    // Primero, verifica si OT ha cambiado y si es necesario verificar su existencia
-    if (hasChanges.ot && values.ot) {
+    // Primero, verifica si OT ha cambiado
+    if (hasChanges.ot && values.ot !== null && values.ot !== undefined) {
       setLoading(true) // Muestra un indicador de carga, si es aplicable
       const resultOt = await consultOT(values.ot)
+      console.log('resultOt', resultOt)
       setLoading(false) // Oculta el indicador de carga
 
       if (resultOt.exist) {
-        // Si la OT ya existe, muestra un mensaje de error y detén la ejecución
-        setExistingOT(true)
+        // Si la OT ya existe, muestra un mensaje de error
+        setErrorOtMesage(resultOt.msj)
+        setErrorOT(true)
 
         return // Detiene la ejecución para evitar abrir el diálogo de alerta
       }
@@ -687,6 +692,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     if (field === 'ot') {
       fieldValue = Number(fieldValue)
     }
+
     setValues({ ...values, [field]: fieldValue })
     setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] })
   }
@@ -1274,7 +1280,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      {existingOT && <DialogExistingOt open={existingOT} handleClose={handleCloseExistingOt} />}
+      {errorOT && <DialogErrorOt open={errorOT} handleClose={handleCloseErrorOt} errorOtMesage={errorOtMesage} />}
       <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>

@@ -6,7 +6,9 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 
-export default function DialogExistingOT({ open, handleClose }) {
+export default function DialogErrorOT({ open, handleClose, errorOtMesage }) {
+  console.log('errorOtMesage', errorOtMesage)
+
   return (
     <Dialog
       open={open}
@@ -16,7 +18,7 @@ export default function DialogExistingOT({ open, handleClose }) {
     >
       <DialogTitle id='alert-dialog-title'>Número de OT invalido</DialogTitle>
       <DialogContent>
-        <DialogContentText id='alert-dialog-description'>Existe una solicitud con ese número de OT.</DialogContentText>
+        <DialogContentText id='alert-dialog-description'>{`${errorOtMesage}`}</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cerrar</Button>
