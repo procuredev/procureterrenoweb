@@ -801,7 +801,7 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('contop')}
               error={errors.contop}
               disabled={authUser.role === 3}
-              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+              helper='Selecciona quién al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
               defaultValue=''
             />
 
