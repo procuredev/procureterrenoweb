@@ -47,6 +47,7 @@ const defineRulesFor = (role, subject) => {
       'home',
       'mapa',
       'nuestro-equipo',
+      'nueva-solicitud',
       'solicitudes',
       'user-profile',
       'documentos',

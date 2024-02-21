@@ -1220,8 +1220,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   <TimelineConnector />
                 </TimelineSeparator>
                 <TimelineContent>
-                  <Typography variant='body1'> Solicitud hecha por {user}</Typography>
-                  {userRole == 2 ? (
+                  <Typography variant='body1'> Solicitud hecha por {user} {(userRole == 5 || userRole == 7)  && (`en nombre de ${values.petitioner}`)}</Typography>
+                  {(userRole == 2 || userRole == 5) ? (
                     <Typography variant='body2'> En espera de revisión de Contract Operator </Typography>
                   ) : userRole == 3 ? (
                     <Typography variant='body2'> En espera de revisión de Planificador</Typography>
