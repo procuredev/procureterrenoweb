@@ -362,7 +362,7 @@ const dateWithDocs = async date => {
 
   }
 
-  return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día`
+  return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día.`
 
 }
 
