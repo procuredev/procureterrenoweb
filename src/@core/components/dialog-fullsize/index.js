@@ -292,14 +292,32 @@ const PhotoItem = ({ photoUrl }) => {
   const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase())
   const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl)
 
+  const getFileName = (content, index) => {
+    if (typeof content === 'string') {
+      const urlSegments = content.split('%2F')
+      const encodedFileName = urlSegments[urlSegments.length - 1]
+      const fileNameSegments = encodedFileName.split('?')
+      const fileName = decodeURIComponent(fileNameSegments[0])
+
+      return fileName
+    } else {
+      // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+      return ''
+    }
+  }
+
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+      <Typography variant='body2' color='textPrimary' sx={{ mb: 2, pl: 2 }}>
+        {getFileName(photoUrl)} {/* Aquí se muestra el nombre del archivo */}
+      </Typography>
       <Box
         component='img'
+        id={photoUrl}
         src={displaySrc}
         onClick={() => window.open(photoUrl, '_blank')}
         alt='Photo'
-        style={{ height: 'inherit', cursor: 'pointer' }}
+        style={{ height: 90, cursor: 'pointer' }}
       />
       <IconButton
         href={photoUrl}

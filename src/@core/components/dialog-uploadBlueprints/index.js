@@ -82,6 +82,20 @@ const getFileIcon = fileType => {
   }
 }
 
+const getFileName = (content, index) => {
+  if (typeof content === 'string') {
+    const urlSegments = content.split('%2F')
+    const encodedFileName = urlSegments[urlSegments.length - 1]
+    const fileNameSegments = encodedFileName.split('?')
+    const fileName = decodeURIComponent(fileNameSegments[0])
+
+    return fileName
+  } else {
+    // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+    return ''
+  }
+}
+
 // función que renderiza cada elemento adjunto y renderiza la variable 'displaySrc' que usa un condicional en caso que el elemento sea una image muestra el thumbnail, caso contrario muestra el icono según el tipo de archivo
 const PhotoItem = ({ photoUrl }) => {
   const urlWithoutParams = photoUrl.split('?')[0]
@@ -103,6 +117,9 @@ const PhotoItem = ({ photoUrl }) => {
 
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+      <Typography variant='body2' color='textPrimary' sx={{ mb: 2, pl: 2 }}>
+        {getFileName(photoUrl)} {/* Aquí se muestra el nombre del archivo */}
+      </Typography>
       <Box
         component='img'
         id={photoUrl}

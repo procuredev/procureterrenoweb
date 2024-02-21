@@ -119,6 +119,8 @@ const FormLayoutsSolicitud = () => {
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
+  const otRef = useRef(null)
+
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
     const startDate = moment(values.start)
@@ -512,10 +514,17 @@ const FormLayoutsSolicitud = () => {
     event.preventDefault()
   }
 
+  // Objeto para mantener las referencias
+  const refs = {
+    ot: otRef
+    // ... otras referencias
+  }
+
   const onSubmit = async event => {
     event.preventDefault()
     setButtonDisabled(true)
     const formErrors = validateForm(values)
+    setErrors(formErrors)
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
 
@@ -523,6 +532,14 @@ const FormLayoutsSolicitud = () => {
       ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
+
+    if (errors.ot) {
+      setAlertMessage(errors.ot)
+      otRef.current.focus() // Enfoca el campo 'OT'
+      setButtonDisabled(false)
+
+      return // Salimos de la función si hay un error en 'ot'.
+    }
 
     // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
     if (!values.deliverable.includes('Memoria de Cálculo')) {
@@ -713,6 +730,7 @@ const FormLayoutsSolicitud = () => {
               <>
                 {/* Número de OT Procure */}
                 <CustomTextField
+                  inputRef={otRef}
                   type='text'
                   required
                   label='OT'
