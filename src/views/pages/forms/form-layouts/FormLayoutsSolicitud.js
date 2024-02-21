@@ -840,23 +840,25 @@ const FormLayoutsSolicitud = () => {
             />
 
             {/* Solicitante */}
-            <CustomSelect
-            required
-              options={
-                (authUser.role === 3 || authUser.role === 5 || authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
-                  ? petitioners.map(item => ({ name: item.name }))
-                  : [authUser.displayName])
-              }
-              label='Solicitante'
-              value={values.petitioner}
-              onChange={handleChange('petitioner')}
-              error={errors.petitioner}
-              disabled={
-                authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
-              }
-              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
-              defaultValue=''
-            />
+            {authUser.role !== 2 && (authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants') && (
+              <CustomSelect
+              required
+                options={
+                  (authUser.role === 3 || authUser.role === 5 || authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                    ? petitioners.map(item => ({ name: item.name }))
+                    : [authUser.displayName])
+                }
+                label='Solicitante'
+                value={values.petitioner}
+                onChange={handleChange('petitioner')}
+                error={errors.petitioner}
+                disabled={
+                  authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
+                }
+                helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+                defaultValue=''
+              />
+            )}
 
             {/* Estado Operacional */}
             <CustomSelect
