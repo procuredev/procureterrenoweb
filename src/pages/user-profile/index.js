@@ -251,7 +251,7 @@ const TabAccount = () => {
       setAlertMessage('Número de teléfono actualizado con éxito')
     } else if ((await phoneValidator()) && trimmedPhone == authUser.phone && imgChange) {
       await updateUserProfile(inputValue, authUser)
-      setAlertMessage('Foto de perfil actualizada con con éxito')
+      setAlertMessage('Foto de perfil actualizada con éxito')
     } else if ((await phoneValidator()) && trimmedPhone !== authUser.phone && imgChange) {
       await updateUserPhone(authUser.uid, trimmedPhone)
       await updateUserProfile(inputValue, authUser)
