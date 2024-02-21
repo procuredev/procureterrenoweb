@@ -170,7 +170,7 @@ const FormLayoutsSolicitud = () => {
           if (newValue.includes('Memoria de Cálculo')) {
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
-              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:')
+              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.')
 
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
