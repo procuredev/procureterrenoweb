@@ -502,11 +502,11 @@ const consultSAP = async sap => {
 }
 
 const consultOT = async ot => {
+  // Si ot tiene un valor de tipo distinto a number, retorna un mensaje de error
   if (typeof ot !== 'number') {
     return { exist: true, msj: 'Sólo se permiten caracteres numéricos.' }
   }
-  console.log('ot:', ot, typeof ot)
-  // Si ot es igual a 0, retorna un error
+  // Si ot es igual a 0, retorna un mensaje de error
   if (ot === 0) {
     return { exist: true, msj: 'El número de OT no puede ser 0.' }
   }
