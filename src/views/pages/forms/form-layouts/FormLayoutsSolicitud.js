@@ -254,7 +254,7 @@ const FormLayoutsSolicitud = () => {
     sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
+    costCenter: /[^\s0-9 \"]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
