@@ -269,6 +269,8 @@ const FormLayoutsSolicitud = () => {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
+      } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
+        newErrors[key] = 'Por favor, especifica una opción válida'
       }
 
       if (key === 'objective') {
