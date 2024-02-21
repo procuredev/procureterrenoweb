@@ -634,7 +634,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       const title = requirementData.title
       const engineering = requirementData.engineering ? 'Si' : 'No'
       const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-      const supervisor = requirementData.supervisorShift ? (supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name) : '') : 'Por definir'
+      const supervisor = requirementData.supervisorShift ? (supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : '') : 'Por definir'
       const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
       const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
       const plant = requirementData.plant
