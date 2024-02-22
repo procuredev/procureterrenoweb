@@ -196,9 +196,7 @@ const FormLayoutsSolicitud = () => {
           if (newValue.includes('Memoria de Cálculo')) {
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
-              setAlertMessage(
-                'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:'
-              )
+              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.')
 
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
@@ -316,7 +314,7 @@ const FormLayoutsSolicitud = () => {
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
+    costCenter: /[^\s0-9 \"]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
@@ -339,6 +337,8 @@ const FormLayoutsSolicitud = () => {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = 'Por favor, especifica una opción válida'
         }
+      } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
+        newErrors[key] = 'Por favor, especifica una opción válida'
       }
 
       if (key === 'objective') {
@@ -765,7 +765,7 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('title')}
               error={errors.title}
               inputProps={{ maxLength: 300 }}
-              helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
+              helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras.'
             />
 
             {/* Descripción */}
@@ -885,7 +885,7 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('contop')}
               error={errors.contop}
               disabled={authUser.role === 3}
-              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+              helper='Selecciona quién al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
               defaultValue=''
             />
 
@@ -924,26 +924,25 @@ const FormLayoutsSolicitud = () => {
             />
 
             {/* Solicitante */}
-            <CustomSelect
+            {authUser.role !== 2 && (authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants') && (
+              <CustomSelect
               required
-              options={
-                authUser.role === 3 ||
-                authUser.role === 7 ||
-                authUser.plant === 'allPlants' ||
-                authUser.plant === 'Solicitante Santiago'
-                  ? petitioners.map(item => ({ name: item.name }))
-                  : [authUser.displayName]
-              }
-              label='Solicitante'
-              value={values.petitioner}
-              onChange={handleChange('petitioner')}
-              error={errors.petitioner}
-              disabled={
-                authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
-              }
-              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
-              defaultValue=''
-            />
+                options={
+                  (authUser.role === 3 || authUser.role === 5 || authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                    ? petitioners.map(item => ({ name: item.name }))
+                    : [authUser.displayName])
+                }
+                label='Solicitante'
+                value={values.petitioner}
+                onChange={handleChange('petitioner')}
+                error={errors.petitioner}
+                disabled={
+                  authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
+                }
+                helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+                defaultValue=''
+              />
+            )}
 
             {/* Estado Operacional */}
             <CustomSelect

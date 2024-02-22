@@ -65,6 +65,7 @@ const FirebaseContextProvider = props => {
   const [loading, setLoading] = useState(true)
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [domainDictionary, setDomainDictionary] = useState({})
+  const [domainRoles, setDomainRoles] = useState({})
 
   // ** Variables
   const auth = getAuth(app)
@@ -77,6 +78,7 @@ const FirebaseContextProvider = props => {
         setAuthUser(null)
         setLoading(false)
         setDomainDictionary(null)
+        setDomainRoles(null)
       } else {
         setLoading(true)
         const formattedUser = await formatAuthUser(authState)
@@ -84,6 +86,8 @@ const FirebaseContextProvider = props => {
         setLoading(false)
         const dictionary = await getDomainData('dictionary')
         setDomainDictionary(dictionary)
+        const roles = await getDomainData('roles')
+        setDomainRoles(roles)
       }
     })
 
@@ -96,6 +100,7 @@ const FirebaseContextProvider = props => {
     loading,
     isCreatingProfile,
     domainDictionary,
+    domainRoles,
     setIsCreatingProfile,
     signOut,
     resetPassword,

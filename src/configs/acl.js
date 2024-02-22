@@ -47,6 +47,7 @@ const defineRulesFor = (role, subject) => {
       'home',
       'mapa',
       'nuestro-equipo',
+      'nueva-solicitud',
       'solicitudes',
       'user-profile',
       'documentos',
@@ -110,6 +111,15 @@ const defineRulesFor = (role, subject) => {
       'solicitudes',
       'levantamientos',
       'gabinete'
+    ])
+  }
+  else if (role === 11) {
+    can('manage', [
+      'calendario',
+      'home',
+      'mapa',
+      'nuestro-equipo',
+      'user-profile'
     ])
   } else {
     can('manage', subject)

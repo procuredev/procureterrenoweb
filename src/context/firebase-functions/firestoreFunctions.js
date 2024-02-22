@@ -131,7 +131,7 @@ const newDoc = async (values, userParam) => {
     await updateDoc(docRef, {
       ...newDoc,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
-      state: userParam.role === 7 ? 6 : userParam.role || 'No definido',
+      state: userParam.role === 7 ? 6 : userParam.role === 5 ? 2 : userParam.role,
       supervisorShift: userParam.role === 7 ? (week % 2 === 0 ? 'A' : 'B') : null
     })
 
@@ -378,8 +378,20 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor,
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState < state.planner,
           newState: state.planner,
+          log: 'Modificado sin cambio de fecha por Planificador'
+        },
+        // Planificador modifica sin cambios de fecha (any --> planner)
+        {
+          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState >= state.planner && latestEvent.newState < state.supervisor,
+          newState: latestEvent.newState,
+          log: 'Modificado sin cambio de fecha por Planificador'
+        },
+        // Planificador modifica sin cambios de fecha (any --> planner)
+        {
+          condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.supervisor,
+          newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
         // Planificador modifica solicitud hecha por Supervisor (any --> any)

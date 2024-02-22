@@ -117,6 +117,45 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       mainMessage = `Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}` // Mensaje principal
       lastMessage = `Ahora deberá esperar la aprobación de Procure.` // Mensaje final
 
+      // Si el usuario tiene rol Planificador
+    } else if (user.role == 5){
+
+      // Se usa el nombre del C.Operator indicado en la solicitud
+      userContOp = values.contop
+
+      // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del C.Operator, C.Owner, Petitioner, Planificador, Administrador de Contrato y Supervisores
+      const uids = await Promise.all([searchbyColletionAndField('users', 'name', userContOp), searchbyColletionAndField('users', 'role', 4), await searchbyColletionAndField('users', 'name', values.petitioner), searchbyColletionAndField('users', 'role', 5), searchbyColletionAndField('users', 'role', 6), searchbyColletionAndField('users', 'role', 7)])
+      const contOpUid = uids[0]
+      const cOwnerUid = uids[1]
+      const petitionerUid = uids[2]
+      const plannerUid = uids[3]
+      const contractAdminUid = uids[4]
+      const supervisorUid = uids[5]
+
+      // Se obtienen los datos de C.Operator, C.Owner, Petitioner, Planificador, Administrador de Contrato y Supervisores
+      const usersData = await Promise.all([getUserData(contOpUid), getUserData(cOwnerUid), getUserData(petitionerUid), getUserData(plannerUid), getUserData(contractAdminUid), getUserData(supervisorUid)])
+      const dataContOp = usersData[0]
+      const dataContOwner = usersData[1]
+      const dataPetitioner = usersData[2]
+      const dataPlanner = usersData[3]
+      const dataContractAdmin = usersData[4]
+      const dataSupervisor = usersData[5]
+
+      // Se definen los emails de C.Operator, C.Owner, Petitioner, Planificador, Administrador de Contrator y Supervisor
+      const cOperatorEmail = dataContOp.filter(doc => doc.enabled != false).map(data => data.email)
+      const cOwnerEmail = dataContOwner.filter(doc => doc.enabled != false).map(data => data.email)
+      const petitionerEmail = dataPetitioner.filter(doc => doc.enabled != false).map(data => data.email)
+      const plannerEmail = dataPlanner.filter(doc => doc.enabled != false).map(data => data.email)
+      const contractAdminEmail = dataContractAdmin.filter(doc => doc.enabled != false).map(data => data.email)
+      const supervisorEmail = dataSupervisor.filter(doc => doc.enabled != false).map(data => data.email)
+
+      // Datos que serán usados en el email
+      userName = dataPetitioner.filter(doc => doc.enabled != false).map(data => data.name) // Nombre de a quien va dirigido el email
+      sendTo = petitionerEmail // Email de a quien va dirigido el email
+      arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...contractAdminEmail, ...supervisorEmail] // Arreglo de quienes van en copia
+      mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()} nuestro Planificador ${user.displayName} ha ingresado una solicitud de levantamiento a petición suya` // Mensaje principal
+      lastMessage = `Ahora deberá esperar la aprobación de su Contract Operator ${userContOp}.` // Mensaje final
+
       // Si el usuario tiene rol de Supervisor
     } else if (user.role == 7){
 
