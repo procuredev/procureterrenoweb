@@ -14,6 +14,9 @@ import {
 
 import { Container } from '@mui/system'
 import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
+
+import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
+import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
 import {
   Button,
   Select,
@@ -28,8 +31,6 @@ import {
   DialogContent,
   Checkbox
 } from '@mui/material'
-import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
-import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
 import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
@@ -965,7 +966,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     },
     {
       field: 'date',
-      headerName: 'Inicio',
+      headerName: 'Fecha de Creación',
       width: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 120 : role !== 9 ? 110 : 120,
       renderCell: params => {
         if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
@@ -1238,6 +1239,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
             return (
               (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
+              params.row.storageBlueprints &&
+              (params.row.sentByDesigner || params.row.sentBySupervisor) &&
               params.row.approvedByDocumentaryControl === true &&
               !('lastTransmittal' in lastRevision)
             )

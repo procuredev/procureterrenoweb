@@ -4,6 +4,8 @@ import { Box, FormControl, ListItem, TextField, Typography } from '@mui/material
 function CustomListItem({
   editable,
   label,
+  placeholder,
+  InputLabelProps,
   id,
   value,
   onChange,
@@ -21,6 +23,8 @@ function CustomListItem({
             <TextField
               onChange={onChange}
               label={label}
+              placeholder={placeholder}
+              InputLabelProps={InputLabelProps}
               id={`${id}-input`}
               defaultValue={initialValue || ''}
               disabled={disabled}

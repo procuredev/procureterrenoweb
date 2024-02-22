@@ -18,7 +18,7 @@ import {
 } from '@mui/x-data-grid-premium'
 import * as ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
-import { getWeek, addDays } from 'date-fns'
+import { getWeek, addDays, format, differenceInDays } from 'date-fns'
 
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
@@ -36,7 +36,6 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const { updateDocs, authUser, domainDictionary } = useFirebase()
 
-
   const [columnVisibilityModel, setColumnVisibilityModel] = useState({
     // ... otros estados de visibilidad de columnas ...
     end: [1, 5, 6, 7, 8, 9, 10].includes(role),
@@ -46,6 +45,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     area: false
   })
 
+  const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -247,7 +247,8 @@ const TableBasic = ({ rows, role, roleData }) => {
       headerName: 'Creación',
       flex: 0.4,
       minWidth: 90,
-      valueGetter: params => unixToDate(params.row.date.seconds)[0],
+      valueGetter: params => new Date(params.row.date.seconds * 1000),
+      //valueGetter: params => unixToDate(params.row.date.seconds)[0],
       renderCell: params => {
         const { row } = params
 
@@ -394,6 +395,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   ]
 
+  // Esta es una función que se utiliza para crear una barra de herramientas personalizada para el componente DataGrid.
   function CustomToolbar() {
     return (
       <GridToolbarContainer>
@@ -404,12 +406,16 @@ const TableBasic = ({ rows, role, roleData }) => {
     )
   }
 
+  // handleExport es una función asíncrona que se utiliza para exportar los datos de la tabla a un archivo de Excel.
   const handleExport = async options => {
+    // Se crea un nuevo libro de trabajo de Excel.
     const workbook = new ExcelJS.Workbook()
+    // Se añade una nueva hoja de trabajo al libro de trabajo y se le asigna el nombre 'Hoja 1'.
     const worksheet = workbook.addWorksheet('Hoja 1')
 
-    // columnas en el libro de Excel
+    // Se definen las columnas de la hoja de trabajo.
     worksheet.columns = [
+      // Cada objeto en este array define una columna. La propiedad 'header' es el nombre de la columna que se mostrará en la hoja de trabajo, y la propiedad 'key' es la clave que se utilizará para obtener el valor de la columna de cada fila de datos.
       { header: 'Semana', key: 'week', width: 10 },
       { header: 'Planta', key: 'plant', width: 40 },
       { header: 'Área', key: 'area', width: 50 },
@@ -418,39 +424,45 @@ const TableBasic = ({ rows, role, roleData }) => {
       { header: 'Creación', key: 'date', width: 12 },
       { header: 'Inicio', key: 'start', width: 12 },
       { header: 'Término', key: 'end', width: 12 },
-      { header: 'Fecha Límite', key: 'deadline', width: 12 },
+      { header: 'Fecha Límite', key: 'deadline', width: 14 },
+      { header: 'Días por Vencer', key: 'daysToDeadline', width: 18 },
       { header: 'Autor', key: 'user', width: 20 },
       { header: 'Solicitante', key: 'petitioner', width: 20 },
-      { header: 'Centro de Costo', key: 'costCenter', width: 10 },
+      { header: 'Centro de Costo', key: 'costCenter', width: 15 },
       { header: 'SAP', key: 'sap', width: 5 },
       { header: 'Título', key: 'title', width: 40 },
       { header: 'Descripción', key: 'description', width: 40 },
       { header: 'Estado', key: 'state', width: 25 },
-      { header: 'Estado Operacional', key: 'type', width: 10 },
-      { header: 'Maquina Detenida', key: 'detention', width: 10 },
+      { header: 'Estado Operacional', key: 'type', width: 15 },
+      { header: 'Maquina Detenida', key: 'detention', width: 15 },
       { header: 'Tipo de Levantamiento', key: 'objective', width: 20 },
       { header: 'Entregables', key: 'deliverable', width: 20 },
       { header: 'Contract Operator', key: 'contop', width: 20 }
     ]
 
+    // Se recorren todas las filas de datos.
     rows.forEach(row => {
+      // Para cada fila, se crea un nuevo objeto con las propiedades correspondientes a las columnas definidas anteriormente.
       const stateValue = row.state
       const start = new Date(row.start.seconds * 1000)
       const week = getWeek(start)
       const deadline = addDays(start, 21)
+      const daysToDeadline = differenceInDays(deadline, new Date())
 
+      // Luego, este objeto se añade a la hoja de trabajo como una nueva fila.
       worksheet.addRow({
         week: week,
         plant: row.plant,
         area: row.area,
         ot: row.ot,
         supervisorShift: row.supervisorShift,
-        date: unixToDate(row.date.seconds)[0],
-        start: unixToDate(row.start.seconds)[0],
-        end: row.end ? unixToDate(row.end.seconds)[0] : 'sin fecha de término',
+        date: format(new Date(row.date.seconds * 1000), 'dd-MM-yyyy'),
+        start: format(new Date(row.start.seconds * 1000), 'dd-MM-yyyy'),
+        end: row.end ? format(new Date(row.end.seconds * 1000), 'dd-MM-yyyy') : 'sin fecha de término',
         deadline: deadline,
+        daysToDeadline: daysToDeadline,
         user: row.user,
-        pettioner: row.petitioner,
+        petitioner: row.petitioner,
         costCenter: row.costCenter,
         sap: row.sap,
         title: row.title,
@@ -464,12 +476,16 @@ const TableBasic = ({ rows, role, roleData }) => {
       })
     })
 
+    // Se establece el formato de la primera fila (la fila de encabezado) a negrita y tamaño de fuente 13.
     worksheet.getRow(1).font = { bold: true, size: 13 }
 
+    // Se escribe el libro de trabajo en un buffer y se guarda en el sistema de archivos local como un archivo .xlsx.
     const buffer = await workbook.xlsx.writeBuffer()
+    const dateTime = format(new Date(), 'yyyy-MM-dd/HH:mm:ss')
+
     saveAs(
       new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-      'Data.xlsx'
+      `Data${dateTime}.xlsx`
     )
   }
 
@@ -487,8 +503,18 @@ const TableBasic = ({ rows, role, roleData }) => {
           columns={columns}
           columnVisibilityModel={columnVisibilityModel}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+          sortingModel={defaultSortingModel}
           slots={{
-            //toolbar: CustomToolbar
+            toolbar:
+              authUser.role === 1 ||
+              authUser.role === 5 ||
+              authUser.role === 6 ||
+              authUser.role === 7 ||
+              authUser.role === 8 ||
+              authUser.role === 9 ||
+              authUser.role === 10
+                ? CustomToolbar
+                : null
           }}
         />
         <AlertDialog

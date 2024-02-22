@@ -5,10 +5,7 @@ import { useState, useEffect } from 'react'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import Tooltip from '@mui/material/Tooltip'
-import Grid from '@mui/material/Grid'
-import Box from '@mui/material/Box'
-import Tab from '@mui/material/Tab'
+import { Tooltip, Grid, Box, Tab } from '@mui/material'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
@@ -47,7 +44,8 @@ const DataGrid = () => {
   // Tab content filters based on the user role
   const tabContent = authUser
     ? [
-        { // Filters all rejected requests.
+        {
+          // Filters all rejected requests.
           // TODO: Delete filter for role 5
           data: data.filter(doc => doc.state !== 0),
           label: 'Todas las solicitudes',
@@ -75,7 +73,7 @@ const DataGrid = () => {
     const role = async () => {
       if (authUser) {
         const role = await getDomainData('roles', authUser.role.toString())
-        setRoleData({...role, id:authUser.role.toString()})
+        setRoleData({ ...role, id: authUser.role.toString() })
       }
     }
 

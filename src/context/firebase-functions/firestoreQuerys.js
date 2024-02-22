@@ -30,9 +30,7 @@ const useEvents = (id, userParam, path = 'events') => {
 
   useEffect(() => {
     if (path.includes('//')) {
-
       return
-
     }
 
     if (userParam && id) {
@@ -62,7 +60,6 @@ const useEvents = (id, userParam, path = 'events') => {
   }, [userParam, id, path])
 
   return data
-
 }
 
 // ** Escucha cambios en los documentos en tiempo real
@@ -167,12 +164,11 @@ const getDomainData = async (document = null, field = null) => {
       const querySnapshot = await getDocs(collectionRef)
       const allData = {}
 
-      querySnapshot.forEach((doc) => {
+      querySnapshot.forEach(doc => {
         allData[doc.id] = doc.data()
       })
 
       return allData
-
     } else {
       // En cualquier otro caso, se deberá especificar el documento dentro de domain el cual se requiere
 
@@ -184,38 +180,28 @@ const getDomainData = async (document = null, field = null) => {
         const docData = docSnap.data()
 
         if (field !== null && field in docData) {
-
           // Si dentro del documento se requiere especificar el campo el cual se requiere, se debe indicar mediante 'field'
           return docData[field]
-
         } else if (field === null) {
-
           // Si no se especifica el campo dentro del documento, se entregará toda la data del 'document'
           return docData
-
         } else {
-
           // En cualquier otro caso, se maneja el error
           console.error(`El campo '${field}' no existe en el documento.`)
 
           return null
-
         }
       } else {
-
         // Si el 'document' indicado no existe, se maneja el error
         console.error(`El documento con ID '${document}' no existe.`)
 
         return null
-
       }
     }
   } catch (error) {
-
     console.error('Error al obtener datos:', error)
 
     return null
-
   }
 }
 
@@ -224,13 +210,9 @@ const getData = async id => {
   const docSnap = await getDoc(docRef)
 
   if (docSnap.exists()) {
-
     return docSnap.data()
-
   } else {
-
     return undefined
-
   }
 }
 
@@ -255,7 +237,7 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
         : query(coll, where('plant', 'array-contains', plant), where('role', '==', 3)),
     getAllPlantUsers: () => query(coll, where('plant', 'array-contains', plant)),
     getAllProcureUsers: () => query(coll, where('company', '==', 'Procure')),
-    getUserProyectistas: () => query(coll, (where('shift', 'array-contains', userParam.shift[0]))),
+    getUserProyectistas: () => query(coll, where('shift', 'array-contains', userParam.shift[0])),
     getPetitioner: () => query(coll, where('plant', 'array-contains', plant)),
     getReceiverUsers: () => query(coll, where('plant', 'array-contains', plant), where('role', '==', 2)),
     getUsersByRole: () => query(coll, where('role', '==', userParam.role))
@@ -312,16 +294,12 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
         }
 
         return null // Devolver nulo si no se encuentra el documento
-
       } else if (userParam.plant === 'allPlants') {
         const allDocsFiltered = allDocs.filter(doc => doc.role === 2)
 
         return allDocsFiltered
-
       } else if (userParam.role === 3) {
-
         return allDocs
-
       } else if (userParam.id) {
         const docRef = doc(db, 'users', userParam.id)
         const docSnapshot = await getDoc(docRef)
@@ -335,12 +313,10 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
     }
 
     return allDocs // Retornar el arreglo de usuarios extendidos
-
   } catch (error) {
     console.error('Error fetching documents:', error)
 
     return null // En caso de error, retornar nulo
-
   }
 }
 
@@ -357,13 +333,10 @@ const dateWithDocs = async date => {
   })
 
   if (allDocs.length === 0) {
-
     return
-
   }
 
   return `La fecha que está tratando de agendar tiene ${allDocs.length} Solicitudes. Le recomendamos seleccionar otro día.`
-
 }
 
 // Consultar si un día está bloqueado en la base de datos
@@ -385,15 +358,12 @@ const consultBlockDayInDB = async date => {
       const data = blockedDoc.data()
 
       return { msj: `El día que has seleccionado está bloqueado, motivo: ${data.cause}`, blocked: true }
-
     } else {
       let msj = await dateWithDocs(date / 1000)
 
       return { msj, blocked: false }
-
     }
   } else {
-
     let msj = await dateWithDocs(date / 1000)
 
     return { msj, blocked: false }
@@ -483,11 +453,9 @@ const consultSAP = async sap => {
       const tienen = length === 1 ? 'tiene' : 'tienen'
 
       return { existe: existen, solicitud: solicitudes, tiene: tienen }
-
     }
 
     if (sapWithOt.length > 0 && sap.length > 0) {
-
       return {
         exist: true,
         sap,
@@ -503,7 +471,6 @@ const consultSAP = async sap => {
           'Le recomendamos comunicarse con el Solicitante original del Levantamiento.'
       }
     } else if (sapWithOt.length > 0 && sap.length === 0) {
-
       return {
         exist: true,
         sapWithOt,
@@ -516,7 +483,6 @@ const consultSAP = async sap => {
           'Le recomendamos comunicarse con el Solicitante original del Levantamiento.'
       }
     } else {
-
       return {
         exist: true,
         sap,
@@ -530,10 +496,39 @@ const consultSAP = async sap => {
       }
     }
   } else {
-
     // Si no hay documentos con el número SAP, retornar un objeto indicando que es un nuevo número SAP
     return { exist: false, msj: 'Nuevo número SAP registrado' }
+  }
+}
 
+const consultOT = async ot => {
+  // Si ot tiene un valor de tipo distinto a number, retorna un mensaje de error
+  if (typeof ot !== 'number') {
+    return { exist: true, msj: 'Sólo se permiten caracteres numéricos.' }
+  }
+  // Si ot es igual a 0, retorna un mensaje de error
+  if (ot === 0) {
+    return { exist: true, msj: 'El número de OT no puede ser 0.' }
+  }
+  const solicitudesRef = collection(db, 'solicitudes')
+
+  // Crear una consulta para buscar solicitudes con el mismo número de OT
+  const otQuery = query(solicitudesRef, where('ot', '==', ot))
+
+  try {
+    const querySnapshot = await getDocs(otQuery)
+
+    if (!querySnapshot.empty) {
+      // Si hay documentos que coinciden con la consulta, significa que existe una solicitud con ese OT
+      return { exist: true, msj: 'Existe una solicitud con ese número de OT.' }
+    } else {
+      // No se encontraron documentos con ese OT
+      return { exist: false }
+    }
+  } catch (error) {
+    console.error('Error al consultar OT:', error)
+
+    return { exist: false, error: 'Error al realizar la consulta.' }
   }
 }
 
@@ -563,7 +558,6 @@ const consultUserEmailInDB = async email => {
   } else {
     // Si no hay documentos, retornar verdadero indicando que el correo no está registrado
     return true
-
   }
 }
 
@@ -585,7 +579,6 @@ const consultDocs = async (type, options = {}) => {
             const snapshotPlant = await getDocs(qPlant)
 
             return snapshotPlant.size
-
           })
         )
 
@@ -617,7 +610,6 @@ const consultDocs = async (type, options = {}) => {
     console.error('Error fetching document counts:', error)
 
     return null
-
   }
 }
 
@@ -630,7 +622,6 @@ const fetchPlaneProperties = async () => {
     const resDisciplines = await docSnap.data().disciplines
 
     return { resDeliverables, resDisciplines }
-
   } else {
     console.log('El documento no existe')
   }
@@ -644,7 +635,6 @@ const fetchMelDisciplines = async () => {
     const resDisciplines = await docSnap.data().disciplines
 
     return resDisciplines
-
   } else {
     console.log('El documento no existe')
   }
@@ -671,13 +661,9 @@ const fetchMelDeliverableType = async discipline => {
   function getLongDefinition(item) {
     const index = shortDeliverableType.indexOf(item)
     if (index !== -1) {
-
       return longDeliverableType[index]
-
     } else {
-
       return 'No se encontró definición corta para este tipo'
-
     }
   }
 
@@ -690,7 +676,6 @@ const fetchMelDeliverableType = async discipline => {
     const resDeliverableType = await docSnap.data()[deliverableType]
 
     return resDeliverableType
-
   } else {
     console.log('El documento no existe')
   }
@@ -701,13 +686,9 @@ const fetchPetitionById = async id => {
   const docSnap = await getDoc(docRef)
 
   if (docSnap.exists()) {
-
     return { ...docSnap.data(), id: docSnap.id }
-
   } else {
-
     return undefined
-
   }
 }
 
@@ -731,7 +712,6 @@ const consultBluePrints = async (type, options = {}) => {
         })
 
         return count
-
       }
       break
     default:
@@ -740,7 +720,6 @@ const consultBluePrints = async (type, options = {}) => {
   }
 
   return queryFunc()
-
 }
 
 const consultObjetives = async (type, options = {}) => {
@@ -755,7 +734,6 @@ const consultObjetives = async (type, options = {}) => {
         const snapshot = await getCountFromServer(q)
 
         return snapshot.data().count
-
       }
       break
 
@@ -777,7 +755,6 @@ const consultObjetives = async (type, options = {}) => {
         })
 
         return documentsByDay
-
       }
       break
 
@@ -807,7 +784,6 @@ const consultObjetives = async (type, options = {}) => {
         })
 
         return monthsData
-
       }
       break
 
@@ -829,7 +805,6 @@ const consultObjetives = async (type, options = {}) => {
         const results = await Promise.all(queries)
 
         return results
-
       }
       break
 
@@ -839,7 +814,6 @@ const consultObjetives = async (type, options = {}) => {
   }
 
   return queryFunc()
-
 }
 
 const getUsersWithSolicitudes = async () => {
@@ -881,7 +855,6 @@ const getUsersWithSolicitudes = async () => {
       const userData = userSnapshot.data()
 
       if (userData.urlFoto) {
-
         return {
           ...user,
           name: userData.name,
@@ -889,7 +862,6 @@ const getUsersWithSolicitudes = async () => {
           avatarSrc: userData.urlFoto
         }
       } else {
-
         return {
           ...user,
           name: userData.name,
@@ -897,15 +869,12 @@ const getUsersWithSolicitudes = async () => {
         }
       }
     } else {
-
       // Si no se encontró el usuario en la colección 'users', retornar el objeto original
       return user
-
     }
   })
 
   return usersWithProperties
-
 }
 
 function subscribeToPetition(petitionId, onUpdate) {
@@ -924,7 +893,6 @@ function subscribeToPetition(petitionId, onUpdate) {
 
     // Devuelve la función unsubscribe para que pueda ser llamada cuando ya no se necesite la suscripción
     return unsubscribe
-
   } else {
     console.error('petitionId es undefined o null')
   }
@@ -947,5 +915,6 @@ export {
   fetchMelDisciplines,
   fetchMelDeliverableType,
   consultBluePrints,
-  subscribeToPetition
+  subscribeToPetition,
+  consultOT
 }

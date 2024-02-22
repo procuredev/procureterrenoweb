@@ -34,8 +34,7 @@ const getEmailTemplate = require('./emailTemplate').getEmailTemplate
 // Se inicializa el SDK admin de Firebase
 admin.initializeApp()
 
-const getSupervisorData = async (shift) => {
-
+const getSupervisorData = async shift => {
   // Se llama a la referencia de la colección 'users'
   const usersRef = admin.firestore().collection('users')
 
@@ -54,7 +53,7 @@ const getSupervisorData = async (shift) => {
       const name = data.name
       const email = data.email
 
-      return {uid: uid, name: name, email: email}
+      return { uid: uid, name: name, email: email }
     }
   } catch (error) {
     console.log('Error al buscar la solicitud: ', error)
@@ -140,7 +139,14 @@ exports.checkDatabaseEveryOneHour = functions.pubsub
 
               // Se almacenan las constantes a usar en el email
               const userName = requirementData.user
-              const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString('es-CL', {timeZone: 'America/Santiago'})} a las ${fechaCompleta.toLocaleTimeString('es-CL', {timeZone: 'America/Santiago'})}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${requirementData.contop} modificó la fecha del levantamiento`
+
+              const mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString('es-CL', {
+                timeZone: 'America/Santiago'
+              })} a las ${fechaCompleta.toLocaleTimeString('es-CL', {
+                timeZone: 'America/Santiago'
+              })}, la revisión que estaba pendiente por su parte ha sido automáticamente aceptada dado que han pasado mas de 24 horas desde que su Contract Operator ${
+                requirementData.contop
+              } modificó la fecha del levantamiento`
               const requestNumber = requirementData.n_request
               const title = requirementData.title
               const engineering = requirementData.engineering ? 'Si' : 'No'
@@ -150,7 +156,11 @@ exports.checkDatabaseEveryOneHour = functions.pubsub
               const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString('es-CL') : 'Por definir'
               const plant = requirementData.plant
               const area = requirementData.area ? requirementData.area : 'No indicado'
-              const functionalLocation = requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
+
+              const functionalLocation =
+                requirementData.fnlocation && requirementData.fnlocation !== ''
+                  ? requirementData.fnlocation
+                  : 'No indicado'
               const contractOperator = requirementData.contop
               const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
               const sapNumber = requirementData.sap && requirementData.sap !== '' ? requirementData.sap : 'No indicado'
@@ -296,7 +306,11 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
           .where('role', '==', 8)
           .get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
         const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
-        const drawmansEmail = drawmansData.filter(doc => doc.enabled != false).map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
+
+        const drawmansEmail = drawmansData
+          .filter(doc => doc.enabled != false)
+          .map(id => id.data().email)
+          .join(', ') // Se almacenan los emails de los Proyectistas
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
         const plannerData = plannerSnapshot.docs // Se almacena en una constante los datos del Planificador
@@ -359,13 +373,11 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
     return null
   })
 
-
 // * Función que revisa la base de datos todos los días a las 8AM y le avisa al Solicitante que debe limpiar el área donde se ejecutará el levantamiento
 exports.cleanAreaWarning = functions.pubsub
   .schedule('every day 08:00')
   .timeZone('Chile/Continental')
   .onRun(async context => {
-
     const now = new Date() // Se almacena la fecha instantánea
     now.toLocaleString('es-CL', { timeZone: 'Chile/Continental' })
     const today = new Date(now) // Se almacena la fecha de hoy, ajustando la hora a medianoche
@@ -379,7 +391,6 @@ exports.cleanAreaWarning = functions.pubsub
 
     // Se revisa para cada uno de los supervisores que tienen trabajos hoy (teóricamente solo debería haber 1 supervisor)
     for (let i = 0; i < requestsSnapshot.docs.length; i++) {
-
       const requirementData = requestsSnapshot.docs[i].data()
 
       // ** Empezamos a definir el e-mail
@@ -414,12 +425,19 @@ exports.cleanAreaWarning = functions.pubsub
         const admContratoData = admContratoSnapshot.docs[0].data() // Se almacena en una constante los datos del Administrador de Contrato
         const admContratoEmail = admContratoData.email // Se almacena el e-mail del Administrador de Contrato
 
-        const supervisorData = requirementData.supervisorShift ? await getSupervisorData(requirementData.supervisorShift) : ''
+        const supervisorData = requirementData.supervisorShift
+          ? await getSupervisorData(requirementData.supervisorShift)
+          : ''
         const supervisorEmail = supervisorData ? supervisorData.email : ''
 
         // Se almacenan las constantes a usar en el email
         const userName = requirementData.user
-        const mainMessage = `Usted tiene un levantamiento agendado para el día de mañana ${requirementData.start.toDate().toLocaleDateString('es-CL')}. <b>Se requiere que usted gestione la limpieza del lugar para que nuestro equipo ejecute su labor lo más rápido posible</b>`
+
+        const mainMessage = `Usted tiene un levantamiento agendado para el día de mañana ${requirementData.start
+          .toDate()
+          .toLocaleDateString(
+            'es-CL'
+          )}. <b>Se requiere que usted gestione la limpieza del lugar para que nuestro equipo ejecute su labor lo más rápido posible</b>`
         const requestNumber = requirementData.n_request
         const title = requirementData.title
         const engineering = requirementData.engineering ? 'Si' : 'No'
@@ -429,7 +447,9 @@ exports.cleanAreaWarning = functions.pubsub
         const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString('es-CL') : 'Por definir'
         const plant = requirementData.plant
         const area = requirementData.area ? requirementData.area : 'No indicado'
-        const functionalLocation = requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
+
+        const functionalLocation =
+          requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
         const contractOperator = requirementData.contop
         const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
         const sapNumber = requirementData.sap && requirementData.sap !== '' ? requirementData.sap : 'No indicado'
@@ -470,11 +490,20 @@ exports.cleanAreaWarning = functions.pubsub
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
         await emailsRef.doc(mailId).update({
           to: requirementData.userEmail,
-          cc: [reqContractOperatorEmail, contractOwnerEmail, petitionerFieldEmail,plannerEmail,admContratoEmail, supervisorEmail],
+          cc: [
+            reqContractOperatorEmail,
+            contractOwnerEmail,
+            petitionerFieldEmail,
+            plannerEmail,
+            admContratoEmail,
+            supervisorEmail
+          ],
           date: now,
           emailType: 'clanAreaWarning',
           message: {
-            subject: `Limpieza de Área para mañana ${tomorrow.toLocaleDateString('es-CL')} - Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+            subject: `Limpieza de Área para mañana ${tomorrow.toLocaleDateString(
+              'es-CL'
+            )} - Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
             html: emailHtml
           }
         })
@@ -488,31 +517,92 @@ exports.cleanAreaWarning = functions.pubsub
     return null
   })
 
-
 // * Función para Guardar en un Bucket de Google Cloud la Base de Datos de Firestore todos los días a cierta hora
 // Los datos serán almacenados en el bucket en un formato estándar usado en Google Cloud (metadatos)
 exports.scheduledFirestoreExport = functions.pubsub
   .schedule('every day 21:00')
   .timeZone('Chile/Continental')
-  .onRun((context) => {
+  .onRun(context => {
+    const projectId = 'procureterrenoweb' //process.env.GCP_PROJECT
+    const databaseName = client.databasePath(projectId, '(default)')
 
-  const projectId = 'procureterrenoweb' //process.env.GCP_PROJECT
-  const databaseName = client.databasePath(projectId, '(default)')
+    return client
+      .exportDocuments({
+        name: databaseName,
+        outputUriPrefix: 'gs://firestore-procureterrenoweb-backup',
+        // Leave collectionIds empty to export all collections
+        // or set to a list of collection IDs to export,
+        // collectionIds: ['users', 'posts']
+        collectionIds: []
+      })
+      .then(responses => {
+        const response = responses[0]
+        console.log(`Operation Name: ${response['name']}`)
+      })
+      .catch(err => {
+        console.error('Error when trying to export:', err)
+        throw new Error('Export operation failed')
+      })
+  })
 
-  return client.exportDocuments({
-    name: databaseName,
-    outputUriPrefix: 'gs://firestore-procureterrenoweb-backup',
-    // Leave collectionIds empty to export all collections
-    // or set to a list of collection IDs to export,
-    // collectionIds: ['users', 'posts']
-    collectionIds: []
+// * Función TEST
+
+// Función para calcular la diferencia en días entre dos fechas
+
+const calculateDaysToDeadline = deadlineTimestamp => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
+  const deadlineDate = new Date(deadlineTimestamp * 1000)
+  const diffTime = deadlineDate - today
+  //math.round() redondea hacia arriba el valor a un número entero
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+
+  return diffDays
+}
+
+exports.updateDaysToDeadlineOnSchedule = functions.pubsub
+  .schedule('every day 00:00')
+  .timeZone('Chile/Continental')
+  .onRun(async context => {
+    const db = admin.firestore()
+    const solicitudesRef = db.collection('solicitudes')
+
+    const snapshot = await solicitudesRef.get()
+    const updatePromises = []
+
+    snapshot.forEach(docSnapshot => {
+      const data = docSnapshot.data()
+      let deadlineTimestamp
+
+      if (data.deadline) {
+        deadlineTimestamp = data.deadline.seconds
+      } else {
+        // Si 'deadline' no existe, se establece a 21 días después de 'start'
+        // Convierte la marca de tiempo Unix 'data.start.seconds' a un objeto 'Date' de JavaScript
+        const startDate = new Date(data.start.seconds * 1000)
+        const deadlineDate = new Date(startDate)
+        deadlineDate.setDate(startDate.getDate() + 21)
+        // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
+        deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
+        // Preparar para actualizar el documento con el nuevo 'deadline'
+        updatePromises.push(
+          docSnapshot.ref.update({
+            deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
+          })
+        )
+      }
+
+      const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
+      // Preparar para actualizar el documento con los días hasta la fecha límite
+      updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
+    })
+
+    // Espera a que todas las operaciones de actualización se completen
+    await Promise.all(updatePromises)
+      .then(() => {
+        console.log('Todos los documentos han sido actualizados con éxito.')
+      })
+      .catch(error => {
+        console.error('Error al actualizar documentos:', error)
+      })
   })
-  .then(responses => {
-    const response = responses[0]
-    console.log(`Operation Name: ${response['name']}`)
-  })
-  .catch(err => {
-    console.error('Error when trying to export:', err)
-    throw new Error('Export operation failed')
-  })
-})
