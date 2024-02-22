@@ -523,6 +523,7 @@ export const UploadBlueprintsDialog = ({
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography variant='h5'>Revisión: {values.revision}</Typography>
           <Typography variant='h5' sx={{ lineHeight: 3 }}>
             {`Código Procure: ${values.id}` || 'Sin código Procure'}
           </Typography>
@@ -559,7 +560,6 @@ export const UploadBlueprintsDialog = ({
             )}
           </Typography>
         </Box>
-        <Chip label={values.revision} sx={{ textTransform: 'capitalize' }} color='primary' />
       </DialogTitle>
 
       {generateClientCode ? (
@@ -667,8 +667,7 @@ export const UploadBlueprintsDialog = ({
                       (doc &&
                         authUser.role === 9 &&
                         (doc.approvedBySupervisor || doc.approvedByContractAdmin) &&
-                        doc.approvedByDocumentaryControl &&
-                        checkRoleAndApproval(authUser.role, doc)) ? (
+                        !checkRoleAndApproval(authUser.role, doc)) ? (
                         <div {...getRootProps({ className: 'dropzone' })}>
                           <input {...getInputProps()} />
                           <Box
