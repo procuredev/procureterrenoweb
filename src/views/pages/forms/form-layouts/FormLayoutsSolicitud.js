@@ -196,7 +196,9 @@ const FormLayoutsSolicitud = () => {
           if (newValue.includes('Memoria de Cálculo')) {
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
-              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.')
+              setAlertMessage(
+                'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.'
+              )
 
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
@@ -613,7 +615,8 @@ const FormLayoutsSolicitud = () => {
       setContOpOptions(contOpOptions)
 
       const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
-      setPetitioners(petitioners)
+      const filteredPetitioners = petitioners.filter(user => user.role == 2 || user.role == 3)
+      setPetitioners(filteredPetitioners)
 
       if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
         return contOpOptions[0]
@@ -725,10 +728,9 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-            {/* Datos exclusivos para cuando el Supervisor ingresa la Solicitud */}
-            {authUser.role === 7 && (
+            {/* Número de OT Procure*/}
+            {authUser.role === (3 || 7) && (
               <>
-                {/* Número de OT Procure */}
                 <CustomTextField
                   inputRef={otRef}
                   type='text'
@@ -741,8 +743,12 @@ const FormLayoutsSolicitud = () => {
                   helper='Ingresa el número de OT.'
                   onBlur={handleBlurOt}
                 />
+              </>
+            )}
 
-                {/* Tipo de Urgencia */}
+            {/* Tipo de Urgencia */}
+            {authUser.role === 7 && (
+              <>
                 <CustomSelect
                   required
                   options={urgencyTypesOptions}
@@ -924,13 +930,17 @@ const FormLayoutsSolicitud = () => {
             />
 
             {/* Solicitante */}
-            {authUser.role !== 2 && (authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants') && (
+            {authUser.role !== 2 && authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants' && (
               <CustomSelect
-              required
+                required
                 options={
-                  (authUser.role === 3 || authUser.role === 5 || authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                  authUser.role === 3 ||
+                  authUser.role === 5 ||
+                  authUser.role === 7 ||
+                  authUser.plant === 'allPlants' ||
+                  authUser.plant === 'Solicitante Santiago'
                     ? petitioners.map(item => ({ name: item.name }))
-                    : [authUser.displayName])
+                    : [authUser.displayName]
                 }
                 label='Solicitante'
                 value={values.petitioner}
