@@ -593,7 +593,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     if (hasChanges.ot && values.ot !== null && values.ot !== undefined) {
       setLoading(true) // Muestra un indicador de carga, si es aplicable
       const resultOt = await consultOT(values.ot)
-      console.log('resultOt', resultOt)
+      // console.log('resultOt', resultOt)
       setLoading(false) // Oculta el indicador de carga
 
       if (resultOt.exist) {

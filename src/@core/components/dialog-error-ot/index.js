@@ -7,7 +7,7 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 
 export default function DialogErrorOT({ open, handleClose, errorOtMesage }) {
-  console.log('errorOtMesage', errorOtMesage)
+  //console.log('errorOtMesage', errorOtMesage)
 
   return (
     <Dialog
