@@ -815,7 +815,7 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Fecha finalización */}
-            {authUser.role === 7 && (
+            {authUser.role === (5 || 7) && (
               <Grid item xs={12}>
                 <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                   <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
