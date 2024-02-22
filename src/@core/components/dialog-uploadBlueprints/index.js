@@ -371,7 +371,8 @@ export const UploadBlueprintsDialog = ({
       }
 
       if (authUser.role === 9 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
-        setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        //setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        setHlcDocuments([acceptedFiles[0]])
       }
 
       if (
@@ -381,9 +382,11 @@ export const UploadBlueprintsDialog = ({
         (doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc))
       ) {
         // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
-        setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        //setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        setFiles([acceptedFiles[0]])
       }
-    }
+    },
+    multiple: false // Esto limita a los usuarios a seleccionar solo un archivo a la vez
   })
 
   const handleRemoveFile = file => {
