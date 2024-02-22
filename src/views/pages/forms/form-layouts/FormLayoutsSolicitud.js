@@ -729,7 +729,7 @@ const FormLayoutsSolicitud = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             {/* Número de OT Procure*/}
-            {authUser.role === (3 || 7) && (
+            {authUser.role === (5 || 7) && (
               <>
                 <CustomTextField
                   inputRef={otRef}
