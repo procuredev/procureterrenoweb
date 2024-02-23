@@ -332,12 +332,11 @@ const FormLayoutsSolicitud = () => {
         key !== 'sap' &&
         key !== 'tag' &&
         key !== 'urlvideo' &&
-        key !== 'mcDescription' &&
         costCenterIsRequired &&
         excludedFields
       ) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-          newErrors[key] = 'Por favor, especifica una opción válida'
+          newErrors[key] = 'Por favor, especifica una opción válida para'
         }
       } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
         newErrors[key] = 'Por favor, especifica una opción válida'
@@ -729,22 +728,23 @@ const FormLayoutsSolicitud = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             {/* Número de OT Procure*/}
-            {authUser.role === (5 || 7) && (
-              <>
-                <CustomTextField
-                  inputRef={otRef}
-                  type='text'
-                  required
-                  label='OT'
-                  value={values.ot}
-                  onChange={handleChange('ot')}
-                  error={errors.ot}
-                  inputProps={{ maxLength: 5 }}
-                  helper='Ingresa el número de OT.'
-                  onBlur={handleBlurOt}
-                />
-              </>
-            )}
+            {authUser.role === 5 ||
+              (authUser.role === 7 && (
+                <>
+                  <CustomTextField
+                    inputRef={otRef}
+                    type='text'
+                    required
+                    label='OT'
+                    value={values.ot}
+                    onChange={handleChange('ot')}
+                    error={errors.ot}
+                    inputProps={{ maxLength: 5 }}
+                    helper='Ingresa el número de OT.'
+                    onBlur={handleBlurOt}
+                  />
+                </>
+              ))}
 
             {/* Tipo de Urgencia */}
             {authUser.role === 7 && (
@@ -815,34 +815,35 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Fecha finalización */}
-            {authUser.role === (5 || 7) && (
-              <Grid item xs={12}>
-                <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-                    <Box display='flex' alignItems='center'>
-                      <DatePicker
-                        dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                        minDate={moment().subtract(1, 'year')}
-                        maxDate={moment().add(1, 'year')}
-                        label='Fecha de término *'
-                        value={values.end}
-                        onChange={date => handleChange('end')(date)}
-                        InputLabelProps={{ shrink: true, required: true }}
-                        slotProps={{
-                          textField: {
-                            error: errors.end ? true : false,
-                            helperText: errors.end
-                          }
-                        }}
-                      />
-                      <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
-                        <StyledInfoIcon color='action' />
-                      </StyledTooltip>
-                    </Box>
-                  </LocalizationProvider>
-                </FormControl>
-              </Grid>
-            )}
+            {authUser.role === 5 ||
+              (authUser.role === 7 && (
+                <Grid item xs={12}>
+                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                      <Box display='flex' alignItems='center'>
+                        <DatePicker
+                          dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                          minDate={moment().subtract(1, 'year')}
+                          maxDate={moment().add(1, 'year')}
+                          label='Fecha de término *'
+                          value={values.end}
+                          onChange={date => handleChange('end')(date)}
+                          InputLabelProps={{ shrink: true, required: true }}
+                          slotProps={{
+                            textField: {
+                              error: errors.end ? true : false,
+                              helperText: errors.end
+                            }
+                          }}
+                        />
+                        <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
+                          <StyledInfoIcon color='action' />
+                        </StyledTooltip>
+                      </Box>
+                    </LocalizationProvider>
+                  </FormControl>
+                </Grid>
+              ))}
 
             {/* Planta */}
             <CustomSelect
