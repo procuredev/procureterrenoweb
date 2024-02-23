@@ -987,7 +987,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Fecha de Creación',
-      width: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 120 : role !== 9 ? 110 : 120,
+      width: role === 9 && !xlDown ? 122 : role !== 9 && !xlDown ? 122 : role !== 9 ? 110 : 120,
       renderCell: params => {
         if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
           const { row } = params
