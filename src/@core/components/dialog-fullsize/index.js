@@ -1197,7 +1197,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
                       if (isModifiedStart || isStateDecreased) return 'Modificado'
                       if (isDraftmenAssigned) return `Proyectistas asignados`
-                      if (isHoursEstablished) return 'Levantamiento finalizado'
+                      if (isHoursEstablished) return 'En confección de entregables'
                       if (hasPreviousDoc) return 'Modificación aceptada'
                       if (emergencyApprovedByContop) return 'Emergencia aprobada'
 
@@ -1251,7 +1251,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
                       if (isModifiedStart || isStateDecreased) return 'Modificado'
                       if (isDraftmenAssigned) return `Proyectistas asignados`
-                      if (isHoursEstablished) return 'Levantamiento finalizado'
+                      if (isHoursEstablished) return 'En confección de entregables'
 
                       return 'Aprobado'
                     }
@@ -1268,7 +1268,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           </TimelineSeparator>
                           <TimelineContent>
                             <Typography variant='body1'>
-                              {status} por {element.userName} {status === 'Proyectistas asignados' && element.draftmen ? `: ${element.draftmen.map(x => x.name).join(', ')}` : (status === 'Proyectistas asignados' ? values.draftmen.map(x => x.name).join(', ') : '')}
+                              {status} por {element.userName}{' '}
+                              {status === 'Proyectistas asignados' && element.draftmen
+                                ? `: ${element.draftmen.map(x => x.name).join(', ')}`
+                                : status === 'Proyectistas asignados'
+                                ? values.draftmen.map(x => x.name).join(', ')
+                                : ''}
                             </Typography>
                             <Typography variant='body2'>
                               {domainDictionary[element.newState]?.details || element.comment}
@@ -1285,8 +1290,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   <TimelineConnector />
                 </TimelineSeparator>
                 <TimelineContent>
-                  <Typography variant='body1'> Solicitud hecha por {user} {(userRole == 5 || userRole == 7)  && (`en nombre de ${values.petitioner}`)}</Typography>
-                  {(userRole == 2 || userRole == 5) ? (
+                  <Typography variant='body1'>
+                    {' '}
+                    Solicitud hecha por {user} {(userRole == 5 || userRole == 7) && `en nombre de ${values.petitioner}`}
+                  </Typography>
+                  {userRole == 2 || userRole == 5 ? (
                     <Typography variant='body2'> En espera de revisión de Contract Operator </Typography>
                   ) : userRole == 3 ? (
                     <Typography variant='body2'> En espera de revisión de Planificador</Typography>

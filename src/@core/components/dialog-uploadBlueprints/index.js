@@ -535,23 +535,25 @@ export const UploadBlueprintsDialog = ({
               </Typography>
             ) : authUser.role === 8 || authUser.role === 7 ? (
               <>
-                <Button
-                  component='label'
-                  role={undefined}
-                  variant='contained'
-                  tabIndex={-1}
-                  startIcon={<BorderColorIcon />}
-                  size='small'
-                  sx={{ ml: 2, opacity: 0.9 }}
-                  onClick={() => {
-                    if (authUser.uid === doc.userId) {
-                      setGenerateClientCode(prev => !prev)
-                    }
-                  }}
-                >
-                  Crear código MEL
-                  {/* <VisuallyHiddenInput type='file' /> */}
-                </Button>
+                {!generateClientCode && (
+                  <Button
+                    component='label'
+                    role={undefined}
+                    variant='contained'
+                    tabIndex={-1}
+                    startIcon={<BorderColorIcon />}
+                    size='small'
+                    sx={{ ml: 2, opacity: 0.9 }}
+                    onClick={() => {
+                      if (authUser.uid === doc.userId) {
+                        setGenerateClientCode(prev => !prev)
+                      }
+                    }}
+                  >
+                    Crear código MEL
+                    {/* <VisuallyHiddenInput type='file' /> */}
+                  </Button>
+                )}
               </>
             ) : (
               <Typography variant='h6' sx={{ ml: 2 }}>
