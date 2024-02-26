@@ -136,7 +136,11 @@ const DataGridGabinete = () => {
     const selectedDocuments = apiRef.current.getSelectedRows()
     setSelectedDocs(Array.from(selectedDocuments.values()))
     console.log(selectedDocuments)
-    setOpenTransmittalDialog(true)
+    if (selectedDocuments.size === 0) {
+      setErrorTransmittal(true)
+    } else {
+      setOpenTransmittalDialog(true)
+    }
   }
 
   const handleClickTransmittalGenerator = async currentPetition => {
@@ -172,6 +176,20 @@ const DataGridGabinete = () => {
   }
 
   const petitionFinished = currentPetition?.otFinished
+
+  const getFileName = (content, index) => {
+    if (typeof content === 'string') {
+      const urlSegments = content.split('%2F')
+      const encodedFileName = urlSegments[urlSegments.length - 1]
+      const fileNameSegments = encodedFileName.split('?')
+      const fileName = decodeURIComponent(fileNameSegments[0])
+
+      return fileName
+    } else {
+      // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+      return ''
+    }
+  }
 
   useEffect(() => {
     if (currentPetition && currentPetition.id) {
@@ -318,7 +336,7 @@ const DataGridGabinete = () => {
           <Button
             sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
-            disabled={currentPetition?.otFinished}
+            disabled={currentPetition?.otFinished || !currentPetition}
             onClick={handleOpenTransmittalDialog}
           >
             Generar Transmittal
@@ -375,9 +393,17 @@ const DataGridGabinete = () => {
           </DialogContentText>
           <List>
             {Array.from(selectedDocs.values()).map(doc => (
-              <ListItem key={doc.id}>
-                <ListItemText primary={doc.id} secondary={doc.clientCode} />
-              </ListItem>
+              <>
+                <ListItem key={doc.id}>
+                  <ListItemText primary={doc.id} secondary={doc.clientCode} />
+                </ListItem>
+                {doc.storageHlcDocuments &&
+                  doc.storageHlcDocuments.map(hlc => (
+                    <ListItem key={hlc.index}>
+                      <ListItemText primary={getFileName(hlc)} />
+                    </ListItem>
+                  ))}
+              </>
             ))}
           </List>
         </DialogContent>
