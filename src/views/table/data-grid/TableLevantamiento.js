@@ -392,7 +392,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             done: md,
 
             actions: roleData.canApprove,
-            assign: authUser.role === 7
+            assign: authUser.role === 7,
+            done: authUser.role === 7
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           sortingModel={defaultSortingModel}
