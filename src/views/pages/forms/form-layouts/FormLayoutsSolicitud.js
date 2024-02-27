@@ -120,6 +120,18 @@ const FormLayoutsSolicitud = () => {
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
   const otRef = useRef(null)
+  const titleRef = useRef(null)
+  const urgencyRef = useRef(null)
+  const descriptionRef = useRef(null)
+  const endRef = useRef(null)
+  const plantRef = useRef(null)
+  const areaRef = useRef(null)
+  const contopRef = useRef(null)
+  const petitionerRef = useRef(null)
+  const typeRef = useRef(null)
+  const detentionRef = useRef(null)
+  const objectiveRef = useRef(null)
+  const receiverRef = useRef(null)
 
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
@@ -279,6 +291,7 @@ const FormLayoutsSolicitud = () => {
   const handleBlurOt = async e => {
     const otValue = e.target.value.trim() // .trim() devuelve el valor sin espacios extra
 
+    console.log(otValue, 'otValue')
     // Verifica si el campo OT tiene algún valor antes de hacer la consulta
     if (otValue.length > 0) {
       const resultOt = await consultOT(parseInt(otValue))
@@ -300,12 +313,14 @@ const FormLayoutsSolicitud = () => {
         })
       }
     } else {
+      const resultOt = await consultOT(parseInt(otValue))
       // Si el campo OT está vacío, podrías querer manejar este caso también
       // Por ejemplo, estableciendo un mensaje de error indicando que el campo no puede estar vacío
       setErrors(prevErrors => ({
         ...prevErrors,
         ot: 'El campo OT no puede estar vacío.'
       }))
+      setAlertMessage('El campo OT no puede estar vacío.')
     }
   }
 
@@ -323,6 +338,24 @@ const FormLayoutsSolicitud = () => {
     const trimmedValues = {}
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
+    const shouldValidateOT = authUser.role === 7 // validar 'ot' si el usuario tiene el rol 7.
+
+    const fieldLabels = {
+      ot: 'OT',
+      urgency: 'Urgencia',
+      title: 'Título',
+      description: 'Descripción',
+      end: 'Fecha de término',
+      plant: 'Planta',
+      area: 'Área',
+      contop: 'Contract Operator',
+      petitioner: 'Solicitante',
+      type: 'Estado Operacional Planta',
+      detention: '¿Estará la máquina detenida?',
+      objective: 'Tipo de Levantamiento',
+      deliverable: 'Entregables del Levantamiento',
+      receiver: 'Destinatarios'
+    }
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
@@ -336,7 +369,7 @@ const FormLayoutsSolicitud = () => {
         excludedFields
       ) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-          newErrors[key] = 'Por favor, especifica una opción válida para'
+          newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
         }
       } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
         newErrors[key] = 'Por favor, especifica una opción válida'
@@ -360,8 +393,18 @@ const FormLayoutsSolicitud = () => {
         }
       }
 
-      // Validaciones solo para claves de tipo string
-      if (textFieldValues.includes(values[key])) {
+      if (key === 'ot' && shouldValidateOT) {
+        if (!values[key]) {
+          newErrors[key] = 'El campo OT no puede estar vacío.'
+        } else if (values[key] === 0) {
+          newErrors[key] = 'El campo OT no puede ser cero.'
+        } else if (typeof values[key] !== 'number') {
+          newErrors[key] = 'El campo OT debe ser un número.'
+        } else if (errors.ot) {
+          newErrors[key] = errors.ot
+        }
+      } else if (textFieldValues.includes(values[key])) {
+        // Validaciones solo para claves de tipo string
         // Saca espacios en los values
         trimmedValues[key] = values[key].replace(/\s+$/, '')
 
@@ -517,8 +560,52 @@ const FormLayoutsSolicitud = () => {
 
   // Objeto para mantener las referencias
   const refs = {
-    ot: otRef
-    // ... otras referencias
+    ot: otRef,
+    urgency: urgencyRef,
+    title: titleRef,
+    description: descriptionRef,
+    end: endRef,
+    plant: plantRef,
+    area: areaRef,
+    contop: contopRef,
+    petitioner: petitionerRef,
+    type: typeRef,
+    detention: detentionRef,
+    objective: objectiveRef,
+    receiver: receiverRef
+  }
+
+  const focusFirstError = formErrors => {
+    const errorKeys = Object.keys(formErrors)
+
+    const orderedErrorKeys = [
+      'ot',
+      'urgency',
+      'title',
+      'description',
+      'end',
+      'plant',
+      'area',
+      'contop',
+      'petitioner',
+      'type',
+      'detention',
+      'objective',
+      'deliverable',
+      'receiver'
+    ] // Orden específico de los elementos de 'errorKeys'
+
+    for (const key of orderedErrorKeys) {
+      // Si el key está en errorKeys, y formErrors[key] existe, y refs[key] existe...
+      if (errorKeys.includes(key) && formErrors[key] && refs[key]) {
+        // Establece el mensaje de alerta al error correspondiente a key
+        setAlertMessage(errors[key])
+        // Enfoca el elemento correspondiente a key
+        refs[key].current.focus()
+        // Sale del bucle: no se procesarán más keys después de encontrar el primer error
+        break
+      }
+    }
   }
 
   const onSubmit = async event => {
@@ -526,6 +613,9 @@ const FormLayoutsSolicitud = () => {
     setButtonDisabled(true)
     const formErrors = validateForm(values)
     setErrors(formErrors)
+    if (Object.keys(formErrors).length > 0) {
+      focusFirstError(formErrors) // Pasa formErrors como argumento
+    }
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
 
@@ -534,17 +624,17 @@ const FormLayoutsSolicitud = () => {
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
 
-    if (errors.ot) {
+    /*  if (errors.ot) {
       setAlertMessage(errors.ot)
       otRef.current.focus() // Enfoca el campo 'OT'
       setButtonDisabled(false)
 
       return // Salimos de la función si hay un error en 'ot'.
-    }
+    } */
 
     // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
     if (!values.deliverable.includes('Memoria de Cálculo')) {
-      values.mcDescription = '' // Restablecer mcDescription si 'Memoria de Cálculo' no está seleccionado
+      delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado
     }
 
     console.log(formErrors)
@@ -750,6 +840,7 @@ const FormLayoutsSolicitud = () => {
             {authUser.role === 7 && (
               <>
                 <CustomSelect
+                  inputRef={urgencyRef}
                   required
                   options={urgencyTypesOptions}
                   label='Tipo de urgencia'
@@ -764,6 +855,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Título */}
             <CustomTextField
+              inputRef={titleRef}
               required
               type='text'
               label='Título'
@@ -776,6 +868,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Descripción */}
             <CustomTextField
+              inputRef={descriptionRef}
               required
               type='text'
               label='Descripción'
@@ -822,6 +915,7 @@ const FormLayoutsSolicitud = () => {
                     <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                       <Box display='flex' alignItems='center'>
                         <DatePicker
+                          inputRef={endRef}
                           dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                           minDate={moment().subtract(1, 'year')}
                           maxDate={moment().add(1, 'year')}
@@ -847,6 +941,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <CustomSelect
+              inputRef={plantRef}
               required
               options={[...authUser.plant]}
               label='Planta'
@@ -862,6 +957,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Área */}
             <CustomSelect
+              inputRef={areaRef}
               required
               options={areas}
               label='Área'
@@ -885,6 +981,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Contract Operator */}
             <CustomSelect
+              inputRef={contopRef}
               required
               options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
               label='Contract Operator'
@@ -933,6 +1030,7 @@ const FormLayoutsSolicitud = () => {
             {/* Solicitante */}
             {authUser.role !== 2 && authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants' && (
               <CustomSelect
+                inputRef={petitionerRef}
                 required
                 options={
                   authUser.role === 3 ||
@@ -957,6 +1055,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Estado Operacional */}
             <CustomSelect
+              inputRef={typeRef}
               required
               options={operationalStatusOptions}
               label='Estado Operacional Planta'
@@ -969,6 +1068,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Máquina Detenida */}
             <CustomSelect
+              inputRef={detentionRef}
               required
               options={['Sí', 'No', 'No aplica']}
               label='¿Estará la máquina detenida?'
@@ -993,6 +1093,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Tipo de Levantamiento */}
             <CustomSelect
+              inputRef={objectiveRef}
               required
               options={objectivesOptions}
               label='Tipo de Levantamiento'
@@ -1032,6 +1133,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Destinatarios */}
             <CustomAutocomplete
+              inputRef={receiverRef}
               required
               isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}
