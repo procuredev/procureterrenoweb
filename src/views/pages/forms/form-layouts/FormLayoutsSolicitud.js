@@ -234,7 +234,6 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event
-        console.log(event, 'eventStart')
         setValues({
           ...values,
           start: startDate
@@ -291,7 +290,6 @@ const FormLayoutsSolicitud = () => {
   const handleBlurOt = async e => {
     const otValue = e.target.value.trim() // .trim() devuelve el valor sin espacios extra
 
-    console.log(otValue, 'otValue')
     // Verifica si el campo OT tiene algún valor antes de hacer la consulta
     if (otValue.length > 0) {
       const resultOt = await consultOT(parseInt(otValue))
