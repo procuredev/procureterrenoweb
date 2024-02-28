@@ -9,7 +9,17 @@ import {
   DialogTitle
 } from '@mui/material'
 
-export default function AlertDialog({ open, handleClose, callback, approves, loading = false }) {
+export default function AlertDialog({ authUser, state, open, handleClose, callback, approves, loading = false }) {
+  let result
+
+  if (approves === undefined) {
+    result = authUser.role === 5 && state <= 4 ? 'aprobar' : 'modificar'
+  } else if (approves) {
+    result = approves.pendingReschedule ? 'pausar' : 'aprobar'
+  } else {
+    result = 'rechazar'
+  }
+
   return (
     <Dialog
       open={open}
@@ -23,15 +33,7 @@ export default function AlertDialog({ open, handleClose, callback, approves, loa
           <CircularProgress />
         ) : (
           <DialogContentText id='alert-dialog-description'>
-            ¿Estás segur@ de que quieres{' '}
-            {approves === undefined
-              ? 'modificar'
-              : approves
-              ? approves?.pendingReschedule
-                ? 'pausar'
-                : 'aprobar'
-              : 'rechazar'}{' '}
-            la solicitud?
+            ¿Estás segur@ de que quieres {result} la solicitud?
           </DialogContentText>
         )}
       </DialogContent>

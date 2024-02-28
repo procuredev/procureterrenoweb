@@ -635,7 +635,7 @@ const FormLayoutsSolicitud = () => {
       delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado
     }
 
-    console.log(formErrors)
+    //console.log(formErrors)
 
     if (
       Object.keys(formErrors).length === 0 &&

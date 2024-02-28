@@ -902,7 +902,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       TransitionComponent={Transition}
       scroll='body'
     >
-      <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
+      <AlertDialog
+        authUser={authUser}
+        state={state}
+        open={openAlert}
+        handleClose={handleCloseAlert}
+        callback={() => writeCallback()}
+      ></AlertDialog>
       <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
