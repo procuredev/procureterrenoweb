@@ -709,7 +709,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
     // Si el campo es 'ot', convierte el valor a un número
     if (field === 'ot') {
-      fieldValue = Number(fieldValue)
+      // Verifica si fieldValue solo contiene dígitos
+      if (/^\d+$/.test(fieldValue)) {
+        fieldValue = Number(fieldValue)
+      } else {
+        fieldValue = 0 // O cualquier valor por defecto que quieras usar cuando fieldValue no sea un número
+      }
     }
 
     setValues({ ...values, [field]: fieldValue })
