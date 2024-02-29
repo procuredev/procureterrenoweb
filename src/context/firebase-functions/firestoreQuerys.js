@@ -898,6 +898,19 @@ function subscribeToPetition(petitionId, onUpdate) {
   }
 }
 
+const subscribeToUserProfileChanges = (userId, callback) => {
+  const userRef = doc(db, 'users', userId)
+
+  const unsubscribe = onSnapshot(userRef, doc => {
+    if (doc.exists) {
+      const userData = doc.data()
+      callback(userData)
+    }
+  })
+
+  return unsubscribe
+}
+
 export {
   useEvents,
   useSnapshot,
@@ -916,5 +929,6 @@ export {
   fetchMelDeliverableType,
   consultBluePrints,
   subscribeToPetition,
-  consultOT
+  consultOT,
+  subscribeToUserProfileChanges
 }

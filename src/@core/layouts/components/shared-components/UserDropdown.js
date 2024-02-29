@@ -27,10 +27,11 @@ const UserDropdown = props => {
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
   const [userName, setUserName] = useState('')
+  const [urlFoto, setUrlFoto] = useState('')
 
   // ** Hooks
   const router = useRouter()
-  const { auth, authUser, signOut, domainRoles } = useFirebase()
+  const { auth, authUser, signOut, domainRoles, subscribeToUserProfileChanges } = useFirebase()
 
   // ** Vars
   const { direction } = settings
@@ -87,13 +88,25 @@ const UserDropdown = props => {
 
     userEmail = authUser.email
 
-    if (domainRoles){
+    if (domainRoles) {
       const role = domainRoles[authUser.role]
-      if (role){
+      if (role) {
         userRole = role.name
       }
     }
   }
+
+  useEffect(() => {
+    let unsubscribe = () => {}
+
+    if (authUser && authUser.uid) {
+      unsubscribe = subscribeToUserProfileChanges(authUser.uid, userData => {
+        setUrlFoto(userData.urlFoto)
+      })
+    }
+
+    return () => unsubscribe() // Limpia la suscripción cuando el componente se desmonte
+  }, [authUser])
 
   useEffect(() => {
     if (authUser && authUser.displayName === 'No definido') {
@@ -117,7 +130,7 @@ const UserDropdown = props => {
     if (authUser && authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
       avatarContent = (
         <Avatar
-          src={authUser.urlFoto}
+          src={urlFoto}
           alt={authUser.displayName}
           sx={{
             width: 40,
