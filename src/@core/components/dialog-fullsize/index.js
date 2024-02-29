@@ -627,6 +627,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         //No trae ni agrega end/ot
       } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
         setMessage('Debes ingresar ot y fecha de término')
+      } else if ((!values.costCenter && hasChanges.costCenter) || !values.costCenter) {
+        setMessage('Debes ingresar el Centor de Costo')
+      } else if ((values.deliverable.length === 0 && hasChanges.deliverable) || values.deliverable.length === 0) {
+        setMessage('Debes ingresar seleccionar un entregable')
       } else {
         setOpenAlert(true)
       }
