@@ -878,6 +878,7 @@ const FormLayoutsSolicitud = () => {
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
+                      disableKeyboard={true} // Deshabilitar la entrada del teclado
                       label='Fecha de inicio *'
                       value={values.start}
                       onChange={date => handleChange('start')(date)}
@@ -909,6 +910,7 @@ const FormLayoutsSolicitud = () => {
                           dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                           minDate={moment().subtract(1, 'year')}
                           maxDate={moment().add(1, 'year')}
+                          disableKeyboard={true} // Deshabilitar la entrada del teclado
                           label='Fecha de término *'
                           value={values.end}
                           onChange={date => handleChange('end')(date)}
