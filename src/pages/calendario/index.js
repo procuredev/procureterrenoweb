@@ -61,7 +61,16 @@ const AppCalendar = () => {
 
   // ** Vars
   const { skin, direction } = settings
-  const { authUser, useSnapshot, getRoleData, getDomainData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
+
+  const {
+    authUser,
+    useSnapshot,
+    getRoleData,
+    getDomainData,
+    consultBlockDayInDB,
+    blockDayInDatabase,
+    subscribeToBlockDayChanges
+  } = useFirebase()
 
   // ** Hook para obtener los datos de la base de datos
   const data = useSnapshot(false, authUser)
@@ -78,6 +87,14 @@ const AppCalendar = () => {
   const [blockResult, setBlockResult] = useState([])
   const [consultationResult, setConsultationResult] = useState('')
   const [blockReason, setBlockReason] = useState('')
+
+  useEffect(() => {
+    const unsubscribe = subscribeToBlockDayChanges(setBlockResult)
+
+    return () => {
+      unsubscribe()
+    }
+  }, [])
 
   // ** Función para abrir el modal al hacer click en un evento
   const handleModalToggle = clickedEvent => {

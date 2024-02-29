@@ -911,6 +911,22 @@ const subscribeToUserProfileChanges = (userId, callback) => {
   return unsubscribe
 }
 
+const subscribeToBlockDayChanges = setBlockResult => {
+  const unsubscribe = onSnapshot(collection(db, 'diasBloqueados'), snapshot => {
+    const blockedDays = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(doc => doc.blocked)
+      .map(doc => ({
+        timestamp: parseInt(doc.id) * 1000, // Convertir id a timestamp
+        value: { blocked: doc.blocked, cause: doc.cause }
+      }))
+
+    setBlockResult(blockedDays)
+  })
+
+  return unsubscribe
+}
+
 export {
   useEvents,
   useSnapshot,
@@ -930,5 +946,6 @@ export {
   consultBluePrints,
   subscribeToPetition,
   consultOT,
-  subscribeToUserProfileChanges
+  subscribeToUserProfileChanges,
+  subscribeToBlockDayChanges
 }

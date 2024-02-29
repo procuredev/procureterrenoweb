@@ -55,7 +55,8 @@ import {
   consultBluePrints,
   subscribeToPetition,
   consultOT,
-  subscribeToUserProfileChanges
+  subscribeToUserProfileChanges,
+  subscribeToBlockDayChanges
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
@@ -146,7 +147,8 @@ const FirebaseContextProvider = props => {
     finishPetition,
     subscribeToPetition,
     consultOT,
-    subscribeToUserProfileChanges
+    subscribeToUserProfileChanges,
+    subscribeToBlockDayChanges
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
