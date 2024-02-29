@@ -1,4 +1,4 @@
-export function solicitudValidator(values) {
+export function solicitudValidator(values, role) {
   const valPlant = [
     'Planta Concentradora Los Colorados',
     'Planta Concentradora Laguna Seca | Línea 1',
@@ -482,7 +482,7 @@ export function solicitudValidator(values) {
       message: 'El Centro de Costos solo recibe campos numéricos y debe tener de 0 a 25 caracteres.'
     },
     ot: {
-      validate: value => /^\d+$/.test(value),
+      validate: value => (values.role === 5 || values.role === 7 ? /^\d+$/.test(value) : true),
       message: 'El número de OT solo debe contener dígitos numéricos.'
     },
     sap: {

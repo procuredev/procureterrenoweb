@@ -90,7 +90,8 @@ const newDoc = async (values, userParam) => {
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
-    solicitudValidator(values)
+    console.log('userParam: ', userParam)
+    solicitudValidator(values, userParam.role)
     const requestNumber = await requestCounter()
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
@@ -378,13 +379,24 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState < state.planner,
+          condition:
+            approves &&
+            !changingStartDate &&
+            !dateHasChanged &&
+            !emergencyBySupervisor &&
+            latestEvent.newState < state.planner,
           newState: state.planner,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState >= state.planner && latestEvent.newState < state.supervisor,
+          condition:
+            approves &&
+            !changingStartDate &&
+            !dateHasChanged &&
+            !emergencyBySupervisor &&
+            latestEvent.newState >= state.planner &&
+            latestEvent.newState < state.supervisor,
           newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador'
         },

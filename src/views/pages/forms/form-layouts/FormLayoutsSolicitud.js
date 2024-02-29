@@ -622,14 +622,6 @@ const FormLayoutsSolicitud = () => {
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
 
-    /*  if (errors.ot) {
-      setAlertMessage(errors.ot)
-      otRef.current.focus() // Enfoca el campo 'OT'
-      setButtonDisabled(false)
-
-      return // Salimos de la función si hay un error en 'ot'.
-    } */
-
     // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
     if (!values.deliverable.includes('Memoria de Cálculo')) {
       delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado
