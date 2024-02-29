@@ -30,16 +30,24 @@ const Home = () => {
   // ** Hooks
   const { consultDocs, consultObjetives, getUsersWithSolicitudes, consultBluePrints } = useFirebase()
 
-  const [allDocs, setAllDocs] = useState(null);
-  const [docsByPlants, setDocsByPlants] = useState(null);
-  const [docsByState, setDocsByState] = useState([0, 0, 0]);
-  const [allObjetives, setAllObjetives] = useState(null);
-  const [allBlueprintsFinished, setAllBlueprintsFinished] = useState(null);
-  const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0]);
+  const [allDocs, setAllDocs] = useState(null)
+  const [docsByPlants, setDocsByPlants] = useState(null)
+  const [docsByState, setDocsByState] = useState([0, 0, 0])
+  const [allObjetives, setAllObjetives] = useState(null)
+  const [allBlueprintsFinished, setAllBlueprintsFinished] = useState(null)
+  const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0])
   const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
   const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
-  const [objetivesByPlants, setObjetivesByPlants] = useState([{query1:0, query2:0}, {query1:0, query2:0}, {query1:0, query2:0}, {query1:0, query2:0}, {query1:0, query2:0},{query1:0, query2:0}]);
-  const [objetivesByState, setObjetivesByState] = useState([0, 0, 0]);
+
+  const [objetivesByPlants, setObjetivesByPlants] = useState([
+    { query1: 0, query2: 0 },
+    { query1: 0, query2: 0 },
+    { query1: 0, query2: 0 },
+    { query1: 0, query2: 0 },
+    { query1: 0, query2: 0 },
+    { query1: 0, query2: 0 }
+  ])
+  const [objetivesByState, setObjetivesByState] = useState([0, 0, 0])
   const [top10, setTop10] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -50,12 +58,12 @@ const Home = () => {
     'Chancado y Correas',
     'Puerto Coloso',
     'Instalaciones Cátodo'
-  ];
+  ]
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const   [
+        const [
           allDocsCount,
           allBlueprintsFinished,
           allObjCount,
@@ -77,54 +85,61 @@ const Home = () => {
           getUsersWithSolicitudes()
         ])
 
-        const [monthArray, cantArray] = lastSixMonthsObjetives.reduce((acc, item) => {
-          acc[0].push(item.month);
-          acc[1].push(item.cant);
+        const [monthArray, cantArray] = lastSixMonthsObjetives.reduce(
+          (acc, item) => {
+            acc[0].push(item.month)
+            acc[1].push(item.cant)
 
-          return acc;
-        }, [[], []]);
+            return acc
+          },
+          [[], []]
+        )
 
-        const statesDoc = [[1, 5], [6, 9], [10, 10]];
-        const statesObj = [6, [7, 8], 9];
+        const statesDoc = [
+          [1, 5],
+          [6, 9],
+          [0, 0]
+        ]
+        const statesObj = [6, [7, 8], 9]
 
         const filteredByStateDocs = statesDoc.map(([start, end]) => {
           const filteredDocs = byStateDocs.filter(doc => {
-            const state = doc.state;
+            const state = doc.state
 
-            return state >= start && state <= end;
-          });
+            return state >= start && state <= end
+          })
 
-          return filteredDocs.length;
-        });
+          return filteredDocs.length
+        })
 
         const filteredByStateObj = statesObj.map(state => {
-          let filteredDocs;
+          let filteredDocs
           if (Array.isArray(state)) {
             // Si el estado es un array, filtrar los documentos que tienen un estado que está en ese array
-            filteredDocs = byStateDocs.filter(doc => state.includes(doc.state));
+            filteredDocs = byStateDocs.filter(doc => state.includes(doc.state))
           } else {
             // Si el estado no es un array, filtrar los documentos que tienen ese estado
-            filteredDocs = byStateDocs.filter(doc => doc.state === state);
+            filteredDocs = byStateDocs.filter(doc => doc.state === state)
           }
 
-          return filteredDocs.length;
-        });
+          return filteredDocs.length
+        })
 
         setAllDocs(allDocsCount)
-        setAllObjetives(allObjCount);
-        setAllBlueprintsFinished(allBlueprintsFinished);
-        setObjetivesOfActualWeek(weekObj);
-        setObjetivesOfLastSixMonths(lastSixMonthsObjetives);
+        setAllObjetives(allObjCount)
+        setAllBlueprintsFinished(allBlueprintsFinished)
+        setObjetivesOfActualWeek(weekObj)
+        setObjetivesOfLastSixMonths(lastSixMonthsObjetives)
         setObjetivesOfLastSixMonths(cantArray)
         setMonthssOfLastSixMonths(monthArray)
-        setObjetivesByPlants(byPlantsObj);
-        setDocsByPlants(byPlantsDocs);
-        setDocsByState(filteredByStateDocs);
-        setObjetivesByState(filteredByStateObj);
+        setObjetivesByPlants(byPlantsObj)
+        setDocsByPlants(byPlantsDocs)
+        setDocsByState(filteredByStateDocs)
+        setObjetivesByState(filteredByStateObj)
         setTop10(resTop10)
-        setLoading(false);
+        setLoading(false)
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching data:', error)
       }
     }
 
@@ -133,13 +148,12 @@ const Home = () => {
 
   return (
     <Grid container spacing={6} alignItems='stretch' className='match-height' sx={{ display: 'flex' }}>
-
       <Grid item xs={12} md={12}>
         <Card>
           <CardHeader sx={{ pb: 3.25 }} title='Resumen Estadístico' titleTypographyProps={{ variant: 'h6' }} />
           <CardContent>
             <Grid container spacing={4}>
-              <Grid  item xs={12} sm={4}>
+              <Grid item xs={12} sm={4}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='primary' sx={{ mr: 4 }}>
                     <Icon icon='mdi:text-box-outline' />
@@ -183,13 +197,15 @@ const Home = () => {
         </Card>
       </Grid>
 
-
       <Grid item xs={12} sm={6} md={6}>
         <ObjetivesByDay objetivesOfActualWeek={objetivesOfActualWeek} />
       </Grid>
 
       <Grid item xs={12} sm={6} md={6}>
-        <ObjetivesByMonth objetivesOfLastSixMonths={objetivesOfLastSixMonths} monthsOfLastSixMonths={monthsOfLastSixMonths} />
+        <ObjetivesByMonth
+          objetivesOfLastSixMonths={objetivesOfLastSixMonths}
+          monthsOfLastSixMonths={monthsOfLastSixMonths}
+        />
       </Grid>
 
       <Grid item xs={12} md={6}>
@@ -197,10 +213,10 @@ const Home = () => {
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <ChartDonutObjetivesLast30days objetivesByState={objetivesByState} loading={loading}/>
+        <ChartDonutObjetivesLast30days objetivesByState={objetivesByState} loading={loading} />
       </Grid>
       <Grid item xs={12} sm={6}>
-        <ChartBarsDocsByPlants docsByPlants={docsByPlants} loading={loading}/>
+        <ChartBarsDocsByPlants docsByPlants={docsByPlants} loading={loading} />
       </Grid>
 
       <Grid item xs={12} sm={6} md={6}>
