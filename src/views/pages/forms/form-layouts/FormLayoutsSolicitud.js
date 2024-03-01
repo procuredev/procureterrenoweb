@@ -85,7 +85,23 @@ const FormLayoutsSolicitud = () => {
   const [petitioners, setPetitioners] = useState([])
   const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({})
-  const [values, setValues] = useState(initialValues)
+
+  const [values, setValues] = useState(() => {
+    const savedFormData = localStorage.getItem('formData')
+    if (savedFormData) {
+      const parsedFormData = JSON.parse(savedFormData)
+      if (parsedFormData.start) {
+        parsedFormData.start = moment(parsedFormData.start)
+      }
+      if (parsedFormData.end) {
+        parsedFormData.end = moment(parsedFormData.end)
+      }
+
+      return parsedFormData
+    }
+
+    return initialValues
+  })
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -357,6 +373,12 @@ const FormLayoutsSolicitud = () => {
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
+
+      // Si el usuario tiene role === 2, no validar el campo 'petitioner'
+      if (authUser.role === 2 && key === 'petitioner') {
+        continue
+      }
+
       // Error campos vacíos
       if (
         key !== 'fnlocation' &&
@@ -595,10 +617,11 @@ const FormLayoutsSolicitud = () => {
 
     for (const key of orderedErrorKeys) {
       // Si el key está en errorKeys, y formErrors[key] existe, y refs[key] existe...
-      if (errorKeys.includes(key) && formErrors[key] && refs[key]) {
+      if (errorKeys.includes(key) && formErrors[key] && refs[key] && refs[key].current) {
         // Establece el mensaje de alerta al error correspondiente a key
         setAlertMessage(errors[key])
         // Enfoca el elemento correspondiente a key
+        console.log('Enfocando el elemento:', key)
         refs[key].current.focus()
         // Sale del bucle: no se procesarán más keys después de encontrar el primer error
         break
@@ -627,7 +650,7 @@ const FormLayoutsSolicitud = () => {
       delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado
     }
 
-    //console.log(formErrors)
+    console.log(formErrors)
 
     if (
       Object.keys(formErrors).length === 0 &&
@@ -637,6 +660,9 @@ const FormLayoutsSolicitud = () => {
     ) {
       try {
         setIsUploading(true) // Se activa el Spinner
+
+        // Restablecer el estado del formulario a los valores iniciales...
+        localStorage.removeItem('formData')
 
         const solicitud = await newDoc(
           {
@@ -781,6 +807,45 @@ const FormLayoutsSolicitud = () => {
       }
     }
   }, [values.start])
+
+  useEffect(() => {
+    const formDataToSave = { ...values }
+    if (formDataToSave.start) {
+      formDataToSave.start = formDataToSave.start.format()
+    }
+    if (formDataToSave.end) {
+      formDataToSave.end = formDataToSave.end.format()
+    }
+
+    // Guardar los datos del formulario junto con la marca de tiempo actual
+    const dataToStore = {
+      formData: formDataToSave,
+      timestamp: new Date().getTime() // Marca de tiempo en milisegundos
+    }
+    localStorage.setItem('formData', JSON.stringify(dataToStore))
+  }, [values])
+
+  useEffect(() => {
+    const savedFormData = localStorage.getItem('formData')
+    if (savedFormData) {
+      const { formData, timestamp } = JSON.parse(savedData)
+      const currentTime = new Date().getTime()
+
+      // Verificar si han pasado 24 horas (24 * 60 * 60 * 1000 milisegundos)
+      if (currentTime - timestamp < 24 * 60 * 60 * 1000) {
+        if (formData.start) {
+          formData.start = moment(formData.start)
+        }
+        if (formData.end) {
+          formData.end = moment(formData.end)
+        }
+        setValues(formData)
+      } else {
+        // Limpiar localStorage si han pasado 24 horas
+        localStorage.removeItem('formData')
+      }
+    }
+  }, [])
 
   return (
     <Card>
