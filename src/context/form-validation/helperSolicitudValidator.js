@@ -603,7 +603,9 @@ export function solicitudValidator(values, role) {
       'ot',
       'urgency',
       'mcDescription',
-      'costCenter'
+      'costCenter',
+      // Agrega 'petitioner' a la lista de campos no requeridos si el usuario tiene role === 2
+      ...(role === 2 ? ['petitioner'] : [])
     ]
 
     if (typeof values[key] === 'string' && !nonRequiredFields.includes(key)) {
