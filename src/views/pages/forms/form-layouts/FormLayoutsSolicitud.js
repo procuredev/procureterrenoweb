@@ -1,12 +1,11 @@
-import 'moment/locale/es'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import moment from 'moment-timezone'
-import { Fragment, useState, useEffect, useRef } from 'react'
+import 'moment/locale/es'
 import { useRouter } from 'next/router'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
 import {
   Box,
   Button,
@@ -24,21 +23,21 @@ import {
   List,
   Typography
 } from '@mui/material'
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 
 // ** Custom Components
-import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
+import Icon from 'src/@core/components/icon'
 
 import {
-  CustomTextField,
-  CustomSelect,
   CustomAutocomplete,
-  StyledInfoIcon,
-  StyledTooltip,
+  CustomSelect,
+  CustomTextField,
+  FileList,
   HeadingTypography,
-  FileList
+  StyledInfoIcon,
+  StyledTooltip
 } from 'src/@core/components/custom-form/index'
-import { set } from 'lodash'
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -900,27 +899,26 @@ const FormLayoutsSolicitud = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             {/* Número de OT Procure*/}
-            {authUser.role === 5 ||
-              (authUser.role === 7 && (
-                <>
-                  <CustomTextField
-                    inputRef={otRef}
-                    type='text'
-                    required
-                    label='OT'
-                    value={values.ot}
-                    onChange={handleChange('ot')}
-                    error={errors.ot}
-                    inputProps={{ maxLength: 5 }}
-                    autoComplete='off'
-                    onInput={e => {
-                      e.target.value = e.target.value.replace(/[^0-9]/g, '')
-                    }}
-                    helper='Ingresa el número de OT.'
-                    onBlur={handleBlurOt}
-                  />
-                </>
-              ))}
+            {(authUser.role === 5 || authUser.role === 7) && (
+              <>
+                <CustomTextField
+                  inputRef={otRef}
+                  type='text'
+                  required
+                  label='OT'
+                  value={values.ot}
+                  onChange={handleChange('ot')}
+                  error={errors.ot}
+                  inputProps={{ maxLength: 5 }}
+                  autoComplete='off'
+                  onInput={e => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '')
+                  }}
+                  helper='Ingresa el número de OT.'
+                  onBlur={handleBlurOt}
+                />
+              </>
+            )}
 
             {/* Tipo de Urgencia */}
             {authUser.role === 7 && (
@@ -995,37 +993,36 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Fecha finalización */}
-            {authUser.role === 5 ||
-              (authUser.role === 7 && (
-                <Grid item xs={12}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-                      <Box display='flex' alignItems='center'>
-                        <DatePicker
-                          inputRef={endRef}
-                          dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                          minDate={moment().subtract(1, 'year')}
-                          maxDate={moment().add(1, 'year')}
-                          disableKeyboard={true} // Deshabilitar la entrada del teclado
-                          label='Fecha de término *'
-                          value={values.end}
-                          onChange={date => handleChange('end')(date)}
-                          InputLabelProps={{ shrink: true, required: true }}
-                          slotProps={{
-                            textField: {
-                              error: errors.end ? true : false,
-                              helperText: errors.end
-                            }
-                          }}
-                        />
-                        <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
-                          <StyledInfoIcon color='action' />
-                        </StyledTooltip>
-                      </Box>
-                    </LocalizationProvider>
-                  </FormControl>
-                </Grid>
-              ))}
+            {(authUser.role === 5 || authUser.role === 7) && (
+              <Grid item xs={12}>
+                <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                    <Box display='flex' alignItems='center'>
+                      <DatePicker
+                        inputRef={endRef}
+                        dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                        minDate={moment().subtract(1, 'year')}
+                        maxDate={moment().add(1, 'year')}
+                        disableKeyboard={true} // Deshabilitar la entrada del teclado
+                        label='Fecha de término *'
+                        value={values.end}
+                        onChange={date => handleChange('end')(date)}
+                        InputLabelProps={{ shrink: true, required: true }}
+                        slotProps={{
+                          textField: {
+                            error: errors.end ? true : false,
+                            helperText: errors.end
+                          }
+                        }}
+                      />
+                      <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
+                        <StyledInfoIcon color='action' />
+                      </StyledTooltip>
+                    </Box>
+                  </LocalizationProvider>
+                </FormControl>
+              </Grid>
+            )}
 
             {/* Planta */}
             <CustomSelect
