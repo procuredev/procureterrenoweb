@@ -4,7 +4,7 @@ import 'moment/locale/es'
 
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { DatePicker, MobileDatePicker } from '@mui/x-date-pickers'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import {
@@ -209,13 +209,14 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-              <DatePicker
+              <MobileDatePicker
                 dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                 minDate={customMinDate || moment().subtract(1, 'year')}
                 maxDate={moment().add(1, 'year')}
                 label={label}
                 value={value}
                 onChange={onChange}
+                inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
                 slotProps={{
                   textField: {
                     size: 'small',
@@ -1047,6 +1048,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <DateListItem
                   editable={editable && roleData && roleData.canEditStart}
+                  disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Inicio'
                   id='start'
                   value={values.start}
@@ -1055,6 +1057,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <DateListItem
                   editable={editable && roleData && roleData.canEditEnd}
+                  disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Término'
                   id='end'
                   value={values.end}
