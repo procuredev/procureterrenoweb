@@ -620,7 +620,9 @@ export function solicitudValidator(values, role) {
     }
 
     if (
-      !['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'ot', 'mcDescription'].includes(key) &&
+      !['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'ot', 'mcDescription', 'timestamp'].includes(
+        key
+      ) &&
       typeof values[key] !== 'string'
     ) {
       console.log(`El campo ${key} debe ser en formato texto.`)
