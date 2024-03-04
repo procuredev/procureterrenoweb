@@ -6,7 +6,6 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
 
-import { LocalizationProvider, DatePicker, MobileDatePicker } from '@mui/x-date-pickers'
 import {
   Box,
   Button,
@@ -22,9 +21,9 @@ import {
   Grid,
   Link,
   List,
-  Typography,
-  TextField
+  Typography
 } from '@mui/material'
+import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 
 // ** Custom Components
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
@@ -994,37 +993,36 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Fecha finalización */}
-            {authUser.role === 5 ||
-              (authUser.role === 7 && (
-                <Grid item xs={12}>
-                  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-                      <Box display='flex' alignItems='center'>
-                        <MobileDatePicker
-                          inputRef={endRef}
-                          dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                          minDate={moment().subtract(1, 'year')}
-                          maxDate={moment().add(1, 'year')}
-                          label='Fecha de término *'
-                          value={values.end}
-                          onChange={date => handleChange('end')(date)}
-                          inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
-                          InputLabelProps={{ shrink: true, required: true }}
-                          slotProps={{
-                            textField: {
-                              error: errors.end ? true : false,
-                              helperText: errors.end
-                            }
-                          }}
-                        />
-                        <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
-                          <StyledInfoIcon color='action' />
-                        </StyledTooltip>
-                      </Box>
-                    </LocalizationProvider>
-                  </FormControl>
-                </Grid>
-              ))}
+            {(authUser.role === 5 || authUser.role === 7) && (
+              <Grid item xs={12}>
+                <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                    <Box display='flex' alignItems='center'>
+                      <MobileDatePicker
+                        inputRef={endRef}
+                        dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
+                        minDate={moment().subtract(1, 'year')}
+                        maxDate={moment().add(1, 'year')}
+                        label='Fecha de término *'
+                        value={values.end}
+                        onChange={date => handleChange('end')(date)}
+                        inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
+                        InputLabelProps={{ shrink: true, required: true }}
+                        slotProps={{
+                          textField: {
+                            error: errors.end ? true : false,
+                            helperText: errors.end
+                          }
+                        }}
+                      />
+                      <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
+                        <StyledInfoIcon color='action' />
+                      </StyledTooltip>
+                    </Box>
+                  </LocalizationProvider>
+                </FormControl>
+              </Grid>
+            )}
 
             {/* Planta */}
             <CustomSelect
