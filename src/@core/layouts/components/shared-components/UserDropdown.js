@@ -73,28 +73,6 @@ const UserDropdown = props => {
       })
   }
 
-  // // Se inicializan las variables que serán usadas en el menú desplegable
-  // let userEmail // variable que almacena el e-mail del usuario conectado
-  // let userRole // variable que almacena el rol del usuario conectado
-
-  // // Si no hay un usuario conectado
-  // if (!authUser) {
-  //   // Las variables serán definidas como 'not logged' para evitar problemas de renderizado
-  //   userEmail = 'not logged'
-  //   userRole = 'not Logged'
-  // } else {
-  //   // Pero si hay un usuario conectado, se definirán las variables
-
-  //   userEmail = authUser.email
-
-  //   if (domainRoles){
-  //     const role = domainRoles[authUser.role]
-  //     if (role){
-  //       userRole = role.name
-  //     }
-  //   }
-  // }
-
   useEffect(() => {
     let unsubscribe = () => {}
 
@@ -108,15 +86,6 @@ const UserDropdown = props => {
   }, [authUser])
 
   useEffect(() => {
-    // if (authUser && authUser.displayName === 'No definido') {
-    //   setUserName('Por definir')
-    // } else if (authUser && !authUser.displayName) {
-    //   setUserName('Por definir')
-    // } else if (authUser && authUser.displayName && authUser.displayName !== '') {
-    //   setUserName(authUser.displayName)
-    // } else {
-    //   setUserName('Por definir')
-    // }
     let thisName
     let thisEmail
     let thisRole
@@ -155,23 +124,6 @@ const UserDropdown = props => {
 
     setUserObject({ name: thisName, email: thisEmail, role: thisRole })
   }, [authUser.role, domainRoles])
-
-  // useEffect(() => {
-  //   let thisFoto
-
-  //   if (authUser) {
-  //     // Caso para la foto
-  //     if (authUser.urlFoto && authUser.urlFoto !== 'No definido' && authUser.urlFoto !== '') {
-  //       thisFoto = authUser.urlFoto
-  //     } else {
-  //       thisFoto = 'Por definir'
-  //     }
-  //   } else {
-  //     thisFoto = 'Por definir'
-  //   }
-
-  //   setUrlFoto(thisFoto)
-  // }, [authUser.urlFoto])
 
   const renderUserAvatar = () => {
     let avatarContent
