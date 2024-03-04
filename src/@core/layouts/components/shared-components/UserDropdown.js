@@ -26,7 +26,7 @@ const UserDropdown = props => {
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
   const [userObject, setUserObject] = useState({ name: '', email: '', role: '' })
-  const [userFoto, setUserFoto] = useState('')
+  const [urlFoto, setUrlFoto] = useState('')
 
   // ** Hooks
   const router = useRouter()
@@ -96,6 +96,18 @@ const UserDropdown = props => {
   // }
 
   useEffect(() => {
+    let unsubscribe = () => {}
+
+    if (authUser && authUser.uid) {
+      unsubscribe = subscribeToUserProfileChanges(authUser.uid, userData => {
+        setUrlFoto(userData.urlFoto)
+      })
+    }
+
+    return () => unsubscribe() // Limpia la suscripción cuando el componente se desmonte
+  }, [authUser])
+
+  useEffect(() => {
     // if (authUser && authUser.displayName === 'No definido') {
     //   setUserName('Por definir')
     // } else if (authUser && !authUser.displayName) {
@@ -144,30 +156,30 @@ const UserDropdown = props => {
     setUserObject({ name: thisName, email: thisEmail, role: thisRole })
   }, [authUser.role, domainRoles])
 
-  useEffect(() => {
-    let thisFoto
+  // useEffect(() => {
+  //   let thisFoto
 
-    if (authUser) {
-      // Caso para la foto
-      if (authUser.urlFoto && authUser.urlFoto !== 'No definido' && authUser.urlFoto !== '') {
-        thisFoto = authUser.urlFoto
-      } else {
-        thisFoto = 'Por definir'
-      }
-    } else {
-      thisFoto = 'Por definir'
-    }
+  //   if (authUser) {
+  //     // Caso para la foto
+  //     if (authUser.urlFoto && authUser.urlFoto !== 'No definido' && authUser.urlFoto !== '') {
+  //       thisFoto = authUser.urlFoto
+  //     } else {
+  //       thisFoto = 'Por definir'
+  //     }
+  //   } else {
+  //     thisFoto = 'Por definir'
+  //   }
 
-    setUserFoto(thisFoto)
-  }, [authUser.urlFoto])
+  //   setUrlFoto(thisFoto)
+  // }, [authUser.urlFoto])
 
   const renderUserAvatar = () => {
     let avatarContent
 
-    if (userFoto && userFoto !== 'Por definir') {
+    if (urlFoto && urlFoto !== 'Por definir') {
       avatarContent = (
         <Avatar
-          src={userFoto}
+          src={urlFoto}
           alt={userObject.name}
           sx={{
             width: 40,
