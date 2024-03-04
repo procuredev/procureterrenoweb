@@ -341,11 +341,11 @@ const FormLayoutsSolicitud = () => {
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    ot: /[^\s0-9 \"]/, // /[^0-9]/g
-    tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    costCenter: /[^\s0-9 \"]/ // /[^0-9]/g
+    sap: /[^\s0-9]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    fnlocation: /[^\s0-9]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    ot: /[^\s0-9]/, // /[^0-9]/g
+    tag: /[^\s0-9]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    costCenter: /[^\s0-9]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
@@ -393,6 +393,10 @@ const FormLayoutsSolicitud = () => {
         }
       } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
         newErrors[key] = 'Por favor, especifica una opción válida'
+      }
+
+      if (key === 'costCenter' && values[key] === 0) {
+        newErrors[key] = 'El campo Centyro de Costo no puede ser cero.'
       }
 
       if (key === 'objective') {
@@ -716,7 +720,14 @@ const FormLayoutsSolicitud = () => {
 
   const fetchData = async () => {
     try {
-      const contOpOptions = await getUserData('getUsers', values.plant)
+      let contOpOptions = await getUserData('getUsers', values.plant)
+
+      if (contOpOptions.length === 1) {
+        setValues(prevValues => ({
+          ...prevValues,
+          contop: contOpOptions[0].name
+        }))
+      }
       setContOpOptions(contOpOptions)
 
       const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
@@ -819,7 +830,7 @@ const FormLayoutsSolicitud = () => {
 
     // Guardar los datos del formulario junto con la marca de tiempo actual
     const dataToStore = {
-      formData: formDataToSave,
+      ...formDataToSave,
       timestamp: new Date().getTime() // Marca de tiempo en milisegundos
     }
     localStorage.setItem('formData', JSON.stringify(dataToStore))
@@ -828,7 +839,7 @@ const FormLayoutsSolicitud = () => {
   useEffect(() => {
     const savedFormData = localStorage.getItem('formData')
     if (savedFormData) {
-      const { formData, timestamp } = JSON.parse(savedData)
+      /* const { formData, timestamp } = JSON.parse(savedFormData)
       const currentTime = new Date().getTime()
 
       // Verificar si han pasado 24 horas (24 * 60 * 60 * 1000 milisegundos)
@@ -840,6 +851,22 @@ const FormLayoutsSolicitud = () => {
           formData.end = moment(formData.end)
         }
         setValues(formData)
+      } else {
+        // Limpiar localStorage si han pasado 24 horas
+        localStorage.removeItem('formData')
+      } */
+      const parsedData = JSON.parse(savedFormData)
+      const currentTime = new Date().getTime()
+
+      if (currentTime - parsedData.timestamp < 24 * 60 * 60 * 1000) {
+        if (parsedData.start) {
+          parsedData.start = moment(parsedData.start)
+        }
+        if (parsedData.end) {
+          parsedData.end = moment(parsedData.end)
+        }
+        // Establecemos los valores directamente sin incluir una propiedad formData.
+        setValues(parsedData)
       } else {
         // Limpiar localStorage si han pasado 24 horas
         localStorage.removeItem('formData')
@@ -885,6 +912,10 @@ const FormLayoutsSolicitud = () => {
                     onChange={handleChange('ot')}
                     error={errors.ot}
                     inputProps={{ maxLength: 5 }}
+                    autoComplete='off'
+                    onInput={e => {
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '')
+                    }}
                     helper='Ingresa el número de OT.'
                     onBlur={handleBlurOt}
                   />
@@ -1040,12 +1071,14 @@ const FormLayoutsSolicitud = () => {
             <CustomSelect
               inputRef={contopRef}
               required
-              options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
+              options={
+                authUser.role === 3 && contOpOptions?.length < 2 ? [{ name: authUser.displayName }] : contOpOptions
+              }
               label='Contract Operator'
               value={values.contop}
               onChange={handleChange('contop')}
               error={errors.contop}
-              disabled={authUser.role === 3 || contOpOptions?.length < 2}
+              disabled={(authUser.role === 3 && contOpOptions?.length < 2) || contOpOptions?.length < 2}
               helper={
                 contOpOptions?.length < 2
                   ? 'Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
@@ -1063,6 +1096,10 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('costCenter')}
               error={errors.costCenter}
               inputProps={{ maxLength: 25 }}
+              autoComplete='off'
+              onInput={e => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+              }}
               helper='Ingresa el código del Centro de Costos.'
             />
 
@@ -1074,6 +1111,10 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('fnlocation')}
               error={errors.fnlocation}
               inputProps={{ maxLength: 25 }}
+              autoComplete='off'
+              onInput={e => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+              }}
               helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
             />
 
@@ -1085,6 +1126,10 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('tag')}
               error={errors.tag}
               inputProps={{ maxLength: 25 }}
+              autoComplete='off'
+              onInput={e => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+              }}
               helper='Ingresa el código TAG para identificar el equipo.'
             />
 
@@ -1176,7 +1221,7 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
             />
 
-            {values.deliverable.includes('Memoria de Cálculo') && (
+            {values.deliverable?.includes('Memoria de Cálculo') && (
               <>
                 {/* Descripción */}
                 <CustomTextField
