@@ -325,7 +325,7 @@ const dateWithDocs = async date => {
   const allDocs = []
 
   //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
-  const q = query(collection(db, 'solicitudes'), where('start', '==', new Timestamp(date, 0)))
+  const q = query(collection(db, 'solicitudes'), where('start', '==', new Timestamp(date, 0)), where('state', '!=', 0))
   const querySnapshot = await getDocs(q)
   querySnapshot.forEach(doc => {
     // doc.data() is never undefined for query doc snapshots
