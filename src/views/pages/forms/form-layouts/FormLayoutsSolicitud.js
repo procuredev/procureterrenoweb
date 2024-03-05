@@ -743,44 +743,56 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const getFixedUsers = async contop => {
+  // Función que obtiene los usuarios fijos (Contract Owner y el Contract Operator Seleccionado)
+  const getFixedUsers = async () => {
     try {
-      const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
-        getUserData('getUsersByRole', null, { role: 3 }),
-        getUserData('getUsersByRole', null, { role: 4 }),
-        getUserData('getReceiverUsers', values.plant)
+      // Obtiene los usuarios con roles específicos asociados a una planta
+      const [contractOperatorUsers, contractOwnerUser, plantUsers] = await Promise.all([
+        getUserData('getUsersByRole', null, { role: 3 }), // Obtener usuarios con el rol de Contract Operator
+        getUserData('getUsersByRole', null, { role: 4 }), // Obtener usuarios con el rol de Contract Owner
+        getUserData('getReceiverUsers', values.plant) // Obtener usuarios que no son ni Contract Owner ni Contract Operator
       ])
 
-      const filterNames = []
+      const filterNames = [] // Array para almacenar los nombres de los usuarios filtrados
 
-      const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
+      // Combinar los usuarios obtenidos en un único array de Destinatarios
+      const receiverGroup = [...contractOperatorUsers, ...contractOwnerUser, ...plantUsers]
 
-      const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
+      let fixedOptions = [] // Array para almacenar los Destinatarios fijos
 
-      const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
-
-      let fixedOptions = []
-
-      if (contop) {
-        fixedOptions.push({ ...contop, disabled: true })
+      // Buscar y añadir el Contract Operator seleccionado a las opciones fijas
+      const matchingContop = contractOperatorUsers.find(option => option.name === values.contop)
+      if (matchingContop) {
+        fixedOptions.push({ ...matchingContop, disabled: true }) // Añadir el Contract Operator seleccionado con la propiedad 'disabled'
       }
 
-      if (contOwnUser) {
-        fixedOptions.push({ ...contOwnUser[0], disabled: true })
+      // Añadir el Contract Owner a las opciones fijas si está presente
+      if (contractOwnerUser) {
+        fixedOptions.push({ ...contractOwnerUser[0], disabled: true }) // Añadir el Contract Owner con la propiedad 'disabled'
       }
+
+      // Establecer las opciones fijas en el estado
       setFixed(fixedOptions)
-      setValues(values => ({ ...values, ...(contop && { contop: contop.name }), receiver: [...fixedOptions] }))
-      setAllUsers(receiverFilter.concat(petitionerUsers))
+
+      // Actualizar los valores del estado, estableciendo el Contract Operator seleccionado y Contract Owner como opciones fijas
+      setValues(values => ({
+        ...values,
+        ...(matchingContop && { contop: matchingContop.name }), // Actualizar el valor de 'contop' si se ha encontrado un Contract Operator coincidente
+        receiver: [...fixedOptions] // Establecer los receptores como opciones fijas
+      }))
+
+      // Establecer todos los usuarios disponibles (receptores y peticionarios) en el estado
+      setAllUsers(receiverGroup)
     } catch (error) {
-      console.error('Error al obtener datos de usuarios:', error)
+      console.error('Error al obtener datos de usuarios:', error) // Manejar errores
     }
   }
 
   useEffect(() => {
     if (values.plant) {
-      fetchData().then(contOpValue => getFixedUsers(contOpValue))
+      fetchData().then(getFixedUsers())
     }
-  }, [values.plant])
+  }, [values.plant, values.contop])
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
