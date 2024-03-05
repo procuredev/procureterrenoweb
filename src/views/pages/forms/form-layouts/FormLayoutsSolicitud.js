@@ -351,7 +351,7 @@ const FormLayoutsSolicitud = () => {
     const trimmedValues = {}
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
-    const shouldValidateOT = authUser.role === 7 // validar 'ot' si el usuario tiene el rol 7.
+    const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
 
     const fieldLabels = {
       ot: 'OT',
