@@ -682,7 +682,9 @@ const FormLayoutsSolicitud = () => {
             }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
             end:
-              authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
+              authUser.role === 5 || authUser.role === 7
+                ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
+                : null,
             mcDescription: values.mcDescription ? values.mcDescription : null
           },
           authUser
