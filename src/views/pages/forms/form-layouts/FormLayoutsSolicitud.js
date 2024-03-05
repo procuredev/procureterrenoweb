@@ -990,7 +990,11 @@ const FormLayoutsSolicitud = () => {
                 <LocalizationProvider
                   dateAdapter={AdapterMoment}
                   adapterLocale='es'
-                  localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                  localeText={{
+                    okButtonLabel: 'Aceptar',
+                    cancelButtonLabel: 'Cancelar',
+                    datePickerToolbarTitle: 'Selecciona Fecha de Comienzo'
+                  }}
                 >
                   <Box display='flex' alignItems='center'>
                     <MobileDatePicker
@@ -1007,7 +1011,7 @@ const FormLayoutsSolicitud = () => {
                           error: errors.start ? true : false,
                           helperText: errors.start
                         },
-                        toolbar: { hidden: true }
+                        toolbar: { hidden: false }
                       }}
                     />
                     <StyledTooltip title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
@@ -1025,7 +1029,11 @@ const FormLayoutsSolicitud = () => {
                   <LocalizationProvider
                     dateAdapter={AdapterMoment}
                     adapterLocale='es'
-                    localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                    localeText={{
+                      okButtonLabel: 'Aceptar',
+                      cancelButtonLabel: 'Cancelar',
+                      datePickerToolbarTitle: 'Selecciona Fecha de Término'
+                    }}
                   >
                     <Box display='flex' alignItems='center'>
                       <MobileDatePicker
@@ -1043,7 +1051,7 @@ const FormLayoutsSolicitud = () => {
                             error: errors.end ? true : false,
                             helperText: errors.end
                           },
-                          toolbar: { hidden: true }
+                          toolbar: { hidden: false }
                         }}
                       />
                       <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>

@@ -207,7 +207,11 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
             <LocalizationProvider
               dateAdapter={AdapterMoment}
               adapterLocale='es'
-              localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+              localeText={{
+                okButtonLabel: 'Aceptar',
+                cancelButtonLabel: 'Cancelar',
+                datePickerToolbarTitle: 'Selecciona Fecha'
+              }}
             >
               <MobileDatePicker
                 dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
@@ -224,7 +228,7 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
                     variant: 'standard',
                     fullWidth: true
                   },
-                  toolbar: { hidden: true }
+                  toolbar: { hidden: false }
                 }}
               />
             </LocalizationProvider>

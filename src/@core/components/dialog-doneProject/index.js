@@ -220,7 +220,11 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                 <LocalizationProvider
                   dateAdapter={AdapterMoment}
                   adapterLocale='es'
-                  localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                  localeText={{
+                    okButtonLabel: 'Aceptar',
+                    cancelButtonLabel: 'Cancelar',
+                    dateTimePickerToolbarTitle: 'Selecciona Fecha y Hora'
+                  }}
                 >
                   <Box display='flex' alignItems='center'>
                     <MobileDateTimePicker
@@ -232,7 +236,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       onChange={handleDateChangeWrapper('start')}
                       InputLabelProps={{ shrink: true, required: true }}
                       viewRenderers={{ minutes: null }}
-                      slotProps={{ toolbar: { hidden: true } }}
+                      slotProps={{ toolbar: { hidden: false } }}
                     />
                   </Box>
                 </LocalizationProvider>
@@ -243,7 +247,11 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                 <LocalizationProvider
                   dateAdapter={AdapterMoment}
                   adapterLocale='es'
-                  localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                  localeText={{
+                    okButtonLabel: 'Aceptar',
+                    cancelButtonLabel: 'Cancelar',
+                    dateTimePickerToolbarTitle: 'Selecciona Fecha y Hora'
+                  }}
                 >
                   <Box display='flex' alignItems='center'>
                     <MobileDateTimePicker
@@ -255,7 +263,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       onChange={handleDateChangeWrapper('end')}
                       InputLabelProps={{ shrink: true, required: true }}
                       viewRenderers={{ minutes: null }}
-                      slotProps={{ toolbar: { hidden: true } }}
+                      slotProps={{ toolbar: { hidden: false } }}
                     />
                   </Box>
                 </LocalizationProvider>
