@@ -374,9 +374,9 @@ const FormLayoutsSolicitud = () => {
       const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
 
       // Si el usuario tiene role === 2, no validar el campo 'petitioner'
-      if (authUser.role === 2 && key === 'petitioner') {
-        continue
-      }
+      // if (authUser.role === 2 && key === 'petitioner') {
+      //   continue
+      // }
 
       // Error campos vacíos
       if (
