@@ -719,27 +719,35 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  // Función asíncrona para buscar la información de los Contract Operator y Solicitantes de la Planta indicada
   const fetchData = async () => {
     try {
-      let contOpOptions = await getUserData('getUsers', values.plant)
+      // Obtener opciones de Contract Operator y Solicitantes simultáneamente
+      const [contOpOptions, petitioners] = await Promise.all([
+        getUserData('getUsers', values.plant),
+        getUserData('getPetitioner', values.plant, { role: authUser.role })
+      ])
 
-      if (contOpOptions.length === 1) {
+      // Si solo hay una opción de Contract Operator y tiene nombre, establecerla automáticamente en los valores que serán almacenados en Firestore
+      if (contOpOptions.length === 1 && contOpOptions[0].name) {
         setValues(prevValues => ({
           ...prevValues,
-          contop: contOpOptions[0].name
+          contop: contOpOptions[0].name // Establecer automáticamente el Contract Operator seleccionado
         }))
       }
-      setContOpOptions(contOpOptions)
 
-      const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
+      setContOpOptions(contOpOptions) // Establecer las opciones de Contract Operator en la lista desplegable del formulario
+
+      // Filtrar los Solicitantes para incluir solo aquellos con roles 2 y 3 (para que no aparezcan ni Contract Owner ni usuarios Procure)
       const filteredPetitioners = petitioners.filter(user => user.role == 2 || user.role == 3)
-      setPetitioners(filteredPetitioners)
+      setPetitioners(filteredPetitioners) // Establecer los Solicitantes filtrados
 
-      if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
-        return contOpOptions[0]
+      // Si solo hay una opción de Contract Operator y tiene un nombre, devolver esa opción
+      if (contOpOptions.length === 1 && contOpOptions[0].name) {
+        return contOpOptions[0] // Devolver la única opción de Contract Operator disponible
       }
     } catch (error) {
-      console.error('Error en la petición:', error)
+      console.error('Error en la petición:', error) // Manejar errores
     }
   }
 
@@ -752,8 +760,6 @@ const FormLayoutsSolicitud = () => {
         getUserData('getUsersByRole', null, { role: 4 }), // Obtener usuarios con el rol de Contract Owner
         getUserData('getReceiverUsers', values.plant) // Obtener usuarios que no son ni Contract Owner ni Contract Operator
       ])
-
-      const filterNames = [] // Array para almacenar los nombres de los usuarios filtrados
 
       // Combinar los usuarios obtenidos en un único array de Destinatarios
       const receiverGroup = [...contractOperatorUsers, ...contractOwnerUser, ...plantUsers]
