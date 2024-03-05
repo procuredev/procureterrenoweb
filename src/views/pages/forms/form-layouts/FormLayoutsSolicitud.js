@@ -788,6 +788,7 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  // useEffect para ejecutar las funciones fetchData y luego getFixedUsers, cuando hay cambios en Planta o en Contract Opetaror.
   useEffect(() => {
     if (values.plant) {
       fetchData().then(getFixedUsers())
