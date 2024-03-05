@@ -951,7 +951,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 )}
 
                 {(authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner) ||
-                row.sentBySupervisor ? (
+                (authUser.role === 9 && row.approvedByDocumentaryControl && row.sentBySupervisor) ? (
                   <IconButton
                     sx={{
                       my: 'auto',
