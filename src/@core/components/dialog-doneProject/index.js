@@ -1,17 +1,17 @@
 // ** React Imports
-import { useState, forwardRef, useEffect } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import Dialog from '@mui/material/Dialog'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Fade from '@mui/material/Fade'
-import DialogContent from '@mui/material/DialogContent'
 import EngineeringIcon from '@mui/icons-material/Engineering'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import Fade from '@mui/material/Fade'
 import FormControl from '@mui/material/FormControl'
+import IconButton from '@mui/material/IconButton'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker'
@@ -25,8 +25,8 @@ import 'moment/locale/es'
 import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
-import { useFirebase } from 'src/context/useFirebase'
 import { CircularProgress } from '@mui/material'
+import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -217,7 +217,11 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <LocalizationProvider
+                  dateAdapter={AdapterMoment}
+                  adapterLocale='es'
+                  localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                >
                   <Box display='flex' alignItems='center'>
                     <MobileDateTimePicker
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
@@ -228,6 +232,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       onChange={handleDateChangeWrapper('start')}
                       InputLabelProps={{ shrink: true, required: true }}
                       viewRenderers={{ minutes: null }}
+                      slotProps={{ toolbar: { hidden: true } }}
                     />
                   </Box>
                 </LocalizationProvider>
@@ -235,7 +240,11 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
             </Box>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <LocalizationProvider
+                  dateAdapter={AdapterMoment}
+                  adapterLocale='es'
+                  localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                >
                   <Box display='flex' alignItems='center'>
                     <MobileDateTimePicker
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
@@ -246,6 +255,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                       onChange={handleDateChangeWrapper('end')}
                       InputLabelProps={{ shrink: true, required: true }}
                       viewRenderers={{ minutes: null }}
+                      slotProps={{ toolbar: { hidden: true } }}
                     />
                   </Box>
                 </LocalizationProvider>

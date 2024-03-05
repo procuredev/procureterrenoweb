@@ -1,61 +1,57 @@
-import React, { Fragment, useState, useEffect } from 'react'
 import moment from 'moment-timezone'
 import 'moment/locale/es'
+import React, { Fragment, useEffect, useState } from 'react'
 
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { useTheme } from '@mui/material/styles'
-import { DatePicker, MobileDatePicker } from '@mui/x-date-pickers'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import {
-  Button,
-  Paper,
+  Autocomplete,
   Box,
-  TextField,
-  FormControl,
+  Button,
   Chip,
-  IconButton,
-  Typography,
-  Slide,
-  Skeleton,
-  List,
-  ListItem,
-  Link,
-  Grid,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogContentText,
-  DialogActions,
   DialogTitle,
-  Tooltip,
-  MenuItem,
+  FormControl,
+  Grid,
+  IconButton,
   InputLabel,
+  Link,
+  List,
+  ListItem,
+  MenuItem,
+  Paper,
   Select,
-  Autocomplete
+  Skeleton,
+  Slide,
+  TextField,
+  Typography
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { MobileDatePicker } from '@mui/x-date-pickers'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 
 import {
   Timeline,
-  TimelineItem,
-  TimelineSeparator,
   TimelineConnector,
   TimelineContent,
   TimelineDot,
+  TimelineItem,
   TimelineOppositeContent,
+  TimelineSeparator,
   timelineOppositeContentClasses
 } from '@mui/lab'
 
-import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
-import Icon from 'src/@core/components/icon'
-import DialogErrorFile from 'src/@core/components/dialog-errorFile'
+import { ChevronLeft, ChevronRight, Close, Download, Edit } from '@mui/icons-material'
+import { useDropzone } from 'react-dropzone'
 import DialogErrorOt from 'src/@core/components/dialog-error-ot'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
+import Icon from 'src/@core/components/icon'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-import { useDropzone } from 'react-dropzone'
-import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
-import { object } from 'yup'
-import { set } from 'lodash'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -208,7 +204,11 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
-            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+            <LocalizationProvider
+              dateAdapter={AdapterMoment}
+              adapterLocale='es'
+              localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+            >
               <MobileDatePicker
                 dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                 minDate={customMinDate || moment().subtract(1, 'year')}
@@ -223,7 +223,8 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
                     required: true,
                     variant: 'standard',
                     fullWidth: true
-                  }
+                  },
+                  toolbar: { hidden: true }
                 }}
               />
             </LocalizationProvider>

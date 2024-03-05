@@ -987,7 +987,11 @@ const FormLayoutsSolicitud = () => {
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <LocalizationProvider
+                  dateAdapter={AdapterMoment}
+                  adapterLocale='es'
+                  localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                >
                   <Box display='flex' alignItems='center'>
                     <MobileDatePicker
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
@@ -1002,7 +1006,8 @@ const FormLayoutsSolicitud = () => {
                         textField: {
                           error: errors.start ? true : false,
                           helperText: errors.start
-                        }
+                        },
+                        toolbar: { hidden: true }
                       }}
                     />
                     <StyledTooltip title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
@@ -1017,7 +1022,11 @@ const FormLayoutsSolicitud = () => {
             {(authUser.role === 5 || authUser.role === 7) && (
               <Grid item xs={12}>
                 <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                  <LocalizationProvider
+                    dateAdapter={AdapterMoment}
+                    adapterLocale='es'
+                    localeText={{ okButtonLabel: 'Aceptar', cancelButtonLabel: 'Cancelar' }}
+                  >
                     <Box display='flex' alignItems='center'>
                       <MobileDatePicker
                         inputRef={endRef}
@@ -1033,7 +1042,8 @@ const FormLayoutsSolicitud = () => {
                           textField: {
                             error: errors.end ? true : false,
                             helperText: errors.end
-                          }
+                          },
+                          toolbar: { hidden: true }
                         }}
                       />
                       <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
