@@ -404,6 +404,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [areasArray, setAreasArray] = useState([])
   const [errorOT, setErrorOT] = useState(false)
   const [errorOtMesage, setErrorOtMesage] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -432,7 +433,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     addComment,
     getDomainData,
     domainDictionary,
-    consultOT
+    consultOT,
+    consultBlockDayInDB
   } = useFirebase()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
@@ -676,6 +678,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
 
     if (Object.keys(newData).length > 0) {
+      // Verificar si la nueva fecha de inicio está bloqueada
+      if (newData.start) {
+        const resultDate = await consultBlockDayInDB(newData.start.toDate())
+        if (resultDate.blocked) {
+          // Mostrar el mensaje de bloqueo y no actualizar la solicitud
+          setAlertMessage(resultDate.msj)
+
+          return
+        }
+      }
       setLoading(true)
       await updateDocs(id, newData, authUser)
         .then(() => {
@@ -731,7 +743,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] })
   }
 
-  const handleDateChange = dateField => date => {
+  const handleDateChange = dateField => async date => {
     const fieldValue = moment(date.toDate())
     setValues({ ...values, [dateField]: fieldValue })
     setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
@@ -739,11 +751,22 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     // Si cambia start, end debe ser igual a start mas diferencia original
     const isPetitioner = userRole === 2
     const isContop = userRole === 3
+    const isPlanner = userRole === 5
+    const isContractAdmin = userRole === 6
 
     // Variable diferencia original entre start y end
     const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
 
-    if (dateField === 'start' && end && (isPetitioner || isContop)) {
+    if (dateField === 'start') {
+      const resultDate = await consultBlockDayInDB(fieldValue.toDate())
+      // Utiliza el resultado de la función para establecer el mensaje de alerta
+      setAlertMessage(resultDate.msj)
+    }
+
+    if (dateField === 'start' && end && (isPetitioner || isContop || isPlanner || isContractAdmin)) {
+      const resultDate = await consultBlockDayInDB(fieldValue.toDate())
+      console.log('resultDate', resultDate)
+      setAlertMessage(resultDate.msj)
       const newStart = date
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
       setValues({ ...values, start: newStart, end: newEnd })
@@ -917,6 +940,26 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       TransitionComponent={Transition}
       scroll='body'
     >
+      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
+        <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
+          Atención
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ m: 2, whiteSpace: 'pre-line' }} id='alert-dialog-description'>
+            {alertMessage}
+          </DialogContentText>
+          <DialogActions>
+            <Button
+              size='small'
+              onClick={() => {
+                setAlertMessage('')
+              }}
+            >
+              Cerrar
+            </Button>
+          </DialogActions>
+        </DialogContent>
+      </Dialog>
       <AlertDialog
         authUser={authUser}
         state={state}
