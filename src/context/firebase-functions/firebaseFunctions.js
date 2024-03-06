@@ -1,7 +1,7 @@
 // ** Firebase Imports
-import { getAuth, updateProfile, deleteUser, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { Firebase, db } from 'src/configs/firebase'
+import { GoogleAuthProvider, deleteUser, getAuth, signInWithPopup, updateProfile } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
+import { Firebase, db } from 'src/configs/firebase'
 
 // ** Trae funcion que valida los campos del registro
 import { registerValidator } from '../form-validation/helperRegisterValidator'
@@ -54,19 +54,42 @@ const updatePassword = async password => {
 }
 
 // ** Inicio de sesión
-const signInWithEmailAndPassword = (email, password) => {
-  return Firebase.auth()
-    .signInWithEmailAndPassword(email, password)
-    .catch(err => {
-      switch (err.code) {
-        case 'auth/wrong-password':
-          throw new Error('Contraseña incorrecta, intente de nuevo')
-        case 'auth/user-not-found':
-          throw new Error('Este usuario no se encuentra registrado')
-        default:
-          throw new Error('Error al iniciar sesión')
-      }
-    })
+const signInWithEmailAndPassword = async (email, password, rememberMe) => {
+  // rememeberMe es una variable booleana definida por el checkbox de 'Recordarme' del login
+  // Si rememeberMe es true simplemente se logeará con signInWithEmailAndPassword (cuyo comporamiento por defecto hace que quede siempre el usuario conectado)
+  if (rememberMe) {
+    return await Firebase.auth()
+      .signInWithEmailAndPassword(email, password)
+      .catch(err => {
+        switch (err.code) {
+          case 'auth/wrong-password':
+            throw new Error('Contraseña incorrecta, intente de nuevo')
+          case 'auth/user-not-found':
+            throw new Error('Este usuario no se encuentra registrado')
+          default:
+            throw new Error('Error al iniciar sesión')
+        }
+      })
+  } else {
+    // Si persistence es false, se ejecutará setPersistence antes de ejecutar el signInWithEmailAndPassword.
+    // Esto hace que quede almacenado solo en esta sesión; vale decir, al cerrar la pestaña se desconectará de la página.
+    await Firebase.auth()
+      .setPersistence('session')
+      .then(() => {
+        return Firebase.auth()
+          .signInWithEmailAndPassword(email, password)
+          .catch(err => {
+            switch (err.code) {
+              case 'auth/wrong-password':
+                throw new Error('Contraseña incorrecta, intente de nuevo')
+              case 'auth/user-not-found':
+                throw new Error('Este usuario no se encuentra registrado')
+              default:
+                throw new Error('Error al iniciar sesión')
+            }
+          })
+      })
+  }
 }
 
 // ** Registro de usuarios
@@ -130,11 +153,11 @@ const createUserInDatabase = (values, uid) => {
     completedProfile = true
   } else if (company === 'MEL') {
     if (role === 2) {
-      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift
     } else if (role === 3 || role === 4) {
-      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut;
+      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut
     } else {
-      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift
     }
   }
 
