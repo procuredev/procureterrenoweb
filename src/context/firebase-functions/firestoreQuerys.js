@@ -68,7 +68,7 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
 
   useEffect(() => {
     if (userParam) {
-      let q = query(collection(db, 'solicitudes'), where('state', '>=', 0))
+      let q = query(collection(db, 'solicitudes'), where('state', '>=', 1))
 
       if (datagrid) {
         switch (userParam.role) {
