@@ -233,7 +233,7 @@ const LoginPage = () => {
                     <TextField
                       autoFocus
                       label='Email'
-                      value={value}
+                      value={value ? value : ''}
                       onBlur={onBlur}
                       onChange={onChange}
                       error={Boolean(errors.email)}
