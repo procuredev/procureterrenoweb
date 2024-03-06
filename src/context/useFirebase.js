@@ -1,65 +1,66 @@
-import React, { createContext, useState, useEffect, useContext } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 // ** Firebase Imports
+import { getAuth } from 'firebase/auth'
 import { app } from 'src/configs/firebase'
-import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'
 
 // ** Crea contexto
 export const FirebaseContext = createContext()
 
 import {
+  createUser,
+  deleteCurrentUser,
   formatAuthUser,
   resetPassword,
-  updatePassword,
-  signInWithEmailAndPassword,
-  createUser,
   signAdminBack,
   signAdminFailure,
   signGoogle,
-  deleteCurrentUser
+  signInWithEmailAndPassword,
+  signOut,
+  updatePassword
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
-  newDoc,
-  updateDocs,
-  updateUserPhone,
-  blockDayInDatabase,
-  generateBlueprint,
-  useBlueprints,
-  updateBlueprint,
+  addComment,
   addDescription,
+  blockDayInDatabase,
+  finishPetition,
+  generateBlueprint,
   generateBlueprintCodeClient,
   generateTransmittalCounter,
+  newDoc,
+  updateBlueprint,
+  updateDocs,
   updateSelectedDocuments,
-  addComment,
   updateUserData,
-  finishPetition
+  updateUserPhone,
+  useBlueprints
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
-  useEvents,
-  useSnapshot,
+  consultBlockDayInDB,
+  consultBluePrints,
+  consultDocs,
+  consultOT,
+  consultObjetives,
+  consultSAP,
+  consultUserEmailInDB,
+  fetchMelDeliverableType,
+  fetchMelDisciplines,
+  fetchPetitionById,
+  fetchPlaneProperties,
   getData,
   getDomainData,
   getUserData,
-  consultBlockDayInDB,
-  consultSAP,
-  consultUserEmailInDB,
-  consultDocs,
-  consultObjetives,
   getUsersWithSolicitudes,
-  fetchPetitionById,
-  fetchPlaneProperties,
-  fetchMelDisciplines,
-  fetchMelDeliverableType,
-  consultBluePrints,
+  subscribeToBlockDayChanges,
   subscribeToPetition,
-  consultOT,
   subscribeToUserProfileChanges,
-  subscribeToBlockDayChanges
+  useEvents,
+  useSnapshot
 } from 'src/context/firebase-functions/firestoreQuerys'
 
-import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
+import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
@@ -68,32 +69,76 @@ const FirebaseContextProvider = props => {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [domainDictionary, setDomainDictionary] = useState({})
   const [domainRoles, setDomainRoles] = useState({})
+  const [userInDatabase, setUserInDatabase] = useState(null)
 
   // ** Variables
   const auth = getAuth(app)
 
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     try {
+  //       const userData = localStorage.getItem('user')
+  //       const userDataObject = JSON.parse(userData)
+  //       console.log(userDataObject)
+
+  //       if (userDataObject) {
+  //         let userDataBaseInfo
+  //         let promiseResolved = false // Variable para controlar si la promesa se ha completado
+
+  //         // Realiza la llamada asíncrona y espera a que se resuelva la promesa
+  //         await formatAuthUser(userDataObject).then(data => {
+  //           userDataBaseInfo = data // Asigna el resultado de la promesa a userDataBaseInfo
+  //           promiseResolved = true // Marca que la promesa se ha completado
+  //         })
+
+  //         // Evalúa el if solo si la promesa se ha completado
+  //         if (promiseResolved && userDataBaseInfo !== userDataObject) {
+  //           console.log('Hola')
+  //           localStorage.setItem('user', JSON.stringify(userDataBaseInfo))
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error al obtener la información del usuario desde la base de datos:', error)
+  //     }
+  //   }
+
+  //   fetchUserData() // Llama a la función fetchUserData dentro de useEffect
+  // }, [])
+
   useEffect(() => {
-    const auth = getAuth(app)
+    const fetchData = async () => {
+      try {
+        // Obtener los datos del usuario del localStorage
+        const userData = localStorage.getItem('user')
+        const userDataObject = JSON.parse(userData)
 
-    const unsubscribe = onAuthStateChanged(auth, async authState => {
-      if (!authState) {
-        setAuthUser(null)
-        setLoading(false)
-        setDomainDictionary(null)
-        setDomainRoles(null)
-      } else {
-        setLoading(true)
-        const formattedUser = await formatAuthUser(authState)
-        setAuthUser(formattedUser)
-        setLoading(false)
-        const dictionary = await getDomainData('dictionary')
-        setDomainDictionary(dictionary)
-        const roles = await getDomainData('roles')
-        setDomainRoles(roles)
+        // Obtener los datos del usuario de la base de datos
+        const databaseUserData = await formatAuthUser(userDataObject)
+
+        // Si los datos del usuario en el localStorage y en la base de datos son diferentes, sobrescribe los datos locales con los datos de la base de datos
+        if (JSON.stringify(userDataObject) !== JSON.stringify(databaseUserData)) {
+          console.log('Hubo una actualización de datos en Firestore')
+          localStorage.setItem('user', JSON.stringify(databaseUserData))
+          // Actualiza el estado con los datos del usuario
+          setAuthUser(databaseUserData)
+        } else {
+          // Actualiza el estado con los datos del usuario
+          setAuthUser(JSON.parse(localStorage.getItem('user')))
+        }
+
+        // Obtener y establecer los datos del dominio (dictionary y roles)
+        const [dictionaryData, rolesData] = await Promise.all([getDomainData('dictionary'), getDomainData('roles')])
+        setDomainDictionary(dictionaryData)
+        setDomainRoles(rolesData)
+
+        setLoading(false) // Establece isLoading en false cuando todas las operaciones estén completas
+      } catch (error) {
+        console.error('Error al obtener los datos:', error)
+        setLoading(false) // Asegúrate de establecer isLoading en false incluso en caso de error
       }
-    })
+    }
 
-    return () => unsubscribe()
+    fetchData() // Llama a la función fetchData dentro de useEffect
   }, [])
 
   const value = {
@@ -104,10 +149,10 @@ const FirebaseContextProvider = props => {
     domainDictionary,
     domainRoles,
     setIsCreatingProfile,
-    signOut,
     resetPassword,
     updatePassword,
     signInWithEmailAndPassword,
+    signOut,
     createUser,
     updateUserProfile,
     signAdminBack,

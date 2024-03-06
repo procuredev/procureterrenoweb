@@ -61,16 +61,14 @@ const UserDropdown = props => {
     }
   }
 
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => {
-        setTimeout(() => {
-          handleDropdownClose('/login')
-        }, 500) // Retraso de 500 milisegundos antes de redireccionar
-      })
-      .catch(error => {
-        console.log(error)
-      })
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      // Una vez que el usuario ha sido desconectado, redirigirlo a la página de inicio de sesión
+      router.reload()
+    } catch (error) {
+      console.error('Error al desconectar:', error)
+    }
   }
 
   useEffect(() => {

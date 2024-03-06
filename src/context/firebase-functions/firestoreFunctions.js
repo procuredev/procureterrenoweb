@@ -1,33 +1,28 @@
 // ** Firebase Imports
-import { Firebase, db } from 'src/configs/firebase'
 import {
+  Timestamp,
+  addDoc,
   collection,
   doc,
-  addDoc,
-  setDoc,
-  Timestamp,
-  query,
   getDoc,
   getDocs,
-  updateDoc,
-  where,
-  orderBy,
+  increment,
   limit,
-  runTransaction,
   onSnapshot,
-  increment
+  orderBy,
+  query,
+  runTransaction,
+  setDoc,
+  updateDoc
 } from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
 
 // ** Imports Propios
+import { addDays, getUnixTime } from 'date-fns'
+import { useEffect } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
-import { getUnixTime, setDayOfYear } from 'date-fns'
-import { addDays } from 'date-fns'
-import { async } from '@firebase/util'
-import { timestamp } from '@antfu/utils'
-import { blue } from '@mui/material/colors'
-import { useEffect } from 'react'
 
 import { useState } from 'react'
 
@@ -530,10 +525,27 @@ const updateUserPhone = async (id, obj) => {
   await updateDoc(ref, { phone: obj.replace(/\s/g, '') })
 }
 
-// ** Actualiza la información del usuario en Firestore
-const updateUserData = async (userId, data) => {
+// ** Actualiza la información del usuario en Firestore y en el almacenamiento local
+const updateUserData = async (userId, newData) => {
   const ref = doc(db, 'users', userId)
-  await updateDoc(ref, data)
+
+  try {
+    // Actualiza la información en Firestore
+    await updateDoc(ref, newData)
+
+    // Obtiene la información del usuario del almacenamiento local
+    const userData = JSON.parse(localStorage.getItem('user')) || {}
+
+    // Fusiona los datos nuevos con los existentes
+    const updatedUserData = { ...userData, ...newData }
+
+    // Actualiza la información en el almacenamiento local
+    localStorage.setItem('user', JSON.stringify(updatedUserData))
+
+    console.log('Información del usuario actualizada correctamente en Firestore y en el almacenamiento local')
+  } catch (error) {
+    console.error('Error al actualizar la información del usuario:', error)
+  }
 }
 
 // ** Bloquear o desbloquear un día en la base de datos

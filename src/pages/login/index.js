@@ -30,6 +30,9 @@ import { styled, useTheme } from '@mui/material/styles'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
+// ** Next Import
+import { useRouter } from 'next/router'
+
 // ** Third Party Imports
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
@@ -91,7 +94,7 @@ const schema = yup.object().shape({
 
 const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('')
-  const [rememberMe, setRememberMe] = useState(true)
+  const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [alertMessage, setAlertMessage] = useState('')
 
@@ -99,6 +102,7 @@ const LoginPage = () => {
 
   const theme = useTheme()
   const { settings } = useSettings()
+  const router = useRouter()
 
   // ** Vars
   const { skin } = settings
@@ -117,7 +121,9 @@ const LoginPage = () => {
   const onSubmit = async data => {
     const { email, password } = data
     try {
-      await signInWithEmailAndPassword(email, password, rememberMe)
+      await signInWithEmailAndPassword(email, password, rememberMe).then(() => {
+        router.reload()
+      })
     } catch (error) {
       const errorMessage = error.message
       setAlertMessage(errorMessage)
