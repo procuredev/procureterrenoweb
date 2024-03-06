@@ -177,14 +177,26 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
+  const titleLocalWidth = Number(localStorage.getItem('titleSolicitudesWidthColumn'))
+  const stateLocalWidth = Number(localStorage.getItem('stateSolicitudesWidthColumn'))
+  const dateLocalWidth = Number(localStorage.getItem('dateSolicitudesWidthColumn'))
+  const startLocalWidth = Number(localStorage.getItem('startSolicitudesWidthColumn'))
+  const endLocalWidth = Number(localStorage.getItem('endSolicitudesWidthColumn'))
+  const shiftLocalWidth = Number(localStorage.getItem('shiftSolicitudesWidthColumn'))
+  const otLocalWidth = Number(localStorage.getItem('otSolicitudesWidthColumn'))
+  const userLocalWidth = Number(localStorage.getItem('userSolicitudesWidthColumn'))
+  const actionsLocalWidth = Number(localStorage.getItem('actionsSolicitudesWidthColumn'))
+
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
-      flex: 0.8,
+      width: titleLocalWidth ? titleLocalWidth : 350,
       minWidth: 200,
+      maxWidth: 500,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('titleSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return (
           <Tooltip
@@ -219,11 +231,12 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      flex: 0.8,
+      width: stateLocalWidth ? stateLocalWidth : 200,
       minWidth: 100,
-      maxWidth: 200,
+      maxWidth: 250,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('stateSolicitudesWidthColumn', params.colDef.computedWidth)
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
 
         return (
@@ -245,12 +258,14 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
-      flex: 0.4,
+      width: dateLocalWidth ? dateLocalWidth : 120,
       minWidth: 90,
+      maxWidth: 120,
       valueGetter: params => new Date(params.row.date.seconds * 1000),
       //valueGetter: params => unixToDate(params.row.date.seconds)[0],
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('dateSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{unixToDate(row.date.seconds)[0]}</div>
       }
@@ -258,11 +273,13 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'start',
       headerName: 'Inicio',
-      flex: 0.4,
+      width: startLocalWidth ? startLocalWidth : 110,
       minWidth: 90,
+      maxWidth: 120,
       valueGetter: params => unixToDate(params.row.start.seconds)[0],
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('startSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{unixToDate(row.start.seconds)[0]}</div>
       }
@@ -270,11 +287,13 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'end',
       headerName: 'Término',
-      flex: 0.4,
+      width: endLocalWidth ? endLocalWidth : 110,
       minWidth: 90,
+      maxWidth: 120,
       valueGetter: params => unixToDate(params.row.end?.seconds)[0],
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('endSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{(row.end && unixToDate(row.end.seconds)[0]) || 'Pendiente'}</div>
       }
@@ -283,23 +302,25 @@ const TableBasic = ({ rows, role, roleData }) => {
       field: 'supervisorShift',
       maxWidth: 80,
       headerName: 'Turno',
-      flex: 0.4,
-      minWidth: 90,
+      width: shiftLocalWidth ? shiftLocalWidth : 90,
+      minWidth: 80,
+      maxWidth: 100,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('shiftSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.state >= 6 ? row.supervisorShift || 'No definido' : 'Por confirmar'}</div>
       }
     },
     {
       field: 'ot',
-
-      maxWidth: 60,
       headerName: 'OT',
-      flex: 0.3,
-      minWidth: 50,
+      width: otLocalWidth ? otLocalWidth : 90,
+      minWidth: 60,
+      maxWidth: 100,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('otSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.ot || 'N/A'}</div>
       }
@@ -307,16 +328,25 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'user',
       headerName: 'Autor',
-      flex: 0.5,
-      minWidth: 150
-    },
-    {
-      flex: 0.3,
-      minWidth: md ? 190 : 100,
-      field: 'actions',
-      headerName: 'Acciones',
+      width: userLocalWidth ? userLocalWidth : 190,
+      minWidth: 120,
+      maxWidth: 250,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.user}</div>
+      }
+    },
+    {
+      field: 'actions',
+      headerName: 'Acciones',
+      width: actionsLocalWidth ? actionsLocalWidth : 190,
+      minWidth: 120,
+      maxWidth: 250,
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('actionsSolicitudesWidthColumn', params.colDef.computedWidth)
         const permissionsData = permissions(row, role)
         const canApprove = permissionsData.approve
         const canEdit = permissionsData.edit
