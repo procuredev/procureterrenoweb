@@ -749,10 +749,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
 
     // Si cambia start, end debe ser igual a start mas diferencia original
+    // userRole es el rol de usuario que creo el documento
     const isPetitioner = userRole === 2
     const isContop = userRole === 3
     const isPlanner = userRole === 5
-    const isContractAdmin = userRole === 6
+    const isSupervisor = userRole === 7
 
     // Variable diferencia original entre start y end
     const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
@@ -763,7 +764,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       setAlertMessage(resultDate.msj)
     }
 
-    if (dateField === 'start' && end && (isPetitioner || isContop || isPlanner || isContractAdmin)) {
+    if (dateField === 'start' && end && (isPetitioner || isContop || isPlanner || isSupervisor)) {
       const resultDate = await consultBlockDayInDB(fieldValue.toDate())
       console.log('resultDate', resultDate)
       setAlertMessage(resultDate.msj)
