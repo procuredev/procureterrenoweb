@@ -1,5 +1,6 @@
 import moment from 'moment-timezone'
 import 'moment/locale/es'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import React, { Fragment, useEffect, useState } from 'react'
 
 import {
@@ -29,9 +30,7 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { MobileDatePicker } from '@mui/x-date-pickers'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 
 import {
   Timeline,
@@ -128,10 +127,10 @@ function CustomListItem({
         initialValue && (
           <ListItem id={`list-${label}`} divider={!editable}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
+              <Typography component='div' sx={{ width: '40%' }}>
                 {label}
               </Typography>
-              <Typography component='div' sx={{ width: '70%' }}>
+              <Typography component='div' sx={{ width: '60%' }}>
                 {initialValue}
               </Typography>
             </Box>
@@ -183,10 +182,10 @@ function CustomAutocompleteItem({ selectable, options, editable, label, value, o
           ) : (
             <ListItem id={`list-${label}`} divider={!editable}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                <Typography component='div' sx={{ width: '30%' }}>
+                <Typography component='div' sx={{ width: '40%' }}>
                   {label}
                 </Typography>
-                <Typography component='div' sx={{ width: '70%' }}>
+                <Typography component='div' sx={{ width: '60%' }}>
                   {value.join(', ')}
                 </Typography>
               </Box>
@@ -239,10 +238,10 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
         initialValue.seconds && (
           <ListItem id={`list-${label}`} divider={!editable}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
+              <Typography component='div' sx={{ width: '40%' }}>
                 {label}
               </Typography>
-              <Typography component='div' sx={{ width: '70%' }}>
+              <Typography component='div' sx={{ width: '60%' }}>
                 {initialValue && unixToDate(initialValue.seconds)[0]}
               </Typography>
             </Box>
@@ -423,6 +422,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
+
+  const xs = useMediaQuery(theme.breakpoints.up('xs')) //0-600
+  const sm = useMediaQuery(theme.breakpoints.up('sm')) //600-960
+  const md = useMediaQuery(theme.breakpoints.up('md')) //960-1280
+  const lg = useMediaQuery(theme.breakpoints.up('lg')) //1280-1920
+  const xl = useMediaQuery(theme.breakpoints.up('xl')) //1920+
 
   const {
     updateDocs,
@@ -766,7 +771,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
     if (dateField === 'start' && end && (isPetitioner || isContop || isPlanner || isSupervisor)) {
       const resultDate = await consultBlockDayInDB(fieldValue.toDate())
-      console.log('resultDate', resultDate)
       setAlertMessage(resultDate.msj)
       const newStart = date
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
@@ -981,20 +985,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ) : (
           <Box>
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                 <Chip
                   label={state || state === 0 ? domainDictionary[state].details : 'Cargando...'}
                   color={state || state === 0 ? domainDictionary[state].color : 'primary'}
-                  sx={{ width: 'auto' }}
+                  sx={{ my: 1, width: 'auto' }}
                 />
                 <Box>
-                  {canComment && (
-                    <Button onClick={() => setCommentDialog(true)} variant='outlined' sx={{ mx: 2 }}>
-                      Agregar Comentario
-                    </Button>
-                  )}
-                  {/*Botón para editar*/}
-                  {editButtonVisible && !isPlanner ? (
+                  {editButtonVisible && !isPlanner && (
                     <IconButton
                       onClick={() => setEditable(prev => !prev)}
                       color='primary'
@@ -1003,12 +1001,27 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     >
                       <Edit />
                     </IconButton>
-                  ) : null}
-                  <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
-                    {/*este botón debería cerrar y setEditable false*/}
+                  )}
+                  <IconButton
+                    onClick={() => {
+                      handleClose()
+                      setEditable(false)
+                    }}
+                    color='primary'
+                    aria-label='close'
+                    component='button'
+                  >
                     <Close />
                   </IconButton>
                 </Box>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', my: 1 }}>
+                {' '}
+                {canComment && (
+                  <Button onClick={() => setCommentDialog(true)} variant='outlined'>
+                    Agregar Comentario
+                  </Button>
+                )}
               </Box>
 
               <List>
