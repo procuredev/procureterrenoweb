@@ -1180,7 +1180,7 @@ const FormLayoutsSolicitud = () => {
                   authUser.role === 7 ||
                   authUser.plant === 'allPlants' ||
                   authUser.plant === 'Solicitante Santiago'
-                    ? petitioners.map(item => ({ name: item.name }))
+                    ? petitioners.map(item => ({ name: item.name, email: item.email }))
                     : [authUser.displayName]
                 }
                 label='Solicitante'
