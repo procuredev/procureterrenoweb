@@ -80,7 +80,7 @@ const CustomSelect = props => {
               options.map(option => {
                 return (
                   <MenuItem key={option.name || option} value={option.name || option}>
-                    {`${option.name} / ${option.email}` || option}
+                    {option.name || option}
                   </MenuItem>
                 )
               })}
