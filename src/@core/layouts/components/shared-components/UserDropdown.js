@@ -65,6 +65,7 @@ const UserDropdown = props => {
     signOut(auth)
       .then(() => {
         setTimeout(() => {
+          localStorage.removeItem('formData')
           handleDropdownClose('/login')
         }, 500) // Retraso de 500 milisegundos antes de redireccionar
       })
