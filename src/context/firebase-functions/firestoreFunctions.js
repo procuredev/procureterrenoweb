@@ -23,6 +23,7 @@ import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 import { getUnixTime, setDayOfYear } from 'date-fns'
+import { addDays } from 'date-fns'
 import { async } from '@firebase/util'
 import { timestamp } from '@antfu/utils'
 import { blue } from '@mui/material/colors'
@@ -82,10 +83,15 @@ const newDoc = async (values, userParam) => {
     costCenter
   } = values
 
+  // Calcula el valor de 'deadline' sumando 21 días a 'start'.
+  const deadline = addDays(new Date(start), 21)
+  const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
+
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
-    solicitudValidator(values)
+    console.log('userParam: ', userParam)
+    solicitudValidator(values, userParam.role)
     const requestNumber = await requestCounter()
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
@@ -107,6 +113,8 @@ const newDoc = async (values, userParam) => {
       user,
       userEmail,
       userRole,
+      deadline,
+      daysToDeadline,
       costCenter,
       date: Timestamp.fromDate(new Date()),
       n_request: requestNumber,
@@ -124,7 +132,7 @@ const newDoc = async (values, userParam) => {
     await updateDoc(docRef, {
       ...newDoc,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
-      state: userParam.role === 7 ? 6 : userParam.role || 'No definido',
+      state: userParam.role === 7 ? 6 : userParam.role === 5 ? 2 : userParam.role,
       supervisorShift: userParam.role === 7 ? (week % 2 === 0 ? 'A' : 'B') : null
     })
 
@@ -191,6 +199,16 @@ async function increaseAndGetNewOTValue() {
 const processFieldChanges = (incomingFields, currentDoc) => {
   const changedFields = {}
 
+  const addDays = (date, days) => {
+    if (!(date instanceof Date)) {
+      date = new Date(date)
+    }
+    const newDate = new Date(date)
+    newDate.setDate(newDate.getDate() + days)
+
+    return newDate.getTime()
+  }
+
   for (const key in incomingFields) {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
@@ -208,6 +226,21 @@ const processFieldChanges = (incomingFields, currentDoc) => {
       if (key === 'start' || key === 'end') {
         value = value && Timestamp.fromDate(moment(value).toDate())
         currentFieldValue = currentFieldValue && Timestamp.fromDate(moment(currentFieldValue).toDate())
+
+        // Verificar si se actualizó 'start' para actualizar 'deadline'
+        if (key === 'start') {
+          const newDeadline = new Date(addDays(value.toDate(), 21))
+
+          console.log('newDeadline: ', newDeadline)
+          changedFields.deadline = newDeadline
+
+          const today = new Date()
+          const millisecondsInDay = 1000 * 60 * 60 * 24
+
+          const daysToDeadline = Math.round((newDeadline - today) / millisecondsInDay)
+
+          changedFields.daysToDeadline = daysToDeadline
+        }
       }
       changedFields[key] = value
       incomingFields[key] = currentFieldValue || 'none'
@@ -346,13 +379,24 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState < state.planner,
+          condition:
+            approves &&
+            !changingStartDate &&
+            !dateHasChanged &&
+            !emergencyBySupervisor &&
+            latestEvent.newState < state.planner,
           newState: state.planner,
           log: 'Modificado sin cambio de fecha por Planificador'
         },
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState >= state.planner && latestEvent.newState < state.supervisor,
+          condition:
+            approves &&
+            !changingStartDate &&
+            !dateHasChanged &&
+            !emergencyBySupervisor &&
+            latestEvent.newState >= state.planner &&
+            latestEvent.newState < state.supervisor,
           newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador'
         },

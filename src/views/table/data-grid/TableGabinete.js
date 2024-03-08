@@ -14,6 +14,9 @@ import {
 
 import { Container } from '@mui/system'
 import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
+
+import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
+import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
 import {
   Button,
   Select,
@@ -28,8 +31,6 @@ import {
   DialogContent,
   Checkbox
 } from '@mui/material'
-import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
-import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
 import { useFirebase } from 'src/context/useFirebase'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
@@ -106,19 +107,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   const theme = useTheme()
-  const sm = useMediaQuery(theme.breakpoints.up('sm'))
-  const md = useMediaQuery(theme.breakpoints.up('md'))
-  const xl = useMediaQuery(theme.breakpoints.up('xl'))
-
-  const smDown = useMediaQuery(theme.breakpoints.down('sm'))
-  const mdDown = useMediaQuery(theme.breakpoints.down('md'))
-  const lgDown = useMediaQuery(theme.breakpoints.down('lg'))
-  const xlDown = useMediaQuery(theme.breakpoints.down('xl'))
+  const xs = useMediaQuery(theme.breakpoints.up('xs')) //0-600
+  const sm = useMediaQuery(theme.breakpoints.up('sm')) //600-960
+  const md = useMediaQuery(theme.breakpoints.up('md')) //960-1280
+  const lg = useMediaQuery(theme.breakpoints.up('lg')) //1280-1920
+  const xl = useMediaQuery(theme.breakpoints.up('xl')) //1920+
 
   const useStyles = makeStyles({
     root: {
       '& .MuiDataGrid-columnHeaderTitle': {
-        fontSize: xlDown ? '0.5rem' : '0.8rem' // Cambia esto al tamaño de fuente que desees
+        fontSize: lg ? '0.5rem' : '0.8rem' // Cambia esto al tamaño de fuente que desees
       }
     }
   })
@@ -264,13 +262,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           margin: '0.15rem!important',
           maxWidth: '25px',
           maxHeight: '25px',
-          minWidth: resume && !xlDown ? '120px' : resume ? '80px' : '40px',
+          minWidth: resume && !lg ? '120px' : resume ? '80px' : '40px',
           minHeight: '25px'
         }}
       >
-        <IconComponent sx={{ fontSize: 18, fontSize: xlDown ? '0.8rem' : '1rem' }} />
+        <IconComponent sx={{ fontSize: 18, fontSize: lg ? '0.8rem' : '1rem' }} />
         {resume ? (
-          <Typography sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.7rem' : '1rem' }}> Reanudar</Typography>
+          <Typography sx={{ textOverflow: 'clip', fontSize: lg ? '0.7rem' : '1rem' }}> Reanudar</Typography>
         ) : (
           ''
         )}
@@ -496,7 +494,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const columns = [
     {
       field: 'id',
-      width: role === 9 && !xlDown ? 355 : role !== 9 && !xlDown ? 360 : role !== 9 ? 290 : 285,
+      width: role === 9 && !lg ? 355 : role !== 9 && !lg ? 360 : role !== 9 ? 290 : 285,
       headerName: 'Código Procure / MEL',
 
       renderCell: params => {
@@ -537,7 +535,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                       handleOpenUploadDialog(row)
                     }}
                   >
-                    <OpenInNew sx={{ fontSize: xlDown ? '1rem' : '1.2rem' }} />
+                    <OpenInNew sx={{ fontSize: lg ? '1rem' : '1.2rem' }} />
                   </IconButton>
 
                   <Box>
@@ -545,7 +543,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                       noWrap
                       sx={{
                         textOverflow: 'clip',
-                        fontSize: xlDown ? '0.8rem' : '1rem',
+                        fontSize: lg ? '0.8rem' : '1rem',
                         textDecoration: 'none',
                         transition: 'text-decoration 0.2s',
                         '&:hover': {
@@ -555,13 +553,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     >
                       {row.id || 'Sin código Procure'}
                     </Typography>
-                    <Typography variant='caption' sx={{ fontSize: xlDown ? '0.6rem' : '0.8rem' }}>
+                    <Typography variant='caption' sx={{ fontSize: lg ? '0.6rem' : '0.8rem' }}>
                       {row.clientCode || 'Sin código MEL'}
                     </Typography>
                     {row.id === currentRow && row.revisions.length === 0 && (
-                      <Typography sx={{ mt: 1, fontSize: xlDown ? '0.8rem' : '1rem' }}>
-                        Sin eventos en historial
-                      </Typography>
+                      <Typography sx={{ mt: 1, fontSize: lg ? '0.8rem' : '1rem' }}>Sin eventos en historial</Typography>
                     )}
                   </Box>
                 </Box>
@@ -574,7 +570,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'revision',
       headerName: 'REVISION',
-      width: role === 9 && !xlDown ? 95 : role !== 9 && !xlDown ? 95 : role !== 9 ? 80 : 80,
+      width: role === 9 && !lg ? 95 : role !== 9 && !lg ? 95 : role !== 9 ? 80 : 80,
       renderCell: params => {
         const { row } = params
 
@@ -586,7 +582,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
           return (
             <Box sx={{ overflow: 'hidden' }}>
-              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {revisionContent || 'N/A'}
               </Typography>
             </Box>
@@ -597,7 +593,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
           return (
             <Box sx={{ overflow: 'hidden' }}>
-              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {revisionContent || 'N/A'}
               </Typography>
             </Box>
@@ -608,7 +604,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      width: role === 9 && !xlDown ? 190 : role !== 9 && !xlDown ? 190 : role !== 9 ? 155 : 160,
+      width: role === 9 && !lg ? 190 : role !== 9 && !lg ? 190 : role !== 9 ? 155 : 160,
       renderCell: params => {
         const { row } = params
 
@@ -620,7 +616,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
           return (
             <Box sx={{ overflow: 'hidden' }}>
-              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {userNameContent || 'N/A'}
               </Typography>
             </Box>
@@ -631,7 +627,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
           return (
             <Box sx={{ overflow: 'hidden' }}>
-              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {userNameContent || 'N/A'}
               </Typography>
             </Box>
@@ -642,7 +638,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
-      width: role === 9 && !xlDown ? 180 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 160,
+      width: role === 9 && !lg ? 180 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 160,
       renderCell: params => {
         const { row } = params
 
@@ -654,7 +650,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
           return (
             <Box sx={{ overflow: 'hidden' }}>
-              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {lastTransmittalContent || ''}
               </Typography>
             </Box>
@@ -665,7 +661,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
           return (
             <Box sx={{ overflow: 'hidden' }}>
-              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {lastTransmittalContent || ''}
               </Typography>
             </Box>
@@ -676,7 +672,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      width: role === 9 && !xlDown ? 200 : role !== 9 && !xlDown ? 200 : role !== 9 ? 170 : 190,
+      width: role === 9 && !lg ? 200 : role !== 9 && !lg ? 200 : role !== 9 ? 170 : 190,
       renderCell: params => {
         const { row } = params
 
@@ -699,7 +695,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
                 <Typography
                   noWrap
-                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}
                 >
                   {descriptionContent || 'Sin descripción'}
                 </Typography>
@@ -723,7 +719,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
                 <Typography
                   noWrap
-                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}
                 >
                   {descriptionContent || 'Sin descripción'}
                 </Typography>
@@ -736,7 +732,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      width: role === 9 && !xlDown ? 450 : role !== 9 && !xlDown ? 460 : role !== 9 ? 365 : 365,
+      width: role === 9 && !lg ? 450 : role !== 9 && !lg ? 460 : role !== 9 ? 365 : 365,
       renderCell: params => {
         const { row } = params
 
@@ -761,7 +757,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     rel='noreferrer'
                     variant='body1'
                     noWrap
-                    sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                    sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                   >
                     {getFileName(row.storageBlueprints)}
                   </Link>
@@ -793,7 +789,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                         rel='noreferrer'
                         variant='body1'
                         noWrap
-                        sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                        sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                       >
                         {getFileName(content, index)}
                       </Link>
@@ -802,7 +798,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 ) : (
                   <Typography
                     noWrap
-                    sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                    sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}
                   >
                     Sin entregable
                   </Typography>
@@ -831,7 +827,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   {row.storageBlueprints ? null : (
                     <Upload
                       sx={{
-                        fontSize: xlDown ? '1rem' : '1.2rem',
+                        fontSize: lg ? '1rem' : '1.2rem',
                         color:
                           authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
                             ? theme.palette.success
@@ -849,7 +845,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'storageHlcDocuments',
       headerName: 'HLC',
-      width: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
+      width: role === 9 && !lg ? 120 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row } = params
 
@@ -893,7 +889,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     rel='noreferrer'
                     variant='body1'
                     noWrap
-                    sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                    sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                   >
                     {getFileName(row.storageHlcDocuments)}
                   </Link>
@@ -925,7 +921,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                         rel='noreferrer'
                         variant='body1'
                         noWrap
-                        sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}
+                        sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                       >
                         {getFileName(content, index)}
                       </Link>
@@ -934,7 +930,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 ) : (
                   <Typography
                     noWrap
-                    sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                    sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}
                   >
                     Sin HLC
                   </Typography>
@@ -965,8 +961,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     },
     {
       field: 'date',
-      headerName: 'Inicio',
-      width: role === 9 && !xlDown ? 120 : role !== 9 && !xlDown ? 120 : role !== 9 ? 110 : 120,
+      headerName: 'Fecha de Creación',
+      width: role === 9 && !lg ? 120 : role !== 9 && !lg ? 120 : role !== 9 ? 110 : 120,
       renderCell: params => {
         if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
           const { row } = params
@@ -992,7 +988,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   overflow: 'hidden'
                 }}
               >
-                <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                   {dateContent}
                 </Typography>
               </Box>
@@ -1017,7 +1013,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   overflow: 'hidden'
                 }}
               >
-                <Typography noWrap sx={{ textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}>
+                <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                   {dateContent}
                 </Typography>
               </Box>
@@ -1029,7 +1025,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      width: role === 9 && !xlDown ? 195 : role !== 9 && !xlDown ? 195 : role !== 9 ? 165 : 180,
+      width: role === 9 && !lg ? 195 : role !== 9 && !lg ? 195 : role !== 9 ? 165 : 180,
       renderCell: params => {
         const { row } = params
         const permissionsData = permissions(row, role, authUser)
@@ -1056,7 +1052,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               <Box display='inline-flex' sx={{ justifyContent: 'space-between' }}>
                 <Typography
                   noWrap
-                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: xlDown ? '0.8rem' : '1rem' }}
+                  sx={{ overflow: 'hidden', my: 'auto', textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}
                 >
                   {row.remarks || 'Sin Observasión'}
                 </Typography>
@@ -1096,7 +1092,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     </Select>
                   )
                 ) : (
-                  <Typography sx={{ fontSize: xlDown ? '0.8rem' : '1rem' }}>{renderStatus(row)}</Typography>
+                  <Typography sx={{ fontSize: lg ? '0.8rem' : '1rem' }}>{renderStatus(row)}</Typography>
                 )}
               </Box>
             </>
@@ -1107,7 +1103,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-      width: role === 9 && !xlDown ? 160 : role !== 9 && !xlDown ? 70 : role !== 9 ? 120 : 120,
+      width: role === 9 && !lg ? 160 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row, currentPetition } = params
 
@@ -1203,7 +1199,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       <DataGridPremium
         sx={{
           height: '100%',
-          maxHeight: !xlDown ? '700px' : '400px',
+          maxHeight: !lg ? '700px' : '400px',
           width: '100%',
           '& .MuiDataGrid-cell--withRenderer': {
             alignItems: 'baseline'
@@ -1219,7 +1215,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               '& .MuiSvgIcon-root': {
                 color: theme.palette.primary.main,
                 opacity: 0.7,
-                fontSize: xlDown ? '1rem' : '1.2rem',
+                fontSize: lg ? '1rem' : '1.2rem',
                 padding: '0rem',
                 margin: '0rem'
               },
@@ -1238,6 +1234,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
             return (
               (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
+              params.row.storageBlueprints &&
+              (params.row.sentByDesigner || params.row.sentBySupervisor) &&
               params.row.approvedByDocumentaryControl === true &&
               !('lastTransmittal' in lastRevision)
             )

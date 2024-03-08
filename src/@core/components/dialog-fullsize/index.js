@@ -1,59 +1,56 @@
-import React, { Fragment, useState, useEffect } from 'react'
 import moment from 'moment-timezone'
 import 'moment/locale/es'
-
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { useTheme } from '@mui/material/styles'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import React, { Fragment, useEffect, useState } from 'react'
+
 import {
-  Button,
-  Paper,
+  Autocomplete,
   Box,
-  TextField,
-  FormControl,
+  Button,
   Chip,
-  IconButton,
-  Typography,
-  Slide,
-  Skeleton,
-  List,
-  ListItem,
-  Link,
-  Grid,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogContentText,
-  DialogActions,
   DialogTitle,
-  Tooltip,
-  MenuItem,
+  FormControl,
+  Grid,
+  IconButton,
   InputLabel,
+  Link,
+  List,
+  ListItem,
+  MenuItem,
+  Paper,
   Select,
-  Autocomplete
+  Skeleton,
+  Slide,
+  TextField,
+  Typography
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 
 import {
   Timeline,
-  TimelineItem,
-  TimelineSeparator,
   TimelineConnector,
   TimelineContent,
   TimelineDot,
+  TimelineItem,
   TimelineOppositeContent,
+  TimelineSeparator,
   timelineOppositeContentClasses
 } from '@mui/lab'
 
-import { Download, Edit, Close, AddComment, ChevronLeft, ChevronRight } from '@mui/icons-material'
-import Icon from 'src/@core/components/icon'
+import { ChevronLeft, ChevronRight, Close, Download, Edit } from '@mui/icons-material'
+import { useDropzone } from 'react-dropzone'
+import DialogErrorOt from 'src/@core/components/dialog-error-ot'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
+import Icon from 'src/@core/components/icon'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
-import { useDropzone } from 'react-dropzone'
-import { gridColumnsTotalWidthSelector } from '@mui/x-data-grid'
-import { object } from 'yup'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -74,7 +71,8 @@ function CustomListItem({
   multiline = false,
   selectable = false,
   options = [],
-  initialValue
+  initialValue,
+  inputProps
 }) {
   return (
     <>
@@ -120,6 +118,7 @@ function CustomListItem({
                 variant='standard'
                 fullWidth={true}
                 multiline={multiline}
+                inputProps={inputProps}
               />
             )}
           </StyledFormControl>
@@ -128,10 +127,10 @@ function CustomListItem({
         initialValue && (
           <ListItem id={`list-${label}`} divider={!editable}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
+              <Typography component='div' sx={{ width: '40%' }}>
                 {label}
               </Typography>
-              <Typography component='div' sx={{ width: '70%' }}>
+              <Typography component='div' sx={{ width: '60%' }}>
                 {initialValue}
               </Typography>
             </Box>
@@ -142,23 +141,14 @@ function CustomListItem({
   )
 }
 
-function CustomAutocompleteItem({
-  selectable,
-  options,
-  editable,
-  label,
-  value,
-  onChange,
-  error,
-  required,
-}) {
+function CustomAutocompleteItem({ selectable, options, editable, label, value, onChange, error, required }) {
   return (
     <Grid item xs={12}>
       <FormControl fullWidth>
         <Box display='flex' alignItems='center'>
           {editable && selectable ? (
             <Autocomplete
-              getOptionLabel={(option) => option.name || option}
+              getOptionLabel={option => option.name || option}
               multiple
               fullWidth
               options={options}
@@ -179,7 +169,7 @@ function CustomAutocompleteItem({
                   />
                 ))
               }
-              renderInput={(params) => (
+              renderInput={params => (
                 <TextField
                   {...params}
                   label={label}
@@ -192,10 +182,10 @@ function CustomAutocompleteItem({
           ) : (
             <ListItem id={`list-${label}`} divider={!editable}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                <Typography component='div' sx={{ width: '30%' }}>
+                <Typography component='div' sx={{ width: '40%' }}>
                   {label}
                 </Typography>
-                <Typography component='div' sx={{ width: '70%' }}>
+                <Typography component='div' sx={{ width: '60%' }}>
                   {value.join(', ')}
                 </Typography>
               </Box>
@@ -213,21 +203,31 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
       {editable ? (
         <ListItem id={`list-${label}`} divider={!editable}>
           <StyledFormControl>
-            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
-              <DatePicker
+            <LocalizationProvider
+              dateAdapter={AdapterMoment}
+              adapterLocale='es'
+              localeText={{
+                okButtonLabel: 'Aceptar',
+                cancelButtonLabel: 'Cancelar',
+                datePickerToolbarTitle: 'Selecciona Fecha'
+              }}
+            >
+              <MobileDatePicker
                 dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                 minDate={customMinDate || moment().subtract(1, 'year')}
                 maxDate={moment().add(1, 'year')}
                 label={label}
                 value={value}
                 onChange={onChange}
+                inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
                 slotProps={{
                   textField: {
                     size: 'small',
                     required: true,
                     variant: 'standard',
                     fullWidth: true
-                  }
+                  },
+                  toolbar: { hidden: false }
                 }}
               />
             </LocalizationProvider>
@@ -238,10 +238,10 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
         initialValue.seconds && (
           <ListItem id={`list-${label}`} divider={!editable}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '30%' }}>
+              <Typography component='div' sx={{ width: '40%' }}>
                 {label}
               </Typography>
-              <Typography component='div' sx={{ width: '70%' }}>
+              <Typography component='div' sx={{ width: '60%' }}>
                 {initialValue && unixToDate(initialValue.seconds)[0]}
               </Typography>
             </Box>
@@ -297,14 +297,32 @@ const PhotoItem = ({ photoUrl }) => {
   const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase())
   const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl)
 
+  const getFileName = (content, index) => {
+    if (typeof content === 'string') {
+      const urlSegments = content.split('%2F')
+      const encodedFileName = urlSegments[urlSegments.length - 1]
+      const fileNameSegments = encodedFileName.split('?')
+      const fileName = decodeURIComponent(fileNameSegments[0])
+
+      return fileName
+    } else {
+      // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+      return ''
+    }
+  }
+
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+      <Typography variant='body2' color='textPrimary' sx={{ mb: 2, pl: 2 }}>
+        {getFileName(photoUrl)} {/* Aquí se muestra el nombre del archivo */}
+      </Typography>
       <Box
         component='img'
+        id={photoUrl}
         src={displaySrc}
         onClick={() => window.open(photoUrl, '_blank')}
         alt='Photo'
-        style={{ height: 'inherit', cursor: 'pointer' }}
+        style={{ height: 90, cursor: 'pointer' }}
       />
       <IconButton
         href={photoUrl}
@@ -383,6 +401,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
   const [areasArray, setAreasArray] = useState([])
+  const [errorOT, setErrorOT] = useState(false)
+  const [errorOtMesage, setErrorOtMesage] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
   const [additionalInfoVisible, setAdditionalInfoVisible] = useState(false)
@@ -401,7 +422,25 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   })
 
   const theme = useTheme()
-  const { updateDocs, useEvents, authUser, getUserData, uploadFilesToFirebaseStorage, addComment, getDomainData, domainDictionary } = useFirebase()
+
+  const xs = useMediaQuery(theme.breakpoints.up('xs')) //0-600
+  const sm = useMediaQuery(theme.breakpoints.up('sm')) //600-960
+  const md = useMediaQuery(theme.breakpoints.up('md')) //960-1280
+  const lg = useMediaQuery(theme.breakpoints.up('lg')) //1280-1920
+  const xl = useMediaQuery(theme.breakpoints.up('xl')) //1920+
+
+  const {
+    updateDocs,
+    useEvents,
+    authUser,
+    getUserData,
+    uploadFilesToFirebaseStorage,
+    addComment,
+    getDomainData,
+    domainDictionary,
+    consultOT,
+    consultBlockDayInDB
+  } = useFirebase()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
   const eventArray = useEvents(doc?.id, authUser) // TODO: QA caso cuando doc es undefined
 
@@ -424,25 +463,32 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const PetitionerOpshiftContactComponent = () => (
     <>
-      {petitionerContact.opshift && petitionerContact.opshift.map((opshiftItem, index) => (
-      <div key={index}>
-        {index > 0 && <br />}
-        <Typography>{'Contraturno ' + Number(index+1) + ':'}</Typography>
-        <Typography>{opshiftItem.name}</Typography>
-        <Typography>{opshiftItem.email}</Typography>
-        <Typography>{opshiftItem.phone}</Typography>
-      </div>
-    ))}
+      {petitionerContact.opshift &&
+        petitionerContact.opshift.map((opshiftItem, index) => (
+          <div key={index}>
+            {index > 0 && <br />}
+            <Typography>{'Contraturno ' + Number(index + 1) + ':'}</Typography>
+            <Typography>{opshiftItem.name}</Typography>
+            <Typography>{opshiftItem.email}</Typography>
+            <Typography>{opshiftItem.phone}</Typography>
+          </div>
+        ))}
     </>
   )
 
+  const handleCloseErrorOt = () => {
+    setErrorOT(false)
+    setErrorOtMesage('')
+  }
+
   const DeliverableComponent = () => (
     <>
-      {values.deliverable && values.deliverable.map((deliverableItem, index) => (
-      <div key={index}>
-        <Typography>{deliverableItem}</Typography>
-      </div>
-    ))}
+      {values.deliverable &&
+        values.deliverable.map((deliverableItem, index) => (
+          <div key={index}>
+            <Typography>{deliverableItem}</Typography>
+          </div>
+        ))}
     </>
   )
 
@@ -464,10 +510,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
-        ...(doc.fotos && { fotos: doc.fotos })
+        ...(doc.fotos && { fotos: doc.fotos }),
+        ...(doc.draftmen && { draftmen: doc.draftmen })
       }
     : {}
-
 
   // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
   useEffect(() => {
@@ -485,8 +531,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         // Se almacena la información de Tabla de Dominio en una variable de Entorno
         setDomainData(domain)
-
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -499,7 +543,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   useEffect(() => {
     const getSpecificDomainData = async () => {
       try {
-
         // Se reordena la información de plants en domain, para que sean arreglos ordenados alfabéticamente.
         if (domainData && domainData.plants) {
           const plants = Object.keys(domainData.plants).sort()
@@ -519,12 +562,13 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         }
 
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
-        const plantData = domainData?.plants?.[values.plant] || {};
+        const plantData = domainData?.plants?.[values.plant] || {}
         if (plantData) {
-          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort()
+          const areas = Object.keys(plantData)
+            .map(area => `${area} - ${plantData[area].name}`)
+            .sort()
           setAreasArray(areas)
         }
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -532,7 +576,6 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
     getSpecificDomainData()
   }, [domainData, values.plant])
-
 
   // Establece los contactos del Solicitante
   useEffect(() => {
@@ -559,6 +602,23 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   const handleOpenAlert = async () => {
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
+
+    // Primero, verifica si OT ha cambiado
+    if (hasChanges.ot && values.ot !== null && values.ot !== undefined) {
+      setLoading(true) // Muestra un indicador de carga, si es aplicable
+      const resultOt = await consultOT(values.ot)
+      // console.log('resultOt', resultOt)
+      setLoading(false) // Oculta el indicador de carga
+
+      if (resultOt.exist) {
+        // Si la OT ya existe, muestra un mensaje de error
+        setErrorOtMesage(resultOt.msj)
+        setErrorOT(true)
+
+        return // Detiene la ejecución para evitar abrir el diálogo de alerta
+      }
+    }
+
     if (roleData.id === '5') {
       // Agrega end y ot
       if (!end && hasChanges.end && !ot && hasChanges.ot) {
@@ -580,6 +640,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         //No trae ni agrega end/ot
       } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
         setMessage('Debes ingresar ot y fecha de término')
+      } else if ((!values.costCenter && hasChanges.costCenter) || !values.costCenter) {
+        setMessage('Debes ingresar el Centor de Costo')
+      } else if ((values.deliverable.length === 0 && hasChanges.deliverable) || values.deliverable.length === 0) {
+        setMessage('Debes ingresar seleccionar un entregable')
       } else {
         setOpenAlert(true)
       }
@@ -596,19 +660,39 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     }
   }
 
+  const validationRegex = {
+    //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
+    //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
+  }
+
   const writeCallback = async () => {
     const newData = {}
 
     for (const key in values) {
       if (hasChanges[key]) {
         newData[key] = values[key]
-      if (key === 'start' && newData[key]) {
-        newData.pendingReschedule = false
+        if (key === 'start' && newData[key]) {
+          newData.pendingReschedule = false
+        }
       }
     }
-  }
 
     if (Object.keys(newData).length > 0) {
+      // Verificar si la nueva fecha de inicio está bloqueada
+      if (newData.start) {
+        const resultDate = await consultBlockDayInDB(newData.start.toDate())
+        if (resultDate.blocked) {
+          // Mostrar el mensaje de bloqueo y no actualizar la solicitud
+          setAlertMessage(resultDate.msj)
+
+          return
+        }
+      }
       setLoading(true)
       await updateDocs(id, newData, authUser)
         .then(() => {
@@ -646,24 +730,48 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
   // Función onchange utilizando currying
   const handleInputChange = field => event => {
-    const fieldValue = event.target.value
+    let fieldValue = event.target.value
+
+    fieldValue = validationRegex[field] ? fieldValue.replace(validationRegex[field], '') : fieldValue
+
+    // Si el campo es 'ot', convierte el valor a un número
+    if (field === 'ot') {
+      // Verifica si fieldValue solo contiene dígitos
+      if (/^\d+$/.test(fieldValue)) {
+        fieldValue = Number(fieldValue)
+      } else {
+        fieldValue = 0 // O cualquier valor por defecto que quieras usar cuando fieldValue no sea un número
+      }
+    }
+
     setValues({ ...values, [field]: fieldValue })
     setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] })
   }
 
-  const handleDateChange = dateField => date => {
+  const handleDateChange = dateField => async date => {
     const fieldValue = moment(date.toDate())
     setValues({ ...values, [dateField]: fieldValue })
     setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
 
     // Si cambia start, end debe ser igual a start mas diferencia original
+    // userRole es el rol de usuario que creo el documento
     const isPetitioner = userRole === 2
     const isContop = userRole === 3
+    const isPlanner = userRole === 5
+    const isSupervisor = userRole === 7
 
     // Variable diferencia original entre start y end
     const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
 
-    if (dateField === 'start' && end && (isPetitioner || isContop)) {
+    if (dateField === 'start') {
+      const resultDate = await consultBlockDayInDB(fieldValue.toDate())
+      // Utiliza el resultado de la función para establecer el mensaje de alerta
+      setAlertMessage(resultDate.msj)
+    }
+
+    if (dateField === 'start' && end && (isPetitioner || isContop || isPlanner || isSupervisor)) {
+      const resultDate = await consultBlockDayInDB(fieldValue.toDate())
+      setAlertMessage(resultDate.msj)
       const newStart = date
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
       setValues({ ...values, start: newStart, end: newEnd })
@@ -822,6 +930,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     userRole,
     petitioner,
     fotos,
+    draftmen,
     uid
   } = doc
 
@@ -836,7 +945,33 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       TransitionComponent={Transition}
       scroll='body'
     >
-      <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
+      <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
+        <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
+          Atención
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ m: 2, whiteSpace: 'pre-line' }} id='alert-dialog-description'>
+            {alertMessage}
+          </DialogContentText>
+          <DialogActions>
+            <Button
+              size='small'
+              onClick={() => {
+                setAlertMessage('')
+              }}
+            >
+              Cerrar
+            </Button>
+          </DialogActions>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog
+        authUser={authUser}
+        state={state}
+        open={openAlert}
+        handleClose={handleCloseAlert}
+        callback={() => writeCallback()}
+      ></AlertDialog>
       <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
           <Box>
@@ -850,20 +985,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ) : (
           <Box>
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                 <Chip
                   label={state || state === 0 ? domainDictionary[state].details : 'Cargando...'}
                   color={state || state === 0 ? domainDictionary[state].color : 'primary'}
-                  sx={{ width: 'auto' }}
+                  sx={{ my: 1, width: 'auto' }}
                 />
                 <Box>
-                  {canComment && (
-                    <Button onClick={() => setCommentDialog(true)} variant='outlined' sx={{ mx: 2 }}>
-                      Agregar Comentario
-                    </Button>
-                  )}
-                  {/*Botón para editar*/}
-                  {editButtonVisible && !isPlanner ? (
+                  {editButtonVisible && !isPlanner && (
                     <IconButton
                       onClick={() => setEditable(prev => !prev)}
                       color='primary'
@@ -872,12 +1001,27 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     >
                       <Edit />
                     </IconButton>
-                  ) : null}
-                  <IconButton onClick={() => handleClose()} color='primary' aria-label='edit' component='button'>
-                    {/*este botón debería cerrar y setEditable false*/}
+                  )}
+                  <IconButton
+                    onClick={() => {
+                      handleClose()
+                      setEditable(false)
+                    }}
+                    color='primary'
+                    aria-label='close'
+                    component='button'
+                  >
                     <Close />
                   </IconButton>
                 </Box>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', my: 1 }}>
+                {' '}
+                {canComment && (
+                  <Button onClick={() => setCommentDialog(true)} variant='outlined'>
+                    Agregar Comentario
+                  </Button>
+                )}
               </Box>
 
               <List>
@@ -966,6 +1110,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <DateListItem
                   editable={editable && roleData && roleData.canEditStart}
+                  disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Inicio'
                   id='start'
                   value={values.start}
@@ -974,6 +1119,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
                 <DateListItem
                   editable={editable && roleData && roleData.canEditEnd}
+                  disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Término'
                   id='end'
                   value={values.end}
@@ -990,6 +1136,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('ot')}
                   disabled={!isPlanner}
                   required={isPlanner}
+                  inputProps={{ maxLength: 5 }}
                 />
                 <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
 
@@ -1003,12 +1150,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {additionalInfoVisible && (
                   <>
                     {petitionerContact.opshift && petitionerContact.opshift[0].name && (
-                    <CustomListItem
-                    editable={false}
-                    label='Contraturno del Solicitante'
-                    id='opshift'
-                    initialValue={<PetitionerOpshiftContactComponent />}
-                    />
+                      <CustomListItem
+                        editable={false}
+                        label='Contraturno del Solicitante'
+                        id='opshift'
+                        initialValue={<PetitionerOpshiftContactComponent />}
+                      />
                     )}
                     <CustomListItem
                       editable={false}
@@ -1129,8 +1276,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const isStateDecreased = element.newState < element.prevState
 
                       if (isModifiedStart || isStateDecreased) return 'Modificado'
-                      if (isDraftmenAssigned) return 'Proyectistas asignados'
-                      if (isHoursEstablished) return 'Levantamiento finalizado'
+                      if (isDraftmenAssigned) return `Proyectistas asignados`
+                      if (isHoursEstablished) return 'En confección de entregables'
                       if (hasPreviousDoc) return 'Modificación aceptada'
                       if (emergencyApprovedByContop) return 'Emergencia aprobada'
 
@@ -1183,8 +1330,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
                       if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
                       if (isModifiedStart || isStateDecreased) return 'Modificado'
-                      if (isDraftmenAssigned) return 'Proyectistas asignados'
-                      if (isHoursEstablished) return 'Levantamiento finalizado'
+                      if (isDraftmenAssigned) return `Proyectistas asignados`
+                      if (isHoursEstablished) return 'En confección de entregables'
 
                       return 'Aprobado'
                     }
@@ -1201,7 +1348,12 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           </TimelineSeparator>
                           <TimelineContent>
                             <Typography variant='body1'>
-                              {status} por {element.userName}
+                              {status} por {element.userName}{' '}
+                              {status === 'Proyectistas asignados' && element.draftmen
+                                ? `: ${element.draftmen.map(x => x.name).join(', ')}`
+                                : status === 'Proyectistas asignados'
+                                ? values.draftmen.map(x => x.name).join(', ')
+                                : ''}
                             </Typography>
                             <Typography variant='body2'>
                               {domainDictionary[element.newState]?.details || element.comment}
@@ -1218,8 +1370,11 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   <TimelineConnector />
                 </TimelineSeparator>
                 <TimelineContent>
-                  <Typography variant='body1'> Solicitud hecha por {user}</Typography>
-                  {userRole == 2 ? (
+                  <Typography variant='body1'>
+                    {' '}
+                    Solicitud hecha por {user} {(userRole == 5 || userRole == 7) && `en nombre de ${values.petitioner}`}
+                  </Typography>
+                  {userRole == 2 || userRole == 5 ? (
                     <Typography variant='body2'> En espera de revisión de Contract Operator </Typography>
                   ) : userRole == 3 ? (
                     <Typography variant='body2'> En espera de revisión de Planificador</Typography>
@@ -1233,6 +1388,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
+      {errorOT && <DialogErrorOt open={errorOT} handleClose={handleCloseErrorOt} errorOtMesage={errorOtMesage} />}
       <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>

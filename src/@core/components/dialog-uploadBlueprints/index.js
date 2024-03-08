@@ -28,6 +28,8 @@ import { useDropzone } from 'react-dropzone'
 import { Timeline, timelineOppositeContentClasses } from '@mui/lab'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import { useFirebase } from 'src/context/useFirebase'
+import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import BorderColorIcon from '@mui/icons-material/BorderColor'
 
 import moment from 'moment-timezone'
 import 'moment/locale/es'
@@ -80,6 +82,20 @@ const getFileIcon = fileType => {
   }
 }
 
+const getFileName = (content, index) => {
+  if (typeof content === 'string') {
+    const urlSegments = content.split('%2F')
+    const encodedFileName = urlSegments[urlSegments.length - 1]
+    const fileNameSegments = encodedFileName.split('?')
+    const fileName = decodeURIComponent(fileNameSegments[0])
+
+    return fileName
+  } else {
+    // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+    return ''
+  }
+}
+
 // función que renderiza cada elemento adjunto y renderiza la variable 'displaySrc' que usa un condicional en caso que el elemento sea una image muestra el thumbnail, caso contrario muestra el icono según el tipo de archivo
 const PhotoItem = ({ photoUrl }) => {
   const urlWithoutParams = photoUrl.split('?')[0]
@@ -101,6 +117,9 @@ const PhotoItem = ({ photoUrl }) => {
 
   return (
     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+      <Typography variant='body2' color='textPrimary' sx={{ mb: 2, pl: 2 }}>
+        {getFileName(photoUrl)} {/* Aquí se muestra el nombre del archivo */}
+      </Typography>
       <Box
         component='img'
         id={photoUrl}
@@ -187,6 +206,9 @@ export const UploadBlueprintsDialog = ({
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [generateClientCode, setGenerateClientCode] = useState(false)
+
+  const [isDescriptionSaved, setIsDescriptionSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const theme = useTheme()
   const { updateDocs, authUser, addDescription, uploadFilesToFirebaseStorage } = useFirebase()
@@ -321,11 +343,20 @@ export const UploadBlueprintsDialog = ({
   }
 
   const submitDescription = async () => {
-    await addDescription(petitionId, currentRow, values.description)
-      .then(() => {
-        setBlueprintGenerated(true)
-      })
-      .catch(err => console.error(err))
+    setIsSaving(true)
+    try {
+      await addDescription(petitionId, currentRow, values.description)
+        .then(() => {
+          setIsDescriptionSaved(true)
+          setBlueprintGenerated(true)
+        })
+        .catch(err => console.error(err))
+      setIsDescriptionSaved(true)
+      setBlueprintGenerated(true)
+    } catch (err) {
+      console.error(err)
+    }
+    setIsSaving(false)
   }
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -340,7 +371,8 @@ export const UploadBlueprintsDialog = ({
       }
 
       if (authUser.role === 9 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
-        setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        //setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        setHlcDocuments([acceptedFiles[0]])
       }
 
       if (
@@ -350,9 +382,11 @@ export const UploadBlueprintsDialog = ({
         (doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc))
       ) {
         // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
-        setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        //setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
+        setFiles([acceptedFiles[0]])
       }
-    }
+    },
+    multiple: false // Esto limita a los usuarios a seleccionar solo un archivo a la vez
   })
 
   const handleRemoveFile = file => {
@@ -492,24 +526,38 @@ export const UploadBlueprintsDialog = ({
           <Typography variant='h5' sx={{ lineHeight: 3 }}>
             {`Código Procure: ${values.id}` || 'Sin código Procure'}
           </Typography>
-          {values.clientCode ? (
-            `Código MEL: ${values.clientCode}`
-          ) : authUser.role === 8 || authUser.role === 7 ? (
-            <Typography
-              variant='h6'
-              sx={{ my: 2, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-              onClick={() => {
-                if (authUser.uid === doc.userId) {
-                  setGenerateClientCode(prev => !prev)
-                }
-              }}
-            >
-              Generar código MEL
-              <ChevronRight sx={{ transform: generateClientCode ? 'rotate(90deg)' : '' }} />
-            </Typography>
-          ) : (
-            <Typography> Sin código MEL</Typography>
-          )}
+          <Typography variant='h6' sx={{ my: 2, display: 'flex', alignItems: 'center' }}>
+            Código MEL:
+            {values.clientCode ? (
+              <Typography variant='h6' sx={{ ml: 2 }}>
+                {values.clientCode}
+              </Typography>
+            ) : authUser.role === 8 || authUser.role === 7 ? (
+              <>
+                <Button
+                  component='label'
+                  role={undefined}
+                  variant='contained'
+                  tabIndex={-1}
+                  startIcon={<BorderColorIcon />}
+                  size='small'
+                  sx={{ ml: 2, opacity: 0.9 }}
+                  onClick={() => {
+                    if (authUser.uid === doc.userId) {
+                      setGenerateClientCode(prev => !prev)
+                    }
+                  }}
+                >
+                  Crear código MEL
+                  {/* <VisuallyHiddenInput type='file' /> */}
+                </Button>
+              </>
+            ) : (
+              <Typography variant='h6' sx={{ ml: 2 }}>
+                Sin código MEL
+              </Typography>
+            )}
+          </Typography>
         </Box>
         <Chip label={values.revision} sx={{ textTransform: 'capitalize' }} color='primary' />
       </DialogTitle>
@@ -529,24 +577,29 @@ export const UploadBlueprintsDialog = ({
               <CustomListItem
                 editable={doc && authUser.uid === doc.userId}
                 label='Descripción'
+                placeholder='Agregue la descripción del documento'
+                InputLabelProps={{
+                  shrink: true
+                }}
                 id='description'
+                //defaultValue='Agregue la descripción del documento'
+                //labelClassName='Agregue la descripción del documento'
+                //labelClassName={this.props.classes['input-label']}
                 initialValue={description}
                 value={values.description}
-                onChange={handleInputChange('description')}
+                onChange={e => {
+                  handleInputChange('description')(e)
+                  setIsDescriptionSaved(false) // Restablecer el estado al cambiar la descripción
+                }}
                 required={false}
                 inputProps={{
-                  endAdornment: description !== values.description && (
+                  endAdornment: (
                     <InputAdornment position='end'>
-                      <Button
-                        onClick={() => {
-                          if (authUser.uid === doc.userId) {
-                            submitDescription()
-                          }
-                        }}
-                      >
-                        {' '}
-                        Guardar descripción{' '}
-                      </Button>
+                      {!isDescriptionSaved && (
+                        <Button onClick={submitDescription} disabled={isSaving}>
+                          {isSaving ? 'Guardando...' : 'Guardar descripción'}
+                        </Button>
+                      )}
                     </InputAdornment>
                   )
                 }}

@@ -1,39 +1,23 @@
 // ** React Imports
-import { useState, Fragment, useEffect } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import Menu from '@mui/material/Menu'
-import Badge from '@mui/material/Badge'
 import Avatar from '@mui/material/Avatar'
+import Badge from '@mui/material/Badge'
+import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
+import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
-import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Custom Components
-import CustomAvatar from 'src/@core/components/mui/avatar'
-
-// ** Utils Import
-import { getInitials } from 'src/@core/utils/get-initials'
-
 // ** Context
 import { useFirebase } from 'src/context/useFirebase'
-
-// ** Styled Components
-const BadgeContentSpan = styled('span')(({ theme }) => ({
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
-  backgroundColor: theme.palette.success.main,
-  boxShadow: `0 0 0 2px ${theme.palette.background.paper}`
-}))
 
 const UserDropdown = props => {
   // ** Props
@@ -41,11 +25,12 @@ const UserDropdown = props => {
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
-  const [userName, setUserName] = useState('')
+  const [userObject, setUserObject] = useState({ name: '', email: '', role: '' })
+  const [urlFoto, setUrlFoto] = useState('')
 
   // ** Hooks
   const router = useRouter()
-  const { auth, authUser, signOut } = useFirebase()
+  const { auth, authUser, signOut, domainRoles, subscribeToUserProfileChanges } = useFirebase()
 
   // ** Vars
   const { direction } = settings
@@ -88,68 +73,66 @@ const UserDropdown = props => {
       })
   }
 
-  // Se inicializan las variables que serán usadas en el menú desplegable
-  let userEmail // variable que almacena el e-mail del usuario conectado
-  let userRole // variable que almacena el rol del usuario conectado
+  useEffect(() => {
+    let unsubscribe = () => {}
 
-  // Si no hay un usuario conectado
-  if (!authUser) {
-    // Las variables serán definidas como 'not logged' para evitar problemas de renderizado
-    userEmail = 'not logged'
-    userRole = 'not Logged'
-  } else {
-    // Pero si hay un usuario conectado, se definirán las variables
-
-    userEmail = authUser.email
-
-    // Condicional que renderizará en rol como un string según el rol del usuario conectado
-    if (authUser.role == 1) {
-      userRole = 'Admin'
-    } else if (authUser.role == 2) {
-      userRole = 'Solicitante'
-    } else if (authUser.role == 3) {
-      userRole = 'Contract Operator'
-    } else if (authUser.role == 4) {
-      userRole = 'Contract Owner'
-    } else if (authUser.role == 5) {
-      userRole = 'Planificador'
-    } else if (authUser.role == 6) {
-      userRole = 'Administrador de Contrato'
-    } else if (authUser.role == 7) {
-      userRole = 'Supervisor'
-    } else if (authUser.role == 8) {
-      userRole = 'Proyectista'
-    } else if (authUser.role == 9) {
-      userRole = 'Control Documental'
-    } else if (authUser.role == 10) {
-      userRole = 'Gerencia'
+    if (authUser && authUser.uid) {
+      unsubscribe = subscribeToUserProfileChanges(authUser.uid, userData => {
+        setUrlFoto(userData.urlFoto)
+      })
     }
-  }
+
+    return () => unsubscribe() // Limpia la suscripción cuando el componente se desmonte
+  }, [authUser])
 
   useEffect(() => {
-    if (authUser && authUser.displayName === 'No definido') {
-      setUserName('Por definir')
-    } else if (authUser && !authUser.displayName) {
-      setUserName('Por definir')
-    } else if (authUser && authUser.displayName && authUser.displayName !== '') {
-      setUserName(authUser.displayName)
+    let thisName
+    let thisEmail
+    let thisRole
+
+    if (authUser) {
+      // Caso para el nombre
+      if (authUser.displayName && authUser.displayName !== 'No definido' && authUser.displayName !== '') {
+        thisName = authUser.displayName
+      } else {
+        thisName = 'Por definir'
+      }
+
+      // Caso para el email
+      if (authUser.email && authUser.email !== 'No definido' && authUser.email !== '') {
+        thisEmail = authUser.email
+      } else {
+        thisEmail = 'Por definir'
+      }
+
+      // Caso para el Rol
+      if (authUser.role && authUser.role !== 'No definido' && authUser.role !== '' && domainRoles) {
+        const role = domainRoles[authUser.role]
+        if (role) {
+          thisRole = role.name
+        } else {
+          thisRole = 'Por definir'
+        }
+      } else {
+        thisRole = 'Por definir'
+      }
     } else {
-      setUserName('Por definir')
+      thisName = 'Por definir'
+      thisEmail = 'Por definir'
+      thisRole = 'Por definir'
     }
-  }, [authUser])
+
+    setUserObject({ name: thisName, email: thisEmail, role: thisRole })
+  }, [authUser.role, domainRoles])
 
   const renderUserAvatar = () => {
     let avatarContent
-    let name
-    if (!authUser || !authUser.displayName) {
-      name = 'Por definir'
-    }
 
-    if (authUser && authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
+    if (urlFoto && urlFoto !== 'Por definir') {
       avatarContent = (
         <Avatar
-          src={authUser.urlFoto}
-          alt={authUser.displayName}
+          src={urlFoto}
+          alt={userObject.name}
           sx={{
             width: 40,
             height: 40,
@@ -161,7 +144,7 @@ const UserDropdown = props => {
       )
     } else {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
-      const currentName = authUser ? authUser.displayName : 'Por definir'
+      const currentName = userObject.name
 
       const initials = currentName
         .toUpperCase()
@@ -214,12 +197,12 @@ const UserDropdown = props => {
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{userName}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{userObject.name}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {userEmail}
+                {userObject.email}
               </Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {userRole}
+                {userObject.role}
               </Typography>
             </Box>
           </Box>

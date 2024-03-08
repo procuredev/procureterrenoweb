@@ -1,4 +1,4 @@
-export function solicitudValidator(values) {
+export function solicitudValidator(values, role) {
   const valPlant = [
     'Planta Concentradora Los Colorados',
     'Planta Concentradora Laguna Seca | Línea 1',
@@ -109,7 +109,7 @@ export function solicitudValidator(values) {
     '3000 - Suministro de Agua (Planta Desalinización)',
     '3200 - Tubería Agua Desalinizada y Estación de Bombeo',
     '3300 - Estanque Agua Dulce',
-    '3400 - Línea de Transmisión y Sub Estaciones',
+    '3400 - Línea de Transmisión y Sub Estaciones'
   ]
 
   const valPlantChancadoCorreas = [
@@ -342,9 +342,7 @@ export function solicitudValidator(values) {
     '1430 - Concentraducto'
   ]
 
-  const valInstalacionesMonturaqui = [
-    '0720 - Suministro de Agua Fresca'
-  ]
+  const valInstalacionesMonturaqui = ['0720 - Suministro de Agua Fresca']
 
   const valInstalacionesAuxiliares = [
     '0400 - Camino Acceso a Zaldívar',
@@ -439,9 +437,7 @@ export function solicitudValidator(values) {
     '5400 - Modificaciones Villa San Lorenzo'
   ]
 
-  const valCampamentoVillaCerroAlegre = [
-    '5410 - Modificaciones de Campamento 2000'
-  ]
+  const valCampamentoVillaCerroAlegre = ['5410 - Modificaciones de Campamento 2000']
 
   const valObjetive = [
     'Análisis fotogramétrico',
@@ -473,7 +469,7 @@ export function solicitudValidator(values) {
   const valFnLocation = /^[a-zA-Z0-9 -./]{0,25}$/ // /^[0-9+]{4,6}$/
 
   const validations = {
-   /*  title: {
+    /*  title: {
       validate: value => valTitle.test(value),
       message: 'El título no admite caracteres especiales.'
     },
@@ -484,6 +480,10 @@ export function solicitudValidator(values) {
     costCenter: {
       validate: value => valCostCenter.test(value),
       message: 'El Centro de Costos solo recibe campos numéricos y debe tener de 0 a 25 caracteres.'
+    },
+    ot: {
+      validate: value => (values.role === 5 || values.role === 7 ? /^\d+$/.test(value) : true),
+      message: 'El número de OT solo debe contener dígitos numéricos.'
     },
     sap: {
       validate: value => valSap.test(value),
@@ -592,7 +592,21 @@ export function solicitudValidator(values) {
 
   for (const key in values) {
     let keyStringName = keyMap[key] || [key]
-    const nonRequiredFields = ['fnlocation', 'sap', 'opshift', 'urlvideo', 'tag', 'end', 'ot', 'urgency', 'mcDescription', 'costCenter']
+
+    const nonRequiredFields = [
+      'fnlocation',
+      'sap',
+      'opshift',
+      'urlvideo',
+      'tag',
+      'end',
+      'ot',
+      'urgency',
+      'mcDescription',
+      'costCenter',
+      // Agrega 'petitioner' a la lista de campos no requeridos si el usuario tiene role === 2
+      ...(role === 2 ? ['petitioner'] : [])
+    ]
 
     if (typeof values[key] === 'string' && !nonRequiredFields.includes(key)) {
       if (values[key].trim() === '') {
@@ -605,7 +619,12 @@ export function solicitudValidator(values) {
       }
     }
 
-    if (!['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'mcDescription'].includes(key) && typeof values[key] !== 'string') {
+    if (
+      !['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'ot', 'mcDescription', 'timestamp'].includes(
+        key
+      ) &&
+      typeof values[key] !== 'string'
+    ) {
       console.log(`El campo ${key} debe ser en formato texto.`)
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }

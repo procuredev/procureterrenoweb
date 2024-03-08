@@ -1,12 +1,11 @@
-import 'moment/locale/es'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import moment from 'moment-timezone'
-import { Fragment, useState, useEffect, useRef } from 'react'
+import 'moment/locale/es'
 import { useRouter } from 'next/router'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
 import {
   Box,
   Button,
@@ -24,21 +23,21 @@ import {
   List,
   Typography
 } from '@mui/material'
+import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 
 // ** Custom Components
-import Icon from 'src/@core/components/icon'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
+import Icon from 'src/@core/components/icon'
 
 import {
-  CustomTextField,
-  CustomSelect,
   CustomAutocomplete,
-  StyledInfoIcon,
-  StyledTooltip,
+  CustomSelect,
+  CustomTextField,
+  FileList,
   HeadingTypography,
-  FileList
+  StyledInfoIcon,
+  StyledTooltip
 } from 'src/@core/components/custom-form/index'
-import { set } from 'lodash'
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
@@ -64,7 +63,16 @@ const FormLayoutsSolicitud = () => {
   }
 
   // ** Hooks
-  const { authUser, newDoc, uploadFilesToFirebaseStorage, consultBlockDayInDB, consultSAP, getUserData, getDomainData} = useFirebase()
+  const {
+    authUser,
+    newDoc,
+    uploadFilesToFirebaseStorage,
+    consultBlockDayInDB,
+    consultSAP,
+    getUserData,
+    getDomainData,
+    consultOT
+  } = useFirebase()
   const router = useRouter()
 
   // ** States
@@ -76,7 +84,23 @@ const FormLayoutsSolicitud = () => {
   const [petitioners, setPetitioners] = useState([])
   const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({})
-  const [values, setValues] = useState(initialValues)
+
+  const [values, setValues] = useState(() => {
+    const savedFormData = localStorage.getItem('formData')
+    if (savedFormData) {
+      const parsedFormData = JSON.parse(savedFormData)
+      if (parsedFormData.start) {
+        parsedFormData.start = moment(parsedFormData.start)
+      }
+      if (parsedFormData.end) {
+        parsedFormData.end = moment(parsedFormData.end)
+      }
+
+      return parsedFormData
+    }
+
+    return initialValues
+  })
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -110,6 +134,19 @@ const FormLayoutsSolicitud = () => {
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
+  const otRef = useRef(null)
+  const titleRef = useRef(null)
+  const urgencyRef = useRef(null)
+  const descriptionRef = useRef(null)
+  const endRef = useRef(null)
+  const plantRef = useRef(null)
+  const areaRef = useRef(null)
+  const contopRef = useRef(null)
+  const petitionerRef = useRef(null)
+  const typeRef = useRef(null)
+  const detentionRef = useRef(null)
+  const objectiveRef = useRef(null)
+  const receiverRef = useRef(null)
 
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
@@ -131,20 +168,36 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleChange = prop => async (event, data) => {
-    const strFields = ['title', 'description', 'sap', 'fnlocation', 'tag', 'urlVideo', 'ot', 'mcDescription', 'costCenter']
+    const strFields = [
+      'title',
+      'description',
+      'sap',
+      'fnlocation',
+      'tag',
+      'urlVideo',
+      'ot',
+      'mcDescription',
+      'costCenter'
+    ]
     const selectFields = ['plant', 'area', 'petitioner', 'type', 'detention', 'objective', 'contop', 'urgency']
     const autoFields = ['deliverable', 'receiver']
     let newValue
     switch (true) {
       case strFields.includes(prop): {
         newValue = event.target.value
+
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
+
+        if (prop === 'ot') {
+          newValue = Number(newValue)
+        }
 
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
       }
       case selectFields.includes(prop): {
         newValue = event.target.value
+        newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         if (prop === 'objective' && newValue === 'Análisis GPR') {
           handleGPRSelected()
@@ -170,7 +223,9 @@ const FormLayoutsSolicitud = () => {
           if (newValue.includes('Memoria de Cálculo')) {
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
-              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique por qué necesita una Memoria de Cálculo, en base a esto Procure generará el presuspuesto:')
+              setAlertMessage(
+                'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.'
+              )
 
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
@@ -194,7 +249,6 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'start': {
         let startDate = event
-        console.log(event, "eventStart")
         setValues({
           ...values,
           start: startDate
@@ -227,7 +281,7 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const handleBlur = async e => {
+  const handleBlurSap = async e => {
     if (values.sap.length > 0) {
       const resultSap = await consultSAP(e.target.value)
 
@@ -248,27 +302,100 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  const handleBlurOt = async e => {
+    const otValue = e.target.value.trim() // .trim() devuelve el valor sin espacios extra
+
+    // Verifica si el campo OT tiene algún valor antes de hacer la consulta
+    if (otValue.length > 0) {
+      const resultOt = await consultOT(parseInt(otValue))
+
+      if (resultOt.exist) {
+        setAlertMessage(resultOt.msj) // Muestra en Dialog el mensaje de error específico para el campo OT
+        // Si existe un OT, establece el mensaje de error específicamente para el campo OT
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          ot: 'Existe una solicitud con ese número de OT.'
+        }))
+      } else {
+        // Si OT no existe, limpia el mensaje de error para OT para asegurar que antiguos mensajes de error no permanezcan después de corregir el valor
+        setErrors(prevErrors => {
+          const newErrors = { ...prevErrors }
+          delete newErrors.ot // Elimina el mensaje de error para OT
+
+          return newErrors
+        })
+      }
+    } else {
+      const resultOt = await consultOT(parseInt(otValue))
+      // Si el campo OT está vacío, podrías querer manejar este caso también
+      // Por ejemplo, estableciendo un mensaje de error indicando que el campo no puede estar vacío
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        ot: 'El campo OT no puede estar vacío.'
+      }))
+      setAlertMessage('El campo OT no puede estar vacío.')
+    }
+  }
+
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
+    sap: /[^\s0-9]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    fnlocation: /[^\s0-9]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    ot: /[^\s0-9]/, // /[^0-9]/g
+    tag: /[^\s0-9]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    costCenter: /[^\s0-9]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
+    const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
+
+    const fieldLabels = {
+      ot: 'OT',
+      urgency: 'Urgencia',
+      title: 'Título',
+      description: 'Descripción',
+      end: 'Fecha de término',
+      plant: 'Planta',
+      area: 'Área',
+      contop: 'Contract Operator',
+      petitioner: 'Solicitante',
+      type: 'Estado Operacional Planta',
+      detention: '¿Estará la máquina detenida?',
+      objective: 'Tipo de Levantamiento',
+      deliverable: 'Entregables del Levantamiento',
+      receiver: 'Destinatarios'
+    }
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
-      const costCenterIsRequired = (authUser.role === 7 && key === 'costCenter') ? false : true
+      const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
+
+      // Si el usuario tiene role === 2, no validar el campo 'petitioner'
+      // if (authUser.role === 2 && key === 'petitioner') {
+      //   continue
+      // }
+
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && costCenterIsRequired && excludedFields) {
+      if (
+        key !== 'fnlocation' &&
+        key !== 'sap' &&
+        key !== 'tag' &&
+        key !== 'urlvideo' &&
+        costCenterIsRequired &&
+        excludedFields
+      ) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-          newErrors[key] = 'Por favor, especifica una opción válida'
+          newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
         }
+      } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
+        newErrors[key] = 'Por favor, especifica una opción válida'
+      }
+
+      if (key === 'costCenter' && values[key] === 0) {
+        newErrors[key] = 'El campo Centyro de Costo no puede ser cero.'
       }
 
       if (key === 'objective') {
@@ -289,8 +416,18 @@ const FormLayoutsSolicitud = () => {
         }
       }
 
-      // Validaciones solo para claves de tipo string
-      if (textFieldValues.includes(values[key])) {
+      if (key === 'ot' && shouldValidateOT) {
+        if (!values[key]) {
+          newErrors[key] = 'El campo OT no puede estar vacío.'
+        } else if (values[key] === 0) {
+          newErrors[key] = 'El campo OT no puede ser cero.'
+        } else if (typeof values[key] !== 'number') {
+          newErrors[key] = 'El campo OT debe ser un número.'
+        } else if (errors.ot) {
+          newErrors[key] = errors.ot
+        }
+      } else if (textFieldValues.includes(values[key])) {
+        // Validaciones solo para claves de tipo string
         // Saca espacios en los values
         trimmedValues[key] = values[key].replace(/\s+$/, '')
 
@@ -313,18 +450,13 @@ const FormLayoutsSolicitud = () => {
 
         // Manejo de errores para evitar Warning en Consola
         if (!domain) {
-
           console.error('No se encontraron los datos o datos son indefinidos o null.')
 
           return
-
         }
-
 
         // Se almacena la información de Tabla de Dominio en una variable de entorno
         setDomainData(domain)
-
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -337,7 +469,6 @@ const FormLayoutsSolicitud = () => {
   useEffect(() => {
     const getSpecificDomainData = async () => {
       try {
-
         // Se reordena la información de objectives (Tipo de Levantamiento) en domain, para que sean arreglos ordenados alfabéticamente.
         if (domainData && domainData.objectives) {
           const objectives = Object.keys(domainData.objectives).sort()
@@ -365,10 +496,11 @@ const FormLayoutsSolicitud = () => {
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
         const plantData = domainData?.plants?.[values.plant] || {}
         if (plantData) {
-          const areas = Object.keys(plantData).map((area) => `${area} - ${plantData[area].name}`).sort()
+          const areas = Object.keys(plantData)
+            .map(area => `${area} - ${plantData[area].name}`)
+            .sort()
           setAreas(areas)
         }
-
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -380,7 +512,7 @@ const FormLayoutsSolicitud = () => {
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
-    const maxSizeBytes = 5 * 1024 * 1024 // 5 MB in bytes
+    const maxSizeBytes = 10 * 1024 * 1024 // 5 MB in bytes
 
     const isValidImage = file => {
       const extension = file.name.split('.').pop().toLowerCase()
@@ -449,19 +581,76 @@ const FormLayoutsSolicitud = () => {
     event.preventDefault()
   }
 
+  // Objeto para mantener las referencias
+  const refs = {
+    ot: otRef,
+    urgency: urgencyRef,
+    title: titleRef,
+    description: descriptionRef,
+    end: endRef,
+    plant: plantRef,
+    area: areaRef,
+    contop: contopRef,
+    petitioner: petitionerRef,
+    type: typeRef,
+    detention: detentionRef,
+    objective: objectiveRef,
+    receiver: receiverRef
+  }
+
+  const focusFirstError = formErrors => {
+    const errorKeys = Object.keys(formErrors)
+
+    const orderedErrorKeys = [
+      'ot',
+      'urgency',
+      'title',
+      'description',
+      'end',
+      'plant',
+      'area',
+      'contop',
+      'petitioner',
+      'type',
+      'detention',
+      'objective',
+      'deliverable',
+      'receiver'
+    ] // Orden específico de los elementos de 'errorKeys'
+
+    for (const key of orderedErrorKeys) {
+      // Si el key está en errorKeys, y formErrors[key] existe, y refs[key] existe...
+      if (errorKeys.includes(key) && formErrors[key] && refs[key] && refs[key].current) {
+        // Establece el mensaje de alerta al error correspondiente a key
+        setAlertMessage(errors[key])
+        // Enfoca el elemento correspondiente a key
+        console.log('Enfocando el elemento:', key)
+        refs[key].current.focus()
+        // Sale del bucle: no se procesarán más keys después de encontrar el primer error
+        break
+      }
+    }
+  }
+
   const onSubmit = async event => {
     event.preventDefault()
     setButtonDisabled(true)
     const formErrors = validateForm(values)
+    setErrors(formErrors)
+    if (Object.keys(formErrors).length > 0) {
+      focusFirstError(formErrors) // Pasa formErrors como argumento
+    }
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
-    const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+
+    const isUrgent =
+      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
 
     // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
     if (!values.deliverable.includes('Memoria de Cálculo')) {
-      values.mcDescription = '' // Restablecer mcDescription si 'Memoria de Cálculo' no está seleccionado
+      delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado
     }
 
     console.log(formErrors)
@@ -474,6 +663,9 @@ const FormLayoutsSolicitud = () => {
     ) {
       try {
         setIsUploading(true) // Se activa el Spinner
+
+        // Restablecer el estado del formulario a los valores iniciales...
+        localStorage.removeItem('formData')
 
         const solicitud = await newDoc(
           {
@@ -489,21 +681,23 @@ const FormLayoutsSolicitud = () => {
               }
             }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-            end: authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
+            end:
+              authUser.role === 5 || authUser.role === 7
+                ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
+                : null,
             mcDescription: values.mcDescription ? values.mcDescription : null
-
           },
           authUser
         )
 
         await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
-        setIsUploading(false),
-        setButtonDisabled(false),
-        handleRemoveAllFiles(),
-        setAlertMessage('Documento creado exitosamente'),
-        setValues(initialValues),
-        setErrors({})
-      })
+          setIsUploading(false),
+            setButtonDisabled(false),
+            handleRemoveAllFiles(),
+            setAlertMessage('Documento creado exitosamente'),
+            setValues(initialValues),
+            setErrors({})
+        })
       } catch (error) {
         setAlertMessage(error.message)
         setIsUploading(false) // Se cierra el spinner en caso de error
@@ -525,60 +719,87 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  // Función asíncrona para buscar la información de los Contract Operator y Solicitantes de la Planta indicada
   const fetchData = async () => {
     try {
-      const contOpOptions = await getUserData('getUsers', values.plant)
-      setContOpOptions(contOpOptions)
-
-      const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
-      setPetitioners(petitioners)
-
-      if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
-        return contOpOptions[0]
-      }
-    } catch (error) {
-      console.error('Error en la petición:', error)
-    }
-  }
-
-  const getFixedUsers = async contop => {
-    try {
-      const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
-        getUserData('getUsersByRole', null, { role: 3 }),
-        getUserData('getUsersByRole', null, { role: 4 }),
-        getUserData('getReceiverUsers', values.plant)
+      // Obtener opciones de Contract Operator y Solicitantes simultáneamente
+      const [contOpOptions, petitioners] = await Promise.all([
+        getUserData('getUsers', values.plant),
+        getUserData('getPetitioner', values.plant, { role: authUser.role })
       ])
 
-      const filterNames = []
-
-      const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
-
-      const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
-
-      const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
-
-      let fixedOptions = []
-
-      if (contop) {
-        fixedOptions.push({ ...contop, disabled: true })
+      // Si solo hay una opción de Contract Operator y tiene nombre, establecerla automáticamente en los valores que serán almacenados en Firestore
+      if (contOpOptions.length === 1 && contOpOptions[0].name) {
+        setValues(prevValues => ({
+          ...prevValues,
+          contop: contOpOptions[0].name // Establecer automáticamente el Contract Operator seleccionado
+        }))
       }
 
-      if (contOwnUser) {
-        fixedOptions.push({ ...contOwnUser[0], disabled: true })
+      setContOpOptions(contOpOptions) // Establecer las opciones de Contract Operator en la lista desplegable del formulario
+
+      // Filtrar los Solicitantes para incluir solo aquellos con roles 2 y 3 (para que no aparezcan ni Contract Owner ni usuarios Procure)
+      const filteredPetitioners = petitioners.filter(user => user.role == 2 || user.role == 3)
+      setPetitioners(filteredPetitioners) // Establecer los Solicitantes filtrados
+
+      // Si solo hay una opción de Contract Operator y tiene un nombre, devolver esa opción
+      if (contOpOptions.length === 1 && contOpOptions[0].name) {
+        return contOpOptions[0] // Devolver la única opción de Contract Operator disponible
       }
-      setFixed(fixedOptions)
-      setValues(values => ({ ...values, ...(contop && { contop: contop.name }), receiver: [...fixedOptions] }))
-      setAllUsers(receiverFilter.concat(petitionerUsers))
     } catch (error) {
-      console.error('Error al obtener datos de usuarios:', error)
+      console.error('Error en la petición:', error) // Manejar errores
     }
   }
 
+  // Función que obtiene los usuarios fijos (Contract Owner y el Contract Operator Seleccionado)
+  const getFixedUsers = async () => {
+    try {
+      // Obtiene los usuarios con roles específicos asociados a una planta
+      const [contractOperatorUsers, contractOwnerUser, plantUsers] = await Promise.all([
+        getUserData('getUsersByRole', null, { role: 3 }), // Obtener usuarios con el rol de Contract Operator
+        getUserData('getUsersByRole', null, { role: 4 }), // Obtener usuarios con el rol de Contract Owner
+        getUserData('getReceiverUsers', values.plant) // Obtener usuarios que no son ni Contract Owner ni Contract Operator
+      ])
+
+      // Combinar los usuarios obtenidos en un único array de Destinatarios
+      const receiverGroup = [...contractOperatorUsers, ...contractOwnerUser, ...plantUsers]
+
+      let fixedOptions = [] // Array para almacenar los Destinatarios fijos
+
+      // Buscar y añadir el Contract Operator seleccionado a las opciones fijas
+      const matchingContop = contractOperatorUsers.find(option => option.name === values.contop)
+      if (matchingContop) {
+        fixedOptions.push({ ...matchingContop, disabled: true }) // Añadir el Contract Operator seleccionado con la propiedad 'disabled'
+      }
+
+      // Añadir el Contract Owner a las opciones fijas si está presente
+      if (contractOwnerUser) {
+        fixedOptions.push({ ...contractOwnerUser[0], disabled: true }) // Añadir el Contract Owner con la propiedad 'disabled'
+      }
+
+      // Establecer las opciones fijas en el estado
+      setFixed(fixedOptions)
+
+      // Actualizar los valores del estado, estableciendo el Contract Operator seleccionado y Contract Owner como opciones fijas
+      setValues(values => ({
+        ...values,
+        ...(matchingContop && { contop: matchingContop.name }), // Actualizar el valor de 'contop' si se ha encontrado un Contract Operator coincidente
+        receiver: [...fixedOptions] // Establecer los receptores como opciones fijas
+      }))
+
+      // Establecer todos los usuarios disponibles (receptores y peticionarios) en el estado
+      setAllUsers(receiverGroup)
+    } catch (error) {
+      console.error('Error al obtener datos de usuarios:', error) // Manejar errores
+    }
+  }
+
+  // useEffect para ejecutar las funciones fetchData y luego getFixedUsers, cuando hay cambios en Planta o en Contract Opetaror.
   useEffect(() => {
     if (values.plant) {
-      fetchData().then(contOpValue => getFixedUsers(contOpValue))
+      fetchData().then(getFixedUsers())
     }
-  }, [values.plant])
+  }, [values.plant, values.contop])
 
   // Establece planta solicitante y contop solicitante
   useEffect(() => {
@@ -618,6 +839,61 @@ const FormLayoutsSolicitud = () => {
     }
   }, [values.start])
 
+  useEffect(() => {
+    const formDataToSave = { ...values }
+    if (formDataToSave.start) {
+      formDataToSave.start = formDataToSave.start.format()
+    }
+    if (formDataToSave.end) {
+      formDataToSave.end = formDataToSave.end.format()
+    }
+
+    // Guardar los datos del formulario junto con la marca de tiempo actual
+    const dataToStore = {
+      ...formDataToSave,
+      timestamp: new Date().getTime() // Marca de tiempo en milisegundos
+    }
+    localStorage.setItem('formData', JSON.stringify(dataToStore))
+  }, [values])
+
+  useEffect(() => {
+    const savedFormData = localStorage.getItem('formData')
+    if (savedFormData) {
+      /* const { formData, timestamp } = JSON.parse(savedFormData)
+      const currentTime = new Date().getTime()
+
+      // Verificar si han pasado 24 horas (24 * 60 * 60 * 1000 milisegundos)
+      if (currentTime - timestamp < 24 * 60 * 60 * 1000) {
+        if (formData.start) {
+          formData.start = moment(formData.start)
+        }
+        if (formData.end) {
+          formData.end = moment(formData.end)
+        }
+        setValues(formData)
+      } else {
+        // Limpiar localStorage si han pasado 24 horas
+        localStorage.removeItem('formData')
+      } */
+      const parsedData = JSON.parse(savedFormData)
+      const currentTime = new Date().getTime()
+
+      if (currentTime - parsedData.timestamp < 24 * 60 * 60 * 1000) {
+        if (parsedData.start) {
+          parsedData.start = moment(parsedData.start)
+        }
+        if (parsedData.end) {
+          parsedData.end = moment(parsedData.end)
+        }
+        // Establecemos los valores directamente sin incluir una propiedad formData.
+        setValues(parsedData)
+      } else {
+        // Limpiar localStorage si han pasado 24 horas
+        localStorage.removeItem('formData')
+      }
+    }
+  }, [])
+
   return (
     <Card>
       <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
@@ -643,23 +919,33 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-
-            {/* Datos exclusivos para cuando el Supervisor ingresa la Solicitud */}
-            {authUser.role === 7 && (
+            {/* Número de OT Procure*/}
+            {(authUser.role === 5 || authUser.role === 7) && (
               <>
-                {/* Número de OT Procure */}
                 <CustomTextField
+                  inputRef={otRef}
+                  type='text'
                   required
                   label='OT'
                   value={values.ot}
                   onChange={handleChange('ot')}
                   error={errors.ot}
                   inputProps={{ maxLength: 5 }}
+                  autoComplete='off'
+                  onInput={e => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '')
+                  }}
                   helper='Ingresa el número de OT.'
+                  onBlur={handleBlurOt}
                 />
+              </>
+            )}
 
-                {/* Tipo de Urgencia */}
+            {/* Tipo de Urgencia */}
+            {authUser.role === 7 && (
+              <>
                 <CustomSelect
+                  inputRef={urgencyRef}
                   required
                   options={urgencyTypesOptions}
                   label='Tipo de urgencia'
@@ -674,6 +960,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Título */}
             <CustomTextField
+              inputRef={titleRef}
               required
               type='text'
               label='Título'
@@ -681,11 +968,12 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('title')}
               error={errors.title}
               inputProps={{ maxLength: 300 }}
-              helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras'
+              helper='Rellena este campo con un título acorde a lo que necesitas. Recomendamos que no exceda las 15 palabras.'
             />
 
             {/* Descripción */}
             <CustomTextField
+              inputRef={descriptionRef}
               required
               type='text'
               label='Descripción'
@@ -699,21 +987,31 @@ const FormLayoutsSolicitud = () => {
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                <LocalizationProvider
+                  dateAdapter={AdapterMoment}
+                  adapterLocale='es'
+                  localeText={{
+                    okButtonLabel: 'Aceptar',
+                    cancelButtonLabel: 'Cancelar',
+                    datePickerToolbarTitle: 'Selecciona Fecha de Comienzo'
+                  }}
+                >
                   <Box display='flex' alignItems='center'>
-                    <DatePicker
+                    <MobileDatePicker
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
                       label='Fecha de inicio *'
                       value={values.start}
                       onChange={date => handleChange('start')(date)}
+                      inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
                       InputLabelProps={{ shrink: true, required: true }}
                       slotProps={{
                         textField: {
                           error: errors.start ? true : false,
                           helperText: errors.start
-                        }
+                        },
+                        toolbar: { hidden: false }
                       }}
                     />
                     <StyledTooltip title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
@@ -725,24 +1023,35 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Fecha finalización */}
-            {authUser.role === 7 && (
+            {(authUser.role === 5 || authUser.role === 7) && (
               <Grid item xs={12}>
                 <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
+                  <LocalizationProvider
+                    dateAdapter={AdapterMoment}
+                    adapterLocale='es'
+                    localeText={{
+                      okButtonLabel: 'Aceptar',
+                      cancelButtonLabel: 'Cancelar',
+                      datePickerToolbarTitle: 'Selecciona Fecha de Término'
+                    }}
+                  >
                     <Box display='flex' alignItems='center'>
-                      <DatePicker
+                      <MobileDatePicker
+                        inputRef={endRef}
                         dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                         minDate={moment().subtract(1, 'year')}
                         maxDate={moment().add(1, 'year')}
                         label='Fecha de término *'
                         value={values.end}
                         onChange={date => handleChange('end')(date)}
+                        inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
                         InputLabelProps={{ shrink: true, required: true }}
                         slotProps={{
                           textField: {
                             error: errors.end ? true : false,
                             helperText: errors.end
-                          }
+                          },
+                          toolbar: { hidden: false }
                         }}
                       />
                       <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
@@ -756,7 +1065,8 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <CustomSelect
-            required
+              inputRef={plantRef}
+              required
               options={[...authUser.plant]}
               label='Planta'
               value={values.plant}
@@ -771,7 +1081,8 @@ const FormLayoutsSolicitud = () => {
 
             {/* Área */}
             <CustomSelect
-            required
+              inputRef={areaRef}
+              required
               options={areas}
               label='Área'
               value={values.area}
@@ -794,26 +1105,37 @@ const FormLayoutsSolicitud = () => {
 
             {/* Contract Operator */}
             <CustomSelect
+              inputRef={contopRef}
               required
-              options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
+              options={
+                authUser.role === 3 && contOpOptions?.length < 2 ? [{ name: authUser.displayName }] : contOpOptions
+              }
               label='Contract Operator'
               value={values.contop}
               onChange={handleChange('contop')}
               error={errors.contop}
-              disabled={authUser.role === 3}
-              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+              disabled={(authUser.role === 3 && contOpOptions?.length < 2) || contOpOptions?.length < 2}
+              helper={
+                contOpOptions?.length < 2
+                  ? 'Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
+                  : 'Selecciona quién al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
+              }
               defaultValue=''
             />
 
             {/* Centro de Costos */}
             <CustomTextField
-              required={authUser.role!=7}
+              required={authUser.role != 7}
               type='text'
               label='Centro de Costos'
               value={values.costCenter}
               onChange={handleChange('costCenter')}
               error={errors.costCenter}
               inputProps={{ maxLength: 25 }}
+              autoComplete='off'
+              onInput={e => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+              }}
               helper='Ingresa el código del Centro de Costos.'
             />
 
@@ -825,6 +1147,10 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('fnlocation')}
               error={errors.fnlocation}
               inputProps={{ maxLength: 25 }}
+              autoComplete='off'
+              onInput={e => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+              }}
               helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
             />
 
@@ -836,30 +1162,42 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('tag')}
               error={errors.tag}
               inputProps={{ maxLength: 25 }}
+              autoComplete='off'
+              onInput={e => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+              }}
               helper='Ingresa el código TAG para identificar el equipo.'
             />
 
             {/* Solicitante */}
-            <CustomSelect
-            required
-              options={
-                (authUser.role === 3 ||authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
-                  ? petitioners.map(item => ({ name: item.name }))
-                  : [authUser.displayName])
-              }
-              label='Solicitante'
-              value={values.petitioner}
-              onChange={handleChange('petitioner')}
-              error={errors.petitioner}
-              disabled={
-                authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
-              }
-              helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
-              defaultValue=''
-            />
+            {authUser.role !== 2 && authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants' && (
+              <CustomSelect
+                inputRef={petitionerRef}
+                required
+                options={
+                  authUser.role === 3 ||
+                  authUser.role === 5 ||
+                  authUser.role === 7 ||
+                  authUser.plant === 'allPlants' ||
+                  authUser.plant === 'Solicitante Santiago'
+                    ? petitioners.map(item => ({ name: item.name }))
+                    : [authUser.displayName]
+                }
+                label='Solicitante'
+                value={values.petitioner}
+                onChange={handleChange('petitioner')}
+                error={errors.petitioner}
+                disabled={
+                  authUser.role === 2 && (authUser.plant !== 'Sucursal Santiago' || authUser.plant !== 'allPlants')
+                }
+                helper='Selecciona quién es la persona de tu Planta que ha hecho la solicitud de trabajo.'
+                defaultValue=''
+              />
+            )}
 
             {/* Estado Operacional */}
             <CustomSelect
+              inputRef={typeRef}
               required
               options={operationalStatusOptions}
               label='Estado Operacional Planta'
@@ -872,6 +1210,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Máquina Detenida */}
             <CustomSelect
+              inputRef={detentionRef}
               required
               options={['Sí', 'No', 'No aplica']}
               label='¿Estará la máquina detenida?'
@@ -888,7 +1227,7 @@ const FormLayoutsSolicitud = () => {
               label='Número SAP'
               value={values.sap}
               onChange={handleChange('sap')}
-              onBlur={handleBlur}
+              onBlur={handleBlurSap}
               error={errors.sap}
               inputProps={{ maxLength: 10 }}
               helper='Rellena este campo sólo si conoces el número SAP'
@@ -896,6 +1235,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Tipo de Levantamiento */}
             <CustomSelect
+              inputRef={objectiveRef}
               required
               options={objectivesOptions}
               label='Tipo de Levantamiento'
@@ -917,7 +1257,7 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
             />
 
-            {values.deliverable.includes('Memoria de Cálculo') && (
+            {values.deliverable?.includes('Memoria de Cálculo') && (
               <>
                 {/* Descripción */}
                 <CustomTextField
@@ -935,8 +1275,9 @@ const FormLayoutsSolicitud = () => {
 
             {/* Destinatarios */}
             <CustomAutocomplete
+              inputRef={receiverRef}
               required
-              isOptionEqualToValue={(option, value) => (option.name === value.name)}
+              isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}
               label='Destinatarios'
               value={values.receiver}
