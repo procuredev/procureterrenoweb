@@ -62,6 +62,11 @@ const DataGrid = () => {
           info: 'Solicitudes aprobadas por Procure'
         },
         {
+          data: data.filter(doc => doc.state === 2),
+          label: 'En Revisión Por C. Operator',
+          info: 'En Revisión Por C. Operator'
+        },
+        {
           data: data.filter(doc => doc.state === 0),
           label: 'Rechazadas',
           info: 'Solicitudes rechazadas'
