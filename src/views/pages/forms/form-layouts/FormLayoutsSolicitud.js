@@ -1253,7 +1253,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
-              //required
+              required={authUser.role !== 5}
               options={deliverablesOptions}
               label='Entregables del levantamiento'
               value={values.deliverable}
