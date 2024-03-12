@@ -466,7 +466,7 @@ export function solicitudValidator(values, role) {
   //const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
   const valSap = /^[0-9+]{0,10}$/
   const valCostCenter = /^[0-9+]{0,25}$/
-  const valFnLocation = /^[a-zA-Z0-9 -./]{0,25}$/ // /^[0-9+]{4,6}$/
+  const valFnLocation = /^[a-zA-Z0-9 @\/.-]{0,25}$/ // /^[0-9+]{4,6}$/
 
   const validations = {
     /*  title: {

@@ -898,7 +898,6 @@ const FormLayoutsSolicitud = () => {
     if (authUser.role === 2) {
       setValues({ ...values, petitioner: authUser.displayName })
     }
-    console.log(values.petitioner)
   }, [values.petitioner])
 
   return (
