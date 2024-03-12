@@ -384,6 +384,7 @@ const FormLayoutsSolicitud = () => {
         key !== 'sap' &&
         key !== 'tag' &&
         key !== 'urlvideo' &&
+        key !== 'deliverable' &&
         costCenterIsRequired &&
         excludedFields
       ) {
@@ -1252,7 +1253,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
-              required
+              //required
               options={deliverablesOptions}
               label='Entregables del levantamiento'
               value={values.deliverable}
