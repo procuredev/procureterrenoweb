@@ -801,16 +801,16 @@ const FormLayoutsSolicitud = () => {
     }
   }, [values.plant, values.contop])
 
-  // Establece planta solicitante y contop solicitante
-  useEffect(() => {
-    let plant = authUser && authUser.plant.map(plant => plant)
+  // // Establece planta solicitante y contop solicitante
+  // useEffect(() => {
+  //   let plant = authUser && authUser.plant.map(plant => plant)
 
-    if (authUser.role === 2) {
-      let onlyPlant = plant[0]
-      let userOption = authUser.displayName
-      setValues({ ...values, plant: onlyPlant, petitioner: userOption })
-    }
-  }, [authUser, isUploading])
+  //   if (authUser.role === 2) {
+  //     let onlyPlant = plant[0]
+  //     let userOption = authUser.displayName
+  //     setValues({ ...values, plant: onlyPlant, petitioner: userOption })
+  //   }
+  // }, [authUser, isUploading])
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
@@ -893,6 +893,13 @@ const FormLayoutsSolicitud = () => {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (authUser.role === 2) {
+      setValues({ ...values, petitioner: authUser.displayName })
+    }
+    console.log(values.petitioner)
+  }, [values.petitioner])
 
   return (
     <Card>
