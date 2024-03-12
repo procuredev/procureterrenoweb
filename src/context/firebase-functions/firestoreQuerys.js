@@ -79,10 +79,11 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
             q = query(collection(db, 'solicitudes'), where('plant', 'in', userParam.plant))
             break
           case 5:
-            q = query(
-              collection(db, 'solicitudes'),
-              or(where('state', '>=', userParam.role - 2), where('state', '==', 0))
-            )
+            q = query(collection(db, 'solicitudes'))
+            // q = query(
+            //   collection(db, 'solicitudes'),
+            //   or(where('state', '>=', userParam.role - 2), where('state', '==', 0))
+            // )                                                                              // se comentará para que el usuario 5 vea todas las solicitudes
             break
           case 7:
             q = query(collection(db, 'solicitudes'), or(where('state', '>=', 6), where('state', '==', 0)))

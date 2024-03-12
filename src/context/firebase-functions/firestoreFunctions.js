@@ -292,6 +292,7 @@ const addComment = async (id, comment, userParam) => {
 function getNextState(role, approves, latestEvent, userRole) {
   const state = {
     returned: 1,
+    petitioner: 2,
     contOperator: 3,
     contOwner: 4,
     planner: 5,
@@ -310,6 +311,16 @@ function getNextState(role, approves, latestEvent, userRole) {
   const returned = latestEvent.newState === state.returned
   const changingStartDate = typeof approves === 'object' && 'start' in approves
   const modifiedBySameRole = userRole === role
+  const requestMadeByPlanner = userRole === 5
+
+  console.log('dateHasChanged: ', dateHasChanged)
+  console.log('approveWithChanges: ', approveWithChanges)
+  console.log('approvedByPlanner: ', approvedByPlanner)
+  console.log('emergencyBySupervisor: ', emergencyBySupervisor)
+  console.log('returned: ', returned)
+  console.log('changingStartDate: ', changingStartDate)
+  console.log('modifiedBySameRole: ', modifiedBySameRole)
+  console.log('requestMadeByPlanner: ', requestMadeByPlanner)
 
   const rules = new Map([
     [
@@ -377,6 +388,12 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       5,
       [
+        // Si es devuelta al Contract Operator por el solicitante(planificador) (1 --> 2)
+        {
+          condition: approves && dateHasChanged && returned && approveWithChanges && requestMadeByPlanner,
+          newState: state.petitioner,
+          log: 'Devuelto por planificador hacia Contract Operator'
+        },
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
           condition:

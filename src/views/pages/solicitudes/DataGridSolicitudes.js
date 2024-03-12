@@ -47,7 +47,7 @@ const DataGrid = () => {
         {
           // Filters all rejected requests.
           // TODO: Delete filter for role 5
-          data: data.filter(doc => doc.state !== 0),
+          data: authUser.role !== 5 ? data.filter(doc => doc.state !== 0) : data,
           label: 'Todas las solicitudes',
           info: 'Todas las solicitudes'
         },
