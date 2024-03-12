@@ -341,9 +341,9 @@ const FormLayoutsSolicitud = () => {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^\s0-9]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    fnlocation: /[^\s0-9]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    fnlocation: /[^A-Za-z0-9@\/.-]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     ot: /[^\s0-9]/, // /[^0-9]/g
-    tag: /[^\s0-9]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    tag: /[^A-Za-z0-9@\/.-]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     costCenter: /[^\s0-9]/ // /[^0-9]/g
   }
 
@@ -1154,9 +1154,8 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('fnlocation')}
               error={errors.fnlocation}
               inputProps={{ maxLength: 25 }}
-              autoComplete='off'
               onInput={e => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+                e.target.value = e.target.value.toUpperCase()
               }}
               helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
             />
@@ -1169,9 +1168,8 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('tag')}
               error={errors.tag}
               inputProps={{ maxLength: 25 }}
-              autoComplete='off'
               onInput={e => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '')
+                e.target.value = e.target.value.toUpperCase()
               }}
               helper='Ingresa el código TAG para identificar el equipo.'
             />
