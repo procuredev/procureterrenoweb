@@ -382,7 +382,8 @@ const PhotoGallery = ({ photos }) => {
 }
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
-  let isPlanner = roleData && roleData.id == '5'
+  let isPlanner = roleData && roleData.id == '5' && doc.state >= 3 // modificacion para que planificador no pueda editar si el estado es menor a 3
+  //let isPlanner = roleData && roleData.id == '5'
 
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
