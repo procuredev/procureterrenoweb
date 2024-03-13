@@ -58,7 +58,11 @@ const signInWithEmailAndPassword = async (email, password, rememberMe) => {
   // Primero se crea una función asíncrona para logearse mediante Firebase que en caso de error retornará el error.
   const signIn = async () => {
     try {
-      return await Firebase.auth().signInWithEmailAndPassword(email, password)
+      const userCredential = await Firebase.auth().signInWithEmailAndPassword(email, password)
+      const userData = await formatAuthUser(userCredential.user)
+      localStorage.setItem('user', JSON.stringify(userData))
+
+      return userCredential
     } catch (err) {
       switch (err.code) {
         case 'auth/wrong-password':
