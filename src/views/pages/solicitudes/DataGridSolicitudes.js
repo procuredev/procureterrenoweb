@@ -61,11 +61,15 @@ const DataGrid = () => {
           label: 'Aprobadas',
           info: 'Solicitudes aprobadas por Procure'
         },
-        {
-          data: data.filter(doc => doc.state === 2),
-          label: 'En Revisión Por C. Operator',
-          info: 'En Revisión Por C. Operator'
-        },
+        ...(authUser.role === 5 //se utiliza El operador de propagación para añadir un objeto adicional a tabContent solo si authUser.role es igual a 5
+          ? [
+              {
+                data: data.filter(doc => doc.state === 2),
+                label: 'En Revisión Por C. Operator',
+                info: 'En Revisión Por C. Operator'
+              }
+            ]
+          : []),
         {
           data: data.filter(doc => doc.state === 0),
           label: 'Rechazadas',

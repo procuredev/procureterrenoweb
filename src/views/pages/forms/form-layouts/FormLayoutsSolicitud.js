@@ -373,26 +373,45 @@ const FormLayoutsSolicitud = () => {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
 
-      // Si el usuario tiene role === 2, no validar el campo 'petitioner'
-      // if (authUser.role === 2 && key === 'petitioner') {
-      //   continue
-      // }
-
-      // Error campos vacíos
-      if (
-        key !== 'fnlocation' &&
-        key !== 'sap' &&
-        key !== 'tag' &&
-        key !== 'urlvideo' &&
-        key !== 'deliverable' &&
-        costCenterIsRequired &&
-        excludedFields
-      ) {
-        if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-          newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
+      if (authUser.role === 5) {
+        if (
+          key !== 'fnlocation' &&
+          key !== 'sap' &&
+          key !== 'tag' &&
+          key !== 'urlvideo' &&
+          key !== 'deliverable' &&
+          costCenterIsRequired &&
+          excludedFields
+        ) {
+          if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
+            newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
+          }
+        } else if (
+          key == 'mcDescription' &&
+          values['deliverable'].includes('Memoria de Cálculo') &&
+          values[key] === ''
+        ) {
+          newErrors[key] = 'Por favor, especifica una opción válida'
         }
-      } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
-        newErrors[key] = 'Por favor, especifica una opción válida'
+      } else {
+        if (
+          key !== 'fnlocation' &&
+          key !== 'sap' &&
+          key !== 'tag' &&
+          key !== 'urlvideo' &&
+          costCenterIsRequired &&
+          excludedFields
+        ) {
+          if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
+            newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
+          }
+        } else if (
+          key == 'mcDescription' &&
+          values['deliverable'].includes('Memoria de Cálculo') &&
+          values[key] === ''
+        ) {
+          newErrors[key] = 'Por favor, especifica una opción válida'
+        }
       }
 
       if (key === 'costCenter' && values[key] === 0) {
@@ -596,6 +615,7 @@ const FormLayoutsSolicitud = () => {
     type: typeRef,
     detention: detentionRef,
     objective: objectiveRef,
+    deliverable: objectiveRef,
     receiver: receiverRef
   }
 
@@ -1254,6 +1274,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
+              inputRef={objectiveRef}
               required={authUser.role !== 5}
               options={deliverablesOptions}
               label='Entregables del levantamiento'
