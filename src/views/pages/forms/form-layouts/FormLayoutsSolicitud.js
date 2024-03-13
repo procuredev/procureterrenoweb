@@ -671,6 +671,7 @@ const FormLayoutsSolicitud = () => {
         const solicitud = await newDoc(
           {
             ...values,
+            petitioner: values.petitioner.split(' - ')[0],
             receiver: values.receiver.map(option => {
               const { disabled, ...rest } = option
 
@@ -1185,7 +1186,7 @@ const FormLayoutsSolicitud = () => {
                   authUser.role === 7 ||
                   authUser.plant === 'allPlants' ||
                   authUser.plant === 'Solicitante Santiago'
-                    ? petitioners.map(item => ({ name: item.name }))
+                    ? petitioners.map(item => ({ name: `${item.name} - ${item.email}` }))
                     : [authUser.displayName]
                 }
                 label='Solicitante'
