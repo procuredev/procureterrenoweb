@@ -116,29 +116,15 @@ const FirebaseContextProvider = props => {
         const databaseUserData = await formatAuthUser(authState)
         setAuthUser(databaseUserData)
         localStorage.setItem('user', JSON.stringify(databaseUserData))
+        const dictionary = await getDomainData('dictionary')
+        setDomainDictionary(dictionary)
+        const roles = await getDomainData('roles')
+        setDomainRoles(roles)
         setLoading(false)
       }
     })
 
     return () => unsubscribe()
-  }, [])
-
-  // useEffect para definir datos de tablas de dominio
-  useEffect(() => {
-    const defineDomain = async () => {
-      try {
-        const dictionary = await getDomainData('dictionary')
-        setDomainDictionary(dictionary)
-        const roles = await getDomainData('roles')
-        setDomainRoles(roles)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    if (authUser) {
-      defineDomain()
-    }
   }, [])
 
   const value = {
