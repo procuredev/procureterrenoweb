@@ -142,6 +142,7 @@ const FormLayoutsSolicitud = () => {
   const plantRef = useRef(null)
   const areaRef = useRef(null)
   const contopRef = useRef(null)
+  const costCenterRef = useRef(null)
   const petitionerRef = useRef(null)
   const typeRef = useRef(null)
   const detentionRef = useRef(null)
@@ -241,10 +242,17 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'end': {
         let endDate = event
-        setValues({
-          ...values,
-          end: endDate
-        })
+        if (endDate < values.start) {
+          setErrors(prevErrors => ({
+            ...prevErrors,
+            end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
+          }))
+        } else {
+          setValues({
+            ...values,
+            end: endDate
+          })
+        }
         break
       }
       case prop === 'start': {
@@ -362,6 +370,7 @@ const FormLayoutsSolicitud = () => {
       plant: 'Planta',
       area: 'Área',
       contop: 'Contract Operator',
+      costCenter: 'Centro de Costo',
       petitioner: 'Solicitante',
       type: 'Estado Operacional Planta',
       detention: '¿Estará la máquina detenida?',
@@ -456,6 +465,9 @@ const FormLayoutsSolicitud = () => {
           newErrors[key] = `Por favor, introduce una opción válida`
         }
       }
+    }
+    if (authUser.role === 5 && values.end < values.start) {
+      newErrors.end = 'La fecha de finalización debe ser igual o posterior a la fecha de inicio.'
     }
 
     return newErrors
@@ -611,6 +623,7 @@ const FormLayoutsSolicitud = () => {
     plant: plantRef,
     area: areaRef,
     contop: contopRef,
+    costCenter: costCenterRef,
     petitioner: petitionerRef,
     type: typeRef,
     detention: detentionRef,
@@ -631,6 +644,7 @@ const FormLayoutsSolicitud = () => {
       'plant',
       'area',
       'contop',
+      'costCenter',
       'petitioner',
       'type',
       'detention',
@@ -1153,6 +1167,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Centro de Costos */}
             <CustomTextField
+              inputRef={costCenterRef}
               required={authUser.role != 7}
               type='text'
               label='Centro de Costos'

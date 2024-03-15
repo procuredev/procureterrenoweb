@@ -1,6 +1,8 @@
 // ** React Imports
 import { useState, useEffect } from 'react'
-
+import { makeStyles } from '@mui/styles'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 
@@ -40,6 +42,13 @@ const DataGrid = () => {
       [key]: value
     }))
   }
+
+  const theme = useTheme()
+  const xs = useMediaQuery(theme.breakpoints.up('xs')) //0-600
+  const sm = useMediaQuery(theme.breakpoints.up('sm')) //600-960
+  const md = useMediaQuery(theme.breakpoints.up('md')) //960-1280
+  const lg = useMediaQuery(theme.breakpoints.up('lg')) //1280-1920
+  const xl = useMediaQuery(theme.breakpoints.up('xl')) //1920+
 
   // Tab content filters based on the user role
   const tabContent = authUser
@@ -125,7 +134,12 @@ const DataGrid = () => {
       />
       <TabContext value={tabValue}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
+          <TabList
+            onChange={handleTabChange}
+            aria-label='lab API tabs example'
+            variant='scrollable'
+            scrollButtons='auto'
+          >
             {tabContent.map((element, index) => (
               <Tab
                 label={
