@@ -259,10 +259,13 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       ...(changedFields.uprisingInvestedHours && { uprisingInvestedHours: changedFields.uprisingInvestedHours }),
       ...(changedFields.draftmen && { draftmen: changedFields.draftmen })
     }
-    //console.log('changedFields: ', changedFields)
+
+    console.log('changedFields: ', changedFields)
     console.log('newEvent: ', newEvent)
-    await updateDoc(ref, changedFields)
-    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    await updateDoc(ref, changedFields).then(() => {
+      addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    })
+
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
   } else {
     console.log('No se escribió ningún documento')
@@ -422,7 +425,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         },
         // Planificador modifica sin cambios de fecha (2 --> 2)
         {
-          condition: approves && !emergencyBySupervisor,
+          condition: approves && !emergencyBySupervisor && requestMadeByPlanner && modifiedBySameRole,
           newState: state.petitioner,
           log: 'Modificado sin cambio de fecha por solicitante(Planificador)'
         },
