@@ -643,8 +643,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       const plant = requirementData.plant
       const area = requirementData.area ? requirementData.area : 'No indicado'
       const costCenter = requirementData.costCenter ? requirementData.costCenter : 'No indicado'
-      const functionalLocation =
-        requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
+      const functionalLocation = requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
       const contractOperator = requirementData.contop
       const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
       const sapNumber = requirementData.sap && requirementData.sap !== '' ? requirementData.sap : 'No indicado'
