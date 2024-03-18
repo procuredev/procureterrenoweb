@@ -650,7 +650,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       const operationalType = requirementData.type ? requirementData.type : 'No indicado'
       const machineDetention = requirementData.detention ? requirementData.detention : 'No indicado'
       const jobType = requirementData.objective
-      const deliverable = requirementData.deliverable.join(', ')
+      const deliverable = requirementData.deliverable && requirementData.deliverable.length !== 0 ? requirementData.deliverable.join(', ') : 'Por definir'
       const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
       const description = requirementData.description
       const lastMessage = ''

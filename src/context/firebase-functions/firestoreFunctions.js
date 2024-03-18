@@ -133,7 +133,7 @@ const newDoc = async (values, userParam) => {
       ...newDoc,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
       state: userParam.role === 7 ? 6 : userParam.role === 5 ? 2 : userParam.role,
-      supervisorShift: userParam.role === 7 ? (week % 2 === 0 ? 'A' : 'B') : null
+      supervisorShift: userParam.role === (5 || 7) ? (week % 2 === 0 ? 'A' : 'B') : null
     })
 
     // Se envía email a quienes corresponda
@@ -313,14 +313,14 @@ function getNextState(role, approves, latestEvent, userRole) {
   const modifiedBySameRole = userRole === role
   const requestMadeByPlanner = userRole === 5
 
-  console.log('dateHasChanged: ', dateHasChanged)
-  console.log('approveWithChanges: ', approveWithChanges)
-  console.log('approvedByPlanner: ', approvedByPlanner)
-  console.log('emergencyBySupervisor: ', emergencyBySupervisor)
-  console.log('returned: ', returned)
-  console.log('changingStartDate: ', changingStartDate)
-  console.log('modifiedBySameRole: ', modifiedBySameRole)
-  console.log('requestMadeByPlanner: ', requestMadeByPlanner)
+  // console.log('dateHasChanged: ', dateHasChanged)
+  // console.log('approveWithChanges: ', approveWithChanges)
+  // console.log('approvedByPlanner: ', approvedByPlanner)
+  // console.log('emergencyBySupervisor: ', emergencyBySupervisor)
+  // console.log('returned: ', returned)
+  // console.log('changingStartDate: ', changingStartDate)
+  // console.log('modifiedBySameRole: ', modifiedBySameRole)
+  // console.log('requestMadeByPlanner: ', requestMadeByPlanner)
 
   const rules = new Map([
     [

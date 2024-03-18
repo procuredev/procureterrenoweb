@@ -3,6 +3,8 @@ import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } fro
 import { db } from 'src/configs/firebase'
 import { getEmailTemplate } from './emailTemplate'
 
+const moment = require('moment')
+
 // Importación de los datos del usuario según el id indicado
 const getUserData = async ids => {
   const usersData = []
@@ -40,6 +42,35 @@ const searchbyColletionAndField = async (col, field, value) => {
       })
 
       return uid
+    }
+  } catch (error) {
+    console.log('Error al buscar la solicitud: ', error)
+
+    return null
+  }
+}
+
+// Obtener usuarios con rol 8 según su turno
+const getSupervisorData = async shift => {
+  // Realiza la consulta según el campo proporcionado
+  const q = query(collection(db, 'users'), where('role', '==', 7), where('shift', 'array-contains', shift))
+
+  let supervisorArray = []
+
+  try {
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) {
+      console.log(`No se encontró ningún supervisor para el turno ${shift}`)
+
+      return null
+    } else {
+      const queryDocs = querySnapshot.docs
+      queryDocs.forEach(doc => {
+        supervisorArray.push(doc.data())
+      })
+
+      return supervisorArray
     }
   } catch (error) {
     console.log('Error al buscar la solicitud: ', error)
@@ -229,12 +260,17 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
 
       const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
 
+      const adjustedDate = moment(values.start).subtract(1, 'day')
+      const week = moment(adjustedDate.toDate()).isoWeek()
+      const supervisorShift = user.role === (5 || 7) ? (week % 2 === 0 ? 'A' : 'B') : null
+      const supervisorData = supervisorShift ? await getSupervisorData(supervisorShift) : ''
+
       // Se almacenan las constantes a usar en el email
       const requestNumber = reqNumber
       const title = values.title
       const engineering = user.engineering ? 'Si' : 'No'
       const otProcure = values.ot ? values.ot : 'Por definir'
-      const supervisor = user.role == 7 ? user.displayName : 'Por definir'
+      const supervisor = user.role == 7 ? user.displayName : supervisorShift ? supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : '' : 'Por definir'
       const start = values.start ? values.start.toLocaleDateString() : 'Por definir'
       const end = values.end ? values.end.toLocaleDateString() : 'Por definir'
       const plant = values.plant
@@ -247,7 +283,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const operationalType = values.type ? values.type : 'No indicado'
       const machineDetention = values.detention ? values.detention : 'No indicado'
       const jobType = values.objective
-      const deliverable = values.deliverable.join(', ')
+      const deliverable = values.deliverable && values.deliverable.length !== 0 ? values.deliverable.join(', ') : 'Por definir'
       const receiver = values.receiver.map(receiver => receiver.email).join(', ')
       const description = values.description
 
