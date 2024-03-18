@@ -260,6 +260,7 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       ...(changedFields.draftmen && { draftmen: changedFields.draftmen })
     }
     //console.log('changedFields: ', changedFields)
+    console.log('newEvent: ', newEvent)
     await updateDoc(ref, changedFields)
     await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
@@ -421,7 +422,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         },
         // Planificador modifica sin cambios de fecha (2 --> 2)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor,
+          condition: approves && !emergencyBySupervisor,
           newState: state.petitioner,
           log: 'Modificado sin cambio de fecha por solicitante(Planificador)'
         },
@@ -505,6 +506,7 @@ function getNextState(role, approves, latestEvent, userRole) {
 }
 
 const updateDocs = async (id, approves, userParam) => {
+  console.log('approves: ', approves)
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
   const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
