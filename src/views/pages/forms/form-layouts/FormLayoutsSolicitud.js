@@ -965,7 +965,8 @@ const FormLayoutsSolicitud = () => {
             {(authUser.role === 5 || authUser.role === 7) && (
               <>
                 <CustomTextField
-                  inputRef={otRef}
+                  inputref={otRef}
+                  inpu
                   type='text'
                   required
                   label='OT'
@@ -987,7 +988,7 @@ const FormLayoutsSolicitud = () => {
             {authUser.role === 7 && (
               <>
                 <CustomSelect
-                  inputRef={urgencyRef}
+                  inputref={urgencyRef}
                   required
                   options={urgencyTypesOptions}
                   label='Tipo de urgencia'
@@ -1002,7 +1003,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Título */}
             <CustomTextField
-              inputRef={titleRef}
+              inputref={titleRef}
               required
               type='text'
               label='Título'
@@ -1015,7 +1016,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Descripción */}
             <CustomTextField
-              inputRef={descriptionRef}
+              inputref={descriptionRef}
               required
               type='text'
               label='Descripción'
@@ -1079,7 +1080,7 @@ const FormLayoutsSolicitud = () => {
                   >
                     <Box display='flex' alignItems='center'>
                       <MobileDatePicker
-                        inputRef={endRef}
+                        inputref={endRef}
                         dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                         minDate={moment().subtract(1, 'year')}
                         maxDate={moment().add(1, 'year')}
@@ -1107,7 +1108,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <CustomSelect
-              inputRef={plantRef}
+              inputref={plantRef}
               required
               options={[...authUser.plant]}
               label='Planta'
@@ -1123,7 +1124,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Área */}
             <CustomSelect
-              inputRef={areaRef}
+              inputref={areaRef}
               required
               options={areas}
               label='Área'
@@ -1147,7 +1148,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Contract Operator */}
             <CustomSelect
-              inputRef={contopRef}
+              inputref={contopRef}
               required
               options={
                 authUser.role === 3 && contOpOptions?.length < 2 ? [{ name: authUser.displayName }] : contOpOptions
@@ -1167,7 +1168,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Centro de Costos */}
             <CustomTextField
-              inputRef={costCenterRef}
+              inputref={costCenterRef}
               required={authUser.role != 7}
               type='text'
               label='Centro de Costos'
@@ -1213,7 +1214,7 @@ const FormLayoutsSolicitud = () => {
             {/* Solicitante */}
             {authUser.role !== 2 && authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants' && (
               <CustomSelect
-                inputRef={petitionerRef}
+                inputref={petitionerRef}
                 required
                 options={
                   authUser.role === 3 ||
@@ -1238,7 +1239,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Estado Operacional */}
             <CustomSelect
-              inputRef={typeRef}
+              inputref={typeRef}
               required
               options={operationalStatusOptions}
               label='Estado Operacional Planta'
@@ -1251,7 +1252,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Máquina Detenida */}
             <CustomSelect
-              inputRef={detentionRef}
+              inputref={detentionRef}
               required
               options={['Sí', 'No', 'No aplica']}
               label='¿Estará la máquina detenida?'
@@ -1276,7 +1277,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Tipo de Levantamiento */}
             <CustomSelect
-              inputRef={objectiveRef}
+              inputref={objectiveRef}
               required
               options={objectivesOptions}
               label='Tipo de Levantamiento'
@@ -1289,7 +1290,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
-              inputRef={objectiveRef}
+              inputref={objectiveRef}
               required={authUser.role !== 5}
               options={deliverablesOptions}
               label='Entregables del levantamiento'
@@ -1317,7 +1318,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Destinatarios */}
             <CustomAutocomplete
-              inputRef={receiverRef}
+              inputref={receiverRef}
               required
               isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}
