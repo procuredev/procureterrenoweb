@@ -270,17 +270,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const title = values.title
       const engineering = user.engineering ? 'Si' : 'No'
       const otProcure = values.ot ? values.ot : 'Por definir'
-      const supervisor =
-        user.role == 7
-          ? user.displayName
-          : supervisorShift
-          ? supervisorData
-            ? supervisorData
-                .filter(doc => doc.enabled != false)
-                .map(data => data.name)
-                .join(', ')
-            : ''
-          : 'Por definir'
+      const supervisor = user.role == 7 ? user.displayName : supervisorShift ? supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : '' : 'Por definir'
       const start = values.start ? values.start.toLocaleDateString() : 'Por definir'
       const end = values.end ? values.end.toLocaleDateString() : 'Por definir'
       const plant = values.plant
@@ -293,8 +283,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const operationalType = values.type ? values.type : 'No indicado'
       const machineDetention = values.detention ? values.detention : 'No indicado'
       const jobType = values.objective
-      const deliverable =
-        values.deliverable && values.deliverable.length !== 0 ? values.deliverable.join(', ') : 'Por definir'
+      const deliverable = values.deliverable && values.deliverable.length !== 0 ? values.deliverable.join(', ') : 'Por definir'
       const receiver = values.receiver.map(receiver => receiver.email).join(', ')
       const description = values.description
 
@@ -310,12 +299,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         arrayCC = arrayCC.concat(procureUsersEmail)
 
         let mcDescription = values.mcDescription ? values.mcDescription : ''
-        let specialMessage =
-          `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` +
-          `<p></p>` +
-          mcDescription +
-          `<p></p>` +
-          `Procure procederá a generar un presupuesto especial para el caso indicado.`
+        let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` + `<p></p>` + mcDescription + `<p></p>` + `Procure procederá a generar un presupuesto especial para el caso indicado.`
         lastMessage = specialMessage + ' ' + lastMessage
         emailHtml = getEmailTemplate(
           userName,

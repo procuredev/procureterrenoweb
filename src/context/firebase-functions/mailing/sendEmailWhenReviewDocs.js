@@ -597,9 +597,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
   const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
   const admContEmail = admContData.filter(doc => doc.enabled != false).map(data => data.email)
   const petitionerEmail = petitionerData.filter(doc => doc.enabled != false).map(data => data.email)
-  const supervisorEmail = supervisorData
-    ? supervisorData.filter(doc => doc.enabled != false).map(data => data.email)
-    : ''
+  const supervisorEmail = supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.email) : ''
   const cOperatorEmail = cOperatorData.filter(doc => doc.enabled != false).map(data => data.email)
 
   const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
@@ -639,31 +637,20 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       const title = requirementData.title
       const engineering = requirementData.engineering ? 'Si' : 'No'
       const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-      const supervisor = requirementData.supervisorShift
-        ? supervisorData
-          ? supervisorData
-              .filter(doc => doc.enabled != false)
-              .map(data => data.name)
-              .join(', ')
-          : ''
-        : 'Por definir'
+      const supervisor = requirementData.supervisorShift ? supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : '' : 'Por definir'
       const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
       const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
       const plant = requirementData.plant
       const area = requirementData.area ? requirementData.area : 'No indicado'
       const costCenter = requirementData.costCenter ? requirementData.costCenter : 'No indicado'
-      const functionalLocation =
-        requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
+      const functionalLocation = requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
       const contractOperator = requirementData.contop
       const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
       const sapNumber = requirementData.sap && requirementData.sap !== '' ? requirementData.sap : 'No indicado'
       const operationalType = requirementData.type ? requirementData.type : 'No indicado'
       const machineDetention = requirementData.detention ? requirementData.detention : 'No indicado'
       const jobType = requirementData.objective
-      const deliverable =
-        requirementData.deliverable && requirementData.deliverable.length !== 0
-          ? requirementData.deliverable.join(', ')
-          : 'Por definir'
+      const deliverable = requirementData.deliverable && requirementData.deliverable.length !== 0 ? requirementData.deliverable.join(', ') : 'Por definir'
       const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
       const description = requirementData.description
       const lastMessage = ''
