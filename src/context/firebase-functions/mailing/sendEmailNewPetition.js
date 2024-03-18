@@ -293,11 +293,8 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const operationalType = values.type ? values.type : 'No indicado'
       const machineDetention = values.detention ? values.detention : 'No indicado'
       const jobType = values.objective
-      const deliverable = values.deliverable
-        ? values.deliverable.length !== 0
-          ? values.deliverable.join(', ')
-          : 'Por definir'
-        : 'Por definir'
+      const deliverable =
+        values.deliverable && values.deliverable.length !== 0 ? values.deliverable.join(', ') : 'Por definir'
       const receiver = values.receiver.map(receiver => receiver.email).join(', ')
       const description = values.description
 
