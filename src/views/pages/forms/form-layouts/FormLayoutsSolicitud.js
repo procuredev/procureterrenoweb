@@ -1161,7 +1161,7 @@ const FormLayoutsSolicitud = () => {
               helper={
                 contOpOptions?.length < 2
                   ? 'Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
-                  : 'Selecciona quién al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
+                  : 'Selecciona al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
               }
               defaultValue=''
             />
