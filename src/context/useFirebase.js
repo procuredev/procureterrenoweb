@@ -66,8 +66,10 @@ const FirebaseContextProvider = props => {
   const [authUser, setAuthUser] = useState(() => {
     if (typeof localStorage !== 'undefined') {
       const storedUser = localStorage.getItem('user')
+
       return storedUser ? JSON.parse(storedUser) : null
     } else {
+
       return null
     }
   })

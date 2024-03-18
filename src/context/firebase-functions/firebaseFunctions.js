@@ -77,11 +77,15 @@ const signInWithEmailAndPassword = async (email, password, rememberMe) => {
 
   // Si el usuario seleccinó la casilla "Recordarme" se usa la versión por defecto de Firebase, la cual almacena al usuario.
   if (rememberMe) {
+
     return await signIn()
+
   } else {
     // En caso contrario, se define Persitencia 'sessión', lo que significa que el usuario permanecerá conectado mientras no cierre la pestaña del navegador
     await Firebase.auth().setPersistence('session')
+
     return await signIn()
+
   }
 }
 
