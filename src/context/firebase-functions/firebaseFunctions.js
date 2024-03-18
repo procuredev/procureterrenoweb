@@ -55,40 +55,37 @@ const updatePassword = async password => {
 
 // ** Inicio de sesión
 const signInWithEmailAndPassword = async (email, password, rememberMe) => {
-  // rememeberMe es una variable booleana definida por el checkbox de 'Recordarme' del login
-  // Si rememeberMe es true simplemente se logeará con signInWithEmailAndPassword (cuyo comporamiento por defecto hace que quede siempre el usuario conectado)
+  // Primero se crea una función asíncrona para logearse mediante Firebase que en caso de error retornará el error.
+  const signIn = async () => {
+    try {
+      const userCredential = await Firebase.auth().signInWithEmailAndPassword(email, password)
+      const userData = await formatAuthUser(userCredential.user)
+      localStorage.setItem('user', JSON.stringify(userData))
+
+      return userCredential
+    } catch (err) {
+      switch (err.code) {
+        case 'auth/wrong-password':
+          throw new Error('Contraseña incorrecta, intente de nuevo')
+        case 'auth/user-not-found':
+          throw new Error('Este usuario no se encuentra registrado')
+        default:
+          throw new Error('Error al iniciar sesión')
+      }
+    }
+  }
+
+  // Si el usuario seleccinó la casilla "Recordarme" se usa la versión por defecto de Firebase, la cual almacena al usuario.
   if (rememberMe) {
-    return await Firebase.auth()
-      .signInWithEmailAndPassword(email, password)
-      .catch(err => {
-        switch (err.code) {
-          case 'auth/wrong-password':
-            throw new Error('Contraseña incorrecta, intente de nuevo')
-          case 'auth/user-not-found':
-            throw new Error('Este usuario no se encuentra registrado')
-          default:
-            throw new Error('Error al iniciar sesión')
-        }
-      })
+
+    return await signIn()
+
   } else {
-    // Si persistence es false, se ejecutará setPersistence antes de ejecutar el signInWithEmailAndPassword.
-    // Esto hace que quede almacenado solo en esta sesión; vale decir, al cerrar la pestaña se desconectará de la página.
-    await Firebase.auth()
-      .setPersistence('session')
-      .then(() => {
-        return Firebase.auth()
-          .signInWithEmailAndPassword(email, password)
-          .catch(err => {
-            switch (err.code) {
-              case 'auth/wrong-password':
-                throw new Error('Contraseña incorrecta, intente de nuevo')
-              case 'auth/user-not-found':
-                throw new Error('Este usuario no se encuentra registrado')
-              default:
-                throw new Error('Error al iniciar sesión')
-            }
-          })
-      })
+    // En caso contrario, se define Persitencia 'sessión', lo que significa que el usuario permanecerá conectado mientras no cierre la pestaña del navegador
+    await Firebase.auth().setPersistence('session')
+
+    return await signIn()
+
   }
 }
 
