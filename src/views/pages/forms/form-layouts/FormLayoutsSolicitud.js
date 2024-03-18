@@ -41,12 +41,18 @@ import {
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
+    ot: '',
+    urgency: '',
     title: '',
+    description: '',
     start: moment().startOf('day'),
+    end: null,
     plant: '',
     area: '',
     contop: '',
+    costCenter: '',
     fnlocation: '',
+    tag: '',
     petitioner: '',
     type: '',
     detention: '',
@@ -54,12 +60,6 @@ const FormLayoutsSolicitud = () => {
     objective: '',
     deliverable: [],
     receiver: [],
-    description: '',
-    tag: '',
-    end: null,
-    ot: '',
-    urgency: '',
-    costCenter: ''
   }
 
   // ** Hooks
@@ -104,32 +104,11 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-
-  // const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
-  //const [userInputMC, setUserInputMC] = useState("")
-  //const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false)
   const [domainData, setDomainData] = useState({})
   const [objectivesOptions, setObjectivesOptions] = useState([])
   const [deliverablesOptions, setDeliverablesOptions] = useState([])
   const [urgencyTypesOptions, setUrgencyTypesOptions] = useState([])
   const [operationalStatusOptions, setOperationalStatusOptions] = useState([])
-
-  /*
-  const handleCloseDialogMC = () => {
-    setIsDialogOpenMC(false)
-  };
-
-  const handleConfirmDialogMC = () => {
-    if (values.deliverable.includes('Memoria de Cálculo')) {
-      // Procesa userInput solo si 'Memoria de Cálculo' está seleccionado
-      //console.log("El usuario confirmó Memoria de Cálculo con descripción:", userInputMC)
-    } else {
-      setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' no está seleccionado
-    }
-    setIsDialogOpenMC(false)
-    setHasDialogMCBeenShown(true) // Asume que el usuario terminó con este diálogo
-  }
-  */
 
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
@@ -147,6 +126,7 @@ const FormLayoutsSolicitud = () => {
   const typeRef = useRef(null)
   const detentionRef = useRef(null)
   const objectiveRef = useRef(null)
+  const deliverableRef = useRef(null)
   const receiverRef = useRef(null)
 
   const handleGPRSelected = () => {
@@ -222,11 +202,14 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'deliverable') {
           // Verificar si 'Memoria de Cálculo' se ha seleccionado
           if (newValue.includes('Memoria de Cálculo')) {
+
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
               setAlertMessage(
                 'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.'
               )
+
+              setValues(prevValues => ({ ...prevValues, ['mcDescription']: '' }))
 
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
@@ -234,6 +217,7 @@ const FormLayoutsSolicitud = () => {
           } else {
             // Si 'Memoria de Cálculo' se ha deseleccionado, restablecer hasShownDialog a false
             if (hasShownDialog) {
+              setValues(prevValues => ({ ...prevValues, ['mcDescription']: '' }))
               setHasShownDialog(false)
             }
           }
@@ -358,9 +342,10 @@ const FormLayoutsSolicitud = () => {
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
-    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
+    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter', 'mcDescription']
     const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
 
+    // Objeto para traducir lo que se rederiza al usuario
     const fieldLabels = {
       ot: 'OT',
       urgency: 'Urgencia',
@@ -370,61 +355,31 @@ const FormLayoutsSolicitud = () => {
       plant: 'Planta',
       area: 'Área',
       contop: 'Contract Operator',
-      costCenter: 'Centro de Costo',
       petitioner: 'Solicitante',
       type: 'Estado Operacional Planta',
       detention: '¿Estará la máquina detenida?',
       objective: 'Tipo de Levantamiento',
       deliverable: 'Entregables del Levantamiento',
-      receiver: 'Destinatarios'
+      receiver: 'Destinatarios',
+      mcDescription: 'Memoria de Cálculo'
     }
+
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
+      const deliverableIsRequired = authUser.role === 5 && key === 'deliverable' ? false : true
 
-      if (authUser.role === 5) {
-        if (
-          key !== 'fnlocation' &&
-          key !== 'sap' &&
-          key !== 'tag' &&
-          key !== 'urlvideo' &&
-          key !== 'deliverable' &&
-          costCenterIsRequired &&
-          excludedFields
-        ) {
-          if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-            newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
-          }
-        } else if (
-          key == 'mcDescription' &&
-          values['deliverable'].includes('Memoria de Cálculo') &&
-          values[key] === ''
-        ) {
-          newErrors[key] = 'Por favor, especifica una opción válida'
+      // Error campos vacíos
+      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && costCenterIsRequired && excludedFields && deliverableIsRequired) {
+        if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
+          newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
         }
-      } else {
-        if (
-          key !== 'fnlocation' &&
-          key !== 'sap' &&
-          key !== 'tag' &&
-          key !== 'urlvideo' &&
-          costCenterIsRequired &&
-          excludedFields
-        ) {
-          if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-            newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
-          }
-        } else if (
-          key == 'mcDescription' &&
-          values['deliverable'].includes('Memoria de Cálculo') &&
-          values[key] === ''
-        ) {
-          newErrors[key] = 'Por favor, especifica una opción válida'
-        }
+      } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
+        newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
       }
 
       if (key === 'costCenter' && values[key] === 0) {
-        newErrors[key] = 'El campo Centyro de Costo no puede ser cero.'
+        newErrors[key] = 'El campo Centro de Costo no puede ser cero.'
       }
 
       if (key === 'objective') {
@@ -465,9 +420,6 @@ const FormLayoutsSolicitud = () => {
           newErrors[key] = `Por favor, introduce una opción válida`
         }
       }
-    }
-    if (authUser.role === 5 && values.end < values.start) {
-      newErrors.end = 'La fecha de finalización debe ser igual o posterior a la fecha de inicio.'
     }
 
     return newErrors
@@ -628,7 +580,7 @@ const FormLayoutsSolicitud = () => {
     type: typeRef,
     detention: detentionRef,
     objective: objectiveRef,
-    deliverable: objectiveRef,
+    deliverable: deliverableRef,
     receiver: receiverRef
   }
 
@@ -678,8 +630,7 @@ const FormLayoutsSolicitud = () => {
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
 
-    const isUrgent =
-      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+    const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
 
@@ -837,17 +788,6 @@ const FormLayoutsSolicitud = () => {
     }
   }, [values.plant, values.contop])
 
-  // // Establece planta solicitante y contop solicitante
-  // useEffect(() => {
-  //   let plant = authUser && authUser.plant.map(plant => plant)
-
-  //   if (authUser.role === 2) {
-  //     let onlyPlant = plant[0]
-  //     let userOption = authUser.displayName
-  //     setValues({ ...values, plant: onlyPlant, petitioner: userOption })
-  //   }
-  // }, [authUser, isUploading])
-
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
       const currentWeek = moment().isoWeek()
@@ -930,6 +870,8 @@ const FormLayoutsSolicitud = () => {
     }
   }, [])
 
+  // useEffect para definir automáticamente el campo 'Solicitante' cuando el usuario conectado tiene rol 2 (Solicitante).
+  // En caso de que no tenga rol 2 (Solicitante), deberá seleccionarlo desde la lista desplegable.
   useEffect(() => {
     if (authUser.role === 2) {
       setValues({ ...values, petitioner: authUser.displayName })
@@ -966,7 +908,6 @@ const FormLayoutsSolicitud = () => {
               <>
                 <CustomTextField
                   inputref={otRef}
-                  inpu
                   type='text'
                   required
                   label='OT'
@@ -1290,7 +1231,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
-              inputref={objectiveRef}
+              inputref={deliverableRef}
               required={authUser.role !== 5}
               options={deliverablesOptions}
               label='Entregables del levantamiento'

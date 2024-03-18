@@ -1,33 +1,28 @@
 // ** Firebase Imports
-import { Firebase, db } from 'src/configs/firebase'
 import {
+  Timestamp,
+  addDoc,
   collection,
   doc,
-  addDoc,
-  setDoc,
-  Timestamp,
-  query,
   getDoc,
   getDocs,
-  updateDoc,
-  where,
-  orderBy,
+  increment,
   limit,
-  runTransaction,
   onSnapshot,
-  increment
+  orderBy,
+  query,
+  runTransaction,
+  setDoc,
+  updateDoc
 } from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
 
 // ** Imports Propios
+import { addDays, getUnixTime } from 'date-fns'
+import { useEffect } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
-import { getUnixTime, setDayOfYear } from 'date-fns'
-import { addDays } from 'date-fns'
-import { async } from '@firebase/util'
-import { timestamp } from '@antfu/utils'
-import { blue } from '@mui/material/colors'
-import { useEffect } from 'react'
 
 import { useState } from 'react'
 
@@ -90,7 +85,7 @@ const newDoc = async (values, userParam) => {
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
-    console.log('userParam: ', userParam)
+    // console.log('userParam: ', userParam)
     solicitudValidator(values, userParam.role)
     const requestNumber = await requestCounter()
 
