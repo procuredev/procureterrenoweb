@@ -79,30 +79,6 @@ const FirebaseContextProvider = props => {
   // ** Variables
   const auth = getAuth(app)
 
-  function compareObjects(obj1, obj2) {
-    // Obtener las claves de cada objeto
-    const keys1 = Object.keys(obj1)
-    const keys2 = Object.keys(obj2)
-
-    // Verificar si el número de claves es el mismo
-    if (keys1.length !== keys2.length) {
-      return false
-    }
-
-    // Comparar propiedad por propiedad
-    for (let key of keys1) {
-      // Verificar si la propiedad existe en ambos objetos y si sus valores son iguales
-      if (!(key in obj2) || String(obj1[key]) !== String(obj2[key])) {
-        console.log('key: ' + key)
-        console.log('keyValue Objct 1: ' + obj1[key])
-        console.log('keyValue Objct 2: ' + obj2[key])
-        return false
-      }
-    }
-
-    return true
-  }
-
   // Este useEffect manejará los datos del usuario conectado
   useEffect(() => {
     const auth = getAuth(app)
