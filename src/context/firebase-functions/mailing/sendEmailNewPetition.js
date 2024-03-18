@@ -1,6 +1,6 @@
 // ** Firebase Imports
+import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
-import { collection, doc, addDoc, query, getDoc, getDocs, updateDoc, where } from 'firebase/firestore'
 import { getEmailTemplate } from './emailTemplate'
 
 // Importación de los datos del usuario según el id indicado
@@ -14,7 +14,6 @@ const getUserData = async ids => {
     if (docSnap) {
       usersData.push(docSnap.data())
     }
-
   }
 
   return usersData
@@ -54,11 +53,9 @@ const searchbyColletionAndField = async (col, field, value) => {
 // values son los valores seleccionados en en formulario de nueva solicitud
 // reqId es el número de solicitud (Contador)
 export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
-
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
   if (user !== null) {
-
     const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
 
     // Declaración de variables
@@ -72,7 +69,6 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
 
     // Si el usuario tiene rol de Solicitante
     if (user.role == 2) {
-
       // Se usa el nombre del C.Operator indicado en la solicitud
       userContOp = values.contop
 
@@ -89,12 +85,15 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
 
       // Si el usuario tiene rol de Contract Operator
     } else if (user.role == 3) {
-
       // El Contract Operator será el usuario conectado
       userContOp = user.displayName
 
       // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del C.Owner, petitioner y Planificador
-      const uids = await Promise.all([searchbyColletionAndField('users', 'role', 4) , searchbyColletionAndField('users', 'name', values.petitioner), searchbyColletionAndField('users', 'role', 5)])
+      const uids = await Promise.all([
+        searchbyColletionAndField('users', 'role', 4),
+        searchbyColletionAndField('users', 'name', values.petitioner),
+        searchbyColletionAndField('users', 'role', 5)
+      ])
       const cOwnerUid = uids[0]
       const petitionerUid = uids[1]
       const plannerUid = uids[2]
@@ -118,13 +117,19 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       lastMessage = `Ahora deberá esperar la aprobación de Procure.` // Mensaje final
 
       // Si el usuario tiene rol Planificador
-    } else if (user.role == 5){
-
+    } else if (user.role == 5) {
       // Se usa el nombre del C.Operator indicado en la solicitud
       userContOp = values.contop
 
       // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del C.Operator, C.Owner, Petitioner, Planificador, Administrador de Contrato y Supervisores
-      const uids = await Promise.all([searchbyColletionAndField('users', 'name', userContOp), searchbyColletionAndField('users', 'role', 4), await searchbyColletionAndField('users', 'name', values.petitioner), searchbyColletionAndField('users', 'role', 5), searchbyColletionAndField('users', 'role', 6), searchbyColletionAndField('users', 'role', 7)])
+      const uids = await Promise.all([
+        searchbyColletionAndField('users', 'name', userContOp),
+        searchbyColletionAndField('users', 'role', 4),
+        await searchbyColletionAndField('users', 'name', values.petitioner),
+        searchbyColletionAndField('users', 'role', 5),
+        searchbyColletionAndField('users', 'role', 6),
+        searchbyColletionAndField('users', 'role', 7)
+      ])
       const contOpUid = uids[0]
       const cOwnerUid = uids[1]
       const petitionerUid = uids[2]
@@ -133,7 +138,14 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const supervisorUid = uids[5]
 
       // Se obtienen los datos de C.Operator, C.Owner, Petitioner, Planificador, Administrador de Contrato y Supervisores
-      const usersData = await Promise.all([getUserData(contOpUid), getUserData(cOwnerUid), getUserData(petitionerUid), getUserData(plannerUid), getUserData(contractAdminUid), getUserData(supervisorUid)])
+      const usersData = await Promise.all([
+        getUserData(contOpUid),
+        getUserData(cOwnerUid),
+        getUserData(petitionerUid),
+        getUserData(plannerUid),
+        getUserData(contractAdminUid),
+        getUserData(supervisorUid)
+      ])
       const dataContOp = usersData[0]
       const dataContOwner = usersData[1]
       const dataPetitioner = usersData[2]
@@ -153,17 +165,24 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       userName = dataPetitioner.filter(doc => doc.enabled != false).map(data => data.name) // Nombre de a quien va dirigido el email
       sendTo = petitionerEmail // Email de a quien va dirigido el email
       arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...contractAdminEmail, ...supervisorEmail] // Arreglo de quienes van en copia
-      mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()} nuestro Planificador ${user.displayName} ha ingresado una solicitud de levantamiento a petición suya` // Mensaje principal
+      mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()} nuestro Planificador ${
+        user.displayName
+      } ha ingresado una solicitud de levantamiento a petición suya` // Mensaje principal
       lastMessage = `Ahora deberá esperar la aprobación de su Contract Operator ${userContOp}.` // Mensaje final
 
       // Si el usuario tiene rol de Supervisor
-    } else if (user.role == 7){
-
+    } else if (user.role == 7) {
       // Se usa el nombre del C.Operator indicado en la solicitud
       userContOp = values.contop
 
       // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del C.Operator, C.Owner, Petitioner, Planificador y Administrador de Contrato
-      const uids = await Promise.all([searchbyColletionAndField('users', 'name', userContOp), searchbyColletionAndField('users', 'role', 4), await searchbyColletionAndField('users', 'name', values.petitioner), searchbyColletionAndField('users', 'role', 5), searchbyColletionAndField('users', 'role', 6)])
+      const uids = await Promise.all([
+        searchbyColletionAndField('users', 'name', userContOp),
+        searchbyColletionAndField('users', 'role', 4),
+        await searchbyColletionAndField('users', 'name', values.petitioner),
+        searchbyColletionAndField('users', 'role', 5),
+        searchbyColletionAndField('users', 'role', 6)
+      ])
       const contOpUid = uids[0]
       const cOwnerUid = uids[1]
       const petitionerUid = uids[2]
@@ -171,7 +190,13 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const contractAdminUid = uids[4]
 
       // Se obtienen los datos de C.Operator, C.Owner, Petitioner, Planificador y Administrador de Contrato
-      const usersData = await Promise.all([getUserData(contOpUid), getUserData(cOwnerUid), getUserData(petitionerUid), getUserData(plannerUid), getUserData(contractAdminUid)])
+      const usersData = await Promise.all([
+        getUserData(contOpUid),
+        getUserData(cOwnerUid),
+        getUserData(petitionerUid),
+        getUserData(plannerUid),
+        getUserData(contractAdminUid)
+      ])
       const dataContOp = usersData[0]
       const dataContOwner = usersData[1]
       const dataPetitioner = usersData[2]
@@ -190,7 +215,9 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       userName = dataPetitioner.filter(doc => doc.enabled != false).map(data => data.name) // Nombre de a quien va dirigido el email
       sendTo = petitionerEmail // Email de a quien va dirigido el email
       arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...contractAdminEmail, ...supervisorEmail] // Arreglo de quienes van en copia
-      mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()} usted ha solicitado a nuestro Supervisor ${user.displayName} ejecutar un levantamiento de urgencia` // Mensaje principal
+      mainMessage = `Con fecha ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()} usted ha solicitado a nuestro Supervisor ${
+        user.displayName
+      } ejecutar un levantamiento de urgencia` // Mensaje principal
       lastMessage = `El levantamiento será ejecutado lo antes posible. Se recuerda a ${dataContOp.name} que debe aprobar la solicitud en la página web.` // Mensaje final
     }
 
@@ -225,7 +252,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const description = values.description
 
       // Si la solicitud considera que se le entregue una memoria de cálculo, también se enviará un email notificando a gente de Procure y al Solicitante al respecto
-      if (values.deliverable.includes('Memoria de Cálculo')){
+      if (values.deliverable.includes('Memoria de Cálculo')) {
         // Según lo indicado por gerencia, deberá enviarse un email a Cristobal Paillacar, Iván Durán, Felipe Monge y las mismas personas de ArrayCC para que estén notificadads de la solicitud de Memoria de Cálculo
         // Para esto, se han almacenado en la Colección 'domain/emailCalculationReport' los emails de quienes de a quienes tiene que enviarse
 
@@ -236,15 +263,66 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         arrayCC = arrayCC.concat(procureUsersEmail)
 
         let mcDescription = values.mcDescription ? values.mcDescription : ''
-        let specialMessage = `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` + `<p></p>` + mcDescription + `<p></p>` + `Procure procederá a generar un presupuesto especial para el caso indicado.`
+        let specialMessage =
+          `Dentro de los entregables solicitados se encuentra una "Memoria de Cálculo". A continuación puede encontrar el detalle indicado por el Solicitante:` +
+          `<p></p>` +
+          mcDescription +
+          `<p></p>` +
+          `Procure procederá a generar un presupuesto especial para el caso indicado.`
         lastMessage = specialMessage + ' ' + lastMessage
-        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, costCenter, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
-
+        emailHtml = getEmailTemplate(
+          userName,
+          mainMessage,
+          requestNumber,
+          title,
+          engineering,
+          otProcure,
+          supervisor,
+          start,
+          end,
+          plant,
+          area,
+          costCenter,
+          functionalLocation,
+          contractOperator,
+          petitioner,
+          sapNumber,
+          operationalType,
+          machineDetention,
+          jobType,
+          deliverable,
+          receiver,
+          description,
+          lastMessage
+        )
       } else {
         // Llamada al html del email con las constantes previamente indicadads
-        emailHtml = getEmailTemplate(userName, mainMessage, requestNumber, title, engineering, otProcure, supervisor, start, end, plant, area, costCenter, functionalLocation, contractOperator, petitioner, sapNumber, operationalType, machineDetention, jobType, deliverable, receiver, description, lastMessage)
+        emailHtml = getEmailTemplate(
+          userName,
+          mainMessage,
+          requestNumber,
+          title,
+          engineering,
+          otProcure,
+          supervisor,
+          start,
+          end,
+          plant,
+          area,
+          costCenter,
+          functionalLocation,
+          contractOperator,
+          petitioner,
+          sapNumber,
+          operationalType,
+          machineDetention,
+          jobType,
+          deliverable,
+          receiver,
+          description,
+          lastMessage
+        )
       }
-
 
       // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
       updateDoc(docRef, {
