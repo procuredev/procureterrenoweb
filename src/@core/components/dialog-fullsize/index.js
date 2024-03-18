@@ -1277,9 +1277,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop
                       const hasPreviousDoc = element.prevDoc
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
+
+                      const isInputsModified =
+                        hasPreviousDoc &&
+                        (element.prevDoc.deliverable ||
+                          element.prevDoc.title ||
+                          element.prevDoc.description ||
+                          element.prevDoc.area ||
+                          element.prevDoc.objective)
                       const isStateDecreased = element.newState < element.prevState
 
-                      if (isModifiedStart || isStateDecreased) return 'Modificado'
+                      if (isModifiedStart || isStateDecreased || isInputsModified) return 'Modificado'
                       if (isDraftmenAssigned) return `Proyectistas asignados`
                       if (isHoursEstablished) return 'En confección de entregables'
                       if (hasPreviousDoc) return 'Modificación aceptada'
@@ -1330,10 +1338,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const OTEndAdded =
                         element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
+
+                      const isInputsModified =
+                        hasPreviousDoc &&
+                        (element.prevDoc.deliverable ||
+                          element.prevDoc.title ||
+                          element.prevDoc.description ||
+                          element.prevDoc.area ||
+                          element.prevDoc.objective)
                       const isStateDecreased = element.newState < element.prevState
 
                       if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
-                      if (isModifiedStart || isStateDecreased) return 'Modificado'
+                      if (isModifiedStart || isStateDecreased || isInputsModified) return 'Modificado'
                       if (isDraftmenAssigned) return `Proyectistas asignados`
                       if (isHoursEstablished) return 'En confección de entregables'
 

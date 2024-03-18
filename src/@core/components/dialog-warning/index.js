@@ -13,7 +13,7 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
   let result
 
   if (approves === undefined) {
-    result = authUser.role === 5 && state <= 4 ? 'aprobar' : 'modificar'
+    result = authUser.role === 5 && state === (3 || 4) ? 'aprobar' : 'modificar'
   } else if (approves) {
     result = approves.pendingReschedule ? 'pausar' : 'aprobar'
   } else {
