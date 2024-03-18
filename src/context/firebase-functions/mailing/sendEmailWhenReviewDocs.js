@@ -597,9 +597,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
   const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
   const admContEmail = admContData.filter(doc => doc.enabled != false).map(data => data.email)
   const petitionerEmail = petitionerData.filter(doc => doc.enabled != false).map(data => data.email)
-  const supervisorEmail = supervisorData
-    ? supervisorData.filter(doc => doc.enabled != false).map(data => data.email)
-    : ''
+  const supervisorEmail = supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.email) : ''
   const cOperatorEmail = cOperatorData.filter(doc => doc.enabled != false).map(data => data.email)
 
   const usersOnCopyAndMessage = getUsersOnCopyAndMessage(
@@ -639,14 +637,7 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       const title = requirementData.title
       const engineering = requirementData.engineering ? 'Si' : 'No'
       const otProcure = requirementData.ot ? requirementData.ot : 'Por definir'
-      const supervisor = requirementData.supervisorShift
-        ? supervisorData
-          ? supervisorData
-              .filter(doc => doc.enabled != false)
-              .map(data => data.name)
-              .join(', ')
-          : ''
-        : 'Por definir'
+      const supervisor = requirementData.supervisorShift ? supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : '' : 'Por definir'
       const start = requirementData.start ? requirementData.start.toDate().toLocaleDateString() : 'Por definir'
       const end = requirementData.end ? requirementData.end.toDate().toLocaleDateString() : 'Por definir'
       const plant = requirementData.plant
