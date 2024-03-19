@@ -59,7 +59,7 @@ const FormLayoutsSolicitud = () => {
     sap: '',
     objective: '',
     deliverable: [],
-    receiver: [],
+    receiver: []
   }
 
   // ** Hooks
@@ -202,7 +202,6 @@ const FormLayoutsSolicitud = () => {
         if (prop === 'deliverable') {
           // Verificar si 'Memoria de Cálculo' se ha seleccionado
           if (newValue.includes('Memoria de Cálculo')) {
-
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
               setAlertMessage(
@@ -370,7 +369,16 @@ const FormLayoutsSolicitud = () => {
       const deliverableIsRequired = authUser.role === 5 && key === 'deliverable' ? false : true
 
       // Error campos vacíos
-      if (key !== 'fnlocation' && key !== 'sap' && key !== 'tag' && key !== 'urlvideo' && key !== 'mcDescription' && costCenterIsRequired && excludedFields && deliverableIsRequired) {
+      if (
+        key !== 'fnlocation' &&
+        key !== 'sap' &&
+        key !== 'tag' &&
+        key !== 'urlvideo' &&
+        key !== 'mcDescription' &&
+        costCenterIsRequired &&
+        excludedFields &&
+        deliverableIsRequired
+      ) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
         }
@@ -611,7 +619,6 @@ const FormLayoutsSolicitud = () => {
         // Establece el mensaje de alerta al error correspondiente a key
         setAlertMessage(errors[key])
         // Enfoca el elemento correspondiente a key
-        console.log('Enfocando el elemento:', key)
         refs[key].current.focus()
         // Sale del bucle: no se procesarán más keys después de encontrar el primer error
         break
@@ -630,7 +637,8 @@ const FormLayoutsSolicitud = () => {
     const requiredKeys = ['title']
     const areFieldsValid = requiredKeys.every(key => !formErrors[key])
 
-    const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+    const isUrgent =
+      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
     const invalidFiles = validateFiles(files).filter(file => !file.isValid)
     let isBlocked = await consultBlockDayInDB(values.start.toDate())
 
@@ -907,7 +915,7 @@ const FormLayoutsSolicitud = () => {
             {(authUser.role === 5 || authUser.role === 7) && (
               <>
                 <CustomTextField
-                  inputref={otRef}
+                  inputRef={otRef}
                   type='text'
                   required
                   label='OT'
@@ -929,7 +937,7 @@ const FormLayoutsSolicitud = () => {
             {authUser.role === 7 && (
               <>
                 <CustomSelect
-                  inputref={urgencyRef}
+                  inputRef={urgencyRef}
                   required
                   options={urgencyTypesOptions}
                   label='Tipo de urgencia'
@@ -944,7 +952,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Título */}
             <CustomTextField
-              inputref={titleRef}
+              inputRef={titleRef}
               required
               type='text'
               label='Título'
@@ -957,7 +965,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Descripción */}
             <CustomTextField
-              inputref={descriptionRef}
+              inputRef={descriptionRef}
               required
               type='text'
               label='Descripción'
@@ -1021,7 +1029,7 @@ const FormLayoutsSolicitud = () => {
                   >
                     <Box display='flex' alignItems='center'>
                       <MobileDatePicker
-                        inputref={endRef}
+                        inputRef={endRef}
                         dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                         minDate={moment().subtract(1, 'year')}
                         maxDate={moment().add(1, 'year')}
@@ -1049,7 +1057,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <CustomSelect
-              inputref={plantRef}
+              inputRef={plantRef}
               required
               options={[...authUser.plant]}
               label='Planta'
@@ -1065,7 +1073,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Área */}
             <CustomSelect
-              inputref={areaRef}
+              inputRef={areaRef}
               required
               options={areas}
               label='Área'
@@ -1089,7 +1097,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Contract Operator */}
             <CustomSelect
-              inputref={contopRef}
+              inputRef={contopRef}
               required
               options={
                 authUser.role === 3 && contOpOptions?.length < 2 ? [{ name: authUser.displayName }] : contOpOptions
@@ -1109,7 +1117,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Centro de Costos */}
             <CustomTextField
-              inputref={costCenterRef}
+              inputRef={costCenterRef}
               required={authUser.role != 7}
               type='text'
               label='Centro de Costos'
@@ -1155,7 +1163,7 @@ const FormLayoutsSolicitud = () => {
             {/* Solicitante */}
             {authUser.role !== 2 && authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants' && (
               <CustomSelect
-                inputref={petitionerRef}
+                inputRef={petitionerRef}
                 required
                 options={
                   authUser.role === 3 ||
@@ -1163,7 +1171,9 @@ const FormLayoutsSolicitud = () => {
                   authUser.role === 7 ||
                   authUser.plant === 'allPlants' ||
                   authUser.plant === 'Solicitante Santiago'
-                    ? petitioners.map(item => ({ name: `${item.name} - ${item.email}` })).sort((a, b) => a.name.localeCompare(b.name))
+                    ? petitioners
+                        .map(item => ({ name: `${item.name} - ${item.email}` }))
+                        .sort((a, b) => a.name.localeCompare(b.name))
                     : [authUser.displayName]
                 }
                 label='Solicitante'
@@ -1180,7 +1190,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Estado Operacional */}
             <CustomSelect
-              inputref={typeRef}
+              inputRef={typeRef}
               required
               options={operationalStatusOptions}
               label='Estado Operacional Planta'
@@ -1193,7 +1203,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Máquina Detenida */}
             <CustomSelect
-              inputref={detentionRef}
+              inputRef={detentionRef}
               required
               options={['Sí', 'No', 'No aplica']}
               label='¿Estará la máquina detenida?'
@@ -1218,7 +1228,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Tipo de Levantamiento */}
             <CustomSelect
-              inputref={objectiveRef}
+              inputRef={objectiveRef}
               required
               options={objectivesOptions}
               label='Tipo de Levantamiento'
@@ -1231,7 +1241,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
-              inputref={deliverableRef}
+              inputRef={deliverableRef}
               required={authUser.role !== 5}
               options={deliverablesOptions}
               label='Entregables del levantamiento'
@@ -1259,7 +1269,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Destinatarios */}
             <CustomAutocomplete
-              inputref={receiverRef}
+              inputRef={receiverRef}
               required
               isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}
