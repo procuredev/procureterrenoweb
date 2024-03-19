@@ -682,6 +682,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         newData[key] = values[key]
         if (key === 'start' && newData[key]) {
           newData.pendingReschedule = false
+          setHasChanges(prev => ({ ...prev, start: false }))
         }
       }
     }

@@ -260,8 +260,6 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       ...(changedFields.draftmen && { draftmen: changedFields.draftmen })
     }
 
-    console.log('changedFields: ', changedFields)
-    console.log('newEvent: ', newEvent)
     await updateDoc(ref, changedFields).then(() => {
       addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
     })
@@ -509,7 +507,6 @@ function getNextState(role, approves, latestEvent, userRole) {
 }
 
 const updateDocs = async (id, approves, userParam) => {
-  console.log('approves: ', approves)
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
   const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
