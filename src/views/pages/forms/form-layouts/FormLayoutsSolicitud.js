@@ -1163,7 +1163,7 @@ const FormLayoutsSolicitud = () => {
                   authUser.role === 7 ||
                   authUser.plant === 'allPlants' ||
                   authUser.plant === 'Solicitante Santiago'
-                    ? petitioners.map(item => ({ name: `${item.name} - ${item.email}` }))
+                    ? petitioners.map(item => ({ name: `${item.name} - ${item.email}` })).sort((a, b) => a.name.localeCompare(b.name))
                     : [authUser.displayName]
                 }
                 label='Solicitante'
