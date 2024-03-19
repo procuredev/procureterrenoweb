@@ -101,6 +101,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       row.emergencyApprovedByContop === false &&
       createdBySupervisor
     const isMyRequest = authUser.uid === row.uid
+    const createdByPlanner = row.userRole === 5
     const isOwnReturned = isMyRequest && row.state === 1
     const hasOTEnd = row.ot && row.end
 
@@ -128,9 +129,9 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: row.state <= 6
       },
       5: {
-        approve: hasOTEnd && [3, 4].includes(row.state) && !createdBySupervisor,
-        edit: [3, 4, 6].includes(row.state) && !createdBySupervisor,
-        reject: [3, 4, 6].includes(row.state) && !createdBySupervisor
+        approve: hasOTEnd && [1, 3, 4].includes(row.state) && !createdBySupervisor,
+        edit: [1, 2, 3, 4, 6].includes(row.state) && !createdBySupervisor && createdByPlanner,
+        reject: [1, 2, 3, 4, 6].includes(row.state) && !createdBySupervisor && createdByPlanner
       },
       6: {
         approve: hasPrevState && !createdBySupervisor,
@@ -309,7 +310,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const { row } = params
         localStorage.setItem('shiftSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.state >= 6 ? row.supervisorShift || 'No definido' : 'Por confirmar'}</div>
+        return <div>{row.state >= 2 ? row.supervisorShift || 'No definido' : 'Por confirmar'}</div>
       }
     },
     {
@@ -352,7 +353,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const canEdit = permissionsData.edit
         const canReject = permissionsData.reject
 
-        const approveWithChanges = role === 5 && row.state <= 4 && !canApprove
+        const approveWithChanges = role === 5 && row.state <= 4 && !canApprove && row.userRole !== 5
         const isRevisado = row.state > role
         const flexDirection = md ? 'row' : 'column'
 

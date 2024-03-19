@@ -41,25 +41,25 @@ import {
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
+    ot: '',
+    urgency: '',
     title: '',
+    description: '',
     start: moment().startOf('day'),
+    end: null,
     plant: '',
     area: '',
     contop: '',
+    costCenter: '',
     fnlocation: '',
+    tag: '',
     petitioner: '',
     type: '',
     detention: '',
     sap: '',
     objective: '',
     deliverable: [],
-    receiver: [],
-    description: '',
-    tag: '',
-    end: null,
-    ot: '',
-    urgency: '',
-    costCenter: ''
+    receiver: []
   }
 
   // ** Hooks
@@ -104,32 +104,11 @@ const FormLayoutsSolicitud = () => {
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-
-  // const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
-  //const [userInputMC, setUserInputMC] = useState("")
-  //const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false)
   const [domainData, setDomainData] = useState({})
   const [objectivesOptions, setObjectivesOptions] = useState([])
   const [deliverablesOptions, setDeliverablesOptions] = useState([])
   const [urgencyTypesOptions, setUrgencyTypesOptions] = useState([])
   const [operationalStatusOptions, setOperationalStatusOptions] = useState([])
-
-  /*
-  const handleCloseDialogMC = () => {
-    setIsDialogOpenMC(false)
-  };
-
-  const handleConfirmDialogMC = () => {
-    if (values.deliverable.includes('Memoria de Cálculo')) {
-      // Procesa userInput solo si 'Memoria de Cálculo' está seleccionado
-      //console.log("El usuario confirmó Memoria de Cálculo con descripción:", userInputMC)
-    } else {
-      setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' no está seleccionado
-    }
-    setIsDialogOpenMC(false)
-    setHasDialogMCBeenShown(true) // Asume que el usuario terminó con este diálogo
-  }
-  */
 
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
@@ -142,10 +121,12 @@ const FormLayoutsSolicitud = () => {
   const plantRef = useRef(null)
   const areaRef = useRef(null)
   const contopRef = useRef(null)
+  const costCenterRef = useRef(null)
   const petitionerRef = useRef(null)
   const typeRef = useRef(null)
   const detentionRef = useRef(null)
   const objectiveRef = useRef(null)
+  const deliverableRef = useRef(null)
   const receiverRef = useRef(null)
 
   const handleGPRSelected = () => {
@@ -227,12 +208,15 @@ const FormLayoutsSolicitud = () => {
                 'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.'
               )
 
+              setValues(prevValues => ({ ...prevValues, ['mcDescription']: '' }))
+
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
             }
           } else {
             // Si 'Memoria de Cálculo' se ha deseleccionado, restablecer hasShownDialog a false
             if (hasShownDialog) {
+              setValues(prevValues => ({ ...prevValues, ['mcDescription']: '' }))
               setHasShownDialog(false)
             }
           }
@@ -241,10 +225,17 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'end': {
         let endDate = event
-        setValues({
-          ...values,
-          end: endDate
-        })
+        if (endDate < values.start) {
+          setErrors(prevErrors => ({
+            ...prevErrors,
+            end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
+          }))
+        } else {
+          setValues({
+            ...values,
+            end: endDate
+          })
+        }
         break
       }
       case prop === 'start': {
@@ -350,9 +341,10 @@ const FormLayoutsSolicitud = () => {
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
-    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
+    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter', 'mcDescription']
     const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
 
+    // Objeto para traducir lo que se rederiza al usuario
     const fieldLabels = {
       ot: 'OT',
       urgency: 'Urgencia',
@@ -367,16 +359,14 @@ const FormLayoutsSolicitud = () => {
       detention: '¿Estará la máquina detenida?',
       objective: 'Tipo de Levantamiento',
       deliverable: 'Entregables del Levantamiento',
-      receiver: 'Destinatarios'
+      receiver: 'Destinatarios',
+      mcDescription: 'Memoria de Cálculo'
     }
+
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
-
-      // Si el usuario tiene role === 2, no validar el campo 'petitioner'
-      // if (authUser.role === 2 && key === 'petitioner') {
-      //   continue
-      // }
+      const deliverableIsRequired = authUser.role === 5 && key === 'deliverable' ? false : true
 
       // Error campos vacíos
       if (
@@ -384,18 +374,20 @@ const FormLayoutsSolicitud = () => {
         key !== 'sap' &&
         key !== 'tag' &&
         key !== 'urlvideo' &&
+        key !== 'mcDescription' &&
         costCenterIsRequired &&
-        excludedFields
+        excludedFields &&
+        deliverableIsRequired
       ) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
           newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
         }
       } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
-        newErrors[key] = 'Por favor, especifica una opción válida'
+        newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
       }
 
       if (key === 'costCenter' && values[key] === 0) {
-        newErrors[key] = 'El campo Centyro de Costo no puede ser cero.'
+        newErrors[key] = 'El campo Centro de Costo no puede ser cero.'
       }
 
       if (key === 'objective') {
@@ -591,10 +583,12 @@ const FormLayoutsSolicitud = () => {
     plant: plantRef,
     area: areaRef,
     contop: contopRef,
+    costCenter: costCenterRef,
     petitioner: petitionerRef,
     type: typeRef,
     detention: detentionRef,
     objective: objectiveRef,
+    deliverable: deliverableRef,
     receiver: receiverRef
   }
 
@@ -610,6 +604,7 @@ const FormLayoutsSolicitud = () => {
       'plant',
       'area',
       'contop',
+      'costCenter',
       'petitioner',
       'type',
       'detention',
@@ -624,7 +619,6 @@ const FormLayoutsSolicitud = () => {
         // Establece el mensaje de alerta al error correspondiente a key
         setAlertMessage(errors[key])
         // Enfoca el elemento correspondiente a key
-        console.log('Enfocando el elemento:', key)
         refs[key].current.focus()
         // Sale del bucle: no se procesarán más keys después de encontrar el primer error
         break
@@ -670,6 +664,7 @@ const FormLayoutsSolicitud = () => {
         const solicitud = await newDoc(
           {
             ...values,
+            petitioner: values.petitioner.split(' - ')[0],
             receiver: values.receiver.map(option => {
               const { disabled, ...rest } = option
 
@@ -801,17 +796,6 @@ const FormLayoutsSolicitud = () => {
     }
   }, [values.plant, values.contop])
 
-  // // Establece planta solicitante y contop solicitante
-  // useEffect(() => {
-  //   let plant = authUser && authUser.plant.map(plant => plant)
-
-  //   if (authUser.role === 2) {
-  //     let onlyPlant = plant[0]
-  //     let userOption = authUser.displayName
-  //     setValues({ ...values, plant: onlyPlant, petitioner: userOption })
-  //   }
-  // }, [authUser, isUploading])
-
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
       const currentWeek = moment().isoWeek()
@@ -894,6 +878,8 @@ const FormLayoutsSolicitud = () => {
     }
   }, [])
 
+  // useEffect para definir automáticamente el campo 'Solicitante' cuando el usuario conectado tiene rol 2 (Solicitante).
+  // En caso de que no tenga rol 2 (Solicitante), deberá seleccionarlo desde la lista desplegable.
   useEffect(() => {
     if (authUser.role === 2) {
       setValues({ ...values, petitioner: authUser.displayName })
@@ -1124,13 +1110,14 @@ const FormLayoutsSolicitud = () => {
               helper={
                 contOpOptions?.length < 2
                   ? 'Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
-                  : 'Selecciona quién al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
+                  : 'Selecciona al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
               }
               defaultValue=''
             />
 
             {/* Centro de Costos */}
             <CustomTextField
+              inputRef={costCenterRef}
               required={authUser.role != 7}
               type='text'
               label='Centro de Costos'
@@ -1184,7 +1171,9 @@ const FormLayoutsSolicitud = () => {
                   authUser.role === 7 ||
                   authUser.plant === 'allPlants' ||
                   authUser.plant === 'Solicitante Santiago'
-                    ? petitioners.map(item => ({ name: item.name }))
+                    ? petitioners
+                        .map(item => ({ name: `${item.name} - ${item.email}` }))
+                        .sort((a, b) => a.name.localeCompare(b.name))
                     : [authUser.displayName]
                 }
                 label='Solicitante'
@@ -1252,7 +1241,8 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
-              required
+              inputRef={deliverableRef}
+              required={authUser.role !== 5}
               options={deliverablesOptions}
               label='Entregables del levantamiento'
               value={values.deliverable}

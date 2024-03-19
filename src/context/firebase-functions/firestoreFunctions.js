@@ -1,33 +1,28 @@
 // ** Firebase Imports
-import { Firebase, db } from 'src/configs/firebase'
 import {
+  Timestamp,
+  addDoc,
   collection,
   doc,
-  addDoc,
-  setDoc,
-  Timestamp,
-  query,
   getDoc,
   getDocs,
-  updateDoc,
-  where,
-  orderBy,
+  increment,
   limit,
-  runTransaction,
   onSnapshot,
-  increment
+  orderBy,
+  query,
+  runTransaction,
+  setDoc,
+  updateDoc
 } from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
 
 // ** Imports Propios
+import { addDays, getUnixTime } from 'date-fns'
+import { useEffect } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
-import { getUnixTime, setDayOfYear } from 'date-fns'
-import { addDays } from 'date-fns'
-import { async } from '@firebase/util'
-import { timestamp } from '@antfu/utils'
-import { blue } from '@mui/material/colors'
-import { useEffect } from 'react'
 
 import { useState } from 'react'
 
@@ -90,7 +85,7 @@ const newDoc = async (values, userParam) => {
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
-    console.log('userParam: ', userParam)
+    // console.log('userParam: ', userParam)
     solicitudValidator(values, userParam.role)
     const requestNumber = await requestCounter()
 
@@ -133,7 +128,7 @@ const newDoc = async (values, userParam) => {
       ...newDoc,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
       state: userParam.role === 7 ? 6 : userParam.role === 5 ? 2 : userParam.role,
-      supervisorShift: userParam.role === 7 ? (week % 2 === 0 ? 'A' : 'B') : null
+      supervisorShift: userParam.role === (5 || 7) ? (week % 2 === 0 ? 'A' : 'B') : null
     })
 
     // Se envía email a quienes corresponda
@@ -264,9 +259,11 @@ const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc,
       ...(changedFields.uprisingInvestedHours && { uprisingInvestedHours: changedFields.uprisingInvestedHours }),
       ...(changedFields.draftmen && { draftmen: changedFields.draftmen })
     }
-    //console.log('changedFields: ', changedFields)
-    await updateDoc(ref, changedFields)
-    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+
+    await updateDoc(ref, changedFields).then(() => {
+      addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    })
+
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
   } else {
     console.log('No se escribió ningún documento')
@@ -292,6 +289,7 @@ const addComment = async (id, comment, userParam) => {
 function getNextState(role, approves, latestEvent, userRole) {
   const state = {
     returned: 1,
+    petitioner: 2,
     contOperator: 3,
     contOwner: 4,
     planner: 5,
@@ -310,6 +308,16 @@ function getNextState(role, approves, latestEvent, userRole) {
   const returned = latestEvent.newState === state.returned
   const changingStartDate = typeof approves === 'object' && 'start' in approves
   const modifiedBySameRole = userRole === role
+  const requestMadeByPlanner = userRole === 5
+
+  // console.log('dateHasChanged: ', dateHasChanged)
+  // console.log('approveWithChanges: ', approveWithChanges)
+  // console.log('approvedByPlanner: ', approvedByPlanner)
+  // console.log('emergencyBySupervisor: ', emergencyBySupervisor)
+  // console.log('returned: ', returned)
+  // console.log('changingStartDate: ', changingStartDate)
+  // console.log('modifiedBySameRole: ', modifiedBySameRole)
+  // console.log('requestMadeByPlanner: ', requestMadeByPlanner)
 
   const rules = new Map([
     [
@@ -377,6 +385,12 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       5,
       [
+        // Si es devuelta al Contract Operator por el solicitante(planificador) (1 --> 2)
+        {
+          condition: approves && dateHasChanged && returned && approveWithChanges && requestMadeByPlanner,
+          newState: state.petitioner,
+          log: 'Devuelto por planificador hacia Contract Operator'
+        },
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
           condition:
@@ -384,6 +398,7 @@ function getNextState(role, approves, latestEvent, userRole) {
             !changingStartDate &&
             !dateHasChanged &&
             !emergencyBySupervisor &&
+            latestEvent.newState >= state.contOperator &&
             latestEvent.newState < state.planner,
           newState: state.planner,
           log: 'Modificado sin cambio de fecha por Planificador'
@@ -398,13 +413,19 @@ function getNextState(role, approves, latestEvent, userRole) {
             latestEvent.newState >= state.planner &&
             latestEvent.newState < state.supervisor,
           newState: latestEvent.newState,
-          log: 'Modificado sin cambio de fecha por Planificador'
+          log: 'Modificado sin cambio de fecha por Planificador2'
         },
         // Planificador modifica sin cambios de fecha (any --> planner)
         {
           condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.supervisor,
           newState: latestEvent.newState,
-          log: 'Modificado sin cambio de fecha por Planificador'
+          log: 'Modificado sin cambio de fecha por Planificador1'
+        },
+        // Planificador modifica sin cambios de fecha (2 --> 2)
+        {
+          condition: approves && !emergencyBySupervisor && requestMadeByPlanner && modifiedBySameRole,
+          newState: state.petitioner,
+          log: 'Modificado sin cambio de fecha por solicitante(Planificador)'
         },
         // Planificador modifica solicitud hecha por Supervisor (any --> any)
         {

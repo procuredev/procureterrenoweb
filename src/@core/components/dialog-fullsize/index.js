@@ -1,6 +1,6 @@
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import moment from 'moment-timezone'
 import 'moment/locale/es'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import React, { Fragment, useEffect, useState } from 'react'
 
 import {
@@ -382,7 +382,8 @@ const PhotoGallery = ({ photos }) => {
 }
 
 export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
-  let isPlanner = roleData && roleData.id == '5'
+  let isPlanner = roleData && roleData.id == '5' && doc.state >= 3 // modificacion para que planificador no pueda editar si el estado es menor a 3
+  //let isPlanner = roleData && roleData.id == '5'
 
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
@@ -639,11 +640,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         //No trae ni agrega end/ot
       } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
-        setMessage('Debes ingresar ot y fecha de término')
+        setMessage('Debes ingresar el Número de OT y la Fecha de Término')
       } else if ((!values.costCenter && hasChanges.costCenter) || !values.costCenter) {
-        setMessage('Debes ingresar el Centor de Costo')
-      } else if ((values.deliverable.length === 0 && hasChanges.deliverable) || values.deliverable.length === 0) {
-        setMessage('Debes ingresar seleccionar un entregable')
+        setMessage('Debes ingresar el Centro de Costo')
+      } else if (
+        (values.deliverable.length === 0 && hasChanges.deliverable) ||
+        (values.deliverable.length === 0 && values.state >= 3)
+      ) {
+        setMessage('Debes ingresar seleccionar al menos un Entregable')
       } else {
         setOpenAlert(true)
       }
@@ -678,6 +682,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         newData[key] = values[key]
         if (key === 'start' && newData[key]) {
           newData.pendingReschedule = false
+          setHasChanges(prev => ({ ...prev, start: false }))
         }
       }
     }
@@ -1273,9 +1278,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop
                       const hasPreviousDoc = element.prevDoc
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
+
+                      const isInputsModified =
+                        hasPreviousDoc &&
+                        (element.prevDoc.deliverable ||
+                          element.prevDoc.title ||
+                          element.prevDoc.description ||
+                          element.prevDoc.area ||
+                          element.prevDoc.objective)
                       const isStateDecreased = element.newState < element.prevState
 
-                      if (isModifiedStart || isStateDecreased) return 'Modificado'
+                      if (isModifiedStart || isStateDecreased || isInputsModified) return 'Modificado'
                       if (isDraftmenAssigned) return `Proyectistas asignados`
                       if (isHoursEstablished) return 'En confección de entregables'
                       if (hasPreviousDoc) return 'Modificación aceptada'
@@ -1326,10 +1339,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const OTEndAdded =
                         element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
+
+                      const isInputsModified =
+                        hasPreviousDoc &&
+                        (element.prevDoc.deliverable ||
+                          element.prevDoc.title ||
+                          element.prevDoc.description ||
+                          element.prevDoc.area ||
+                          element.prevDoc.objective)
                       const isStateDecreased = element.newState < element.prevState
 
                       if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
-                      if (isModifiedStart || isStateDecreased) return 'Modificado'
+                      if (isModifiedStart || isStateDecreased || isInputsModified) return 'Modificado'
                       if (isDraftmenAssigned) return `Proyectistas asignados`
                       if (isHoursEstablished) return 'En confección de entregables'
 

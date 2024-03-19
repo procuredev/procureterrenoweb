@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** Firebase Imports
-import { db } from 'src/configs/firebase'
 import {
+  Timestamp,
   collection,
   doc,
-  Timestamp,
-  query,
+  documentId,
+  getCountFromServer,
   getDoc,
   getDocs,
   onSnapshot,
-  where,
   or,
   orderBy,
-  getCountFromServer,
-  documentId
+  query,
+  where
 } from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
 
 import { unixToDate } from 'src/@core/components/unixToDate'
 
@@ -72,6 +72,9 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
 
       if (datagrid) {
         switch (userParam.role) {
+          case 1:
+            q = query(collection(db, 'solicitudes'))
+            break
           case 2:
             q = query(collection(db, 'solicitudes'), where('uid', '==', userParam.uid))
             break
@@ -79,10 +82,11 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
             q = query(collection(db, 'solicitudes'), where('plant', 'in', userParam.plant))
             break
           case 5:
-            q = query(
-              collection(db, 'solicitudes'),
-              or(where('state', '>=', userParam.role - 2), where('state', '==', 0))
-            )
+            q = query(collection(db, 'solicitudes'))
+            // q = query(
+            //   collection(db, 'solicitudes'),
+            //   or(where('state', '>=', userParam.role - 2), where('state', '==', 0))
+            // )                                                                              // se comentará para que el usuario 5 vea todas las solicitudes
             break
           case 7:
             q = query(collection(db, 'solicitudes'), or(where('state', '>=', 6), where('state', '==', 0)))
@@ -902,7 +906,7 @@ const subscribeToUserProfileChanges = (userId, callback) => {
   const userRef = doc(db, 'users', userId)
 
   const unsubscribe = onSnapshot(userRef, doc => {
-    if (doc.exists) {
+    if (doc.exists()) {
       const userData = doc.data()
       callback(userData)
     }
