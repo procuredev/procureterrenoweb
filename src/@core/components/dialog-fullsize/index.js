@@ -1,6 +1,6 @@
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import moment from 'moment-timezone'
 import 'moment/locale/es'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import React, { Fragment, useEffect, useState } from 'react'
 
 import {
@@ -640,14 +640,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         //No trae ni agrega end/ot
       } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
-        setMessage('Debes ingresar ot y fecha de término')
+        setMessage('Debes ingresar el Número de OT y la Fecha de Término')
       } else if ((!values.costCenter && hasChanges.costCenter) || !values.costCenter) {
-        setMessage('Debes ingresar el Centor de Costo')
+        setMessage('Debes ingresar el Centro de Costo')
       } else if (
         (values.deliverable.length === 0 && hasChanges.deliverable) ||
         (values.deliverable.length === 0 && values.state >= 3)
       ) {
-        setMessage('Debes ingresar seleccionar un entregable')
+        setMessage('Debes ingresar seleccionar al menos un Entregable')
       } else {
         setOpenAlert(true)
       }
