@@ -1,22 +1,21 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
-import { makeStyles } from '@mui/styles'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import { useEffect, useState } from 'react'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import { Tooltip, Grid, Box, Tab } from '@mui/material'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
+import { Box, Grid, Tab, Tooltip } from '@mui/material'
 
 // ** Custom Components Imports
-import FilterComponent from 'src/@core/components/filter-component'
-import TableBasic from 'src/views/table/data-grid/TableBasic'
-import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
 import filterByLabel from 'src/@core/components/custom-filters/customFilters'
+import FilterComponent from 'src/@core/components/filter-component'
+import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
+import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 const DataGrid = () => {
   const [values, setValues] = useState({})
@@ -56,7 +55,7 @@ const DataGrid = () => {
         {
           // Filters all rejected requests.
           // TODO: Delete filter for role 5
-          data: authUser.role !== 5 ? data.filter(doc => doc.state !== 0) : data,
+          data: (authUser.role === 1 || authUser.role === 5) ? data : data.filter(doc => doc.state !== 0),
           label: 'Todas las solicitudes',
           info: 'Todas las solicitudes'
         },

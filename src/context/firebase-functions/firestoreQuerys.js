@@ -72,6 +72,9 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
 
       if (datagrid) {
         switch (userParam.role) {
+          case 1:
+            q = query(collection(db, 'solicitudes'))
+            break
           case 2:
             q = query(collection(db, 'solicitudes'), where('uid', '==', userParam.uid))
             break
