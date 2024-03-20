@@ -1121,7 +1121,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   initialValue={<PetitionerContactComponent />}
                 />
                 <DateListItem
-                  editable={editable && roleData && roleData.canEditStart}
+                  editable={editable && roleData && roleData.canEditStart && state <= 6}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Inicio'
                   id='start'
@@ -1130,7 +1130,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   initialValue={start}
                 />
                 <DateListItem
-                  editable={editable && roleData && roleData.canEditEnd}
+                  editable={editable && roleData && roleData.canEditEnd && state <= 6}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Término'
                   id='end'
