@@ -779,11 +779,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       setAlertMessage(resultDate.msj)
       const newStart = date
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
-      setValues({ ...values, start: newStart, end: newEnd })
+
+      // actualiza el turno segun a la fecha de inicio modificada
+      const adjustedDate = moment(newStart).subtract(1, 'day')
+      const week = moment(adjustedDate.toDate()).isoWeek()
+      const newSupervisorShift = week % 2 === 0 ? 'A' : 'B'
+
+      setValues({ ...values, start: newStart, end: newEnd, supervisorShift: newSupervisorShift })
       setHasChanges({
         ...hasChanges,
         start: !newStart.isSame(initialValues.start),
-        end: !newEnd.isSame(initialValues.end)
+        end: !newEnd.isSame(initialValues.end),
+        supervisorShift: newSupervisorShift !== initialValues.supervisorShift
       })
     }
   }
