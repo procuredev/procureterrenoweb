@@ -238,9 +238,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
     const requestsSnapshot = await requestsRef.where('start', '>=', tomorrow).where('start', '<', afterTomorrow).get() // Busca documentos cuya fecha de inicio sea hoy
 
-    const requestsDocs = requestsSnapshot.docs
-      .filter(doc => 'supervisorShift' in doc.data())
-      .filter(doc => doc.data().state == 6 || doc.data().state == 7) // Se filtra requestDocs para llamar a aquellos documentos que tienen un campo 'supervisorShift' y que su estado sea 6 o 7 (aprobado por Procure, pero sin terminar)
+    const requestsDocs = requestsSnapshot.docs.filter(doc => 'supervisorShift' in doc.data()).filter(doc => doc.data().state >= 1 && doc.data().state <= 7) // Se filtra requestDocs para llamar a aquellos documentos que tienen un campo 'supervisorShift' y que su estado sea 6 o 7 (aprobado por Procure, pero sin terminar)
 
     let supervisorArray = [] // Crea un array vacío para almacenar los supervisores
 
@@ -258,6 +256,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
     // Se revisa para cada uno de los supervisores que tienen trabajos hoy (teóricamente solo debería haber 1 supervisor)
     for (let i = 0; i < supervisorArray.length; i++) {
+
       let supervisorTasks = [] // Array vacío que contendrá objetos, donde cada objeto contendrá el nombre del supervisor y las tareas que tiene para hoy
 
       // Se revisa cada uno de los documentos existentes en 'solicitudes'
@@ -292,38 +291,39 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
         const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
 
-        const supervisorSnapshot = await usersRef
-          .where('shift', 'array-contains', supervisorWork.supervisorShift)
-          .where('role', '==', 7)
-          .get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
-
+        const supervisorSnapshot = await usersRef.where('shift', 'array-contains', supervisorWork.supervisorShift).where('role', '==', 7).get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
         const supervisorData = supervisorSnapshot.docs // Se almacena en una constante los datos del Supervisor
-        const supervisorEmail = supervisorData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Supervisor
-        const supervisorName = supervisorData.filter(doc => doc.enabled != false).map(id => id.data().name) // Se almacena el e-mail del Supervisor
+        const supervisorEmail = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Supervisor
+        const supervisorName = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().name).join(', ') // Se almacena el e-mail del Supervisor
 
-        const drawmansSnapshot = await usersRef
-          .where('shift', 'array-contains', supervisorWork.supervisorShift)
-          .where('role', '==', 8)
-          .get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
+        const drawmansSnapshot = await usersRef.where('shift', 'array-contains', supervisorWork.supervisorShift).where('role', '==', 8).get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
         const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
-
-        const drawmansEmail = drawmansData
-          .filter(doc => doc.enabled != false)
-          .map(id => id.data().email)
-          .join(', ') // Se almacenan los emails de los Proyectistas
+        const drawmansEmail = drawmansData.filter(doc => doc.data().enabled !== false).map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
         const plannerData = plannerSnapshot.docs // Se almacena en una constante los datos del Planificador
-        const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Planificador
+        const plannerEmail = plannerData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Planificador
 
         const admContratoSnapshot = await usersRef.where('role', '==', 6).get() // Se llama sólo al que cumple con la condición de que su rol es 6 (Administrador de Contrato)
         const admContratoData = admContratoSnapshot.docs // Se almacena en una constante los datos del Administrador de Contrato
-        const admContratoEmail = admContratoData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Administrador de Contrato
+        const admContratoEmail = admContratoData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Administrador de Contrato
 
         // Si hay mas de 1 levantamiento se escribirá 'levantamientos agendados'
-        let youHaveTasks = 'levantamiento agendado'
+        let youHaveTasks = 'Levantamiento agendado'
         if (supervisorTasks.length > 1) {
-          youHaveTasks = 'levantamientos agendados'
+          youHaveTasks = 'Levantamientos agendados'
+        }
+
+        const statesDefinition = {
+          0: 'Cancelada',
+          1: 'Reprogramado, en revisión de Autor',
+          2: 'En revisión de Contract Operator',
+          3: 'En revisión de Planificador',
+          4: 'En revisión de Planificador',
+          5: 'En revisión de Administrador de Contrato',
+          6: 'Aprobada para inicio de Levantamiento',
+          7: 'Levantamiento iniciado',
+          8: 'Levantamiento finalizado'
         }
 
         // Se define el mensaje html que contendrá, el cual será una lista con todas los levantamientos que tiene que hacer el actual Supervisor durante hoy
@@ -333,12 +333,13 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
             .map(
               (task, index) => `
         <li>
-          Tarea ${index + 1}:
+          Levantamiento ${index + 1}:
           <ul>
-            <li>OT: ${task.ot}</li>
+            <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
             <li>Título: ${task.title}</li>
             <li>Planta: ${task.plant}</li>
             <li>Solicitante: ${task.petitioner}</li>
+            <li>Estado: ${statesDefinition[task.state]}</li>
           </ul>
         </li>
       `
@@ -356,10 +357,10 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
             subject: `Resumen de mañana ${tomorrow.toLocaleDateString('es-CL')} - ${supervisorName}`,
             html: `
               <h2>Estimad@ ${supervisorName}:</h2>
-              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para mañana. A continuación se presenta el detalle de cada una de ellos:</p>
+              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para comenzar mañana. A continuación se presenta el detalle de cada una de ellos:</p>
                 ${tasksHtml}
               <p>Para mayor información revise la solicitud en nuestra página web</p>
-              <p>Saludos,<br>Prosite</p>
+              <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
               `
           }
         })
