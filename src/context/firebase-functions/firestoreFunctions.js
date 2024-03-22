@@ -128,7 +128,12 @@ const newDoc = async (values, userParam) => {
       ...newDoc,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
       state: userParam.role === 7 ? 6 : userParam.role === 5 ? 2 : userParam.role,
-      supervisorShift: userParam.role === (2 || 3 || 5 || 7) ? (week % 2 === 0 ? 'A' : 'B') : null
+      supervisorShift:
+        userParam.role === 2 || userParam.role === 3 || userParam.role === 5 || userParam.role === 7
+          ? week % 2 === 0
+            ? 'A'
+            : 'B'
+          : null
     })
 
     // Se envía email a quienes corresponda

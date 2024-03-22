@@ -375,7 +375,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const canReject = permissionsData.reject
 
         const approveWithChanges = role === 5 && row.state <= 4 && !canApprove && row.userRole !== 5
-        const isRevisado = row.state > role
+        //const isRevisado = row.state > role
         const flexDirection = md ? 'row' : 'column'
 
         const renderButtons = (
@@ -434,12 +434,10 @@ const TableBasic = ({ rows, role, roleData }) => {
                   {renderButtons}
                 </Select>
               )
-            ) : isRevisado ? (
-              'Revisado'
             ) : row.state === 0 ? (
               'Rechazado'
             ) : (
-              'Pendiente de revisión'
+              ''
             )}
           </>
         )
