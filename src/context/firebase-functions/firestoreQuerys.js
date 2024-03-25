@@ -88,11 +88,14 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
             //   or(where('state', '>=', userParam.role - 2), where('state', '==', 0))
             // )                                                                              // se comentará para que el usuario 5 vea todas las solicitudes
             break
+          case 6:
+            q = query(collection(db, 'solicitudes'))
+            break
           case 7:
             q = query(collection(db, 'solicitudes'), or(where('state', '>=', 6), where('state', '==', 0)))
             break
           default:
-            if ([4, 6].includes(userParam.role)) {
+            if ([4].includes(userParam.role)) {
               q = query(
                 collection(db, 'solicitudes'),
                 or(where('state', '>=', userParam.role - 1), where('state', '==', 0))

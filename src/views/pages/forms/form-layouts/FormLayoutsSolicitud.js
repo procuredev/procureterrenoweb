@@ -408,6 +408,12 @@ const FormLayoutsSolicitud = () => {
         }
       }
 
+      if (key === 'end' && shouldValidateOT) {
+        if (!values[key]) {
+          newErrors[key] = 'El campo Fecha de Término no puede estar vacío.'
+        }
+      }
+
       if (key === 'ot' && shouldValidateOT) {
         if (!values[key]) {
           newErrors[key] = 'El campo OT no puede estar vacío.'
@@ -680,7 +686,8 @@ const FormLayoutsSolicitud = () => {
               authUser.role === 5 || authUser.role === 7
                 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
                 : null,
-            mcDescription: values.mcDescription ? values.mcDescription : null
+            mcDescription: values.mcDescription ? values.mcDescription : null,
+            files: files
           },
           authUser
         )

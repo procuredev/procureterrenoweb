@@ -22,6 +22,7 @@ import { getWeek, addDays, format, differenceInDays } from 'date-fns'
 
 import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
+import { GridSortMenuItem, GridColumnMenuPinningItem, GridColumnMenu } from '@mui/x-data-grid-pro'
 
 import CustomChip from 'src/@core/components/mui/chip'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -86,6 +87,26 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
+  }
+
+  // Componente personalizado para el menú de columna
+  const CustomColumnMenu = props => {
+    return (
+      <GridColumnMenu
+        {...props}
+        slots={{
+          // opciones que se muestran
+          columnMenuSortingItem: GridSortMenuItem,
+          columnMenuPinningItem: GridColumnMenuPinningItem,
+
+          // Oculta se ocultan
+          columnMenuColumnsItem: null,
+          columnMenuFilterItem: null,
+          columnMenuAggregationItem: null,
+          columnMenuGroupingItem: null
+        }}
+      />
+    )
   }
 
   const permissions = (row, role) => {
@@ -354,7 +375,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const canReject = permissionsData.reject
 
         const approveWithChanges = role === 5 && row.state <= 4 && !canApprove && row.userRole !== 5
-        const isRevisado = row.state > role
+        //const isRevisado = row.state > role
         const flexDirection = md ? 'row' : 'column'
 
         const renderButtons = (
@@ -413,12 +434,10 @@ const TableBasic = ({ rows, role, roleData }) => {
                   {renderButtons}
                 </Select>
               )
-            ) : isRevisado ? (
-              'Revisado'
             ) : row.state === 0 ? (
               'Rechazado'
             ) : (
-              'Pendiente de revisión'
+              ''
             )}
           </>
         )
@@ -536,6 +555,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           sortingModel={defaultSortingModel}
           slots={{
+            columnMenu: CustomColumnMenu,
             toolbar:
               authUser.role === 1 ||
               authUser.role === 5 ||

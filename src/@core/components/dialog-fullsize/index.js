@@ -774,16 +774,23 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       setAlertMessage(resultDate.msj)
     }
 
-    if (dateField === 'start' && end && (isPetitioner || isContop || isPlanner || isSupervisor)) {
+    if (dateField === 'start' && (isPetitioner || isContop || isPlanner || isSupervisor)) {
       const resultDate = await consultBlockDayInDB(fieldValue.toDate())
       setAlertMessage(resultDate.msj)
       const newStart = date
       const newEnd = moment(date.toDate()).add(docDifference, 'days')
-      setValues({ ...values, start: newStart, end: newEnd })
+
+      // actualiza el turno segun a la fecha de inicio modificada
+      const adjustedDate = moment(newStart).subtract(1, 'day')
+      const week = moment(adjustedDate.toDate()).isoWeek()
+      const newSupervisorShift = week % 2 === 0 ? 'A' : 'B'
+
+      setValues({ ...values, start: newStart, end: newEnd, supervisorShift: newSupervisorShift })
       setHasChanges({
         ...hasChanges,
         start: !newStart.isSame(initialValues.start),
-        end: !newEnd.isSame(initialValues.end)
+        end: !newEnd.isSame(initialValues.end),
+        supervisorShift: newSupervisorShift !== initialValues.supervisorShift
       })
     }
   }
@@ -1114,7 +1121,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   initialValue={<PetitionerContactComponent />}
                 />
                 <DateListItem
-                  editable={editable && roleData && roleData.canEditStart}
+                  editable={editable && roleData && roleData.canEditStart && state <= 6}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Inicio'
                   id='start'
@@ -1123,7 +1130,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   initialValue={start}
                 />
                 <DateListItem
-                  editable={editable && roleData && roleData.canEditEnd}
+                  editable={editable && roleData && roleData.canEditEnd && state <= 6}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Término'
                   id='end'
