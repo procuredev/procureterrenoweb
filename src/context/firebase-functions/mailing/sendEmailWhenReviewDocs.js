@@ -535,6 +535,13 @@ const getUsersOnCopyAndMessage = (
     // Si el rol de quien hizo la solicitud es "Supervisor"
     case 7:
       switch (stateChange) {
+        // && prevState es 6 && newState es 6 -> Planificador modifica la fecha de inicio
+        case '6-6':
+          sendTo = petitionerFieldEmail
+          arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...admContEmail, ...supervisorEmail] // Siginifca que hay que mandarle e-mail al Solicitante, C.Operator, C.Owner, Planificador, Adm.Contrato y Supervisor
+          message = `la solicitud ha sido modificada por ${user.displayName}` // Se agrega mensaje que irá en el e-mail
+          break
+
         // && prevState es 6 && newState es 7 -> Supervisor selecciona Proyectistas para el Levantamiento
         case '6-7':
           sendTo = petitionerFieldEmail
