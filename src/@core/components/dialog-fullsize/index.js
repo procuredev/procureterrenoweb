@@ -774,7 +774,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       setAlertMessage(resultDate.msj)
     }
 
-    if (dateField === 'start' && end && (isPetitioner || isContop || isPlanner || isSupervisor)) {
+    if (dateField === 'start' && (isPetitioner || isContop || isPlanner || isSupervisor)) {
       const resultDate = await consultBlockDayInDB(fieldValue.toDate())
       setAlertMessage(resultDate.msj)
       const newStart = date
