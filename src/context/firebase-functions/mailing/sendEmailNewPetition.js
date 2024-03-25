@@ -150,6 +150,7 @@ const processAttachedDocuments = async (documents) => {
   return processedDocuments
 
 }
+
 // Función para enviar emails de forma automática
 // user es el usuario conectado que efectúa el envío de la solicitud
 // values son los valores seleccionados en en formulario de nueva solicitud
