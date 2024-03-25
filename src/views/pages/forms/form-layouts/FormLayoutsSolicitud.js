@@ -408,6 +408,12 @@ const FormLayoutsSolicitud = () => {
         }
       }
 
+      if (key === 'end') {
+        if (!values[key]) {
+          newErrors[key] = 'El campo Fecha de Término no puede estar vacío.'
+        }
+      }
+
       if (key === 'ot' && shouldValidateOT) {
         if (!values[key]) {
           newErrors[key] = 'El campo OT no puede estar vacío.'
