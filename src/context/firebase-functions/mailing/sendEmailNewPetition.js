@@ -132,7 +132,7 @@ const processAttachedDocuments = async (documents) => {
         processedDocumentsSize = processedDocumentsSize + content.length
 
         // Solo se adjuntarán al e-mail aquellos archivos que pesen menos de 1MB por restricciones de Firestore.
-        if (content.length < 1024 * 1024 && processedDocumentsSize < 1024 * 1024) {
+        if (processedDocumentsSize < 1024 * 1024) {
 
           // Se agrega al array la información recién obtenida. encoding siempre será 'base64'.
           processedDocuments.push({ content: content, encoding: 'base64', filename: filename })
