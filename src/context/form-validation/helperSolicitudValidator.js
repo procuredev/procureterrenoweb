@@ -604,6 +604,7 @@ export function solicitudValidator(values, role) {
       'urgency',
       'mcDescription',
       'costCenter',
+      'files',
       // Agrega 'petitioner' a la lista de campos no requeridos si el usuario tiene role === 2
       ...(role === 2 ? ['petitioner'] : []),
       ...(role === 5 ? ['deliverable'] : [])
@@ -621,7 +622,7 @@ export function solicitudValidator(values, role) {
     }
 
     if (
-      !['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'ot', 'mcDescription', 'timestamp'].includes(
+      !['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'ot', 'mcDescription', 'timestamp', 'files'].includes(
         key
       ) &&
       typeof values[key] !== 'string'

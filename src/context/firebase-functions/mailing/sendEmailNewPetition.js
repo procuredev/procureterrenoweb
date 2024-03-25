@@ -79,6 +79,77 @@ const getSupervisorData = async shift => {
   }
 }
 
+// Función para leer el contenido de un archivo como base64
+const readFileAsBase64 = (file) => {
+
+  // Devuelve una promesa que se resolverá cuando se complete la lectura del archivo.
+  return new Promise((resolve, reject) => {
+
+    // Crear un nuevo objeto FileReader.
+    const reader = new FileReader()
+
+    // Callback que se llama cuando la lectura del archivo se completa con éxito.
+    reader.onload = () => {
+      // Extraer el contenido base64 del resultado del FileReader.
+      // El resultado se encuentra en el formato "data:[tipo];base64,[contenido]".
+      // Por lo tanto, dividimos el resultado por la coma y tomamos la segunda parte que contiene el contenido base64.
+      const base64Content = reader.result.split(',')[1]
+      resolve(base64Content)
+    }
+    // Callback que se llama si ocurre un error durante la lectura del archivo.
+    reader.onerror = (error) => {
+      // Rechazamos la promesa con el error.
+      reject(error)
+    }
+    // Iniciar la lectura del archivo como una URL de datos (data URL) base64.
+    reader.readAsDataURL(file)
+
+  })
+
+}
+
+// Función que procesa los archivos adjuntos para poder enviarlos por e-mail.
+const processAttachedDocuments = async (documents) => {
+
+  // Se inicializa un array vacío.
+  // processedDocuments es un array de objetos que tendrá content, encoding y filename.
+  let processedDocuments = []
+  let processedDocumentsSize = 0
+
+  // Nos aseguramos que exista documents.
+  if (documents) {
+    // Ciclo for para recorrer todo el array de archivos adjuntos.
+    for (const doc of documents) {
+
+      try {
+
+        // content será el resultado de la función readFileAsBase64.
+        const content = await readFileAsBase64(doc)
+        // filename será simplemente el nombre(name) del archivo.
+        const filename = doc.name
+
+        // Se actualiza el peso de los documentos adjuntos.
+        processedDocumentsSize = processedDocumentsSize + content.length
+
+        // Solo se adjuntarán al e-mail aquellos archivos que pesen menos de 1MB por restricciones de Firestore.
+        if (content.length < 1024 * 1024 && processedDocumentsSize < 1024 * 1024) {
+
+          // Se agrega al array la información recién obtenida. encoding siempre será 'base64'.
+          processedDocuments.push({ content: content, encoding: 'base64', filename: filename })
+
+        }
+
+      } catch (error) {
+        // Se desplegará el error en caso de existir.
+        console.error('Error al procesar el documento:', error)
+      }
+
+    }
+  }
+
+  return processedDocuments
+
+}
 // Función para enviar emails de forma automática
 // user es el usuario conectado que efectúa el envío de la solicitud
 // values son los valores seleccionados en en formulario de nueva solicitud
@@ -286,6 +357,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const deliverable = values.deliverable && values.deliverable.length !== 0 ? values.deliverable.join(', ') : 'Por definir'
       const receiver = values.receiver.map(receiver => receiver.email).join(', ')
       const description = values.description
+      const attachedDocuments = await processAttachedDocuments(values.files)
 
       // Si la solicitud considera que se le entregue una memoria de cálculo, también se enviará un email notificando a gente de Procure y al Solicitante al respecto
       if (values.deliverable.includes('Memoria de Cálculo')) {
@@ -364,7 +436,8 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         emailType: 'NewRequest',
         message: {
           subject: `Solicitud de levantamiento: ${values.title}`,
-          html: emailHtml
+          html: emailHtml,
+          attachments: attachedDocuments
         }
       })
 

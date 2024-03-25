@@ -686,7 +686,8 @@ const FormLayoutsSolicitud = () => {
               authUser.role === 5 || authUser.role === 7
                 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
                 : null,
-            mcDescription: values.mcDescription ? values.mcDescription : null
+            mcDescription: values.mcDescription ? values.mcDescription : null,
+            files: files
           },
           authUser
         )

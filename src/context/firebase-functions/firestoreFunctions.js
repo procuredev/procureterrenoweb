@@ -75,7 +75,8 @@ const newDoc = async (values, userParam) => {
     end,
     urgency,
     mcDescription,
-    costCenter
+    costCenter,
+    files
   } = values
 
   // Calcula el valor de 'deadline' sumando 21 días a 'start'.
