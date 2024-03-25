@@ -333,15 +333,15 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
 
       const adjustedDate = moment(values.start).subtract(1, 'day')
       const week = moment(adjustedDate.toDate()).isoWeek()
-      const supervisorShift = user.role === (5 || 7) ? (week % 2 === 0 ? 'A' : 'B') : null
-      const supervisorData = supervisorShift ? await getSupervisorData(supervisorShift) : ''
+      const supervisorShift = week % 2 === 0 ? 'A' : 'B'
+      const supervisorData = await getSupervisorData(supervisorShift)
 
       // Se almacenan las constantes a usar en el email
       const requestNumber = reqNumber
       const title = values.title
       const engineering = user.engineering ? 'Si' : 'No'
       const otProcure = values.ot ? values.ot : 'Por definir'
-      const supervisor = user.role == 7 ? user.displayName : supervisorShift ? supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : '' : 'Por definir'
+      const supervisor = supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : 'Por definir'
       const start = values.start ? values.start.toLocaleDateString() : 'Por definir'
       const end = values.end ? values.end.toLocaleDateString() : 'Por definir'
       const plant = values.plant
