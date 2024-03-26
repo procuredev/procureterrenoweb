@@ -572,6 +572,29 @@ const getUsersOnCopyAndMessage = (
   return { sendTo: sendTo, arrayCC: arrayCC, message: message }
 }
 
+// Función para rescatar el nombre del archivo que se encouentra dentro del array de strings que son subidos a Firestore
+// Se entrega como parámetro a attachedArray que es un arreglo de strings
+const restructuredAttached = (attachedArray) => {
+
+  // Inicialización del array de objetos que tendrá el link y el name de cada archivo adjunto.
+  let modifiedAttached = []
+
+  // Iteración para recorrer el arreglo
+  attachedArray.forEach(link => {
+
+    // Se hace una serie de manejos del string usando split, subString y replaceAll.
+    const lastPart = link.split('/')
+    const lastPartString = lastPart[lastPart.length - 1]
+    const lastPartSubString = lastPartString.substring(lastPartString.indexOf("fotos%2F") + 8, lastPartString.lastIndexOf("?"))
+    const name = lastPartSubString.replaceAll("%20", " ")
+    modifiedAttached.push({link: link, name: name})
+
+  })
+
+  return modifiedAttached
+
+}
+
 export const sendEmailWhenReviewDocs = async (user, prevState, newState, requesterId, requirementId) => {
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
@@ -661,12 +684,12 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
       const receiver = requirementData.receiver.map(receiver => receiver.email).join(', ')
       const description = requirementData.description
       const lastMessage = ''
+      const attachedDocuments = requirementData.fotos ? restructuredAttached(requirementData.fotos).map(doc => `<a href="${doc.link}">${doc.name}</a>`).join(', ') : 'Sin documentos adjuntos'
 
       // Llamada al html del email con las constantes previamente indicadads
       const emailHtml = getEmailTemplate(
         userName,
         mainMessage,
-        requestNumber,
         title,
         engineering,
         otProcure,
@@ -686,7 +709,8 @@ export const sendEmailWhenReviewDocs = async (user, prevState, newState, request
         deliverable,
         receiver,
         description,
-        lastMessage
+        lastMessage,
+        attachedDocuments
       )
 
       // Se actualiza el elemento recién creado, cargando la información que debe llevar el email

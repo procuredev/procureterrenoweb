@@ -4,6 +4,7 @@ import 'moment/locale/es'
 import { useRouter } from 'next/router'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { sendEmailNewPetition } from 'src/context/firebase-functions/mailing/sendEmailNewPetition'
 import { useFirebase } from 'src/context/useFirebase'
 
 import {
@@ -655,6 +656,9 @@ const FormLayoutsSolicitud = () => {
 
     console.log(formErrors)
 
+    let requestValues
+    let attachedDocuments
+
     if (
       Object.keys(formErrors).length === 0 &&
       areFieldsValid === true &&
@@ -666,45 +670,65 @@ const FormLayoutsSolicitud = () => {
 
         // Restablecer el estado del formulario a los valores iniciales...
         localStorage.removeItem('formData')
+        requestValues = {
+          ...values,
+          petitioner: values.petitioner.split(' - ')[0],
+          receiver: values.receiver.map(option => {
+            const { disabled, ...rest } = option
 
-        const solicitud = await newDoc(
-          {
-            ...values,
-            petitioner: values.petitioner.split(' - ')[0],
-            receiver: values.receiver.map(option => {
-              const { disabled, ...rest } = option
+            return {
+              id: option.id,
+              name: option.name,
+              email: option.email,
+              phone: option.phone
+            }
+          }),
+          start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
+          end:
+            authUser.role === 5 || authUser.role === 7
+              ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
+              : null,
+          mcDescription: values.mcDescription ? values.mcDescription : null,
+          files: files
+        }
 
-              return {
-                id: option.id,
-                name: option.name,
-                email: option.email,
-                phone: option.phone
-              }
-            }),
-            start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-            end:
-              authUser.role === 5 || authUser.role === 7
-                ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
-                : null,
-            mcDescription: values.mcDescription ? values.mcDescription : null,
-            files: files
-          },
-          authUser
-        )
+        const solicitud = await newDoc(requestValues, authUser)
 
-        await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
-          setIsUploading(false),
-            setButtonDisabled(false),
-            handleRemoveAllFiles(),
-            setAlertMessage('Documento creado exitosamente'),
-            setValues(initialValues),
-            setErrors({})
-        })
+        try {
+
+          attachedDocuments = await uploadFilesToFirebaseStorage(files, solicitud.id)
+
+        } catch (error) {
+          // Manejar cualquier error que pueda surgir durante la carga de archivos
+          console.error('Error al cargar archivos:', error)
+        }
+
+
+        try {
+          requestValues = {
+            ...requestValues,
+            attachedDocuments: attachedDocuments
+          }
+
+
+          await sendEmailNewPetition(authUser, requestValues, solicitud.id)
+
+          setIsUploading(false)
+          setButtonDisabled(false)
+          handleRemoveAllFiles()
+          setAlertMessage('Documento creado exitosamente')
+          setValues(initialValues)
+          setErrors({})
+        } catch (error) {
+          console.log(error)
+        }
+
       } catch (error) {
         setAlertMessage(error.message)
         setIsUploading(false) // Se cierra el spinner en caso de error
         setButtonDisabled(false)
       }
+
     } else {
       if (
         Object.keys(formErrors).length === 0 &&

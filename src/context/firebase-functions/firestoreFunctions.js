@@ -21,7 +21,6 @@ import { db } from 'src/configs/firebase'
 import { addDays, getUnixTime } from 'date-fns'
 import { useEffect } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
-import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 
 import { useState } from 'react'
@@ -88,7 +87,7 @@ const newDoc = async (values, userParam) => {
   try {
     // console.log('userParam: ', userParam)
     solicitudValidator(values, userParam.role)
-    const requestNumber = await requestCounter()
+    //const requestNumber = await requestCounter()
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
       title,
@@ -113,7 +112,6 @@ const newDoc = async (values, userParam) => {
       daysToDeadline,
       costCenter,
       date: Timestamp.fromDate(new Date()),
-      n_request: requestNumber,
       engineering,
       ...(urgency && { urgency }),
       ...(ot && { ot }),
@@ -138,7 +136,7 @@ const newDoc = async (values, userParam) => {
     })
 
     // Se envía email a quienes corresponda
-    await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
+    // await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
 
     console.log('Nueva solicitud creada con éxito.')
 
