@@ -151,11 +151,34 @@ const processAttachedDocuments = async (documents) => {
 
 }
 
+// Función para rescatar el nombre del archivo que se encouentra dentro del array de strings que son subidos a Firestore
+// Se entrega como parámetro a attachedArray que es un arreglo de strings
+const restructuredAttached = (attachedArray) => {
+
+  // Inicialización del array de objetos que tendrá el link y el name de cada archivo adjunto.
+  let modifiedAttached = []
+
+  // Iteración para recorrer el arreglo
+  attachedArray.forEach(link => {
+
+    // Se hace una serie de manejos del string usando split, subString y replaceAll.
+    const lastPart = link.split('/')
+    const lastPartString = lastPart[lastPart.length - 1]
+    const lastPartSubString = lastPartString.substring(lastPartString.indexOf("fotos%2F") + 8, lastPartString.lastIndexOf("?"))
+    const name = lastPartSubString.replaceAll("%20", " ")
+    modifiedAttached.push({link: link, name: name})
+
+  })
+
+  return modifiedAttached
+
+}
+
 // Función para enviar emails de forma automática
 // user es el usuario conectado que efectúa el envío de la solicitud
 // values son los valores seleccionados en en formulario de nueva solicitud
-// reqId es el número de solicitud (Contador)
-export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
+// reqId es el id de la solicitud
+export const sendEmailNewPetition = async (user, values, reqId) => {
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
   if (user !== null) {
@@ -371,7 +394,6 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const supervisorData = await getSupervisorData(supervisorShift)
 
       // Se almacenan las constantes a usar en el email
-      const requestNumber = reqNumber
       const title = values.title
       const engineering = user.engineering ? 'Si' : 'No'
       const otProcure = values.ot ? values.ot : 'Por definir'
@@ -391,7 +413,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const deliverable = values.deliverable && values.deliverable.length !== 0 ? values.deliverable.join(', ') : 'Por definir'
       const receiver = values.receiver.map(receiver => receiver.email).join(', ')
       const description = values.description
-      const attachedDocuments = await processAttachedDocuments(values.files)
+      const attachedDocuments = values.attachedDocuments ? restructuredAttached(values.attachedDocuments).map(doc => `<a href="${doc.link}">${doc.name}</a>`).join(', ') : 'Sin documentos adjuntos'
 
       // Si la solicitud considera que se le entregue una memoria de cálculo, también se enviará un email notificando a gente de Procure y al Solicitante al respecto
       if (values.deliverable.includes('Memoria de Cálculo')) {
@@ -410,7 +432,6 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         emailHtml = getEmailTemplate(
           userName,
           mainMessage,
-          requestNumber,
           title,
           engineering,
           otProcure,
@@ -430,14 +451,14 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
           deliverable,
           receiver,
           description,
-          lastMessage
+          lastMessage,
+          attachedDocuments
         )
       } else {
         // Llamada al html del email con las constantes previamente indicadads
         emailHtml = getEmailTemplate(
           userName,
           mainMessage,
-          requestNumber,
           title,
           engineering,
           otProcure,
@@ -457,7 +478,8 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
           deliverable,
           receiver,
           description,
-          lastMessage
+          lastMessage,
+          attachedDocuments
         )
       }
 
@@ -470,8 +492,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         emailType: 'NewRequest',
         message: {
           subject: `Solicitud de levantamiento: ${values.title}`,
-          html: emailHtml,
-          attachments: attachedDocuments
+          html: emailHtml
         }
       })
 

@@ -4,6 +4,7 @@ import 'moment/locale/es'
 import { useRouter } from 'next/router'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { sendEmailNewPetition } from 'src/context/firebase-functions/mailing/sendEmailNewPetition'
 import { useFirebase } from 'src/context/useFirebase'
 
 import {
@@ -632,93 +633,131 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  // Función que se ejecutará al hacer click en "ENVIAR SOLICITUD".
+  // Usa como parámetro a "event" que es el objeto del evento Submit.
   const onSubmit = async event => {
-    event.preventDefault()
-    setButtonDisabled(true)
-    const formErrors = validateForm(values)
-    setErrors(formErrors)
-    if (Object.keys(formErrors).length > 0) {
-      focusFirstError(formErrors) // Pasa formErrors como argumento
-    }
-    const requiredKeys = ['title']
-    const areFieldsValid = requiredKeys.every(key => !formErrors[key])
 
-    const isUrgent =
-      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
-    const invalidFiles = validateFiles(files).filter(file => !file.isValid)
-    let isBlocked = await consultBlockDayInDB(values.start.toDate())
+    // Bloque try-catch para ejecutar las funciones de submit y obtener los errores si los hay.
+    try {
 
-    // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
-    if (!values.deliverable.includes('Memoria de Cálculo')) {
-      delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado
-    }
+      // Se ejecuta el método event.preventDefault() para evitar que se recargue la página al enviar la solicitud.
+      event.preventDefault()
 
-    console.log(formErrors)
+      // Se bloquea el botón de "ENVIAR SOLICITUD" para evitar los multiclicks.
+      setButtonDisabled(true)
 
-    if (
-      Object.keys(formErrors).length === 0 &&
-      areFieldsValid === true &&
-      invalidFiles.length === 0 &&
-      ((isBlocked && isBlocked.blocked === false) || isUrgent)
-    ) {
-      try {
-        setIsUploading(true) // Se activa el Spinner
+      // Se ejecuta y define formErrors que definirá cuáles son los errores o campos vacíos del formulario
+      const formErrors = validateForm(values)
+      setErrors(formErrors)
 
-        // Restablecer el estado del formulario a los valores iniciales...
-        localStorage.removeItem('formData')
+      // Si existen errores, se ejecutará focus() que hará que la vista se dirija hacia el campo del primer error encontrado.
+      if (Object.keys(formErrors).length > 0) {
 
-        const solicitud = await newDoc(
-          {
+        focusFirstError(formErrors)
+
+        return
+
+      }
+
+      // Se define la variable booleana isUrgent la cual servirá para definir el mensaje "El día que está seleccionado se encuentra bloqueado".
+      const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+
+      // Se define el array de booleanos invalidFiles que definirá si los documentos adjuntos son válidos o no.
+      const invalidFiles = validateFiles(files).filter(file => !file.isValid)
+
+      // Se define la variable booleana isBlocked que define si el día 'start' seleccionado está bloqueado o no.
+      const isBlocked = await consultBlockDayInDB(values.start.toDate())
+
+      // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado.
+      if (!values.deliverable.includes('Memoria de Cálculo')) {
+        delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado.
+      }
+
+      // Se imprimen en consola los errores en el formulario.
+      console.log(formErrors)
+
+      // Si no existen errores en el formulario se procederá.
+      if (Object.keys(formErrors).length === 0 && invalidFiles.length === 0) {
+
+        if ((isBlocked && isBlocked.blocked === false) || isUrgent) {
+
+          // Se activa el Spinner
+          setIsUploading(true)
+
+          // Se crea el objeto processedValues, que son los values del formulario modificados para poder almacenarlos correctamente en Firestore
+          const processedValues = {
             ...values,
             petitioner: values.petitioner.split(' - ')[0],
-            receiver: values.receiver.map(option => {
-              const { disabled, ...rest } = option
-
-              return {
-                id: option.id,
-                name: option.name,
-                email: option.email,
-                phone: option.phone
-              }
-            }),
+            receiver: values.receiver.map(option => ({
+              id: option.id,
+              name: option.name,
+              email: option.email,
+              phone: option.phone
+            })),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-            end:
-              authUser.role === 5 || authUser.role === 7
-                ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
-                : null,
-            mcDescription: values.mcDescription ? values.mcDescription : null,
-            files: files
-          },
-          authUser
-        )
+            end:(authUser.role === 5 || authUser.role === 7) && moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate(),
+            mcDescription: values.mcDescription || null
+          }
 
-        await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
-          setIsUploading(false),
-            setButtonDisabled(false),
-            handleRemoveAllFiles(),
-            setAlertMessage('Documento creado exitosamente'),
-            setValues(initialValues),
-            setErrors({})
-        })
-      } catch (error) {
-        setAlertMessage(error.message)
-        setIsUploading(false) // Se cierra el spinner en caso de error
-        setButtonDisabled(false)
+          // Se crea en Firestore el nuevo documento de la solicitud.
+          const request = await newDoc(processedValues, authUser)
+
+          // Se almacenan en Firestore los archivos adjuntos y se registra en Firestore el link de ellos.
+          const attachedDocuments = await uploadFilesToFirebaseStorage(files, request.id)
+
+          // Se modifica processedValues para que también consideren los links de los elementos adjuntos.
+          const updatedValues = {...processedValues, attachedDocuments}
+
+          // Se envia el e-mail con toda la información de la Solicitud.
+          await sendEmailNewPetition(authUser, updatedValues, request.id)
+
+          // Se quita de localStorage los datos del formulario que están almacenados temporalmente.
+          localStorage.removeItem('formData')
+
+          // Se detiene el Spinner.
+          setIsUploading(false)
+
+          // Se quitan los archivos adjuntos del formulario.
+          handleRemoveAllFiles()
+
+          // Se entrega el mensaje de éxito en Dialog.
+          setAlertMessage('Documento creado exitosamente')
+
+          // Se setean los valores del formulario a su condición de inicialización.
+          setValues(initialValues)
+
+          // Se setean los valores de los errores encontrados vacíoos nuevamente.
+          setErrors({})
+
+        } else {
+
+          setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
+
+        }
+
       }
-    } else {
-      if (
-        Object.keys(formErrors).length === 0 &&
-        areFieldsValid === true &&
-        invalidFiles.length === 0 &&
-        isBlocked.blocked &&
-        !isUrgent
-      ) {
-        setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
-      }
+
+      // Al terminar de ejecutarse esta función, se desbloquea el botón "ENVIAR SOLICITUD".
       setButtonDisabled(false)
+
+      // Al terminar de ejecutarse esta función, se desactiva el spinner.
       setIsUploading(false)
-      setErrors(formErrors)
+
+    } catch (error) {
+
+      console.error(error)
+
+      // Se agrega en el estado alertMessage el error que se esté recibiendo.
+      setAlertMessage(error.message)
+
+      // Se desactiva el spinner.
+      setIsUploading(false)
+
+      // Se desbloquea el botón "ENVIAR SOLICITUD".
+      setButtonDisabled(false)
+
     }
+
   }
 
   // Función asíncrona para buscar la información de los Contract Operator y Solicitantes de la Planta indicada
