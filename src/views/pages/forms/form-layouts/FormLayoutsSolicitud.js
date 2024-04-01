@@ -652,8 +652,11 @@ const FormLayoutsSolicitud = () => {
 
       // Si existen errores, se ejecutará focus() que hará que la vista se dirija hacia el campo del primer error encontrado.
       if (Object.keys(formErrors).length > 0) {
+
         focusFirstError(formErrors)
+
         return
+
       }
 
       // Se define la variable booleana isUrgent la cual servirá para definir el mensaje "El día que está seleccionado se encuentra bloqueado".
