@@ -212,6 +212,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const dateLocalWidth = Number(localStorage.getItem('dateSolicitudesWidthColumn'))
   const startLocalWidth = Number(localStorage.getItem('startSolicitudesWidthColumn'))
   const endLocalWidth = Number(localStorage.getItem('endSolicitudesWidthColumn'))
+  const deadlineLocalWidth = Number(localStorage.getItem('deadlineSolicitudesWidthColumn'))
+  const daysToDeadlineLocalWidth = Number(localStorage.getItem('daysToDeadlineSolicitudesWidthColumn'))
   const shiftLocalWidth = Number(localStorage.getItem('shiftSolicitudesWidthColumn'))
   const otLocalWidth = Number(localStorage.getItem('otSolicitudesWidthColumn'))
   const userLocalWidth = Number(localStorage.getItem('userSolicitudesWidthColumn'))
@@ -302,10 +304,10 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'start',
-      headerName: 'Inicio',
-      width: startLocalWidth ? startLocalWidth : 110,
+      headerName: 'Inicio de Levantamiento',
+      width: startLocalWidth ? startLocalWidth : 170,
       minWidth: 90,
-      maxWidth: 120,
+      maxWidth: 200,
       valueGetter: params => unixToDate(params.row.start.seconds)[0],
       renderCell: params => {
         const { row } = params
@@ -316,16 +318,44 @@ const TableBasic = ({ rows, role, roleData }) => {
     },
     {
       field: 'end',
-      headerName: 'Término',
-      width: endLocalWidth ? endLocalWidth : 110,
+      headerName: 'Término de Levantamiento',
+      width: endLocalWidth ? endLocalWidth : 180,
       minWidth: 90,
-      maxWidth: 120,
+      maxWidth: 220,
       valueGetter: params => unixToDate(params.row.end?.seconds)[0],
       renderCell: params => {
         const { row } = params
         localStorage.setItem('endSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{(row.end && unixToDate(row.end.seconds)[0]) || 'Pendiente'}</div>
+      }
+    },
+    {
+      field: 'deadline',
+      headerName: 'Fecha Límite',
+      width: deadlineLocalWidth ? deadlineLocalWidth : 120,
+      minWidth: 90,
+      maxWidth: 180,
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('deadlineSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{(row.deadline && unixToDate(row.deadline.seconds)[0]) || 'Pendiente'}</div>
+      }
+    },
+    {
+      field: 'daysToDeadline',
+      headerName: 'Días por Vencer',
+      width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
+      minWidth: 90,
+      maxWidth: 180,
+      valueGetter: params => params.row.daysToDeadline,
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.daysToDeadline || 'Pendiente'}</div>
       }
     },
     {
