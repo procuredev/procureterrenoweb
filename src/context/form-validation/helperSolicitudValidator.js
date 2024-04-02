@@ -481,10 +481,10 @@ export function solicitudValidator(values, role) {
       validate: value => valCostCenter.test(value),
       message: 'El Centro de Costos solo recibe campos numéricos y debe tener de 0 a 25 caracteres.'
     },
-    ot: {
-      validate: value => (values.role === 5 || values.role === 7 ? /^\d+$/.test(value) : true),
-      message: 'El número de OT solo debe contener dígitos numéricos.'
-    },
+    //* ot: {
+    //*   validate: value => (values.role === 5 || values.role === 7 ? /^\d+$/.test(value) : true),
+    //*   message: 'El número de OT solo debe contener dígitos numéricos.'
+    //* },
     sap: {
       validate: value => valSap.test(value),
       message: 'El SAP solo recibe campos numéricos y debe tener de 8 a 10 caracteres.'
@@ -622,9 +622,18 @@ export function solicitudValidator(values, role) {
     }
 
     if (
-      !['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'ot', 'mcDescription', 'timestamp', 'files'].includes(
-        key
-      ) &&
+      ![
+        'receiver',
+        'deliverable',
+        'start',
+        'sap',
+        'fnlocation',
+        'end',
+        'ot',
+        'mcDescription',
+        'timestamp',
+        'files'
+      ].includes(key) &&
       typeof values[key] !== 'string'
     ) {
       console.log(`El campo ${key} debe ser en formato texto.`)

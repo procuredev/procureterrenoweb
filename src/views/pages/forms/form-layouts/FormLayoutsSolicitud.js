@@ -42,7 +42,7 @@ import {
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
-    ot: '',
+    //* ot: '',
     urgency: '',
     title: '',
     description: '',
@@ -114,7 +114,7 @@ const FormLayoutsSolicitud = () => {
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
-  const otRef = useRef(null)
+  //* const otRef = useRef(null)
   const titleRef = useRef(null)
   const urgencyRef = useRef(null)
   const descriptionRef = useRef(null)
@@ -157,7 +157,7 @@ const FormLayoutsSolicitud = () => {
       'fnlocation',
       'tag',
       'urlVideo',
-      'ot',
+      //* 'ot',
       'mcDescription',
       'costCenter'
     ]
@@ -170,9 +170,9 @@ const FormLayoutsSolicitud = () => {
 
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
 
-        if (prop === 'ot') {
-          newValue = Number(newValue)
-        }
+        //* if (prop === 'ot') {
+        //*   newValue = Number(newValue)
+        //* }
 
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
@@ -294,7 +294,8 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const handleBlurOt = async e => {
+  //* Se comenta esta función debido a que la OT dejará de agregarse manualmente, ahora se generará a de forma automática.
+  /* const handleBlurOt = async e => {
     const otValue = e.target.value.trim() // .trim() devuelve el valor sin espacios extra
 
     // Verifica si el campo OT tiene algún valor antes de hacer la consulta
@@ -327,14 +328,14 @@ const FormLayoutsSolicitud = () => {
       }))
       setAlertMessage('El campo OT no puede estar vacío.')
     }
-  }
+  } */
 
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^\s0-9]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Za-z0-9@\/.-]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    ot: /[^\s0-9]/, // /[^0-9]/g
+    //* ot: /[^\s0-9]/, // /[^0-9]/g
     tag: /[^A-Za-z0-9@\/.-]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     costCenter: /[^\s0-9]/ // /[^0-9]/g
   }
@@ -343,11 +344,12 @@ const FormLayoutsSolicitud = () => {
     const trimmedValues = {}
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter', 'mcDescription']
-    const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
+    //* const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
+    const shouldValidateEND = authUser.role === 5 || authUser.role === 7 // validar 'end' si el usuario tiene el rol 5 o 7.
 
     // Objeto para traducir lo que se rederiza al usuario
     const fieldLabels = {
-      ot: 'OT',
+      //* ot: 'OT',
       urgency: 'Urgencia',
       title: 'Título',
       description: 'Descripción',
@@ -409,13 +411,13 @@ const FormLayoutsSolicitud = () => {
         }
       }
 
-      if (key === 'end' && shouldValidateOT) {
+      if (key === 'end' && shouldValidateEND /* && shouldValidateOT */) {
         if (!values[key]) {
           newErrors[key] = 'El campo Fecha de Término no puede estar vacío.'
         }
       }
-
-      if (key === 'ot' && shouldValidateOT) {
+      //* Se comenta esta función debido a que la OT dejará de agregarse manualmente, ahora se generará a de forma automática.
+      /* if (key === 'ot' && shouldValidateOT) {
         if (!values[key]) {
           newErrors[key] = 'El campo OT no puede estar vacío.'
         } else if (values[key] === 0) {
@@ -434,7 +436,7 @@ const FormLayoutsSolicitud = () => {
         if (validationRegex[key] && !validationRegex[key].test(trimmedValues[key])) {
           newErrors[key] = `Por favor, introduce una opción válida`
         }
-      }
+      } */
     }
 
     return newErrors
@@ -582,7 +584,7 @@ const FormLayoutsSolicitud = () => {
 
   // Objeto para mantener las referencias
   const refs = {
-    ot: otRef,
+    //* ot: otRef,
     urgency: urgencyRef,
     title: titleRef,
     description: descriptionRef,
@@ -603,7 +605,7 @@ const FormLayoutsSolicitud = () => {
     const errorKeys = Object.keys(formErrors)
 
     const orderedErrorKeys = [
-      'ot',
+      //* 'ot',
       'urgency',
       'title',
       'description',
@@ -636,10 +638,8 @@ const FormLayoutsSolicitud = () => {
   // Función que se ejecutará al hacer click en "ENVIAR SOLICITUD".
   // Usa como parámetro a "event" que es el objeto del evento Submit.
   const onSubmit = async event => {
-
     // Bloque try-catch para ejecutar las funciones de submit y obtener los errores si los hay.
     try {
-
       // Se ejecuta el método event.preventDefault() para evitar que se recargue la página al enviar la solicitud.
       event.preventDefault()
 
@@ -652,15 +652,15 @@ const FormLayoutsSolicitud = () => {
 
       // Si existen errores, se ejecutará focus() que hará que la vista se dirija hacia el campo del primer error encontrado.
       if (Object.keys(formErrors).length > 0) {
-
         focusFirstError(formErrors)
 
         return
-
       }
 
       // Se define la variable booleana isUrgent la cual servirá para definir el mensaje "El día que está seleccionado se encuentra bloqueado".
-      const isUrgent = ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+      const isUrgent =
+        ['Outage', 'Shutdown'].includes(values.type) ||
+        ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
 
       // Se define el array de booleanos invalidFiles que definirá si los documentos adjuntos son válidos o no.
       const invalidFiles = validateFiles(files).filter(file => !file.isValid)
@@ -678,9 +678,7 @@ const FormLayoutsSolicitud = () => {
 
       // Si no existen errores en el formulario se procederá.
       if (Object.keys(formErrors).length === 0 && invalidFiles.length === 0) {
-
         if ((isBlocked && isBlocked.blocked === false) || isUrgent) {
-
           // Se activa el Spinner
           setIsUploading(true)
 
@@ -695,7 +693,9 @@ const FormLayoutsSolicitud = () => {
               phone: option.phone
             })),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
-            end:(authUser.role === 5 || authUser.role === 7) && moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate(),
+            end:
+              (authUser.role === 5 || authUser.role === 7) &&
+              moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate(),
             mcDescription: values.mcDescription || null
           }
 
@@ -706,7 +706,7 @@ const FormLayoutsSolicitud = () => {
           const attachedDocuments = await uploadFilesToFirebaseStorage(files, request.id)
 
           // Se modifica processedValues para que también consideren los links de los elementos adjuntos.
-          const updatedValues = {...processedValues, attachedDocuments}
+          const updatedValues = { ...processedValues, attachedDocuments }
 
           // Se envia el e-mail con toda la información de la Solicitud.
           await sendEmailNewPetition(authUser, updatedValues, request.id)
@@ -728,13 +728,9 @@ const FormLayoutsSolicitud = () => {
 
           // Se setean los valores de los errores encontrados vacíoos nuevamente.
           setErrors({})
-
         } else {
-
           setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
-
         }
-
       }
 
       // Al terminar de ejecutarse esta función, se desbloquea el botón "ENVIAR SOLICITUD".
@@ -742,9 +738,7 @@ const FormLayoutsSolicitud = () => {
 
       // Al terminar de ejecutarse esta función, se desactiva el spinner.
       setIsUploading(false)
-
     } catch (error) {
-
       console.error(error)
 
       // Se agrega en el estado alertMessage el error que se esté recibiendo.
@@ -755,9 +749,7 @@ const FormLayoutsSolicitud = () => {
 
       // Se desbloquea el botón "ENVIAR SOLICITUD".
       setButtonDisabled(false)
-
     }
-
   }
 
   // Función asíncrona para buscar la información de los Contract Operator y Solicitantes de la Planta indicada
@@ -958,7 +950,7 @@ const FormLayoutsSolicitud = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             {/* Número de OT Procure*/}
-            {(authUser.role === 5 || authUser.role === 7) && (
+            {/* (authUser.role === 5 || authUser.role === 7) && (
               <>
                 <CustomTextField
                   inputRef={otRef}
@@ -977,7 +969,7 @@ const FormLayoutsSolicitud = () => {
                   onBlur={handleBlurOt}
                 />
               </>
-            )}
+            ) */}
 
             {/* Tipo de Urgencia */}
             {authUser.role === 7 && (

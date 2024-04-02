@@ -45,7 +45,7 @@ import {
 
 import { ChevronLeft, ChevronRight, Close, Download, Edit } from '@mui/icons-material'
 import { useDropzone } from 'react-dropzone'
-import DialogErrorOt from 'src/@core/components/dialog-error-ot'
+//* import DialogErrorOt from 'src/@core/components/dialog-error-ot'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import Icon from 'src/@core/components/icon'
@@ -402,8 +402,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
   const [areasArray, setAreasArray] = useState([])
-  const [errorOT, setErrorOT] = useState(false)
-  const [errorOtMesage, setErrorOtMesage] = useState(false)
+  //* const [errorOT, setErrorOT] = useState(false)
+  //* const [errorOtMesage, setErrorOtMesage] = useState(false)
   const [alertMessage, setAlertMessage] = useState('')
 
   // Estado para manejar el botón para desplegar el acordeón para desplegar información adicional
@@ -415,7 +415,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     area: false,
     start: false,
     end: false,
-    ot: false,
+    //* ot: false,
     supervisorShift: false,
     description: false,
     fotos: false,
@@ -439,7 +439,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     addComment,
     getDomainData,
     domainDictionary,
-    consultOT,
+    //* consultOT,
     consultBlockDayInDB
   } = useFirebase()
   const small = useMediaQuery(theme.breakpoints.down('sm'))
@@ -477,10 +477,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     </>
   )
 
-  const handleCloseErrorOt = () => {
-    setErrorOT(false)
-    setErrorOtMesage('')
-  }
+  //* const handleCloseErrorOt = () => {
+  //*   setErrorOT(false)
+  //*   setErrorOtMesage('')
+  //* }
 
   const DeliverableComponent = () => (
     <>
@@ -508,7 +508,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         detention: doc.detention,
         deliverable: doc.deliverable,
         objective: doc.objective,
-        ...(doc.ot && { ot: doc.ot }),
+        //* ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
         ...(doc.fotos && { fotos: doc.fotos }),
@@ -604,8 +604,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const handleOpenAlert = async () => {
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
 
-    // Primero, verifica si OT ha cambiado
-    if (hasChanges.ot && values.ot !== null && values.ot !== undefined) {
+    //* Primero, verifica si OT ha cambiado
+    /* if (hasChanges.ot && values.ot !== null && values.ot !== undefined) {
       setLoading(true) // Muestra un indicador de carga, si es aplicable
       const resultOt = await consultOT(values.ot)
       // console.log('resultOt', resultOt)
@@ -618,15 +618,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
         return // Detiene la ejecución para evitar abrir el diálogo de alerta
       }
-    }
+    } */
 
     if (roleData.id === '5') {
       // Agrega end y ot
-      if (!end && hasChanges.end && !ot && hasChanges.ot) {
+      if (!end && hasChanges.end /* && !ot && hasChanges.ot */) {
         setOpenAlert(true)
 
         // Ya viene con end u ot
-      } else if (end && ot && state === 4) {
+      } else if (end /* && ot */ && state === 4) {
         setLoading(true)
         await updateDocs(id, true, authUser)
           .then(() => {
@@ -639,8 +639,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           })
 
         //No trae ni agrega end/ot
-      } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
-        setMessage('Debes ingresar el Número de OT y la Fecha de Término')
+      } else if (!end && !hasChanges.end /* || (!ot && !hasChanges.ot) */) {
+        //* setMessage('Debes ingresar el Número de OT y la Fecha de Término')
+        setMessage('Debes ingresar la Fecha de Término')
       } else if ((!values.costCenter && hasChanges.costCenter) || !values.costCenter) {
         setMessage('Debes ingresar el Centro de Costo')
       } else if (
@@ -669,7 +670,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    //* ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     costCenter: /[^A-Z\s0-9- -.\"]/ // /[^0-9]/g
   }
@@ -739,15 +740,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
     fieldValue = validationRegex[field] ? fieldValue.replace(validationRegex[field], '') : fieldValue
 
-    // Si el campo es 'ot', convierte el valor a un número
-    if (field === 'ot') {
+    //* Si el campo es 'ot', convierte el valor a un número
+    /*  if (field === 'ot') {
       // Verifica si fieldValue solo contiene dígitos
       if (/^\d+$/.test(fieldValue)) {
         fieldValue = Number(fieldValue)
       } else {
         fieldValue = 0 // O cualquier valor por defecto que quieras usar cuando fieldValue no sea un número
       }
-    }
+    } */
 
     setValues({ ...values, [field]: fieldValue })
     setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] })
@@ -1139,17 +1140,20 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   initialValue={end}
                   customMinDate={values.start}
                 />
-                <CustomListItem
-                  editable={editable && roleData && roleData.canEditValues}
-                  label='OT'
-                  id='ot'
-                  initialValue={ot}
-                  value={values.ot}
-                  onChange={handleInputChange('ot')}
-                  disabled={!isPlanner}
-                  required={isPlanner}
-                  inputProps={{ maxLength: 5 }}
-                />
+
+                {
+                  <CustomListItem
+                    //* editable={editable && roleData && roleData.canEditValues}
+                    label='OT'
+                    id='ot'
+                    initialValue={ot}
+                    value={values.ot}
+                    onChange={handleInputChange('ot')}
+                    disabled={!isPlanner}
+                    required={isPlanner}
+                    inputProps={{ maxLength: 5 }}
+                  />
+                }
                 <CustomListItem editable={false} label='Turno' id='shift' initialValue={supervisorShift} />
 
                 {/* Información Adicional */}
@@ -1343,7 +1347,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const isHoursEstablished = element.prevDoc && element.prevDoc.hours
                       const hasPreviousDoc = element.prevDoc
 
-                      const OTEndAdded =
+                      //* Se reemplaza OTEndAdded por EndAdded
+                      // const OTEndAdded = element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
+                      const EndAdded =
                         element.prevDoc && element.prevDoc.end === 'none' && element.prevDoc.ot === 'none'
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
 
@@ -1356,7 +1362,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           element.prevDoc.objective)
                       const isStateDecreased = element.newState < element.prevState
 
-                      if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
+                      //* Se reemplaza OTEndAdded por EndAdded
+                      // if (OTEndAdded) return 'Aprobado con OT y fecha de término asignados'
+                      if (EndAdded) return 'Aprobado fecha de término asignada'
                       if (isModifiedStart || isStateDecreased || isInputsModified) return 'Modificado'
                       if (isDraftmenAssigned) return `Proyectistas asignados`
                       if (isHoursEstablished) return 'En confección de entregables'
@@ -1416,7 +1424,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         )}
       </Paper>
       {errorDialog && <DialogErrorFile open={errorDialog} handleClose={handleCloseErrorDialog} msj={errorFileMsj} />}
-      {errorOT && <DialogErrorOt open={errorOT} handleClose={handleCloseErrorOt} errorOtMesage={errorOtMesage} />}
+      {/* errorOT && <DialogErrorOt open={errorOT} handleClose={handleCloseErrorOt} errorOtMesage={errorOtMesage} /> */}
       <Dialog open={commentDialog} sx={{ '& .MuiPaper-root': { maxWidth: '700px', width: '100%', height: 'auto' } }}>
         <DialogTitle id='message-dialog-title'>Agregar comentario</DialogTitle>
         <DialogContent>

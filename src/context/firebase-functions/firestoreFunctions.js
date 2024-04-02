@@ -70,7 +70,7 @@ const newDoc = async (values, userParam) => {
     deliverable,
     receiver,
     description,
-    ot,
+    //* ot,
     end,
     urgency,
     mcDescription,
@@ -88,6 +88,10 @@ const newDoc = async (values, userParam) => {
     // console.log('userParam: ', userParam)
     solicitudValidator(values, userParam.role)
     //const requestNumber = await requestCounter()
+
+    const ot = await increaseAndGetNewOTValue()
+
+    console.log({ ot })
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
       title,
@@ -473,6 +477,11 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && approves.hasOwnProperty('uprisingInvestedHours'),
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
+        },
+        {
+          condition: approves && approves.hasOwnProperty('start'),
+          newState: state.contAdmin,
+          log: 'fecha modificada por Supervisor'
         },
         {
           condition: approves && approves.hasOwnProperty('designerReview'),
