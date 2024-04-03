@@ -91,8 +91,6 @@ const newDoc = async (values, userParam) => {
 
     const ot = await increaseAndGetNewOTValue()
 
-    console.log({ ot })
-
     const docRef = await addDoc(collection(db, 'solicitudes'), {
       title,
       start,
@@ -234,7 +232,6 @@ const processFieldChanges = (incomingFields, currentDoc) => {
         if (key === 'start') {
           const newDeadline = new Date(addDays(value.toDate(), 21))
 
-          console.log('newDeadline: ', newDeadline)
           changedFields.deadline = newDeadline
 
           const today = new Date()

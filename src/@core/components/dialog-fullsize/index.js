@@ -786,12 +786,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       const week = moment(adjustedDate.toDate()).isoWeek()
       const newSupervisorShift = week % 2 === 0 ? 'A' : 'B'
 
-      setValues({ ...values, start: newStart, end: newEnd, supervisorShift: newSupervisorShift })
+      setValues({
+        ...values,
+        start: newStart,
+        supervisorShift: newSupervisorShift,
+        ...((isPlanner || isSupervisor) && { end: newEnd })
+      })
       setHasChanges({
         ...hasChanges,
         start: !newStart.isSame(initialValues.start),
-        end: !newEnd.isSame(initialValues.end),
-        supervisorShift: newSupervisorShift !== initialValues.supervisorShift
+        supervisorShift: newSupervisorShift !== initialValues.supervisorShift,
+        ...((isPlanner || isSupervisor) && { end: !newEnd.isSame(initialValues.end) })
       })
     }
   }
