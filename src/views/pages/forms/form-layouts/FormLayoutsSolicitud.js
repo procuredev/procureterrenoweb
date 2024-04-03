@@ -363,7 +363,8 @@ const FormLayoutsSolicitud = () => {
       objective: 'Tipo de Levantamiento',
       deliverable: 'Entregables del Levantamiento',
       receiver: 'Destinatarios',
-      mcDescription: 'Memoria de Cálculo'
+      mcDescription: 'Memoria de Cálculo',
+      costCenter: 'Centro de Costos'
     }
 
     for (const key in values) {
@@ -441,6 +442,13 @@ const FormLayoutsSolicitud = () => {
 
     return newErrors
   }
+
+  // useEffect para habilitar el boton de envío cuando no exista errores en el formulario
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      setButtonDisabled(false)
+    }
+  }, [errors])
 
   // useEffect para buscar toda la información de la colección domain en la base de datos
   useEffect(() => {
