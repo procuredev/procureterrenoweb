@@ -130,7 +130,7 @@ const newDoc = async (values, userParam) => {
     await updateDoc(docRef, {
       ...newDoc,
       // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
-      state: userParam.role === 7 ? 6 : userParam.role === 5 ? 2 : userParam.role,
+      state: userParam.role === 7 || userParam.role === 5 ? 6 : userParam.role,
       supervisorShift:
         userParam.role === 2 || userParam.role === 3 || userParam.role === 5 || userParam.role === 7
           ? week % 2 === 0
@@ -352,6 +352,12 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         //
         {
+          condition: approves && requestMadeByPlanner,
+          newState: state.draftsman,
+          plannerPetitionApprovedByContop: true,
+          log: 'Emergencia aprobada por Contract Operator'
+        },
+        {
           condition: approves && emergencyBySupervisor,
           newState: state.draftsman,
           emergencyApprovedByContop: true,
@@ -547,6 +553,10 @@ const updateDocs = async (id, approves, userParam) => {
       ...(addShift && supervisorShift ? { supervisorShift } : {}),
       ...changedFields
     }
+  }
+
+  if (userRole === 5 && newState === 8) {
+    changedFields.plannerPetitionApprovedByContop = prevState === 8 ? true : false
   }
 
   if (userRole === 7 && newState === 8) {

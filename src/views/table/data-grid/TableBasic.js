@@ -41,6 +41,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     // ... otros estados de visibilidad de columnas ...
     end: [1, 5, 6, 7, 8, 9, 10].includes(role),
     supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    deadline: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    daysToDeadline: [1, 5, 6, 7, 8, 9, 10].includes(role),
     actions: roleData.canApprove,
     plant: false,
     area: false
@@ -112,10 +114,21 @@ const TableBasic = ({ rows, role, roleData }) => {
   const permissions = (row, role) => {
     if (!row) return
 
+    const isMyRequest = authUser.uid === row.uid
+    const isOwnReturned = isMyRequest && row.state === 1
     const hasPrevState = row.state === role - 1
-    const createdBySupervisor = row.userRole === 7
     const createdByPetitioner = row.userRole === 2
     const createdByContOp = row.userRole === 3
+    const createdByPlanner = row.userRole === 5
+    const createdBySupervisor = row.userRole === 7
+    const hasOTEnd = row.ot && row.end
+
+    const isPetitionMakeByPlaner =
+      role === 3 &&
+      row.contop === authUser.displayName &&
+      row.state === 8 &&
+      createdByPlanner &&
+      row.plannerPetitionApprovedByContop === false
 
     const isContopEmergency =
       role === 3 &&
@@ -123,10 +136,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       row.state === 8 &&
       row.emergencyApprovedByContop === false &&
       createdBySupervisor
-    const isMyRequest = authUser.uid === row.uid
-    const createdByPlanner = row.userRole === 5
-    const isOwnReturned = isMyRequest && row.state === 1
-    const hasOTEnd = row.ot && row.end
 
     const dictionary = {
       1: {
@@ -140,11 +149,12 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: isMyRequest && row.state <= 6
       },
       3: {
-        approve: hasPrevState || isOwnReturned || isContopEmergency,
+        approve: hasPrevState || isOwnReturned || isContopEmergency || isPetitionMakeByPlaner,
         edit:
           (isOwnReturned || hasPrevState || row.state === 6 || (isMyRequest && row.state === 3)) &&
-          !createdBySupervisor,
-        reject: row.state <= 6 && !createdBySupervisor
+          !createdBySupervisor &&
+          !createdByPlanner,
+        reject: row.state <= 6 && !createdBySupervisor && !createdByPlanner
       },
       4: {
         approve: hasPrevState,
