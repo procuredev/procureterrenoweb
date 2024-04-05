@@ -376,7 +376,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const { row } = params
         localStorage.setItem('shiftSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.supervisorShift ? row.supervisorShift : 'Por confirmar'}</div>
+        return <div>{row.supervisorShift || 'Por definir'}</div>
       }
     },
     {
@@ -389,7 +389,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const { row } = params
         localStorage.setItem('otSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.ot || 'N/A'}</div>
+        return <div>{row.ot || 'Por definir'}</div>
       }
     },
     {
