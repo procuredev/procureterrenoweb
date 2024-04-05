@@ -15,6 +15,13 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, esES } from '@mui/x-data-grid'
+import {
+  DataGridPremium,
+  GridToolbarContainer,
+  GridToolbarExport,
+  GridColDef,
+  GridRowsProp
+} from '@mui/x-data-grid-premium'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -219,7 +226,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     },
     {
       field: 'start',
-      headerName: 'Inicio',
+      headerName: 'Inicio de Levantamiento',
       flex: 0.1,
       minWidth: 90,
       renderCell: params => {
@@ -230,13 +237,41 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     },
     {
       field: 'end',
-      headerName: 'Fin',
+      headerName: 'Fin de Levantamiento',
       flex: 0.1,
       minWidth: 90,
       renderCell: params => {
         const { row } = params
 
         return <div>{(row.end && unixToDate(row.end.seconds)[0]) || 'Pendiente'}</div>
+      }
+    },
+    {
+      field: 'deadline',
+      headerName: 'Fecha Límite',
+      width: 120,
+      minWidth: 90,
+      maxWidth: 180,
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('deadlineSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{(row.deadline && unixToDate(row.deadline.seconds)[0]) || 'Pendiente'}</div>
+      }
+    },
+    {
+      field: 'daysToDeadline',
+      headerName: 'Días por Vencer',
+      width: 120,
+      minWidth: 90,
+      maxWidth: 180,
+      valueGetter: params => params.row.daysToDeadline,
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.daysToDeadline || 'Pendiente'}</div>
       }
     },
     {
@@ -381,7 +416,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGrid
+        <DataGridPremium
           hideFooterSelectedRowCount
           rows={rows}
           columns={columns}

@@ -443,7 +443,7 @@ export function solicitudValidator(values, role) {
     'Análisis fotogramétrico',
     'Análisis GPR',
     'Inspección Dron',
-    'Levantamiento 3D',
+    'Escaner Laser',
     'Levantamiento 3D GPS',
     'Topografía'
   ]

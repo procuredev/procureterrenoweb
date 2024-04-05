@@ -20,6 +20,13 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
     result = 'rechazar'
   }
 
+  function capitalize(text) {
+    const firstLetter = text.charAt(0)
+    const rest = text.slice(1)
+
+    return firstLetter.toUpperCase() + rest
+  }
+
   return (
     <Dialog
       open={open}
@@ -27,7 +34,7 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>Modificar estado de la solicitud</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>{capitalize(result)} estado de la solicitud</DialogTitle>
       <DialogContent>
         {loading ? (
           <CircularProgress />

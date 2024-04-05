@@ -688,7 +688,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       }
     }
 
-    if (Object.keys(newData).length > 0) {
+    if (Object.keys(newData).length > 0 || (Object.keys(newData).length === 0 && values.end)) {
+      // se agrega el segundo condicional para que planificador pueda aprobar una modificación de fecha hecha por el solicitante al recibir una devolución
+
       // Verificar si la nueva fecha de inicio está bloqueada
       if (newData.start) {
         const resultDate = await consultBlockDayInDB(newData.start.toDate())
@@ -764,6 +766,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     const isPetitioner = userRole === 2
     const isContop = userRole === 3
     const isPlanner = userRole === 5
+    const isContAdmin = authUser.role === 6
     const isSupervisor = userRole === 7
 
     // Variable diferencia original entre start y end
@@ -790,13 +793,17 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...values,
         start: newStart,
         supervisorShift: newSupervisorShift,
-        ...((isPlanner || isSupervisor) && { end: newEnd })
+        ...((isPlanner || isSupervisor || isContAdmin || (initialValues.end && (isPetitioner || isContop))) && {
+          end: newEnd
+        })
       })
       setHasChanges({
         ...hasChanges,
         start: !newStart.isSame(initialValues.start),
         supervisorShift: newSupervisorShift !== initialValues.supervisorShift,
-        ...((isPlanner || isSupervisor) && { end: !newEnd.isSame(initialValues.end) })
+        ...((isPlanner || isSupervisor || isContAdmin || (initialValues.end && (isPetitioner || isContop))) && {
+          end: !newEnd.isSame(initialValues.end)
+        })
       })
     }
   }
@@ -1273,7 +1280,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               {editable ? (
                 <Button
                   sx={{ mt: 3, mb: 5 }}
-                  disabled={!Object.values(hasChanges).some(hasChange => hasChange)}
+                  disabled={!Object.values(hasChanges).some(hasChange => hasChange) && !doc.end}
                   onClick={() => handleOpenAlert()}
                   variant='contained'
                 >
