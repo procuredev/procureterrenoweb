@@ -396,6 +396,18 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       5,
       [
+        // Si el planificador modifica la fecha (6 --> 6)
+        {
+          condition: approves && dateHasChanged && requestMadeByPlanner,
+          newState: state.contAdmin,
+          log: 'Fecha modificada por planificador'
+        },
+        // Si el planificador modifica cualquier campo exepto la fecha (6 --> 6)
+        {
+          condition: approves && approveWithChanges && requestMadeByPlanner,
+          newState: state.contAdmin,
+          log: 'Modificado por planificador sin cambio de fecha'
+        },
         // Si es devuelta al Contract Operator por el solicitante(planificador) (1 --> 2)
         {
           condition: approves && dateHasChanged && returned && approveWithChanges && requestMadeByPlanner,
