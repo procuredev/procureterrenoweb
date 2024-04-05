@@ -1,32 +1,27 @@
-import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 // import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
-import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { DataGridPro, esES } from '@mui/x-data-grid-pro'
-import { DataGrid } from '@mui/x-data-grid'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import {
   DataGridPremium,
-  GridToolbarContainer,
-  GridToolbarExport,
-  GridColDef,
-  GridRowsProp
+  GridToolbarContainer
 } from '@mui/x-data-grid-premium'
+import { esES } from '@mui/x-data-grid-pro'
+import { addDays, differenceInDays, format, getWeek } from 'date-fns'
 import * as ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
-import { getWeek, addDays, format, differenceInDays } from 'date-fns'
 
-import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
-import { GridSortMenuItem, GridColumnMenuPinningItem, GridColumnMenu } from '@mui/x-data-grid-pro'
+import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
+import { GridColumnMenu, GridColumnMenuPinningItem, GridSortMenuItem } from '@mui/x-data-grid-pro'
 
-import CustomChip from 'src/@core/components/mui/chip'
-import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
+import AlertDialog from 'src/@core/components/dialog-warning'
+import CustomChip from 'src/@core/components/mui/chip'
 
 const TableBasic = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
@@ -157,9 +152,9 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: row.state <= 6 && !createdBySupervisor && !createdByPlanner
       },
       4: {
-        approve: hasPrevState,
-        edit: [3, 6].includes(row.state) && !createdByPlanner,
-        reject: row.state <= 6 && !createdByPlanner
+        approve: hasPrevState || !createdBySupervisor,
+        edit: [3, 6].includes(row.state) && !createdBySupervisor,
+        reject: row.state <= 6 && !createdBySupervisor
       },
       5: {
         approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor,
