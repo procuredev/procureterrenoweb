@@ -389,7 +389,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 // La explicación del schedule es la siguiente: Minuto -  Hora - Día del Mes - Mes del Año - Día de la Semana. Para entender mejor esto ir a: https://crontab.guru/
 // En este caso la función se ejecutará con Minuto = 0, Hora = 8, Día del Mes = *, Mes del Año = *, Día de la Semana = 2
 exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
-  .schedule('53 09 * * 2')
+  .schedule('55 14 * * 2')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
@@ -491,33 +491,68 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
           8: 'Levantamiento finalizado'
         }
 
-        console.log(supervisorWork.tasks[0].start)
-        console.log("Tipo de task.start:", typeof supervisorWork.tasks[0].start)
-        console.log(supervisorWork.tasks[0].start.toDate())
-        console.log(supervisorWork.tasks[0].start.toDate().toLocaleDateString('es-CL'))
-
         // Se define el mensaje html que contendrá, el cual será una lista con todas los levantamientos que tiene que hacer el actual Supervisor durante hoy
-        const tasksHtml =
-          '<ul>' +
-          supervisorWork.tasks
-            .map(
-              (task, index) => `
-        <li>
-          Levantamiento ${index + 1}:
-          <ul>
-            <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
-            <li>Título: ${task.title}</li>
-            <li>Planta: ${task.plant}</li>
-            <li>Solicitante: ${task.petitioner}</li>
-            <li>Fecha de inicio del Levantamiento: ${typeof task.start}</li>
-            <li>Fecha de Término del Levantamiento: ${typeof task.end}</li>
-            <li>Estado: ${statesDefinition[task.state]}</li>
-          </ul>
-        </li>
-      `
-            )
-            .join('') +
-          '</ul>'
+        //   const tasksHtml =
+        //     '<ul>' +
+        //     supervisorWork.tasks
+        //       .map(
+        //         (task, index) => `
+        //   <li>
+        //     Levantamiento ${index + 1}:
+        //     <ul>
+        //       <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
+        //       <li>Título: ${task.title}</li>
+        //       <li>Planta: ${task.plant}</li>
+        //       <li>Solicitante: ${task.petitioner}</li>
+        //       <li>Fecha de inicio del Levantamiento: ${task.start ? task.start.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
+        //       <li>Fecha de Término del Levantamiento: ${task.end ? task.end.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
+        //       <li>Estado: ${statesDefinition[task.state]}</li>
+        //     </ul>
+        //   </li>
+        // `
+        //       )
+        //       .join('') +
+        //     '</ul>'
+        // Obtener una lista única de plantas
+
+        const uniquePlants = [...new Set(supervisorWork.tasks.map(task => task.plant))];
+
+        // Crear una estructura de datos para almacenar las tareas agrupadas por planta
+        const tasksByPlant = {};
+
+        // Agrupar las tareas por planta
+        uniquePlants.forEach(plant => {
+          tasksByPlant[plant] = supervisorWork.tasks.filter(task => task.plant === plant);
+        });
+
+        // Ordenar las plantas alfabéticamente
+        uniquePlants.sort();
+
+        // Construir el HTML ordenado por planta
+        let tasksHtml = '<ul>';
+
+        uniquePlants.forEach(plant => {
+          tasksHtml += `<li>Plant: ${plant}:`;
+          tasksHtml += '<ul>';
+
+          tasksByPlant[plant].forEach((task, index) => {
+            tasksHtml += `
+              <li>Tarea ${index + 1}:
+                <ul>
+                  <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
+                  <li>Título: ${task.title}</li>
+                  <li>Solicitante: ${task.petitioner}</li>
+                  <li>Fecha de inicio del Levantamiento: ${task.start ? task.start.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
+                  <li>Fecha de Término del Levantamiento: ${task.end ? task.end.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
+                  <li>Estado: ${statesDefinition[task.state]}</li>
+                </ul>
+              </li>`;
+          });
+
+          tasksHtml += '</ul></li>';
+        });
+
+        tasksHtml += '</ul>';
 
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
         await emailsRef.doc(mailId).update({
