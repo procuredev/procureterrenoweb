@@ -389,7 +389,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 // La explicación del schedule es la siguiente: Minuto -  Hora - Día del Mes - Mes del Año - Día de la Semana. Para entender mejor esto ir a: https://crontab.guru/
 // En este caso la función se ejecutará con Minuto = 0, Hora = 8, Día del Mes = *, Mes del Año = *, Día de la Semana = 2
 exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
-  .schedule('55 14 * * 2')
+  .schedule('35 15 * * 2')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
@@ -515,25 +515,25 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
         //     '</ul>'
         // Obtener una lista única de plantas
 
-        const uniquePlants = [...new Set(supervisorWork.tasks.map(task => task.plant))];
+        const uniquePlants = [...new Set(supervisorWork.tasks.map(task => task.plant))]
 
         // Crear una estructura de datos para almacenar las tareas agrupadas por planta
-        const tasksByPlant = {};
+        const tasksByPlant = {}
 
         // Agrupar las tareas por planta
         uniquePlants.forEach(plant => {
           tasksByPlant[plant] = supervisorWork.tasks.filter(task => task.plant === plant);
-        });
+        })
 
         // Ordenar las plantas alfabéticamente
-        uniquePlants.sort();
+        uniquePlants.sort()
 
         // Construir el HTML ordenado por planta
-        let tasksHtml = '<ul>';
+        let tasksHtml = '<ul>'
 
         uniquePlants.forEach(plant => {
-          tasksHtml += `<li>Plant: ${plant}:`;
-          tasksHtml += '<ul>';
+          tasksHtml += `<li>${plant}:`
+          tasksHtml += '<ul>'
 
           tasksByPlant[plant].forEach((task, index) => {
             tasksHtml += `
@@ -541,18 +541,21 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
                 <ul>
                   <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
                   <li>Título: ${task.title}</li>
+                  <li>Área: ${task.area}</li>
+                  <li>Contract Owner: ${'Pamela Carrizo'}</li>
+                  <li>Contract Operator: ${task.contop}</li>
                   <li>Solicitante: ${task.petitioner}</li>
                   <li>Fecha de inicio del Levantamiento: ${task.start ? task.start.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
                   <li>Fecha de Término del Levantamiento: ${task.end ? task.end.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
                   <li>Estado: ${statesDefinition[task.state]}</li>
                 </ul>
-              </li>`;
-          });
+              </li>`
+          })
 
-          tasksHtml += '</ul></li>';
-        });
+          tasksHtml += '</ul></li>'
+        })
 
-        tasksHtml += '</ul>';
+        tasksHtml += '</ul>'
 
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
         await emailsRef.doc(mailId).update({
@@ -561,10 +564,10 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
           date: now,
           emailType: 'supervisorWeeklyTasks',
           message: {
-            subject: `Resumen de la semana ${getDateWeek(now)} - ${supervisorName}`,
+            subject: `Resumen de la semana ${getDateWeek(now)} - Turno ${supervisorWork.supervisorShift} - ${supervisorName}`,
             html: `
-              <h2>Estimad@ ${supervisorName}:</h2>
-              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para trabajar esta semana. A continuación se presenta el detalle de cada una de ellos:</p>
+              <p>Estimados:</p>
+              <p>Se tienen ${supervisorTasks.length} ${youHaveTasks} para trabajar esta semana. A continuación se presenta el detalle de cada una de ellos:</p>
                 ${tasksHtml}
               <p>Para mayor información revise la solicitud en nuestra página web</p>
               <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
