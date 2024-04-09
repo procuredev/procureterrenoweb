@@ -691,8 +691,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     if (Object.keys(newData).length > 0 || (Object.keys(newData).length === 0 && values.end)) {
       // se agrega el segundo condicional para que planificador pueda aprobar una modificación de fecha hecha por el solicitante al recibir una devolución
 
-      // Verificar si la nueva fecha de inicio está bloqueada
-      if (newData.start) {
+      // Verificar si la nueva fecha de inicio está bloqueada para los casos en que la solicitud tiene estado operacional de planta con valor 'Normal'
+      if (newData.start && values.type !== 'Outage' && newData.start && values.type !== 'Shutdown') {
         const resultDate = await consultBlockDayInDB(newData.start.toDate())
         if (resultDate.blocked) {
           // Mostrar el mensaje de bloqueo y no actualizar la solicitud
@@ -1426,7 +1426,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     <Typography variant='body2'> En espera de revisión de Contract Operator </Typography>
                   ) : userRole == 3 ? (
                     <Typography variant='body2'> En espera de revisión de Planificador</Typography>
-                  ) : (userRole == 5 || userRole == 7) ? (
+                  ) : userRole == 5 || userRole == 7 ? (
                     <Typography variant='body2'> En espera de asignación de Proyectistas</Typography>
                   ) : (
                     <Typography variant='body2'> En espera de revisión</Typography>
