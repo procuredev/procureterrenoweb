@@ -6,7 +6,6 @@ const moment = require('moment')
 // The filter config is an object with the following structure:
 
 const generateFilterConfig = authUser => {
-
   // This function returns true if the week of the date is even
   const otherWeek = date => {
     let dateFormatted = new Date(date * 1000)
@@ -40,7 +39,7 @@ const generateFilterConfig = authUser => {
       label: 'Rechazadas',
       canSee: [3, 4, 5], // Ejemplo de números permitidos para ver este filtro
       type: 'Estado',
-      filterFunction: doc => doc.state === 10
+      filterFunction: doc => doc.state === 0
     },
     inReviewByMEL: {
       label: 'En revisión por MEL',
