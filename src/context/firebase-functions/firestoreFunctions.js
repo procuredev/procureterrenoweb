@@ -19,40 +19,11 @@ import { db } from 'src/configs/firebase'
 
 // ** Imports Propios
 import { addDays, getUnixTime } from 'date-fns'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 
-import { useState } from 'react'
-
 const moment = require('moment')
-
-const requestCounter = async () => {
-  const counterRef = doc(db, 'counters', 'requestCounter')
-
-  try {
-    const requestNumber = await runTransaction(db, async transaction => {
-      const counterSnapshot = await transaction.get(counterRef)
-
-      let newCounter
-
-      if (!counterSnapshot.exists) {
-        newCounter = 1
-      } else {
-        newCounter = counterSnapshot.data().counter + 1
-      }
-
-      transaction.set(counterRef, { counter: newCounter })
-
-      return newCounter
-    })
-
-    return requestNumber
-  } catch (error) {
-    console.error('Error al obtener el número de solicitud:', error)
-    throw new Error('Error al obtener el número de solicitud')
-  }
-}
 
 const newDoc = async (values, userParam) => {
   const {
@@ -78,18 +49,17 @@ const newDoc = async (values, userParam) => {
     files
   } = values
 
-  // Calcula el valor de 'deadline' sumando 21 días a 'start'.
-  const deadline = addDays(new Date(start), 21)
-  const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
-
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
-    // console.log('userParam: ', userParam)
+    // 'SolicitudValidator' valida que los datos vienen en "values" cumplan con los campos requeridos.
     solicitudValidator(values, userParam.role)
-    //const requestNumber = await requestCounter()
-
+    // Incrementamos el valor del contador 'otCounter' en la base de datos Firestore y devuelve el nuevo valor.
     const ot = await increaseAndGetNewOTValue()
+    // Calculamos el valor de 'deadline' sumando 21 días a 'start'.
+    const deadline = addDays(new Date(start), 21)
+    // Teniendo como referencia la fecha 'deadline' calculamos el valor de cuantos días faltan (ó han pasado).
+    const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
       title,
@@ -121,20 +91,18 @@ const newDoc = async (values, userParam) => {
       ...(mcDescription && { mcDescription })
     })
 
+    // Modificamos el inicio de semana a partir del dia martes y finaliza los días lunes.
     const adjustedDate = moment(values.start).subtract(1, 'day')
+    // Utilizamos la función isoWeek() para obtener el número de la semana, puede variar de 1 a 53 en un año determinado.
     const week = moment(adjustedDate.toDate()).isoWeek()
 
-    // Establecemos los campos adicionales de la solicitud
+    // Establecemos los campos adicionales de la solicitud.
     await updateDoc(docRef, {
       ...newDoc,
-      // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
+      // Si el usuario que hace la solicitud es Supervisor ó Planificador se genera con estado inicial 6, en caso contrario state se crea con el valor del role del usuario.
       state: userParam.role === 7 || userParam.role === 5 ? 6 : userParam.role,
-      supervisorShift:
-        userParam.role === 2 || userParam.role === 3 || userParam.role === 5 || userParam.role === 7
-          ? week % 2 === 0
-            ? 'A'
-            : 'B'
-          : null
+      // Establecemos el turno del supervisor de acuerdo a la fecha de inicio y se intercalan entre semana considerando que el valor de 'week' sea un valor par o impar.
+      supervisorShift: week % 2 === 0 ? 'A' : 'B'
     })
 
     // Se envía email a quienes corresponda
@@ -149,6 +117,7 @@ const newDoc = async (values, userParam) => {
   }
 }
 
+// Obtenemos un documento de la colección 'solicitudes' y el usuario asociado, con el rol previo del usuario decrementado en 1.
 const getDocumentAndUser = async id => {
   const ref = doc(db, 'solicitudes', id)
   const querySnapshot = await getDoc(ref)
@@ -160,6 +129,7 @@ const getDocumentAndUser = async id => {
   return { ref, docSnapshot, previousRole }
 }
 
+// Obtienemos el evento más reciente asociado a una solicitud específica.
 const getLatestEvent = async id => {
   const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
   const eventQuerySnapshot = await getDocs(eventQuery)
@@ -168,18 +138,21 @@ const getLatestEvent = async id => {
   return latestEvent
 }
 
+// Establecemos el turno del supervisor para una fecha dada, comenzando la semana en martes.
 const setSupervisorShift = async date => {
-  const adjustedDate = moment(date.toDate()).subtract(1, 'day') // Restar un día para iniciar la semana en martes
+  const adjustedDate = moment(date.toDate()).subtract(1, 'day') // Restar un día para iniciar la semana en martes.
   const week = moment(adjustedDate.toDate()).isoWeek()
   const supervisorShift = week % 2 === 0 ? 'A' : 'B'
 
   return supervisorShift
 }
 
+//  Incrementamos el valor del contador 'otCounter' en la base de datos Firestore y devuelve el nuevo valor.
 async function increaseAndGetNewOTValue() {
   const counterRef = doc(db, 'counters', 'otCounter')
 
   try {
+    // Utilizamos una transacción para garantizar la consistencia de los datos.
     const newOTValue = await runTransaction(db, async transaction => {
       const counterSnapshot = await transaction.get(counterRef)
 
@@ -197,6 +170,10 @@ async function increaseAndGetNewOTValue() {
   }
 }
 
+/**
+ * Procesa los cambios en los campos de un documento comparándolos con los campos actuales.
+ * Si un campo ha cambiado o es nuevo, lo guarda y realiza ajustes adicionales si es necesario.
+ */
 const processFieldChanges = (incomingFields, currentDoc) => {
   const changedFields = {}
 
@@ -213,9 +190,6 @@ const processFieldChanges = (incomingFields, currentDoc) => {
   for (const key in incomingFields) {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
-
-    //console.log('value: ', value)
-    //console.log('currentFieldValue: ', currentFieldValue)
 
     if (key === 'start' || key === 'end') {
       value = moment(value.toDate()).toDate().getTime()
