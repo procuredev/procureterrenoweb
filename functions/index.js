@@ -34,6 +34,17 @@ const getEmailTemplate = require('./emailTemplate').getEmailTemplate
 // Se inicializa el SDK admin de Firebase
 admin.initializeApp()
 
+
+// Función para calcular el número de la semana de la fecha indicada
+function getDateWeek(date) {
+  const currentDate = (typeof date === 'object') ? date : new Date()
+  const januaryFirst = new Date(currentDate.getFullYear(), 0, 1)
+  const daysToNextMonday = (januaryFirst.getDay() === 1) ? 0 : (7 - januaryFirst.getDay()) % 7
+  const nextMonday = new Date(currentDate.getFullYear(), 0, januaryFirst.getDate() + daysToNextMonday)
+
+  return (currentDate < nextMonday) ? 52 : (currentDate > nextMonday ? Math.ceil((currentDate - nextMonday) / (24 * 3600 * 1000) / 7) : 1)
+}
+
 const getSupervisorData = async shift => {
   // Se llama a la referencia de la colección 'users'
   const usersRef = admin.firestore().collection('users')
@@ -374,6 +385,169 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
     return null
   })
 
+// * Función que envia Resumen a los Supervisores todos los Martes a las 8 AM
+// La explicación del schedule es la siguiente: Minuto -  Hora - Día del Mes - Mes del Año - Día de la Semana. Para entender mejor esto ir a: https://crontab.guru/
+// En este caso la función se ejecutará con Minuto = 0, Hora = 8, Día del Mes = *, Mes del Año = *, Día de la Semana = 2
+exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
+  .schedule('53 09 * * 2')
+  .timeZone('Chile/Continental')
+  .onRun(async context => {
+    const now = new Date() // Se almacena la fecha instantánea
+    now.toLocaleString('es-CL', { timeZone: 'Chile/Continental' })
+    const today = new Date(now) // Se almacena la fecha de hoy, ajustando la hora a medianoche
+    today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000) // Se almacena la fecha de mañana, ajustando la fecha al día siguiente
+    const lastDayOfThisWeek = new Date(tomorrow.getTime() + 7 * 24 * 60 * 60 * 1000) // Se almacena la fecha del último día de esta semana (semana de martes a lunes)
+
+    const requestsRef = admin.firestore().collection('solicitudes') // Se llama a la referencia de Solicitudes
+
+    const requestsSnapshot = await requestsRef.where('start', '>=', tomorrow).where('start', '<', lastDayOfThisWeek).get() // Busca documentos cuya fecha de inicio sea hoy
+
+    const requestsDocs = requestsSnapshot.docs.filter(doc => 'supervisorShift' in doc.data()).filter(doc => doc.data().state >= 1 && doc.data().state <= 7) // Se filtra requestDocs para llamar a aquellos documentos que tienen un campo 'supervisorShift' y que su estado sea 6 o 7 (aprobado por Procure, pero sin terminar)
+
+    let supervisorArray = [] // Crea un array vacío para almacenar los supervisores
+
+    // Itera sobre cada documento para encontrar los turnos de los Supervisores que tienen trabajos para hoy
+    requestsDocs.forEach(doc => {
+      const supervisor = doc.data().supervisorShift // Se almacena el nombre del Supervisor
+
+      // Verifica si el supervisor ya existe en el array. Si no existe, lo añade.
+      if (!supervisorArray.includes(supervisor)) {
+        supervisorArray.push(supervisor)
+      }
+    })
+
+    let todayWorks = [] // Array vacío que contendrá todos los trabajos de hoy
+
+    // Se revisa para cada uno de los supervisores que tienen trabajos hoy (teóricamente solo debería haber 1 supervisor)
+    for (let i = 0; i < supervisorArray.length; i++) {
+
+      let supervisorTasks = [] // Array vacío que contendrá objetos, donde cada objeto contendrá el nombre del supervisor y las tareas que tiene para hoy
+
+      // Se revisa cada uno de los documentos existentes en 'solicitudes'
+      for (let j = 0; j < requestsDocs.length; j++) {
+        const requestDoc = requestsDocs[j] // Se almacena el requerimiento j
+        const requestDocData = requestDoc.data() // Se obtienen los datos del requerimiento j
+        const requestSupervisor = requestDocData.supervisorShift // Se almacena el nombre del supervisor del levantamiento j
+
+        // Si el nombre del supervisor del levantamiento j es igual al del array supervisorArray[i] se añadirá esta tarea al array
+        if (supervisorArray[i] == requestSupervisor) {
+          supervisorTasks.push(requestDocData)
+        }
+      }
+
+      // Se define el objeto a almacenar, el cual contendrá el nombre del supervisor y las tareas que tiene este supervisor
+      let supervisorWork = {
+        supervisorShift: supervisorArray[i],
+        tasks: supervisorTasks
+      }
+
+      // Añade el objeto al array todayWorks
+      todayWorks.push(supervisorWork)
+
+      // ** Empezamos a definir el e-mail
+
+      // Se envía el email a cada uno de los supervisores que tienen levantamientos hoy, con una lista de los levantamientos respectictivos
+      try {
+        const newDoc = {} // Se genera un elemento vacío
+        const emailsRef = admin.firestore().collection('mail') // Se llama a la colección de datos 'mail' en Firestore
+        const newEmailRef = await emailsRef.add(newDoc) // Se agrega este elemento vacío a la colección mail
+        const mailId = newEmailRef.id // Se obtiene el id del elemento recién agregado
+
+        const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
+
+        const supervisorSnapshot = await usersRef.where('shift', 'array-contains', supervisorWork.supervisorShift).where('role', '==', 7).get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
+        const supervisorData = supervisorSnapshot.docs // Se almacena en una constante los datos del Supervisor
+        const supervisorEmail = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Supervisor
+        const supervisorName = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().name).join(', ') // Se almacena el e-mail del Supervisor
+
+        const drawmansSnapshot = await usersRef.where('shift', 'array-contains', supervisorWork.supervisorShift).where('role', '==', 8).get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
+        const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
+        const drawmansEmail = drawmansData.filter(doc => doc.data().enabled !== false).map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
+
+        const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
+        const plannerData = plannerSnapshot.docs // Se almacena en una constante los datos del Planificador
+        const plannerEmail = plannerData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Planificador
+
+        const admContratoSnapshot = await usersRef.where('role', '==', 6).get() // Se llama sólo al que cumple con la condición de que su rol es 6 (Administrador de Contrato)
+        const admContratoData = admContratoSnapshot.docs // Se almacena en una constante los datos del Administrador de Contrato
+        const admContratoEmail = admContratoData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Administrador de Contrato
+
+        // Si hay mas de 1 levantamiento se escribirá 'levantamientos agendados'
+        let youHaveTasks = 'Levantamiento agendado'
+        if (supervisorTasks.length > 1) {
+          youHaveTasks = 'Levantamientos agendados'
+        }
+
+        const statesDefinition = {
+          0: 'Cancelada',
+          1: 'Reprogramado, en revisión de Autor',
+          2: 'En revisión de Contract Operator',
+          3: 'En revisión de Planificador',
+          4: 'En revisión de Planificador',
+          5: 'En revisión de Administrador de Contrato',
+          6: 'Aprobada para inicio de Levantamiento',
+          7: 'Levantamiento iniciado',
+          8: 'Levantamiento finalizado'
+        }
+
+        console.log(supervisorWork.tasks[0].start)
+        console.log("Tipo de task.start:", typeof supervisorWork.tasks[0].start)
+        console.log(supervisorWork.tasks[0].start.toDate())
+        console.log(supervisorWork.tasks[0].start.toDate().toLocaleDateString('es-CL'))
+
+        // Se define el mensaje html que contendrá, el cual será una lista con todas los levantamientos que tiene que hacer el actual Supervisor durante hoy
+        const tasksHtml =
+          '<ul>' +
+          supervisorWork.tasks
+            .map(
+              (task, index) => `
+        <li>
+          Levantamiento ${index + 1}:
+          <ul>
+            <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
+            <li>Título: ${task.title}</li>
+            <li>Planta: ${task.plant}</li>
+            <li>Solicitante: ${task.petitioner}</li>
+            <li>Fecha de inicio del Levantamiento: ${typeof task.start}</li>
+            <li>Fecha de Término del Levantamiento: ${typeof task.end}</li>
+            <li>Estado: ${statesDefinition[task.state]}</li>
+          </ul>
+        </li>
+      `
+            )
+            .join('') +
+          '</ul>'
+
+        // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
+        await emailsRef.doc(mailId).update({
+          to: [...supervisorEmail],
+          cc: [...plannerEmail, ...admContratoEmail].concat(drawmansEmail),
+          date: now,
+          emailType: 'supervisorWeeklyTasks',
+          message: {
+            subject: `Resumen de la semana ${getDateWeek(now)} - ${supervisorName}`,
+            html: `
+              <h2>Estimad@ ${supervisorName}:</h2>
+              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para trabajar esta semana. A continuación se presenta el detalle de cada una de ellos:</p>
+                ${tasksHtml}
+              <p>Para mayor información revise la solicitud en nuestra página web</p>
+              <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
+              `
+          }
+        })
+        console.log(`E-mail ${mailId} de tareas semanales al Supervisor enviado con éxito.`)
+      } catch (error) {
+        console.error('Error al enviar email:', error)
+        throw error
+      }
+    }
+
+    return null
+  }
+)
+
+
 // * Función que revisa la base de datos todos los días a las 8AM y le avisa al Solicitante que debe limpiar el área donde se ejecutará el levantamiento
 exports.cleanAreaWarning = functions.pubsub
   .schedule('every day 08:00')
@@ -426,19 +600,13 @@ exports.cleanAreaWarning = functions.pubsub
         const admContratoData = admContratoSnapshot.docs[0].data() // Se almacena en una constante los datos del Administrador de Contrato
         const admContratoEmail = admContratoData.email // Se almacena el e-mail del Administrador de Contrato
 
-        const supervisorData = requirementData.supervisorShift
-          ? await getSupervisorData(requirementData.supervisorShift)
-          : ''
+        const supervisorData = requirementData.supervisorShift ? await getSupervisorData(requirementData.supervisorShift) : ''
         const supervisorEmail = supervisorData ? supervisorData.email : ''
 
         // Se almacenan las constantes a usar en el email
         const userName = requirementData.user
 
-        const mainMessage = `Usted tiene un levantamiento agendado para el día de mañana ${requirementData.start
-          .toDate()
-          .toLocaleDateString(
-            'es-CL'
-          )}. <b>Se requiere que usted gestione la limpieza del lugar para que nuestro equipo ejecute su labor lo más rápido posible</b>`
+        const mainMessage = `Usted tiene un levantamiento agendado para el día de mañana ${requirementData.start.toDate().toLocaleDateString('es-CL')}. <b>Se requiere que usted gestione la limpieza del lugar para que nuestro equipo ejecute su labor lo más rápido posible</b>`
         const requestNumber = requirementData.n_request
         const title = requirementData.title
         const engineering = requirementData.engineering ? 'Si' : 'No'
@@ -449,8 +617,7 @@ exports.cleanAreaWarning = functions.pubsub
         const plant = requirementData.plant
         const area = requirementData.area ? requirementData.area : 'No indicado'
 
-        const functionalLocation =
-          requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
+        const functionalLocation = requirementData.fnlocation && requirementData.fnlocation !== '' ? requirementData.fnlocation : 'No indicado'
         const contractOperator = requirementData.contop
         const petitioner = requirementData.petitioner ? requirementData.petitioner : 'No indicado'
         const sapNumber = requirementData.sap && requirementData.sap !== '' ? requirementData.sap : 'No indicado'
@@ -502,9 +669,7 @@ exports.cleanAreaWarning = functions.pubsub
           date: now,
           emailType: 'clanAreaWarning',
           message: {
-            subject: `Limpieza de Área para mañana ${tomorrow.toLocaleDateString(
-              'es-CL'
-            )} - Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
+            subject: `Limpieza de Área para mañana ${tomorrow.toLocaleDateString('es-CL')} - Solicitud de levantamiento: N°${requirementData.n_request} - ${requirementData.title}`,
             html: emailHtml
           }
         })
