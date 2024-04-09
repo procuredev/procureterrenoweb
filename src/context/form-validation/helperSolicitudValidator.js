@@ -331,15 +331,35 @@ export function solicitudValidator(values, role) {
   ]
 
   const valInstalacionesConcentraducto = [
+    '0000 - Generales',
     '0400 - Pipeline de concentrado y bombeo',
-    '0420 - Líneas de pulpa- mineroducto- estación de válvulas',
-    '0430 - Mineroducto Fase IV a Fase 3,5',
-    '0440 - Estación de Bombeo- Almacenamiento Concentraducto',
+    '0420 - Líneas de pulpa - Mineroducto - Estación de válvulas',
+    '0425 - Valves station VS3.5 6\'/7\' DIAM',
+    '0430 - Mineroducto Fase IV a Fase 3',
+    '0435 - Valves station vs3.5 9\' DIAM',
+    '0440 - Estación de Bombeo - Almacenamiento Concentraducto',
+    '0450 - Tunnel Coloso',
     '0661 - Mineloop',
-    '1400 - Bombas y Transporte de Concentrado',
+    '1400 - Bombeo y Transporte de Concentrado OGP1',
     '1410 - Estanques de Almacenamiento de Concentrado',
     '1420 - Estación de Bombas de Concentrado',
-    '1430 - Concentraducto'
+    '1430 - Concentraducto',
+    '2500 - General Proyecto ECT',
+    '2520 - Estación Lanzador de PIG PS1',
+    '2530 - Estación de Válvulas',
+    '2531 - Estación de Válvulas VS1C',
+    '2532 - Estación de Válvulas VS2C',
+    '2533 - Estación de Válvulas VS3C',
+    '2534 - Estación Receptor PIG VS3.5',
+    '2540 - Estación de Monitoreo',
+    '2541 - Estación de Monitoreo SFM1C',
+    '2542 - Estación de Monitoreo SFM2C',
+    '2543 - Estación de Monitoreo SFM3C',
+    '2560 - Pipeline 9" ECT',
+    '2561 - Pipeline 9" 0-15 KM',
+    '2562 - Pipeline 9" 15-165 KM',
+    '2590 - Los Colorados',
+    '2591 - Coloso'
   ]
 
   const valInstalacionesMonturaqui = ['0720 - Suministro de Agua Fresca']
