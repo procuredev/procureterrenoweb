@@ -405,11 +405,11 @@ function getNextState(role, approves, latestEvent, userRole) {
           newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador1'
         },
-        // Planificador modifica sin cambios de fecha (2 --> 2)
+        // Planificador acepta cambios de fecha hecho por contract owner (6 --> 6)
         {
           condition: approves && !emergencyBySupervisor && requestMadeByPlanner && modifiedBySameRole,
-          newState: state.petitioner,
-          log: 'Modificado sin cambio de fecha por solicitante(Planificador)'
+          newState: state.contAdmin,
+          log: 'Planificador acepta cambios de fecha aplicado por contract owner'
         },
         // Planificador modifica solicitud hecha por Supervisor (any --> any)
         {
