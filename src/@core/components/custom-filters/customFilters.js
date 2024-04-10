@@ -5,7 +5,7 @@ const filterByLabel = (label, translation, data) => {
     result[element] = {
       label: `${element}`,
       type: `${translation}`,
-      canSee: [1, 2, 5, 6, 7, 9],
+      canSee: [1, 2, 5, 6, 7, 9, 11],
       filterFunction: doc => doc[label] === element
     }
 
