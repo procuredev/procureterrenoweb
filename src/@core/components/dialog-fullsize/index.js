@@ -692,7 +692,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       // se agrega el segundo condicional para que planificador pueda aprobar una modificación de fecha hecha por el solicitante al recibir una devolución
 
       // Verificar si la nueva fecha de inicio está bloqueada para los casos en que la solicitud tiene estado operacional de planta con valor 'Normal'
-      if (newData.start && values.type !== 'Outage' && newData.start && values.type !== 'Shutdown') {
+      if (newData.start && values.type === 'Normal') {
         const resultDate = await consultBlockDayInDB(newData.start.toDate())
         if (resultDate.blocked) {
           // Mostrar el mensaje de bloqueo y no actualizar la solicitud
@@ -773,17 +773,19 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     // Variable diferencia original entre start y end
     const docDifference = moment(initialValues.end).diff(moment(initialValues.start), 'days')
 
-    if (dateField === 'start') {
-      const resultDate = await consultBlockDayInDB(fieldValue.toDate())
-      // Utiliza el resultado de la función para establecer el mensaje de alerta
-      setAlertMessage(resultDate.msj)
-    }
-
     if (dateField === 'start' && (isPetitioner || isContop || isContOwner || isPlanner || isSupervisor)) {
       const resultDate = await consultBlockDayInDB(fieldValue.toDate())
       setAlertMessage(resultDate.msj)
-      const newStart = date
-      const newEnd = moment(date.toDate()).add(docDifference, 'days')
+
+      const newStart =
+        (initialValues.type === 'Normal' && !resultDate.blocked) || initialValues.type !== 'Normal'
+          ? date
+          : initialValues.start
+
+      const newEnd =
+        (initialValues.type === 'Normal' && !resultDate.blocked) || initialValues.type !== 'Normal'
+          ? moment(date.toDate()).add(docDifference, 'days')
+          : initialValues.end
 
       // actualiza el turno segun a la fecha de inicio modificada
       const adjustedDate = moment(newStart).subtract(1, 'day')
