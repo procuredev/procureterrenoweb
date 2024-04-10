@@ -765,6 +765,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     // userRole es el rol de usuario que creo el documento
     const isPetitioner = userRole === 2
     const isContop = userRole === 3
+    const isContOwner = userRole === 4
     const isPlanner = userRole === 5
     const isContAdmin = authUser.role === 6
     const isSupervisor = userRole === 7
@@ -778,7 +779,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
       setAlertMessage(resultDate.msj)
     }
 
-    if (dateField === 'start' && (isPetitioner || isContop || isPlanner || isSupervisor)) {
+    if (dateField === 'start' && (isPetitioner || isContop || isContOwner || isPlanner || isSupervisor)) {
       const resultDate = await consultBlockDayInDB(fieldValue.toDate())
       setAlertMessage(resultDate.msj)
       const newStart = date
@@ -801,7 +802,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...hasChanges,
         start: !newStart.isSame(initialValues.start),
         supervisorShift: newSupervisorShift !== initialValues.supervisorShift,
-        ...((isPlanner || isSupervisor || isContAdmin || (initialValues.end && (isPetitioner || isContop))) && {
+        ...((isPlanner ||
+          isSupervisor ||
+          isContAdmin ||
+          (initialValues.end && (isPetitioner || isContop || isContOwner))) && {
           end: !newEnd.isSame(initialValues.end)
         })
       })
