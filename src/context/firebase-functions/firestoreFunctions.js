@@ -224,6 +224,7 @@ const processFieldChanges = (incomingFields, currentDoc) => {
   return { changedFields, incomingFields }
 }
 
+// La función 'updateDocumentAndAddEvent' Actualiza un documento con los campos cambiados y agrega un registro en la subcolección de eventos.
 const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc, requesterId, id, prevState) => {
   if (Object.keys(changedFields).length > 0) {
     const { email, displayName } = userParam
@@ -289,15 +290,6 @@ function getNextState(role, approves, latestEvent, userRole) {
   const modifiedBySameRole = userRole === role
   const requestMadeByPlanner = userRole === 5
 
-  // console.log('dateHasChanged: ', dateHasChanged)
-  // console.log('approveWithChanges: ', approveWithChanges)
-  // console.log('approvedByPlanner: ', approvedByPlanner)
-  // console.log('emergencyBySupervisor: ', emergencyBySupervisor)
-  // console.log('returned: ', returned)
-  // console.log('changingStartDate: ', changingStartDate)
-  // console.log('modifiedBySameRole: ', modifiedBySameRole)
-  // console.log('requestMadeByPlanner: ', requestMadeByPlanner)
-
   const rules = new Map([
     [
       2,
@@ -321,13 +313,14 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       3,
       [
-        //
+        // Contract Operator aprueba una solicitud hecha por Planificador posterior a cerrar el elvantamiento (8 --> 8)
         {
           condition: approves && requestMadeByPlanner,
           newState: state.draftsman,
           plannerPetitionApprovedByContop: true,
           log: 'Emergencia aprobada por Contract Operator'
         },
+        // Contract Operator aprueba una solicitud de emergencia hecha por Supervisor posterior a cerrar el elvantamiento (8 --> 8)
         {
           condition: approves && emergencyBySupervisor,
           newState: state.draftsman,
@@ -582,6 +575,7 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
+// Maneja la obtención de datos de planos asociados a una solicitud y devuelve un array de datos y una función para actualizarlos.
 const useBlueprints = id => {
   const [data, setData] = useState([])
 
@@ -697,13 +691,11 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
       return newCount // Retorna el nuevo contador para usarlo fuera de la transacción
     })
 
-    // Ahora, añade este contador al final de tu newCode
+    // Añade el contador al final de newCode
     const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
 
     const ref = doc(db, 'solicitudes', id, 'blueprints', blueprintId)
     updateDoc(ref, { clientCode: newCode })
-
-    console.log('newCode:', newCode)
   } catch (error) {
     console.error('Error al generar clientCode:', error)
     throw new Error('Error al generar clientCode')
@@ -741,7 +733,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       return currentCount // Retorna el nuevo contador para usarlo fuera de la transacción
     })
 
-    // Ahora, añade este contador al final de tu newCode
+    // Añade el contador al final de newCode
     const newCode = `${idProject}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
 
     const docRef = doc(collection(db, 'solicitudes', petition.id, 'blueprints'), newCode)
@@ -1138,6 +1130,7 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
   }
 }
 
+// Finaliza una solicitud, actualizando su estado y detalles relacionados con la OT. Se basa en la información de la solicitud actual y el usuario autenticado.
 const finishPetition = async (currentPetition, authUser) => {
   try {
     console.log('currentPetition:', currentPetition)
