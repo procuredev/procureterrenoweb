@@ -227,6 +227,10 @@ const FormLayoutsSolicitud = () => {
       case prop === 'end': {
         let endDate = event
         if (endDate < values.start) {
+          setValues({
+            ...values,
+            end: endDate
+          })
           setErrors(prevErrors => ({
             ...prevErrors,
             end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
@@ -867,7 +871,30 @@ const FormLayoutsSolicitud = () => {
         }))
       }
     }
-  }, [values.start])
+
+    // Agregar error 'end' en caso de que el usuario modifique la fecha de inicio despues de la de término.
+    if (values.end && !errors.end) {
+      if (values.end.toDate() < values.start.toDate()) {
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
+        }))
+      }
+    }
+
+    // Eliminar el error 'end' si values.end es mayor o igual a values.start
+    if (errors.end) {
+      if (values.end.toDate() >= values.start.toDate()) {
+        setErrors(prevErrors => {
+          delete prevErrors.end // Elimina el error 'end'
+
+          return { ...prevErrors }
+        })
+      }
+    }
+  }, [values.start, values.end, errors.end])
+
+  console.log('errors: ', errors)
 
   useEffect(() => {
     const formDataToSave = { ...values }
