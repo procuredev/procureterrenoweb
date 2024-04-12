@@ -662,7 +662,16 @@ const FormLayoutsSolicitud = () => {
       const formErrors = validateForm(values)
       setErrors(formErrors)
 
+      console.log('errors: ', errors)
+      console.log('formErrors: ', formErrors)
+
       // Si existen errores, se ejecutará focus() que hará que la vista se dirija hacia el campo del primer error encontrado.
+      if (Object.keys(errors).length > 0) {
+        focusFirstError(errors)
+
+        return
+      }
+
       if (Object.keys(formErrors).length > 0) {
         focusFirstError(formErrors)
 
