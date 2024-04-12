@@ -508,6 +508,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         detention: doc.detention,
         deliverable: doc.deliverable,
         objective: doc.objective,
+        sap: doc.sap ? doc.sap : '',
         //* ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
@@ -668,7 +669,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    sap: /[^s0-9]+/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     //* ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
@@ -956,6 +957,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     deliverable,
     id,
     ot,
+    sap,
     end,
     supervisorShift,
     userRole,
@@ -1200,6 +1202,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       onChange={handleInputChange('detention')}
                       required={true}
                       multiline={true}
+                    />
+                    <CustomListItem
+                      editable={authUser.role === 5}
+                      label='Número SAP'
+                      id='sap'
+                      initialValue={sap}
+                      value={values.sap}
+                      onChange={handleInputChange('sap')}
+                      required={true}
                     />
                     {/* <CustomListItem
                       editable={false}
