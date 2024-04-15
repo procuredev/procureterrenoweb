@@ -71,7 +71,9 @@ const CustomSelect = props => {
   return (
     <Grid item xs={12}>
       <FormControl fullWidth sx={{ '& .MuiInputBase-root ': { width: '100%' } }} disabled={disabled} error={!!error}>
-        <InputLabel>{label} {required && <span>*</span>}</InputLabel>
+        <InputLabel>
+          {label} {required && <span>*</span>}
+        </InputLabel>
         <Box display='flex' alignItems='center'>
           <Select input={<OutlinedInput label={label} />} {...selectProps}>
             {options &&
@@ -183,4 +185,3 @@ const FileList = props => {
 }
 
 export { HeadingTypography, CustomTextField, CustomSelect, CustomAutocomplete, StyledTooltip, StyledInfoIcon, FileList }
-

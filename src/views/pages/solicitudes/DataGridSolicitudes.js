@@ -1,20 +1,21 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
-
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useEffect, useState } from 'react'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import { Tooltip, Grid, Box, Tab } from '@mui/material'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
+import { Box, Grid, Tab, Tooltip } from '@mui/material'
 
 // ** Custom Components Imports
-import FilterComponent from 'src/@core/components/filter-component'
-import TableBasic from 'src/views/table/data-grid/TableBasic'
-import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
 import filterByLabel from 'src/@core/components/custom-filters/customFilters'
+import FilterComponent from 'src/@core/components/filter-component'
+import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
+import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 const DataGrid = () => {
   const [values, setValues] = useState({})
@@ -41,18 +42,25 @@ const DataGrid = () => {
     }))
   }
 
+  const theme = useTheme()
+  const xs = useMediaQuery(theme.breakpoints.up('xs')) //0-600
+  const sm = useMediaQuery(theme.breakpoints.up('sm')) //600-960
+  const md = useMediaQuery(theme.breakpoints.up('md')) //960-1280
+  const lg = useMediaQuery(theme.breakpoints.up('lg')) //1280-1920
+  const xl = useMediaQuery(theme.breakpoints.up('xl')) //1920+
+
   // Tab content filters based on the user role
   const tabContent = authUser
     ? [
         {
           // Filters all rejected requests.
           // TODO: Delete filter for role 5
-          data: data.filter(doc => doc.state !== 0),
+          data: data,
           label: 'Todas las solicitudes',
           info: 'Todas las solicitudes'
         },
         {
-          data: data.filter(authUser.role === 5 ? doc => doc.state === 3 || 4 : doc => doc.state === authUser.role - 1), //TODO: revisar visibilidad
+          data: data.filter(authUser.role === 5 ? doc => (doc.state === 3 || doc.state === 4) : doc => doc.state === authUser.role - 1), //TODO: revisar visibilidad
           label: 'Por aprobar',
           info: 'Solicitudes pendientes de mi aprobación'
         },
@@ -61,6 +69,15 @@ const DataGrid = () => {
           label: 'Aprobadas',
           info: 'Solicitudes aprobadas por Procure'
         },
+        ...(authUser.role === 5 || authUser.role === 6 //se utiliza El operador de propagación para añadir un objeto adicional a tabContent solo si authUser.role es igual a 5
+          ? [
+              {
+                data: data.filter(doc => doc.state === 2),
+                label: 'En Revisión Por C. Operator',
+                info: 'En Revisión Por C. Operator'
+              }
+            ]
+          : []),
         {
           data: data.filter(doc => doc.state === 0),
           label: 'Rechazadas',
@@ -116,7 +133,12 @@ const DataGrid = () => {
       />
       <TabContext value={tabValue}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
+          <TabList
+            onChange={handleTabChange}
+            aria-label='lab API tabs example'
+            variant='scrollable'
+            scrollButtons='auto'
+          >
             {tabContent.map((element, index) => (
               <Tab
                 label={

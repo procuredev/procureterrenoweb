@@ -15,7 +15,7 @@ const Navigation = () => {
       path: '/home',
       icon: 'mdi:home-outline',
       subject: 'home',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     },
     {
       title: 'Nueva Solicitud',
