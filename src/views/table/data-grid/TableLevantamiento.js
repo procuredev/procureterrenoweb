@@ -15,13 +15,6 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, esES } from '@mui/x-data-grid'
-import {
-  DataGridPremium,
-  GridToolbarContainer,
-  GridToolbarExport,
-  GridColDef,
-  GridRowsProp
-} from '@mui/x-data-grid-premium'
 import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -132,28 +125,14 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     fetchProyectistas()
   }, [authUser.shift])
 
-  const titleLocalWidth = Number(localStorage.getItem('titleLevantamientosWidthColumn'))
-  const otLocalWidth = Number(localStorage.getItem('otLevantamientosWidthColumn'))
-  const stateLocalWidth = Number(localStorage.getItem('stateLevantamientosWidthColumn'))
-  const plantLocalWidth = Number(localStorage.getItem('plantLevantamientosWidthColumn'))
-  const dateLocalWidth = Number(localStorage.getItem('dateLevantamientosWidthColumn'))
-  const startLocalWidth = Number(localStorage.getItem('startLevantamientosWidthColumn'))
-  const endLocalWidth = Number(localStorage.getItem('endLevantamientosWidthColumn'))
-  const deadlineLocalWidth = Number(localStorage.getItem('deadLineLevantamientosWidthColumn'))
-  const daysToDeadlineLocalWidth = Number(localStorage.getItem('daysToDeadLineLevantamientosWidthColumn'))
-  const assignLocalWidth = Number(localStorage.getItem('assignLevantamientosWidthColumn'))
-  const doneLocalWidth = Number(localStorage.getItem('doneLevantamientosWidthColumn'))
-
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
-      width: titleLocalWidth ? titleLocalWidth : 220,
-      minWidth: 180,
-      maxWidth: 460,
+      flex: 0.6,
+      minWidth: 220,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('titleLevantamientosWidthColumn', params.colDef.computedWidth)
 
         return (
           <Tooltip
@@ -189,12 +168,10 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'ot',
       headerName: 'OT',
-      width: otLocalWidth ? otLocalWidth : 50,
+      flex: 0.1,
       minWidth: 50,
-      maxWidth: 80,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('otLevantamientosWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.ot || 'N/A'}</div>
       }
@@ -202,12 +179,10 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      width: stateLocalWidth ? stateLocalWidth : 120,
-      minWidth: 80,
-      maxWidth: 240,
+      minWidth: 120,
+      flex: 0.4,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('stateLevantamientosWidthColumn', params.colDef.computedWidth)
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
 
         return (
@@ -223,12 +198,10 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'plant',
       headerName: 'Planta',
-      width: plantLocalWidth ? plantLocalWidth : 120,
-      minWidth: 80,
-      maxWidth: 320,
+      flex: 0.4,
+      minWidth: 120,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('plantLevantamientosWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.plant || 'N/A'}</div>
       }
@@ -236,79 +209,43 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
-      width: dateLocalWidth ? dateLocalWidth : 90,
-      minWidth: 60,
-      maxWidth: 120,
+      flex: 0.1,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('dateLevantamientosWidthColumn', params.colDef.computedWidth)
 
         return <div>{unixToDate(row.date.seconds)[0]}</div>
       }
     },
     {
       field: 'start',
-      headerName: 'Inicio de Levantamiento',
-      width: startLocalWidth ? startLocalWidth : 120,
-      minWidth: 80,
-      maxWidth: 190,
+      headerName: 'Inicio',
+      flex: 0.1,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('startLevantamientosWidthColumn', params.colDef.computedWidth)
 
         return <div>{unixToDate(row.start.seconds)[0]}</div>
       }
     },
     {
       field: 'end',
-      headerName: 'Fin de Levantamiento',
-      width: endLocalWidth ? endLocalWidth : 120,
-      minWidth: 80,
-      maxWidth: 180,
+      headerName: 'Fin',
+      flex: 0.1,
+      minWidth: 90,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('endLevantamientosWidthColumn', params.colDef.computedWidth)
 
         return <div>{(row.end && unixToDate(row.end.seconds)[0]) || 'Pendiente'}</div>
       }
     },
     {
-      field: 'deadline',
-      headerName: 'Fecha Límite',
-      width: deadlineLocalWidth ? deadlineLocalWidth : 120,
-      minWidth: 90,
-      maxWidth: 180,
-      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('deadLineLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        return <div>{(row.deadline && unixToDate(row.deadline.seconds)[0]) || 'Pendiente'}</div>
-      }
-    },
-    {
-      field: 'daysToDeadline',
-      headerName: 'Días por Vencer',
-      width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
-      minWidth: 90,
-      maxWidth: 180,
-      valueGetter: params => params.row.daysToDeadline,
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('daysToDeadLineLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        return <div>{row.daysToDeadline || 'Pendiente'}</div>
-      }
-    },
-    {
       field: 'assign',
       headerName: 'Asignar',
-      width: assignLocalWidth ? assignLocalWidth : 90,
-      minWidth: 60,
-      maxWidth: 120,
+      flex: 0.1,
+      minWidth: md ? 90 : 80,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('assignLevantamientosWidthColumn', params.colDef.computedWidth)
 
         return (
           <>
@@ -365,14 +302,12 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       }
     },
     {
-      width: doneLocalWidth ? doneLocalWidth : 120,
-      minWidth: 60,
-      maxWidth: 160,
+      flex: 0.3,
+      minWidth: md ? 110 : 80,
       field: 'done',
       headerName: 'Terminar / pausar',
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('doneLevantamientosWidthColumn', params.colDef.computedWidth)
 
         const RenderButtons = () => {
           return (
@@ -446,7 +381,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   return (
     <Card>
       <Box sx={{ height: 500 }}>
-        <DataGridPremium
+        <DataGrid
           hideFooterSelectedRowCount
           rows={rows}
           columns={columns}

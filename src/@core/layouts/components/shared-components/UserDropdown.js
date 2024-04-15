@@ -1,16 +1,17 @@
 // ** React Imports
-import { Fragment, useEffect, useState } from 'react'
+import { useState, Fragment, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
-import Avatar from '@mui/material/Avatar'
-import Badge from '@mui/material/Badge'
 import Box from '@mui/material/Box'
-import Divider from '@mui/material/Divider'
 import Menu from '@mui/material/Menu'
+import Badge from '@mui/material/Badge'
+import Avatar from '@mui/material/Avatar'
+import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
+import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
@@ -25,12 +26,11 @@ const UserDropdown = props => {
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
-  const [userObject, setUserObject] = useState({ name: '', email: '', role: '' })
-  const [urlFoto, setUrlFoto] = useState('')
+  const [userName, setUserName] = useState('')
 
   // ** Hooks
   const router = useRouter()
-  const { auth, authUser, signOut, domainRoles, subscribeToUserProfileChanges } = useFirebase()
+  const { auth, authUser, signOut, domainRoles } = useFirebase()
 
   // ** Vars
   const { direction } = settings
@@ -65,8 +65,6 @@ const UserDropdown = props => {
     signOut(auth)
       .then(() => {
         setTimeout(() => {
-          localStorage.removeItem('formData')
-          localStorage.removeItem('user')
           handleDropdownClose('/login')
         }, 500) // Retraso de 500 milisegundos antes de redireccionar
       })
@@ -75,66 +73,52 @@ const UserDropdown = props => {
       })
   }
 
-  useEffect(() => {
-    let unsubscribe = () => {}
+  // Se inicializan las variables que serán usadas en el menú desplegable
+  let userEmail // variable que almacena el e-mail del usuario conectado
+  let userRole // variable que almacena el rol del usuario conectado
 
-    if (authUser && authUser.uid) {
-      unsubscribe = subscribeToUserProfileChanges(authUser.uid, userData => {
-        setUrlFoto(userData.urlFoto)
-      })
+  // Si no hay un usuario conectado
+  if (!authUser) {
+    // Las variables serán definidas como 'not logged' para evitar problemas de renderizado
+    userEmail = 'not logged'
+    userRole = 'not Logged'
+  } else {
+    // Pero si hay un usuario conectado, se definirán las variables
+
+    userEmail = authUser.email
+
+    if (domainRoles){
+      const role = domainRoles[authUser.role]
+      if (role){
+        userRole = role.name
+      }
     }
-
-    return () => unsubscribe() // Limpia la suscripción cuando el componente se desmonte
-  }, [authUser])
+  }
 
   useEffect(() => {
-    let thisName
-    let thisEmail
-    let thisRole
-
-    if (authUser) {
-      // Caso para el nombre
-      if (authUser.displayName && authUser.displayName !== 'No definido' && authUser.displayName !== '') {
-        thisName = authUser.displayName
-      } else {
-        thisName = 'Por definir'
-      }
-
-      // Caso para el email
-      if (authUser.email && authUser.email !== 'No definido' && authUser.email !== '') {
-        thisEmail = authUser.email
-      } else {
-        thisEmail = 'Por definir'
-      }
-
-      // Caso para el Rol
-      if (authUser.role && authUser.role !== 'No definido' && authUser.role !== '' && domainRoles) {
-        const role = domainRoles[authUser.role]
-        if (role) {
-          thisRole = role.name
-        } else {
-          thisRole = 'Por definir'
-        }
-      } else {
-        thisRole = 'Por definir'
-      }
+    if (authUser && authUser.displayName === 'No definido') {
+      setUserName('Por definir')
+    } else if (authUser && !authUser.displayName) {
+      setUserName('Por definir')
+    } else if (authUser && authUser.displayName && authUser.displayName !== '') {
+      setUserName(authUser.displayName)
     } else {
-      thisName = 'Por definir'
-      thisEmail = 'Por definir'
-      thisRole = 'Por definir'
+      setUserName('Por definir')
     }
-
-    setUserObject({ name: thisName, email: thisEmail, role: thisRole })
-  }, [authUser.role, domainRoles])
+  }, [authUser])
 
   const renderUserAvatar = () => {
     let avatarContent
+    let name
+    if (!authUser || !authUser.displayName) {
+      name = 'Por definir'
+    }
 
-    if (urlFoto && urlFoto !== 'Por definir') {
+    if (authUser && authUser.urlFoto !== '' && authUser.urlFoto !== 'No definido') {
       avatarContent = (
         <Avatar
-          src={urlFoto}
-          alt={userObject.name}
+          src={authUser.urlFoto}
+          alt={authUser.displayName}
           sx={{
             width: 40,
             height: 40,
@@ -146,7 +130,7 @@ const UserDropdown = props => {
       )
     } else {
       // No hay `photo` proporcionada, usar avatar con iniciales del nombre
-      const currentName = userObject.name
+      const currentName = authUser ? authUser.displayName : 'Por definir'
 
       const initials = currentName
         .toUpperCase()
@@ -199,12 +183,12 @@ const UserDropdown = props => {
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{userObject.name}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{userName}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {userObject.email}
+                {userEmail}
               </Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {userObject.role}
+                {userRole}
               </Typography>
             </Box>
           </Box>

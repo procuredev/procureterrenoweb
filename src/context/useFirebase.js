@@ -1,78 +1,67 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useState, useEffect, useContext } from 'react'
 
 // ** Firebase Imports
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { app } from 'src/configs/firebase'
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'
 
 // ** Crea contexto
 export const FirebaseContext = createContext()
 
 import {
-  createUser,
-  deleteCurrentUser,
   formatAuthUser,
   resetPassword,
+  updatePassword,
+  signInWithEmailAndPassword,
+  createUser,
   signAdminBack,
   signAdminFailure,
   signGoogle,
-  signInWithEmailAndPassword,
-  updatePassword
+  deleteCurrentUser
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
-  addComment,
-  addDescription,
+  newDoc,
+  updateDocs,
+  updateUserPhone,
   blockDayInDatabase,
-  finishPetition,
   generateBlueprint,
+  useBlueprints,
+  updateBlueprint,
+  addDescription,
   generateBlueprintCodeClient,
   generateTransmittalCounter,
-  newDoc,
-  updateBlueprint,
-  updateDocs,
   updateSelectedDocuments,
+  addComment,
   updateUserData,
-  updateUserPhone,
-  useBlueprints
+  finishPetition
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
-  consultBlockDayInDB,
-  consultBluePrints,
-  consultDocs,
-  consultOT,
-  consultObjetives,
-  consultSAP,
-  consultUserEmailInDB,
-  fetchMelDeliverableType,
-  fetchMelDisciplines,
-  fetchPetitionById,
-  fetchPlaneProperties,
+  useEvents,
+  useSnapshot,
   getData,
   getDomainData,
   getUserData,
+  consultBlockDayInDB,
+  consultSAP,
+  consultUserEmailInDB,
+  consultDocs,
+  consultObjetives,
   getUsersWithSolicitudes,
-  subscribeToBlockDayChanges,
+  fetchPetitionById,
+  fetchPlaneProperties,
+  fetchMelDisciplines,
+  fetchMelDeliverableType,
+  consultBluePrints,
   subscribeToPetition,
-  subscribeToUserProfileChanges,
-  useEvents,
-  useSnapshot
+  consultOT
 } from 'src/context/firebase-functions/firestoreQuerys'
 
-import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
+import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
-  const [authUser, setAuthUser] = useState(() => {
-    if (typeof localStorage !== 'undefined') {
-      const storedUser = localStorage.getItem('user')
-
-      return storedUser ? JSON.parse(storedUser) : null
-    } else {
-
-      return null
-    }
-  })
+  const [authUser, setAuthUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [domainDictionary, setDomainDictionary] = useState({})
@@ -81,7 +70,6 @@ const FirebaseContextProvider = props => {
   // ** Variables
   const auth = getAuth(app)
 
-  // Este useEffect manejará los datos del usuario conectado
   useEffect(() => {
     const auth = getAuth(app)
 
@@ -89,16 +77,17 @@ const FirebaseContextProvider = props => {
       if (!authState) {
         setAuthUser(null)
         setLoading(false)
+        setDomainDictionary(null)
+        setDomainRoles(null)
       } else {
         setLoading(true)
-        const databaseUserData = await formatAuthUser(authState)
-        setAuthUser(databaseUserData)
-        localStorage.setItem('user', JSON.stringify(databaseUserData))
+        const formattedUser = await formatAuthUser(authState)
+        setAuthUser(formattedUser)
+        setLoading(false)
         const dictionary = await getDomainData('dictionary')
         setDomainDictionary(dictionary)
         const roles = await getDomainData('roles')
         setDomainRoles(roles)
-        setLoading(false)
       }
     })
 
@@ -155,9 +144,7 @@ const FirebaseContextProvider = props => {
     updateUserData,
     finishPetition,
     subscribeToPetition,
-    consultOT,
-    subscribeToUserProfileChanges,
-    subscribeToBlockDayChanges
+    consultOT
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

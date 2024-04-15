@@ -1,4 +1,4 @@
-export function solicitudValidator(values, role) {
+export function solicitudValidator(values) {
   const valPlant = [
     'Planta Concentradora Los Colorados',
     'Planta Concentradora Laguna Seca | Línea 1',
@@ -331,35 +331,15 @@ export function solicitudValidator(values, role) {
   ]
 
   const valInstalacionesConcentraducto = [
-    '0000 - Generales',
     '0400 - Pipeline de concentrado y bombeo',
-    '0420 - Líneas de pulpa - Mineroducto - Estación de válvulas',
-    '0425 - Valves station VS3.5 6\'/7\' DIAM',
-    '0430 - Mineroducto Fase IV a Fase 3',
-    '0435 - Valves station vs3.5 9\' DIAM',
-    '0440 - Estación de Bombeo - Almacenamiento Concentraducto',
-    '0450 - Tunnel Coloso',
+    '0420 - Líneas de pulpa- mineroducto- estación de válvulas',
+    '0430 - Mineroducto Fase IV a Fase 3,5',
+    '0440 - Estación de Bombeo- Almacenamiento Concentraducto',
     '0661 - Mineloop',
-    '1400 - Bombeo y Transporte de Concentrado OGP1',
+    '1400 - Bombas y Transporte de Concentrado',
     '1410 - Estanques de Almacenamiento de Concentrado',
     '1420 - Estación de Bombas de Concentrado',
-    '1430 - Concentraducto',
-    '2500 - General Proyecto ECT',
-    '2520 - Estación Lanzador de PIG PS1',
-    '2530 - Estación de Válvulas',
-    '2531 - Estación de Válvulas VS1C',
-    '2532 - Estación de Válvulas VS2C',
-    '2533 - Estación de Válvulas VS3C',
-    '2534 - Estación Receptor PIG VS3.5',
-    '2540 - Estación de Monitoreo',
-    '2541 - Estación de Monitoreo SFM1C',
-    '2542 - Estación de Monitoreo SFM2C',
-    '2543 - Estación de Monitoreo SFM3C',
-    '2560 - Pipeline 9" ECT',
-    '2561 - Pipeline 9" 0-15 KM',
-    '2562 - Pipeline 9" 15-165 KM',
-    '2590 - Los Colorados',
-    '2591 - Coloso'
+    '1430 - Concentraducto'
   ]
 
   const valInstalacionesMonturaqui = ['0720 - Suministro de Agua Fresca']
@@ -463,7 +443,7 @@ export function solicitudValidator(values, role) {
     'Análisis fotogramétrico',
     'Análisis GPR',
     'Inspección Dron',
-    'Escaner Laser',
+    'Levantamiento 3D',
     'Levantamiento 3D GPS',
     'Topografía'
   ]
@@ -486,7 +466,7 @@ export function solicitudValidator(values, role) {
   //const valDescription = /^[a-zA-Z0-9-ZáéíóúñüÁÉÍÓÚÑÜ0-9 !@#$%^&*()-_-~.+,/\" ]+$/ // /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ0-9\s]+$/
   const valSap = /^[0-9+]{0,10}$/
   const valCostCenter = /^[0-9+]{0,25}$/
-  const valFnLocation = /^[a-zA-Z0-9 @\/.-]{0,25}$/ // /^[0-9+]{4,6}$/
+  const valFnLocation = /^[a-zA-Z0-9 -./]{0,25}$/ // /^[0-9+]{4,6}$/
 
   const validations = {
     /*  title: {
@@ -501,10 +481,10 @@ export function solicitudValidator(values, role) {
       validate: value => valCostCenter.test(value),
       message: 'El Centro de Costos solo recibe campos numéricos y debe tener de 0 a 25 caracteres.'
     },
-    //* ot: {
-    //*   validate: value => (values.role === 5 || values.role === 7 ? /^\d+$/.test(value) : true),
-    //*   message: 'El número de OT solo debe contener dígitos numéricos.'
-    //* },
+    ot: {
+      validate: value => /^\d+$/.test(value),
+      message: 'El número de OT solo debe contener dígitos numéricos.'
+    },
     sap: {
       validate: value => valSap.test(value),
       message: 'El SAP solo recibe campos numéricos y debe tener de 8 a 10 caracteres.'
@@ -623,11 +603,7 @@ export function solicitudValidator(values, role) {
       'ot',
       'urgency',
       'mcDescription',
-      'costCenter',
-      'files',
-      // Agrega 'petitioner' a la lista de campos no requeridos si el usuario tiene role === 2
-      ...(role === 2 ? ['petitioner'] : []),
-      ...(role === 5 ? ['deliverable'] : [])
+      'costCenter'
     ]
 
     if (typeof values[key] === 'string' && !nonRequiredFields.includes(key)) {
@@ -642,18 +618,7 @@ export function solicitudValidator(values, role) {
     }
 
     if (
-      ![
-        'receiver',
-        'deliverable',
-        'start',
-        'sap',
-        'fnlocation',
-        'end',
-        'ot',
-        'mcDescription',
-        'timestamp',
-        'files'
-      ].includes(key) &&
+      !['receiver', 'deliverable', 'start', 'sap', 'fnlocation', 'end', 'ot', 'mcDescription'].includes(key) &&
       typeof values[key] !== 'string'
     ) {
       console.log(`El campo ${key} debe ser en formato texto.`)

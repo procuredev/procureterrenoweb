@@ -1,6 +1,7 @@
 export const getEmailTemplate = (
   userName,
   mainMessage,
+  requestNumber,
   title,
   engineering,
   otProcure,
@@ -20,10 +21,8 @@ export const getEmailTemplate = (
   deliverable,
   receiver,
   description,
-  lastMessage,
-  attachedDocuments
+  lastMessage
 ) => {
-
   return `<h2>Estimad@ ${userName}:</h2>
       <p>${mainMessage}. A continuación puede encontrar el detalle de la solicitud:</p>
       <table style="width:100%;">
@@ -102,10 +101,6 @@ export const getEmailTemplate = (
         <tr>
           <td style="text-align:left; padding-left:15px;"><strong>Descripción del requerimiento:</strong></td>
           <td>${description}</td>
-        </tr>
-        <tr>
-          <td style="text-align:left; padding-left:15px;"><strong>Documentos adjuntos:</strong></td>
-          <td>${attachedDocuments}</td>
         </tr>
       </table
       <p>${lastMessage}</p>

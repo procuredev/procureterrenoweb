@@ -79,6 +79,7 @@ const columns = [
 ]
 
 const Top10UsersWihitMostDocs = ({ top10 }) => {
+
   return (
     <Card>
       <CardHeader
@@ -87,15 +88,7 @@ const Top10UsersWihitMostDocs = ({ top10 }) => {
         titleTypographyProps={{ variant: 'h6' }}
       ></CardHeader>
       <CardContent>
-        <DataGrid
-          autoHeight
-          hideFooter
-          rows={top10}
-          columns={columns}
-          disableSelectionOnClick
-          pagination={undefined}
-          //sx={{ overflowX: 'scroll' }}
-        />
+        <DataGrid autoHeight hideFooter rows={top10} columns={columns} disableSelectionOnClick pagination={undefined} />
       </CardContent>
     </Card>
   )

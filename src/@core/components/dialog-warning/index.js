@@ -9,24 +9,7 @@ import {
   DialogTitle
 } from '@mui/material'
 
-export default function AlertDialog({ authUser, state, open, handleClose, callback, approves, loading = false }) {
-  let result
-
-  if (approves === undefined) {
-    result = authUser.role === 5 && state === (3 || 4) ? 'aprobar' : 'modificar'
-  } else if (approves) {
-    result = approves.pendingReschedule ? 'pausar' : 'aprobar'
-  } else {
-    result = 'rechazar'
-  }
-
-  function capitalize(text) {
-    const firstLetter = text.charAt(0)
-    const rest = text.slice(1)
-
-    return firstLetter.toUpperCase() + rest
-  }
-
+export default function AlertDialog({ open, handleClose, callback, approves, loading = false }) {
   return (
     <Dialog
       open={open}
@@ -34,13 +17,21 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>{capitalize(result)} estado de la solicitud</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>Modificar estado de la solicitud</DialogTitle>
       <DialogContent>
         {loading ? (
           <CircularProgress />
         ) : (
           <DialogContentText id='alert-dialog-description'>
-            ¿Estás segur@ de que quieres {result} la solicitud?
+            ¿Estás segur@ de que quieres{' '}
+            {approves === undefined
+              ? 'modificar'
+              : approves
+              ? approves?.pendingReschedule
+                ? 'pausar'
+                : 'aprobar'
+              : 'rechazar'}{' '}
+            la solicitud?
           </DialogContentText>
         )}
       </DialogContent>

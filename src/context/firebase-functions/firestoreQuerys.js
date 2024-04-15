@@ -1,21 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** Firebase Imports
+import { db } from 'src/configs/firebase'
 import {
-  Timestamp,
   collection,
   doc,
-  documentId,
-  getCountFromServer,
+  Timestamp,
+  query,
   getDoc,
   getDocs,
   onSnapshot,
+  where,
   or,
   orderBy,
-  query,
-  where
+  getCountFromServer,
+  documentId
 } from 'firebase/firestore'
-import { db } from 'src/configs/firebase'
 
 import { unixToDate } from 'src/@core/components/unixToDate'
 
@@ -68,37 +68,27 @@ const useSnapshot = (datagrid = false, userParam, control = false) => {
 
   useEffect(() => {
     if (userParam) {
-      let q = query(collection(db, 'solicitudes'), where('state', '>=', 1))
+      let q = query(collection(db, 'solicitudes'), where('state', '>=', 0))
 
       if (datagrid) {
         switch (userParam.role) {
-          case 1:
-            q = query(collection(db, 'solicitudes'))
-            break
           case 2:
             q = query(collection(db, 'solicitudes'), where('uid', '==', userParam.uid))
             break
           case 3:
             q = query(collection(db, 'solicitudes'), where('plant', 'in', userParam.plant))
             break
-          case 4:
-            q = query(collection(db, 'solicitudes'))
-            break
           case 5:
-            q = query(collection(db, 'solicitudes'))
-            // q = query(
-            //   collection(db, 'solicitudes'),
-            //   or(where('state', '>=', userParam.role - 2), where('state', '==', 0))
-            // )                                                                              // se comentará para que el usuario 5 vea todas las solicitudes
-            break
-          case 6:
-            q = query(collection(db, 'solicitudes'))
+            q = query(
+              collection(db, 'solicitudes'),
+              or(where('state', '>=', userParam.role - 2), where('state', '==', 0))
+            )
             break
           case 7:
             q = query(collection(db, 'solicitudes'), or(where('state', '>=', 6), where('state', '==', 0)))
             break
           default:
-            if ([4].includes(userParam.role)) {
+            if ([4, 6].includes(userParam.role)) {
               q = query(
                 collection(db, 'solicitudes'),
                 or(where('state', '>=', userParam.role - 1), where('state', '==', 0))
@@ -335,7 +325,7 @@ const dateWithDocs = async date => {
   const allDocs = []
 
   //const dateUnix = getUnixTime(date) // Convierte la fecha a segundos Unix
-  const q = query(collection(db, 'solicitudes'), where('start', '==', new Timestamp(date, 0)), where('state', '!=', 0))
+  const q = query(collection(db, 'solicitudes'), where('start', '==', new Timestamp(date, 0)))
   const querySnapshot = await getDocs(q)
   querySnapshot.forEach(doc => {
     // doc.data() is never undefined for query doc snapshots
@@ -908,35 +898,6 @@ function subscribeToPetition(petitionId, onUpdate) {
   }
 }
 
-const subscribeToUserProfileChanges = (userId, callback) => {
-  const userRef = doc(db, 'users', userId)
-
-  const unsubscribe = onSnapshot(userRef, doc => {
-    if (doc.exists()) {
-      const userData = doc.data()
-      callback(userData)
-    }
-  })
-
-  return unsubscribe
-}
-
-const subscribeToBlockDayChanges = setBlockResult => {
-  const unsubscribe = onSnapshot(collection(db, 'diasBloqueados'), snapshot => {
-    const blockedDays = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(doc => doc.blocked)
-      .map(doc => ({
-        timestamp: parseInt(doc.id) * 1000, // Convertir id a timestamp
-        value: { blocked: doc.blocked, cause: doc.cause }
-      }))
-
-    setBlockResult(blockedDays)
-  })
-
-  return unsubscribe
-}
-
 export {
   useEvents,
   useSnapshot,
@@ -955,7 +916,5 @@ export {
   fetchMelDeliverableType,
   consultBluePrints,
   subscribeToPetition,
-  consultOT,
-  subscribeToUserProfileChanges,
-  subscribeToBlockDayChanges
+  consultOT
 }

@@ -1,12 +1,12 @@
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import moment from 'moment-timezone'
 import 'moment/locale/es'
+import moment from 'moment-timezone'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { sendEmailNewPetition } from 'src/context/firebase-functions/mailing/sendEmailNewPetition'
 import { useFirebase } from 'src/context/useFirebase'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
 import {
   Box,
   Button,
@@ -24,43 +24,43 @@ import {
   List,
   Typography
 } from '@mui/material'
-import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 
 // ** Custom Components
-import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import Icon from 'src/@core/components/icon'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 
 import {
-  CustomAutocomplete,
-  CustomSelect,
   CustomTextField,
-  FileList,
-  HeadingTypography,
+  CustomSelect,
+  CustomAutocomplete,
   StyledInfoIcon,
-  StyledTooltip
+  StyledTooltip,
+  HeadingTypography,
+  FileList
 } from 'src/@core/components/custom-form/index'
+import { set } from 'lodash'
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
-    //* ot: '',
-    urgency: '',
     title: '',
-    description: '',
     start: moment().startOf('day'),
-    end: null,
     plant: '',
     area: '',
     contop: '',
-    costCenter: '',
     fnlocation: '',
-    tag: '',
     petitioner: '',
     type: '',
     detention: '',
     sap: '',
     objective: '',
     deliverable: [],
-    receiver: []
+    receiver: [],
+    description: '',
+    tag: '',
+    end: null,
+    ot: '',
+    urgency: '',
+    costCenter: ''
   }
 
   // ** Hooks
@@ -85,50 +85,41 @@ const FormLayoutsSolicitud = () => {
   const [petitioners, setPetitioners] = useState([])
   const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({})
-
-  const [values, setValues] = useState(() => {
-    const savedFormData = localStorage.getItem('formData')
-    if (savedFormData) {
-      const parsedFormData = JSON.parse(savedFormData)
-      if (parsedFormData.start) {
-        parsedFormData.start = moment(parsedFormData.start)
-      }
-      if (parsedFormData.end) {
-        parsedFormData.end = moment(parsedFormData.end)
-      }
-
-      return parsedFormData
-    }
-
-    return initialValues
-  })
+  const [values, setValues] = useState(initialValues)
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+
+  // const [isDialogOpenMC, setIsDialogOpenMC] = useState(false)
+  //const [userInputMC, setUserInputMC] = useState("")
+  //const [hasDialogMCBeenShown, setHasDialogMCBeenShown] = useState(false)
   const [domainData, setDomainData] = useState({})
   const [objectivesOptions, setObjectivesOptions] = useState([])
   const [deliverablesOptions, setDeliverablesOptions] = useState([])
   const [urgencyTypesOptions, setUrgencyTypesOptions] = useState([])
   const [operationalStatusOptions, setOperationalStatusOptions] = useState([])
 
+  /*
+  const handleCloseDialogMC = () => {
+    setIsDialogOpenMC(false)
+  };
+
+  const handleConfirmDialogMC = () => {
+    if (values.deliverable.includes('Memoria de Cálculo')) {
+      // Procesa userInput solo si 'Memoria de Cálculo' está seleccionado
+      //console.log("El usuario confirmó Memoria de Cálculo con descripción:", userInputMC)
+    } else {
+      setUserInputMC('') // Resetea userInput si 'Memoria de Cálculo' no está seleccionado
+    }
+    setIsDialogOpenMC(false)
+    setHasDialogMCBeenShown(true) // Asume que el usuario terminó con este diálogo
+  }
+  */
+
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
-  //* const otRef = useRef(null)
-  const titleRef = useRef(null)
-  const urgencyRef = useRef(null)
-  const descriptionRef = useRef(null)
-  const endRef = useRef(null)
-  const plantRef = useRef(null)
-  const areaRef = useRef(null)
-  const contopRef = useRef(null)
-  const costCenterRef = useRef(null)
-  const petitionerRef = useRef(null)
-  const typeRef = useRef(null)
-  const detentionRef = useRef(null)
-  const objectiveRef = useRef(null)
-  const deliverableRef = useRef(null)
-  const receiverRef = useRef(null)
+  const otRef = useRef(null)
 
   const handleGPRSelected = () => {
     const currentWeek = moment().isoWeek()
@@ -157,7 +148,7 @@ const FormLayoutsSolicitud = () => {
       'fnlocation',
       'tag',
       'urlVideo',
-      //* 'ot',
+      'ot',
       'mcDescription',
       'costCenter'
     ]
@@ -170,9 +161,9 @@ const FormLayoutsSolicitud = () => {
 
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
 
-        //* if (prop === 'ot') {
-        //*   newValue = Number(newValue)
-        //* }
+        if (prop === 'ot') {
+          newValue = Number(newValue)
+        }
 
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
@@ -205,11 +196,7 @@ const FormLayoutsSolicitud = () => {
           if (newValue.includes('Memoria de Cálculo')) {
             if (!hasShownDialog) {
               // Dialog para advertir al usuario sobre la opción "Memoria de Cálculo"
-              setAlertMessage(
-                'Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.'
-              )
-
-              setValues(prevValues => ({ ...prevValues, ['mcDescription']: '' }))
+              setAlertMessage('Está seleccionando la opción de Memoria de Cálculo. Esto es un adicional y por lo tanto Procure le enviará un presupuesto para ello. A continuación le solicitamos que explique el motivo de la Memoria de Cálculo, en base a esto Procure generará el presuspuesto.')
 
               // Actualizar el estado para indicar que el dialog ya se ha mostrado
               setHasShownDialog(true)
@@ -217,7 +204,6 @@ const FormLayoutsSolicitud = () => {
           } else {
             // Si 'Memoria de Cálculo' se ha deseleccionado, restablecer hasShownDialog a false
             if (hasShownDialog) {
-              setValues(prevValues => ({ ...prevValues, ['mcDescription']: '' }))
               setHasShownDialog(false)
             }
           }
@@ -226,25 +212,15 @@ const FormLayoutsSolicitud = () => {
       }
       case prop === 'end': {
         let endDate = event
-        if (endDate < values.start) {
-          setValues({
-            ...values,
-            end: endDate
-          })
-          setErrors(prevErrors => ({
-            ...prevErrors,
-            end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
-          }))
-        } else {
-          setValues({
-            ...values,
-            end: endDate
-          })
-        }
+        setValues({
+          ...values,
+          end: endDate
+        })
         break
       }
       case prop === 'start': {
         let startDate = event
+        console.log(event, 'eventStart')
         setValues({
           ...values,
           start: startDate
@@ -298,8 +274,7 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  //* Se comenta esta función debido a que la OT dejará de agregarse manualmente, ahora se generará a de forma automática.
-  /* const handleBlurOt = async e => {
+  const handleBlurOt = async e => {
     const otValue = e.target.value.trim() // .trim() devuelve el valor sin espacios extra
 
     // Verifica si el campo OT tiene algún valor antes de hacer la consulta
@@ -323,59 +298,32 @@ const FormLayoutsSolicitud = () => {
         })
       }
     } else {
-      const resultOt = await consultOT(parseInt(otValue))
       // Si el campo OT está vacío, podrías querer manejar este caso también
       // Por ejemplo, estableciendo un mensaje de error indicando que el campo no puede estar vacío
       setErrors(prevErrors => ({
         ...prevErrors,
         ot: 'El campo OT no puede estar vacío.'
       }))
-      setAlertMessage('El campo OT no puede estar vacío.')
     }
-  } */
+  }
 
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    sap: /[^0-9]+/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    fnlocation: /[^A-Za-z0-9@\/.-]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    //* ot: /[^\s0-9]/, // /[^0-9]/g
-    tag: /[^A-Za-z0-9@\/.-]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    costCenter: /[^0-9]+/ // /[^0-9]/g
+    sap: /[^\s0-9 \"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    fnlocation: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    ot: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    tag: /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
+    costCenter: /[^\s0-9 \"]/ // /[^0-9]/g
   }
 
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
-    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter', 'mcDescription']
-    //* const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
-    const shouldValidateEND = authUser.role === 5 || authUser.role === 7 // validar 'end' si el usuario tiene el rol 5 o 7.
-
-    // Objeto para traducir lo que se rederiza al usuario
-    const fieldLabels = {
-      //* ot: 'OT',
-      urgency: 'Urgencia',
-      title: 'Título',
-      description: 'Descripción',
-      end: 'Fecha de término',
-      plant: 'Planta',
-      area: 'Área',
-      contop: 'Contract Operator',
-      petitioner: 'Solicitante',
-      type: 'Estado Operacional Planta',
-      detention: '¿Estará la máquina detenida?',
-      objective: 'Tipo de Levantamiento',
-      deliverable: 'Entregables del Levantamiento',
-      receiver: 'Destinatarios',
-      mcDescription: 'Memoria de Cálculo',
-      costCenter: 'Centro de Costos'
-    }
-
+    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter']
     for (const key in values) {
       const excludedFields = authUser.role === 7 ? true : key !== 'end' && key !== 'ot' && key !== 'urgency'
       const costCenterIsRequired = authUser.role === 7 && key === 'costCenter' ? false : true
-      const deliverableIsRequired = authUser.role === 5 && key === 'deliverable' ? false : true
-
       // Error campos vacíos
       if (
         key !== 'fnlocation' &&
@@ -384,18 +332,13 @@ const FormLayoutsSolicitud = () => {
         key !== 'urlvideo' &&
         key !== 'mcDescription' &&
         costCenterIsRequired &&
-        excludedFields &&
-        deliverableIsRequired
+        excludedFields
       ) {
         if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-          newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
+          newErrors[key] = 'Por favor, especifica una opción válida'
         }
       } else if (key == 'mcDescription' && values['deliverable'].includes('Memoria de Cálculo') && values[key] === '') {
-        newErrors[key] = `Por favor, especifica una opción válida para ${fieldLabels[key]}`
-      }
-
-      if (key === 'costCenter' && values[key] === 0) {
-        newErrors[key] = 'El campo Centro de Costo no puede ser cero.'
+        newErrors[key] = 'Por favor, especifica una opción válida'
       }
 
       if (key === 'objective') {
@@ -416,24 +359,8 @@ const FormLayoutsSolicitud = () => {
         }
       }
 
-      if (key === 'end' && shouldValidateEND /* && shouldValidateOT */) {
-        if (!values[key]) {
-          newErrors[key] = 'El campo Fecha de Término no puede estar vacío.'
-        }
-      }
-      //* Se comenta esta función debido a que la OT dejará de agregarse manualmente, ahora se generará a de forma automática.
-      /* if (key === 'ot' && shouldValidateOT) {
-        if (!values[key]) {
-          newErrors[key] = 'El campo OT no puede estar vacío.'
-        } else if (values[key] === 0) {
-          newErrors[key] = 'El campo OT no puede ser cero.'
-        } else if (typeof values[key] !== 'number') {
-          newErrors[key] = 'El campo OT debe ser un número.'
-        } else if (errors.ot) {
-          newErrors[key] = errors.ot
-        }
-      } else if (textFieldValues.includes(values[key])) {
-        // Validaciones solo para claves de tipo string
+      // Validaciones solo para claves de tipo string
+      if (textFieldValues.includes(values[key])) {
         // Saca espacios en los values
         trimmedValues[key] = values[key].replace(/\s+$/, '')
 
@@ -441,18 +368,11 @@ const FormLayoutsSolicitud = () => {
         if (validationRegex[key] && !validationRegex[key].test(trimmedValues[key])) {
           newErrors[key] = `Por favor, introduce una opción válida`
         }
-      } */
+      }
     }
 
     return newErrors
   }
-
-  // useEffect para habilitar el boton de envío cuando no exista errores en el formulario
-  useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      setButtonDisabled(false)
-    }
-  }, [errors])
 
   // useEffect para buscar toda la información de la colección domain en la base de datos
   useEffect(() => {
@@ -596,264 +516,162 @@ const FormLayoutsSolicitud = () => {
 
   // Objeto para mantener las referencias
   const refs = {
-    //* ot: otRef,
-    urgency: urgencyRef,
-    title: titleRef,
-    description: descriptionRef,
-    end: endRef,
-    plant: plantRef,
-    area: areaRef,
-    contop: contopRef,
-    costCenter: costCenterRef,
-    petitioner: petitionerRef,
-    type: typeRef,
-    detention: detentionRef,
-    objective: objectiveRef,
-    deliverable: deliverableRef,
-    receiver: receiverRef
+    ot: otRef
+    // ... otras referencias
   }
 
-  const focusFirstError = formErrors => {
-    const errorKeys = Object.keys(formErrors)
-
-    const orderedErrorKeys = [
-      //* 'ot',
-      'urgency',
-      'title',
-      'description',
-      'end',
-      'plant',
-      'area',
-      'contop',
-      'costCenter',
-      'petitioner',
-      'type',
-      'detention',
-      'objective',
-      'deliverable',
-      'receiver'
-    ] // Orden específico de los elementos de 'errorKeys'
-
-    for (const key of orderedErrorKeys) {
-      // Si el key está en errorKeys, y formErrors[key] existe, y refs[key] existe...
-      if (errorKeys.includes(key) && formErrors[key] && refs[key] && refs[key].current) {
-        // Establece el mensaje de alerta al error correspondiente a key
-        setAlertMessage(errors[key])
-        // Enfoca el elemento correspondiente a key
-        refs[key].current.focus()
-        // Sale del bucle: no se procesarán más keys después de encontrar el primer error
-        break
-      }
-    }
-  }
-
-  // Función que se ejecutará al hacer click en "ENVIAR SOLICITUD".
-  // Usa como parámetro a "event" que es el objeto del evento Submit.
   const onSubmit = async event => {
-    // Bloque try-catch para ejecutar las funciones de submit y obtener los errores si los hay.
-    try {
-      // Se ejecuta el método event.preventDefault() para evitar que se recargue la página al enviar la solicitud.
-      event.preventDefault()
+    event.preventDefault()
+    setButtonDisabled(true)
+    const formErrors = validateForm(values)
+    setErrors(formErrors)
+    const requiredKeys = ['title']
+    const areFieldsValid = requiredKeys.every(key => !formErrors[key])
 
-      // Se bloquea el botón de "ENVIAR SOLICITUD" para evitar los multiclicks.
-      setButtonDisabled(true)
+    const isUrgent =
+      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+    const invalidFiles = validateFiles(files).filter(file => !file.isValid)
+    let isBlocked = await consultBlockDayInDB(values.start.toDate())
 
-      // Se ejecuta y define formErrors que definirá cuáles son los errores o campos vacíos del formulario
-      const formErrors = validateForm(values)
-      setErrors(formErrors)
+    if (errors.ot) {
+      setAlertMessage(errors.ot)
+      otRef.current.focus() // Enfoca el campo 'OT'
+      setButtonDisabled(false)
 
-      console.log('errors: ', errors)
-      console.log('formErrors: ', formErrors)
+      return // Salimos de la función si hay un error en 'ot'.
+    }
 
-      // Si existen errores, se ejecutará focus() que hará que la vista se dirija hacia el campo del primer error encontrado.
-      if (Object.keys(errors).length > 0) {
-        focusFirstError(errors)
+    // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
+    if (!values.deliverable.includes('Memoria de Cálculo')) {
+      values.mcDescription = '' // Restablecer mcDescription si 'Memoria de Cálculo' no está seleccionado
+    }
 
-        return
-      }
+    console.log(formErrors)
 
-      if (Object.keys(formErrors).length > 0) {
-        focusFirstError(formErrors)
+    if (
+      Object.keys(formErrors).length === 0 &&
+      areFieldsValid === true &&
+      invalidFiles.length === 0 &&
+      ((isBlocked && isBlocked.blocked === false) || isUrgent)
+    ) {
+      try {
+        setIsUploading(true) // Se activa el Spinner
 
-        return
-      }
-
-      // Se define la variable booleana isUrgent la cual servirá para definir el mensaje "El día que está seleccionado se encuentra bloqueado".
-      const isUrgent =
-        ['Outage', 'Shutdown'].includes(values.type) ||
-        ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
-
-      // Se define el array de booleanos invalidFiles que definirá si los documentos adjuntos son válidos o no.
-      const invalidFiles = validateFiles(files).filter(file => !file.isValid)
-
-      // Se define la variable booleana isBlocked que define si el día 'start' seleccionado está bloqueado o no.
-      const isBlocked = await consultBlockDayInDB(values.start.toDate())
-
-      // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado.
-      if (!values.deliverable.includes('Memoria de Cálculo')) {
-        delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado.
-      }
-
-      // Se imprimen en consola los errores en el formulario.
-      console.log(formErrors)
-
-      // Si no existen errores en el formulario se procederá.
-      if (Object.keys(formErrors).length === 0 && invalidFiles.length === 0) {
-        if ((isBlocked && isBlocked.blocked === false) || isUrgent) {
-          // Se activa el Spinner
-          setIsUploading(true)
-
-          // Se crea el objeto processedValues, que son los values del formulario modificados para poder almacenarlos correctamente en Firestore
-          const processedValues = {
+        const solicitud = await newDoc(
+          {
             ...values,
-            petitioner: values.petitioner.split(' - ')[0],
-            receiver: values.receiver.map(option => ({
-              id: option.id,
-              name: option.name,
-              email: option.email,
-              phone: option.phone
-            })),
+            receiver: values.receiver.map(option => {
+              const { disabled, ...rest } = option
+
+              return {
+                id: option.id,
+                name: option.name,
+                email: option.email,
+                phone: option.phone
+              }
+            }),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
             end:
-              (authUser.role === 5 || authUser.role === 7) &&
-              moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate(),
-            mcDescription: values.mcDescription || null
-          }
+              authUser.role === 7 ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate() : null,
+            mcDescription: values.mcDescription ? values.mcDescription : null
+          },
+          authUser
+        )
 
-          // Se crea en Firestore el nuevo documento de la solicitud.
-          const request = await newDoc(processedValues, authUser)
-
-          // Se almacenan en Firestore los archivos adjuntos y se registra en Firestore el link de ellos.
-          const attachedDocuments = await uploadFilesToFirebaseStorage(files, request.id)
-
-          // Se modifica processedValues para que también consideren los links de los elementos adjuntos.
-          const updatedValues = { ...processedValues, attachedDocuments }
-
-          // Se envia el e-mail con toda la información de la Solicitud.
-          await sendEmailNewPetition(authUser, updatedValues, request.id)
-
-          // Se quita de localStorage los datos del formulario que están almacenados temporalmente.
-          localStorage.removeItem('formData')
-
-          // Se detiene el Spinner.
-          setIsUploading(false)
-
-          // Se quitan los archivos adjuntos del formulario.
-          handleRemoveAllFiles()
-
-          // Se entrega el mensaje de éxito en Dialog.
-          setAlertMessage('Documento creado exitosamente')
-
-          // Se setean los valores del formulario a su condición de inicialización.
-          setValues(initialValues)
-
-          // Se setean los valores de los errores encontrados vacíoos nuevamente.
-          setErrors({})
-        } else {
-          setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
-        }
+        await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
+          setIsUploading(false),
+            setButtonDisabled(false),
+            handleRemoveAllFiles(),
+            setAlertMessage('Documento creado exitosamente'),
+            setValues(initialValues),
+            setErrors({})
+        })
+      } catch (error) {
+        setAlertMessage(error.message)
+        setIsUploading(false) // Se cierra el spinner en caso de error
+        setButtonDisabled(false)
       }
-
-      // Al terminar de ejecutarse esta función, se desbloquea el botón "ENVIAR SOLICITUD".
+    } else {
+      if (
+        Object.keys(formErrors).length === 0 &&
+        areFieldsValid === true &&
+        invalidFiles.length === 0 &&
+        isBlocked.blocked &&
+        !isUrgent
+      ) {
+        setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
+      }
       setButtonDisabled(false)
-
-      // Al terminar de ejecutarse esta función, se desactiva el spinner.
       setIsUploading(false)
-    } catch (error) {
-      console.error(error)
-
-      // Se agrega en el estado alertMessage el error que se esté recibiendo.
-      setAlertMessage(error.message)
-
-      // Se desactiva el spinner.
-      setIsUploading(false)
-
-      // Se desbloquea el botón "ENVIAR SOLICITUD".
-      setButtonDisabled(false)
+      setErrors(formErrors)
     }
   }
 
-  // Función asíncrona para buscar la información de los Contract Operator y Solicitantes de la Planta indicada
   const fetchData = async () => {
     try {
-      // Obtener opciones de Contract Operator y Solicitantes simultáneamente
-      const [contOpOptions, petitioners] = await Promise.all([
-        getUserData('getUsers', values.plant),
-        getUserData('getPetitioner', values.plant, { role: authUser.role })
-      ])
+      const contOpOptions = await getUserData('getUsers', values.plant)
+      setContOpOptions(contOpOptions)
 
-      // Si solo hay una opción de Contract Operator y tiene nombre, establecerla automáticamente en los valores que serán almacenados en Firestore
-      if (contOpOptions.length === 1 && contOpOptions[0].name) {
-        setValues(prevValues => ({
-          ...prevValues,
-          contop: contOpOptions[0].name // Establecer automáticamente el Contract Operator seleccionado
-        }))
-      }
+      const petitioners = await getUserData('getPetitioner', values.plant, { role: authUser.role })
+      setPetitioners(petitioners)
 
-      setContOpOptions(contOpOptions) // Establecer las opciones de Contract Operator en la lista desplegable del formulario
-
-      // Filtrar los Solicitantes para incluir solo aquellos con roles 2 y 3 (para que no aparezcan ni Contract Owner ni usuarios Procure)
-      const filteredPetitioners = petitioners.filter(user => user.role == 2 || user.role == 3)
-      setPetitioners(filteredPetitioners) // Establecer los Solicitantes filtrados
-
-      // Si solo hay una opción de Contract Operator y tiene un nombre, devolver esa opción
-      if (contOpOptions.length === 1 && contOpOptions[0].name) {
-        return contOpOptions[0] // Devolver la única opción de Contract Operator disponible
+      if (contOpOptions && contOpOptions.length === 1 && contOpOptions[0].name) {
+        return contOpOptions[0]
       }
     } catch (error) {
-      console.error('Error en la petición:', error) // Manejar errores
+      console.error('Error en la petición:', error)
     }
   }
 
-  // Función que obtiene los usuarios fijos (Contract Owner y el Contract Operator Seleccionado)
-  const getFixedUsers = async () => {
+  const getFixedUsers = async contop => {
     try {
-      // Obtiene los usuarios con roles específicos asociados a una planta
-      const [contractOperatorUsers, contractOwnerUser, plantUsers] = await Promise.all([
-        getUserData('getUsersByRole', null, { role: 3 }), // Obtener usuarios con el rol de Contract Operator
-        getUserData('getUsersByRole', null, { role: 4 }), // Obtener usuarios con el rol de Contract Owner
-        getUserData('getReceiverUsers', values.plant) // Obtener usuarios que no son ni Contract Owner ni Contract Operator
+      const [contOpUsers, contOwnUser, plantUsers] = await Promise.all([
+        getUserData('getUsersByRole', null, { role: 3 }),
+        getUserData('getUsersByRole', null, { role: 4 }),
+        getUserData('getReceiverUsers', values.plant)
       ])
 
-      // Combinar los usuarios obtenidos en un único array de Destinatarios
-      const receiverGroup = [...contractOperatorUsers, ...contractOwnerUser, ...plantUsers]
+      const filterNames = []
 
-      let fixedOptions = [] // Array para almacenar los Destinatarios fijos
+      const receiverGroup = [...contOpUsers, ...contOwnUser, ...plantUsers]
 
-      // Buscar y añadir el Contract Operator seleccionado a las opciones fijas
-      const matchingContop = contractOperatorUsers.find(option => option.name === values.contop)
-      if (matchingContop) {
-        fixedOptions.push({ ...matchingContop, disabled: true }) // Añadir el Contract Operator seleccionado con la propiedad 'disabled'
+      const receiverFilter = receiverGroup.filter(user => !filterNames.includes(user.name))
+
+      const petitionerUsers = petitioners.filter(user => !receiverFilter.some(receiver => receiver.name === user.name))
+
+      let fixedOptions = []
+
+      if (contop) {
+        fixedOptions.push({ ...contop, disabled: true })
       }
 
-      // Añadir el Contract Owner a las opciones fijas si está presente
-      if (contractOwnerUser) {
-        fixedOptions.push({ ...contractOwnerUser[0], disabled: true }) // Añadir el Contract Owner con la propiedad 'disabled'
+      if (contOwnUser) {
+        fixedOptions.push({ ...contOwnUser[0], disabled: true })
       }
-
-      // Establecer las opciones fijas en el estado
       setFixed(fixedOptions)
-
-      // Actualizar los valores del estado, estableciendo el Contract Operator seleccionado y Contract Owner como opciones fijas
-      setValues(values => ({
-        ...values,
-        ...(matchingContop && { contop: matchingContop.name }), // Actualizar el valor de 'contop' si se ha encontrado un Contract Operator coincidente
-        receiver: [...fixedOptions] // Establecer los receptores como opciones fijas
-      }))
-
-      // Establecer todos los usuarios disponibles (receptores y peticionarios) en el estado
-      setAllUsers(receiverGroup)
+      setValues(values => ({ ...values, ...(contop && { contop: contop.name }), receiver: [...fixedOptions] }))
+      setAllUsers(receiverFilter.concat(petitionerUsers))
     } catch (error) {
-      console.error('Error al obtener datos de usuarios:', error) // Manejar errores
+      console.error('Error al obtener datos de usuarios:', error)
     }
   }
 
-  // useEffect para ejecutar las funciones fetchData y luego getFixedUsers, cuando hay cambios en Planta o en Contract Opetaror.
   useEffect(() => {
     if (values.plant) {
-      fetchData().then(getFixedUsers())
+      fetchData().then(contOpValue => getFixedUsers(contOpValue))
     }
-  }, [values.plant, values.contop])
+  }, [values.plant])
+
+  // Establece planta solicitante y contop solicitante
+  useEffect(() => {
+    let plant = authUser && authUser.plant.map(plant => plant)
+
+    if (authUser.role === 2) {
+      let onlyPlant = plant[0]
+      let userOption = authUser.displayName
+      setValues({ ...values, plant: onlyPlant, petitioner: userOption })
+    }
+  }, [authUser, isUploading])
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
@@ -880,91 +698,7 @@ const FormLayoutsSolicitud = () => {
         }))
       }
     }
-
-    // Agregar error 'end' en caso de que el usuario modifique la fecha de inicio despues de la de término.
-    if (values.end && !errors.end) {
-      if (values.end.toDate() < values.start.toDate()) {
-        setErrors(prevErrors => ({
-          ...prevErrors,
-          end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
-        }))
-      }
-    }
-
-    // Eliminar el error 'end' si values.end es mayor o igual a values.start
-    if (errors.end) {
-      if (values.end.toDate() >= values.start.toDate()) {
-        setErrors(prevErrors => {
-          delete prevErrors.end // Elimina el error 'end'
-
-          return { ...prevErrors }
-        })
-      }
-    }
-  }, [values.start, values.end, errors.end])
-
-  useEffect(() => {
-    const formDataToSave = { ...values }
-    if (formDataToSave.start) {
-      formDataToSave.start = formDataToSave.start.format()
-    }
-    if (formDataToSave.end) {
-      formDataToSave.end = formDataToSave.end.format()
-    }
-
-    // Guardar los datos del formulario junto con la marca de tiempo actual
-    const dataToStore = {
-      ...formDataToSave,
-      timestamp: new Date().getTime() // Marca de tiempo en milisegundos
-    }
-    localStorage.setItem('formData', JSON.stringify(dataToStore))
-  }, [values])
-
-  useEffect(() => {
-    const savedFormData = localStorage.getItem('formData')
-    if (savedFormData) {
-      /* const { formData, timestamp } = JSON.parse(savedFormData)
-      const currentTime = new Date().getTime()
-
-      // Verificar si han pasado 24 horas (24 * 60 * 60 * 1000 milisegundos)
-      if (currentTime - timestamp < 24 * 60 * 60 * 1000) {
-        if (formData.start) {
-          formData.start = moment(formData.start)
-        }
-        if (formData.end) {
-          formData.end = moment(formData.end)
-        }
-        setValues(formData)
-      } else {
-        // Limpiar localStorage si han pasado 24 horas
-        localStorage.removeItem('formData')
-      } */
-      const parsedData = JSON.parse(savedFormData)
-      const currentTime = new Date().getTime()
-
-      if (currentTime - parsedData.timestamp < 8 * 60 * 60 * 1000) {
-        if (parsedData.start) {
-          parsedData.start = moment(parsedData.start)
-        }
-        if (parsedData.end) {
-          parsedData.end = moment(parsedData.end)
-        }
-        // Establecemos los valores directamente sin incluir una propiedad formData.
-        setValues(parsedData)
-      } else {
-        // Limpiar localStorage si han pasado 24 horas
-        localStorage.removeItem('formData')
-      }
-    }
-  }, [])
-
-  // useEffect para definir automáticamente el campo 'Solicitante' cuando el usuario conectado tiene rol 2 (Solicitante).
-  // En caso de que no tenga rol 2 (Solicitante), deberá seleccionarlo desde la lista desplegable.
-  useEffect(() => {
-    if (authUser.role === 2) {
-      setValues({ ...values, petitioner: authUser.displayName })
-    }
-  }, [values.petitioner])
+  }, [values.start])
 
   return (
     <Card>
@@ -991,9 +725,10 @@ const FormLayoutsSolicitud = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-            {/* Número de OT Procure*/}
-            {/* (authUser.role === 5 || authUser.role === 7) && (
+            {/* Datos exclusivos para cuando el Supervisor ingresa la Solicitud */}
+            {authUser.role === 7 && (
               <>
+                {/* Número de OT Procure */}
                 <CustomTextField
                   inputRef={otRef}
                   type='text'
@@ -1003,21 +738,12 @@ const FormLayoutsSolicitud = () => {
                   onChange={handleChange('ot')}
                   error={errors.ot}
                   inputProps={{ maxLength: 5 }}
-                  autoComplete='off'
-                  onInput={e => {
-                    e.target.value = e.target.value.replace(/[^0-9]/g, '')
-                  }}
                   helper='Ingresa el número de OT.'
                   onBlur={handleBlurOt}
                 />
-              </>
-            ) */}
 
-            {/* Tipo de Urgencia */}
-            {authUser.role === 7 && (
-              <>
+                {/* Tipo de Urgencia */}
                 <CustomSelect
-                  inputRef={urgencyRef}
                   required
                   options={urgencyTypesOptions}
                   label='Tipo de urgencia'
@@ -1032,7 +758,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Título */}
             <CustomTextField
-              inputRef={titleRef}
               required
               type='text'
               label='Título'
@@ -1045,7 +770,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Descripción */}
             <CustomTextField
-              inputRef={descriptionRef}
               required
               type='text'
               label='Descripción'
@@ -1059,31 +783,21 @@ const FormLayoutsSolicitud = () => {
             {/* Fecha inicio */}
             <Grid item xs={12}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                <LocalizationProvider
-                  dateAdapter={AdapterMoment}
-                  adapterLocale='es'
-                  localeText={{
-                    okButtonLabel: 'Aceptar',
-                    cancelButtonLabel: 'Cancelar',
-                    datePickerToolbarTitle: 'Selecciona Fecha de Comienzo'
-                  }}
-                >
+                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                   <Box display='flex' alignItems='center'>
-                    <MobileDatePicker
+                    <DatePicker
                       dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                       minDate={moment().subtract(1, 'year')}
                       maxDate={moment().add(1, 'year')}
                       label='Fecha de inicio *'
                       value={values.start}
                       onChange={date => handleChange('start')(date)}
-                      inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
                       InputLabelProps={{ shrink: true, required: true }}
                       slotProps={{
                         textField: {
                           error: errors.start ? true : false,
                           helperText: errors.start
-                        },
-                        toolbar: { hidden: false }
+                        }
                       }}
                     />
                     <StyledTooltip title='Selecciona la fecha de inicio deseada para la tarea que requieres.'>
@@ -1095,35 +809,24 @@ const FormLayoutsSolicitud = () => {
             </Grid>
 
             {/* Fecha finalización */}
-            {(authUser.role === 5 || authUser.role === 7) && (
+            {authUser.role === 7 && (
               <Grid item xs={12}>
                 <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                  <LocalizationProvider
-                    dateAdapter={AdapterMoment}
-                    adapterLocale='es'
-                    localeText={{
-                      okButtonLabel: 'Aceptar',
-                      cancelButtonLabel: 'Cancelar',
-                      datePickerToolbarTitle: 'Selecciona Fecha de Término'
-                    }}
-                  >
+                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale='es'>
                     <Box display='flex' alignItems='center'>
-                      <MobileDatePicker
-                        inputRef={endRef}
+                      <DatePicker
                         dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                         minDate={moment().subtract(1, 'year')}
                         maxDate={moment().add(1, 'year')}
                         label='Fecha de término *'
                         value={values.end}
                         onChange={date => handleChange('end')(date)}
-                        inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
                         InputLabelProps={{ shrink: true, required: true }}
                         slotProps={{
                           textField: {
                             error: errors.end ? true : false,
                             helperText: errors.end
-                          },
-                          toolbar: { hidden: false }
+                          }
                         }}
                       />
                       <StyledTooltip title='Selecciona la fecha de finalización deseada para la tarea que requieres.'>
@@ -1137,7 +840,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Planta */}
             <CustomSelect
-              inputRef={plantRef}
               required
               options={[...authUser.plant]}
               label='Planta'
@@ -1153,7 +855,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Área */}
             <CustomSelect
-              inputRef={areaRef}
               required
               options={areas}
               label='Área'
@@ -1177,27 +878,19 @@ const FormLayoutsSolicitud = () => {
 
             {/* Contract Operator */}
             <CustomSelect
-              inputRef={contopRef}
               required
-              options={
-                authUser.role === 3 && contOpOptions?.length < 2 ? [{ name: authUser.displayName }] : contOpOptions
-              }
+              options={authUser.role === 3 ? [{ name: authUser.displayName }] : contOpOptions}
               label='Contract Operator'
               value={values.contop}
               onChange={handleChange('contop')}
               error={errors.contop}
-              disabled={(authUser.role === 3 && contOpOptions?.length < 2) || contOpOptions?.length < 2}
-              helper={
-                contOpOptions?.length < 2
-                  ? 'Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
-                  : 'Selecciona al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
-              }
+              disabled={authUser.role === 3}
+              helper='Selecciona quién al Contract Operator de tu Planta que deberá validar la solicitud de trabajo.'
               defaultValue=''
             />
 
             {/* Centro de Costos */}
             <CustomTextField
-              inputRef={costCenterRef}
               required={authUser.role != 7}
               type='text'
               label='Centro de Costos'
@@ -1205,10 +898,6 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('costCenter')}
               error={errors.costCenter}
               inputProps={{ maxLength: 25 }}
-              autoComplete='off'
-              onInput={e => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '')
-              }}
               helper='Ingresa el código del Centro de Costos.'
             />
 
@@ -1220,9 +909,6 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('fnlocation')}
               error={errors.fnlocation}
               inputProps={{ maxLength: 25 }}
-              onInput={e => {
-                e.target.value = e.target.value.toUpperCase()
-              }}
               helper='Ingresa el código del Functional Location en dónde será ejecutado el levantamiento.'
             />
 
@@ -1234,27 +920,17 @@ const FormLayoutsSolicitud = () => {
               onChange={handleChange('tag')}
               error={errors.tag}
               inputProps={{ maxLength: 25 }}
-              onInput={e => {
-                e.target.value = e.target.value.toUpperCase()
-              }}
               helper='Ingresa el código TAG para identificar el equipo.'
             />
 
             {/* Solicitante */}
-            {authUser.role !== 2 && authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants' && (
+            {authUser.role !== 2 && (authUser.plant !== 'Sucursal Santiago' && authUser.plant !== 'allPlants') && (
               <CustomSelect
-                inputRef={petitionerRef}
-                required
+              required
                 options={
-                  authUser.role === 3 ||
-                  authUser.role === 5 ||
-                  authUser.role === 7 ||
-                  authUser.plant === 'allPlants' ||
-                  authUser.plant === 'Solicitante Santiago'
-                    ? petitioners
-                        .map(item => ({ name: `${item.name} - ${item.email}` }))
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                    : [authUser.displayName]
+                  (authUser.role === 3 || authUser.role === 5 || authUser.role === 7 || authUser.plant === 'allPlants' || authUser.plant === 'Solicitante Santiago'
+                    ? petitioners.map(item => ({ name: item.name }))
+                    : [authUser.displayName])
                 }
                 label='Solicitante'
                 value={values.petitioner}
@@ -1270,7 +946,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Estado Operacional */}
             <CustomSelect
-              inputRef={typeRef}
               required
               options={operationalStatusOptions}
               label='Estado Operacional Planta'
@@ -1283,7 +958,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Máquina Detenida */}
             <CustomSelect
-              inputRef={detentionRef}
               required
               options={['Sí', 'No', 'No aplica']}
               label='¿Estará la máquina detenida?'
@@ -1308,7 +982,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Tipo de Levantamiento */}
             <CustomSelect
-              inputRef={objectiveRef}
               required
               options={objectivesOptions}
               label='Tipo de Levantamiento'
@@ -1321,8 +994,7 @@ const FormLayoutsSolicitud = () => {
 
             {/* Entregables */}
             <CustomAutocomplete
-              inputRef={deliverableRef}
-              required={authUser.role !== 5}
+              required
               options={deliverablesOptions}
               label='Entregables del levantamiento'
               value={values.deliverable}
@@ -1331,7 +1003,7 @@ const FormLayoutsSolicitud = () => {
               helper='Selecciona cuál o cuáles serán los entregables que esperas recibir por parte de Procure.'
             />
 
-            {values.deliverable?.includes('Memoria de Cálculo') && (
+            {values.deliverable.includes('Memoria de Cálculo') && (
               <>
                 {/* Descripción */}
                 <CustomTextField
@@ -1349,7 +1021,6 @@ const FormLayoutsSolicitud = () => {
 
             {/* Destinatarios */}
             <CustomAutocomplete
-              inputRef={receiverRef}
               required
               isOptionEqualToValue={(option, value) => option.name === value.name}
               options={allUsers}

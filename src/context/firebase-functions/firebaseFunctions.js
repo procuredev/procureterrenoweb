@@ -1,7 +1,7 @@
 // ** Firebase Imports
-import { GoogleAuthProvider, deleteUser, getAuth, signInWithPopup, updateProfile } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
+import { getAuth, updateProfile, deleteUser, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { Firebase, db } from 'src/configs/firebase'
+import { doc, setDoc } from 'firebase/firestore'
 
 // ** Trae funcion que valida los campos del registro
 import { registerValidator } from '../form-validation/helperRegisterValidator'
@@ -54,16 +54,10 @@ const updatePassword = async password => {
 }
 
 // ** Inicio de sesión
-const signInWithEmailAndPassword = async (email, password, rememberMe) => {
-  // Primero se crea una función asíncrona para logearse mediante Firebase que en caso de error retornará el error.
-  const signIn = async () => {
-    try {
-      const userCredential = await Firebase.auth().signInWithEmailAndPassword(email, password)
-      const userData = await formatAuthUser(userCredential.user)
-      localStorage.setItem('user', JSON.stringify(userData))
-
-      return userCredential
-    } catch (err) {
+const signInWithEmailAndPassword = (email, password) => {
+  return Firebase.auth()
+    .signInWithEmailAndPassword(email, password)
+    .catch(err => {
       switch (err.code) {
         case 'auth/wrong-password':
           throw new Error('Contraseña incorrecta, intente de nuevo')
@@ -72,21 +66,7 @@ const signInWithEmailAndPassword = async (email, password, rememberMe) => {
         default:
           throw new Error('Error al iniciar sesión')
       }
-    }
-  }
-
-  // Si el usuario seleccinó la casilla "Recordarme" se usa la versión por defecto de Firebase, la cual almacena al usuario.
-  if (rememberMe) {
-
-    return await signIn()
-
-  } else {
-    // En caso contrario, se define Persitencia 'sessión', lo que significa que el usuario permanecerá conectado mientras no cierre la pestaña del navegador
-    await Firebase.auth().setPersistence('session')
-
-    return await signIn()
-
-  }
+    })
 }
 
 // ** Registro de usuarios
@@ -150,11 +130,11 @@ const createUserInDatabase = (values, uid) => {
     completedProfile = true
   } else if (company === 'MEL') {
     if (role === 2) {
-      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
     } else if (role === 3 || role === 4) {
-      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut
+      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut;
     } else {
-      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
     }
   }
 
