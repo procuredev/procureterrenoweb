@@ -926,6 +926,7 @@ const FormLayoutsSolicitud = () => {
       /* const { formData, timestamp } = JSON.parse(savedFormData)
       const currentTime = new Date().getTime()
 
+
       // Verificar si han pasado 24 horas (24 * 60 * 60 * 1000 milisegundos)
       if (currentTime - timestamp < 24 * 60 * 60 * 1000) {
         if (formData.start) {
