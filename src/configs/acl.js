@@ -51,7 +51,8 @@ const defineRulesFor = (role, subject) => {
       'solicitudes',
       'user-profile',
       'documentos',
-      'gabinete'
+      'gabinete',
+      'cargar-horas'
     ])
   } else if (role === 6) {
     can('manage', [
@@ -62,7 +63,8 @@ const defineRulesFor = (role, subject) => {
       'solicitudes',
       'user-profile',
       'documentos',
-      'gabinete'
+      'gabinete',
+      'cargar-horas'
     ])
   } else if (role === 7) {
     can('manage', [
@@ -75,7 +77,8 @@ const defineRulesFor = (role, subject) => {
       'user-profile',
       'levantamientos',
       'documentos',
-      'gabinete'
+      'gabinete',
+      'cargar-horas'
     ])
   } else if (role === 8) {
     can('manage', [
@@ -87,7 +90,8 @@ const defineRulesFor = (role, subject) => {
       'user-profile',
       'documentos',
       'levantamientos',
-      'gabinete'
+      'gabinete',
+      'cargar-horas'
     ])
   } else if (role === 9) {
     can('manage', [
@@ -98,7 +102,8 @@ const defineRulesFor = (role, subject) => {
       'user-profile',
       'documentos',
       'solicitudes',
-      'gabinete'
+      'gabinete',
+      'cargar-horas'
     ])
   } else if (role === 10) {
     can('manage', [
@@ -110,17 +115,11 @@ const defineRulesFor = (role, subject) => {
       'documentos',
       'solicitudes',
       'levantamientos',
-      'gabinete'
+      'gabinete',
+      'cargar-horas'
     ])
-  }
-  else if (role === 11) {
-    can('manage', [
-      'calendario',
-      'home',
-      'mapa',
-      'nuestro-equipo',
-      'user-profile'
-    ])
+  } else if (role === 11) {
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'cargar-horas'])
   } else {
     can('manage', subject)
   }
