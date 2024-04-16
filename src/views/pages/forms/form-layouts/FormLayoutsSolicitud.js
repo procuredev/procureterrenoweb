@@ -890,7 +890,7 @@ const FormLayoutsSolicitud = () => {
     }
 
     // Eliminar el error 'end' si values.end es mayor o igual a values.start
-    if (errors.end) {
+    if (values.end && errors.end) {
       if (values.end.toDate() >= values.start.toDate()) {
         setErrors(prevErrors => {
           delete prevErrors.end // Elimina el error 'end'
