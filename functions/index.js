@@ -556,7 +556,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 // La explicación del schedule es la siguiente: Minuto -  Hora - Día del Mes - Mes del Año - Día de la Semana. Para entender mejor esto ir a: https://crontab.guru/
 // En este caso la función se ejecutará con Minuto = 0, Hora = 8, Día del Mes = *, Mes del Año = *, Día de la Semana = 2
 exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
-  .schedule('44 08 * * 2')
+  .schedule('27 10 * * 3')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
