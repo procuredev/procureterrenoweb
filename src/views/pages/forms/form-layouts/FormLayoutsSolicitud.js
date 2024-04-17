@@ -160,8 +160,8 @@ const FormLayoutsSolicitud = () => {
       'mcDescription',
       'costCenter'
     ]
-    const selectFields = ['plant', 'area', 'petitioner', 'type', 'detention', 'objective', 'contop', 'urgency']
-    const autoFields = ['deliverable', 'receiver']
+    const selectFields = ['plant', 'petitioner', 'type', 'detention', 'objective', 'contop', 'urgency']
+    const autoFields = ['area', 'deliverable', 'receiver']
     let newValue
     switch (true) {
       case strFields.includes(prop): {
@@ -1078,7 +1078,7 @@ const FormLayoutsSolicitud = () => {
               defaultValue=''
             />
 
-            {/* Área */}
+            {/* Área
             <CustomSelect
               inputRef={areaRef}
               required
@@ -1087,11 +1087,21 @@ const FormLayoutsSolicitud = () => {
               value={values.area}
               onChange={handleChange('area')}
               error={errors.area}
-              disabled={
-                authUser.role === 2 && (authUser.plant === 'Sucursal Santiago' || authUser.plant === 'allPlants')
-              }
               helper='Selecciona el área dentro de tu planta en dónde se ejecutará la tarea que requieres.'
               defaultValue=''
+            /> */}
+
+            {/* Área */}
+            <CustomAutocomplete
+              inputRef={areaRef}
+              required
+              options={areas}
+              label='Área'
+              value={values.area}
+              onChange={handleChange('area')}
+              error={errors.area}
+              helper='Selecciona el área dentro de tu planta en dónde se ejecutará la tarea que requieres.'
+              multiple={false}
             />
 
             {/* Texto mapa */}
