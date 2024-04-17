@@ -1078,19 +1078,6 @@ const FormLayoutsSolicitud = () => {
               defaultValue=''
             />
 
-            {/* Área
-            <CustomSelect
-              inputRef={areaRef}
-              required
-              options={areas}
-              label='Área'
-              value={values.area}
-              onChange={handleChange('area')}
-              error={errors.area}
-              helper='Selecciona el área dentro de tu planta en dónde se ejecutará la tarea que requieres.'
-              defaultValue=''
-            /> */}
-
             {/* Área */}
             <CustomAutocomplete
               inputRef={areaRef}
