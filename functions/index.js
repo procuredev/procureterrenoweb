@@ -73,6 +73,173 @@ const getSupervisorData = async shift => {
   }
 }
 
+// Función para obtener el colspan dinámico
+function getColspan(tasks, date) {
+
+  const newDate = new Date(date)
+
+  if (tasks[newDate.getDate()]) {
+    const tasksOnDate = tasks[newDate.getDate()]
+
+    return tasksOnDate.length
+
+  } else {
+
+    return 0
+
+  }
+
+}
+
+// Función para generar tablas HTML dinámicas
+function generateDynamicTables(data, firstDayOfWeek) {
+
+  const lunes = firstDayOfWeek
+  const martes = new Date(lunes)
+  martes.setDate(lunes.getDate() + 1)
+  const miercoles = new Date(martes)
+  miercoles.setDate(martes.getDate() + 1)
+  const jueves = new Date(miercoles)
+  jueves.setDate(miercoles.getDate() + 1)
+  const viernes = new Date(jueves)
+  viernes.setDate(jueves.getDate() + 1)
+  const sabado = new Date(viernes)
+  sabado.setDate(viernes.getDate() + 1)
+  const domingo = new Date(sabado)
+  domingo.setDate(sabado.getDate() + 1)
+
+  // Se definen los nombres en Español de los meses del año.
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+
+  let htmlDataNames = {
+    ot: "OT",
+    title: "Título",
+    area: "Área",
+    cowner: "Contract Owner",
+    contop: "Contract Operator",
+    petitioner: "Solicitante",
+    supervisor: "Supervisor",
+    drawman: "Proyectista",
+    hse: "HSE",
+    surveyor: "Topógrafo",
+    resources: "Recursos"
+  }
+
+  let html = ''
+
+  // Iterar sobre cada planta
+  for (const [plant, tasks] of Object.entries(data)) {
+
+    // Organizar tareas por día
+    const tasksByDay = {}
+    tasks.forEach(task => {
+      const date = new Date(task.fictionalStart.toDate())
+      const day = date.getDate()
+      if (!tasksByDay[day]) {
+        tasksByDay[day] = []
+      }
+      tasksByDay[day].push(task)
+    })
+
+
+    let htmlData = {
+      ot: [],
+      title: [],
+      area: [],
+      cowner: [],
+      contop: [],
+      petitioner: [],
+      supervisor: [],
+      drawman: [],
+      hse: [],
+      surveyor: [],
+      resources: []
+    }
+
+    for(let i = 0; i < 7; i++){
+      const day = new Date()
+      day.setHours(0, 0, 0, 0)
+      day.setDate(lunes.getDate() + i)
+
+
+      if (!tasksByDay[day.getDate()]){
+
+        htmlData['ot'].push("-")
+        htmlData['title'].push("-")
+        htmlData['area'].push("-")
+        htmlData['cowner'].push("-")
+        htmlData['contop'].push("-")
+        htmlData['petitioner'].push("-")
+        htmlData['supervisor'].push("-")
+        htmlData['drawman'].push("-")
+        htmlData['hse'].push("-")
+        htmlData['surveyor'].push("-")
+        htmlData['resources'].push("-")
+
+      } else {
+
+        let thisArray = tasksByDay[day.getDate()]
+        thisArray.forEach(task => {
+          htmlData['ot'].push(task.ot)
+          htmlData['title'].push(task.title)
+          htmlData['area'].push(task.area)
+          htmlData['cowner'].push("Pamela Carrizo")
+          htmlData['contop'].push(task.contop)
+          htmlData['petitioner'].push(task.petitioner)
+          htmlData['supervisor'].push(task.supervisorShift)
+          htmlData['drawman'].push(task.drawman)
+          htmlData['hse'].push(task.hse)
+          htmlData['surveyor'].push(task.surveyor)
+          htmlData['resources'].push(task.resources)
+        })
+
+      }
+
+    }
+
+    // Crear encabezado de tabla
+    html += `<table style="width:100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <td width="100px" style="text-align:center; border: 1px solid #000000;" rowspan="13">${plant}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #9999FF;" rowspan="13">Semana ${getDateWeek(lunes)}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" rowspan="2"></td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, lunes)}">Lunes</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, martes)}">Martes</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, miercoles)}">Miércoles</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, jueves)}">Jueves</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, viernes)}">Viernes</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, sabado)}">Sábado</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, domingo)}">Domingo</td>
+                </tr>
+                <tr>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, lunes)}">${lunes.getDate()}-${monthNames[lunes.getMonth()]}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, martes)}">${martes.getDate()}-${monthNames[martes.getMonth()]}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, miercoles)}">${miercoles.getDate()}-${monthNames[miercoles.getMonth()]}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, jueves)}">${jueves.getDate()}-${monthNames[jueves.getMonth()]}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, viernes)}">${viernes.getDate()}-${monthNames[viernes.getMonth()]}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, sabado)}">${sabado.getDate()}-${monthNames[sabado.getMonth()]}</td>
+                  <td style="text-align:center; border: 1px solid #000000; background-color: #E2EFDA;" colspan="${getColspan(tasksByDay, domingo)}">${domingo.getDate()}-${monthNames[domingo.getMonth()]}</td>
+                </tr>`;
+
+
+    // Generar contenido de la tabla
+    Object.keys(htmlData).forEach(key => {
+      html += `<tr>
+                <td style="text-align:center; border: 1px solid #000000;">${htmlDataNames[key]}</td>`; // Utilizamos el nombre del tipo de dato como encabezado de la columna
+      htmlData[key].forEach(value => {
+        html += `<td style="text-align:center; border: 1px solid #000000;">${value}</td>`; // Llenamos las celdas con los valores del array correspondiente
+      });
+      html += '</tr>';
+    });
+
+    html += `</thead>
+            </table><br>`;
+  }
+
+  return html;
+}
+
 // * Función que revisa la base de datos cada 60 minutos
 exports.checkDatabaseEveryOneHour = functions.pubsub
   .schedule('every 60 minutes')
@@ -389,12 +556,12 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 // La explicación del schedule es la siguiente: Minuto -  Hora - Día del Mes - Mes del Año - Día de la Semana. Para entender mejor esto ir a: https://crontab.guru/
 // En este caso la función se ejecutará con Minuto = 0, Hora = 8, Día del Mes = *, Mes del Año = *, Día de la Semana = 2
 exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
-  .schedule('35 15 * * 2')
+  .schedule('44 08 * * 2')
   .timeZone('Chile/Continental')
   .onRun(async context => {
     const now = new Date() // Se almacena la fecha instantánea
     now.toLocaleString('es-CL', { timeZone: 'Chile/Continental' })
-    const today = new Date(now) // Se almacena la fecha de hoy, ajustando la hora a medianoche
+    const today = new Date("2024-04-08T00:00:00-04:00") // Se almacena la fecha de hoy, ajustando la hora a medianoche
     today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000) // Se almacena la fecha de mañana, ajustando la fecha al día siguiente
     const lastDayOfThisWeek = new Date(tomorrow.getTime() + 7 * 24 * 60 * 60 * 1000) // Se almacena la fecha del último día de esta semana (semana de martes a lunes)
@@ -442,8 +609,84 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
         tasks: supervisorTasks
       }
 
+      console.log(supervisorWork)
+
       // Añade el objeto al array todayWorks
       todayWorks.push(supervisorWork)
+
+
+      // Paso 1: se crea un array con todas las Plantas que se trabajarán en esta semana.
+      let thisWeekPlants = {};
+      supervisorWork.tasks.forEach(task => {
+        if (!thisWeekPlants.hasOwnProperty(task.plant)) {
+          thisWeekPlants[task.plant] = []; // Se agrega una nueva key con un array vacío
+        }
+      })
+
+      // Paso 2: Para cada una de las plantas del array thisWeekPlants, se creará un array de tareas de esa semana.
+      Object.keys(thisWeekPlants).forEach(thisPlant => {
+
+        supervisorWork.tasks.forEach(task => {
+
+          var taskDuration = Math.floor((task.end - task.start)/(24 * 60 * 60)) + 1
+
+          if (task.plant === thisPlant) {
+
+            if (taskDuration === 1) {
+
+              thisWeekPlants[thisPlant].push({
+                ot: task.ot,
+                title: task.title,
+                plant: task.plant,
+                area: task.area,
+                contop: task.contop,
+                petitioner: task.petitioner,
+                supervisorShift: task.supervisorShift === "A" ? "Marco Zuvic" : "Luis Ordenes",
+                drawman: task.drawman || "Por definir",
+                hse: task.supervisorShift === "A" ? "Romina Santana" : "Jessica Vargas",
+                surveyor: task.drawman || "Por definir",
+                resources: "Escáner Láser Faro + Herramientas de medición manual",
+                fictionalStart: task.start,
+                paCachar: task.start.toDate()
+              })
+
+            } else {
+
+              for (let i = 1; i <= taskDuration; i++) {
+
+                let fechaAntigua = task.start.toDate()
+                let fechaNueva = new Date(fechaAntigua)
+                fechaNueva.setDate(fechaAntigua.getDate() + i)
+
+                thisWeekPlants[thisPlant].push({
+                  ot: task.ot,
+                  title: task.title,
+                  plant: task.plant,
+                  area: task.area,
+                  contop: task.contop,
+                  petitioner: task.petitioner,
+                  supervisorShift: task.supervisorShift === "A" ? "Luis Ordenes" : "Marco Zuvic",
+                  drawman: task.drawman || "Por definir",
+                  hse: task.supervisorShift === "A" ? "Romina Santana" : "Jessica Vargas",
+                  surveyor: task.drawman || "Por definir",
+                  resources: "Escáner Láser Faro + Herramientas de medición manual",
+                  fictionalStart: admin.firestore.Timestamp.fromDate(fechaNueva),
+                  paCachar: admin.firestore.Timestamp.fromDate(fechaNueva).toDate()
+                })
+
+              }
+
+            }
+
+          }
+
+        })
+
+      })
+
+      // Paso 4: Se definen cada uno de los días de la Semana.
+      const lunes = new Date("2024-04-08T00:00:00-04:00")
+
 
       // ** Empezamos a definir el e-mail
 
@@ -460,10 +703,6 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
         const supervisorData = supervisorSnapshot.docs // Se almacena en una constante los datos del Supervisor
         const supervisorEmail = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Supervisor
         const supervisorName = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().name).join(', ') // Se almacena el e-mail del Supervisor
-
-        const drawmansSnapshot = await usersRef.where('shift', 'array-contains', supervisorWork.supervisorShift).where('role', '==', 8).get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
-        const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
-        const drawmansEmail = drawmansData.filter(doc => doc.data().enabled !== false).map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
         const plannerData = plannerSnapshot.docs // Se almacena en una constante los datos del Planificador
@@ -491,76 +730,15 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
           8: 'Levantamiento finalizado'
         }
 
-        // Se define el mensaje html que contendrá, el cual será una lista con todas los levantamientos que tiene que hacer el actual Supervisor durante hoy
-        //   const tasksHtml =
-        //     '<ul>' +
-        //     supervisorWork.tasks
-        //       .map(
-        //         (task, index) => `
-        //   <li>
-        //     Levantamiento ${index + 1}:
-        //     <ul>
-        //       <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
-        //       <li>Título: ${task.title}</li>
-        //       <li>Planta: ${task.plant}</li>
-        //       <li>Solicitante: ${task.petitioner}</li>
-        //       <li>Fecha de inicio del Levantamiento: ${task.start ? task.start.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
-        //       <li>Fecha de Término del Levantamiento: ${task.end ? task.end.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
-        //       <li>Estado: ${statesDefinition[task.state]}</li>
-        //     </ul>
-        //   </li>
-        // `
-        //       )
-        //       .join('') +
-        //     '</ul>'
-        // Obtener una lista única de plantas
+        console.log("thisWeekPlans")
+        console.log(thisWeekPlants)
 
-        const uniquePlants = [...new Set(supervisorWork.tasks.map(task => task.plant))]
-
-        // Crear una estructura de datos para almacenar las tareas agrupadas por planta
-        const tasksByPlant = {}
-
-        // Agrupar las tareas por planta
-        uniquePlants.forEach(plant => {
-          tasksByPlant[plant] = supervisorWork.tasks.filter(task => task.plant === plant);
-        })
-
-        // Ordenar las plantas alfabéticamente
-        uniquePlants.sort()
-
-        // Construir el HTML ordenado por planta
-        let tasksHtml = '<ul>'
-
-        uniquePlants.forEach(plant => {
-          tasksHtml += `<li>${plant}:`
-          tasksHtml += '<ul>'
-
-          tasksByPlant[plant].forEach((task, index) => {
-            tasksHtml += `
-              <li>Tarea ${index + 1}:
-                <ul>
-                  <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
-                  <li>Título: ${task.title}</li>
-                  <li>Área: ${task.area}</li>
-                  <li>Contract Owner: ${'Pamela Carrizo'}</li>
-                  <li>Contract Operator: ${task.contop}</li>
-                  <li>Solicitante: ${task.petitioner}</li>
-                  <li>Fecha de inicio del Levantamiento: ${task.start ? task.start.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
-                  <li>Fecha de Término del Levantamiento: ${task.end ? task.end.toDate().toLocaleDateString('es-CL') : 'Por definir'}</li>
-                  <li>Estado: ${statesDefinition[task.state]}</li>
-                </ul>
-              </li>`
-          })
-
-          tasksHtml += '</ul></li>'
-        })
-
-        tasksHtml += '</ul>'
+        const dynamicTablesHTML = generateDynamicTables(thisWeekPlants, lunes)
 
         // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
         await emailsRef.doc(mailId).update({
           to: [...supervisorEmail],
-          cc: [...plannerEmail, ...admContratoEmail].concat(drawmansEmail),
+          cc: [...plannerEmail, ...admContratoEmail],
           date: now,
           emailType: 'supervisorWeeklyTasks',
           message: {
@@ -568,7 +746,7 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
             html: `
               <p>Estimados:</p>
               <p>Se tienen ${supervisorTasks.length} ${youHaveTasks} para trabajar esta semana. A continuación se presenta el detalle de cada una de ellos:</p>
-                ${tasksHtml}
+                ${dynamicTablesHTML}
               <p>Para mayor información revise la solicitud en nuestra página web</p>
               <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
               `
