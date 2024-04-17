@@ -712,24 +712,6 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
         const admContratoData = admContratoSnapshot.docs // Se almacena en una constante los datos del Administrador de Contrato
         const admContratoEmail = admContratoData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Administrador de Contrato
 
-        // Si hay mas de 1 levantamiento se escribirá 'levantamientos agendados'
-        let youHaveTasks = 'Levantamiento agendado'
-        if (supervisorTasks.length > 1) {
-          youHaveTasks = 'Levantamientos agendados'
-        }
-
-        const statesDefinition = {
-          0: 'Cancelada',
-          1: 'Reprogramado, en revisión de Autor',
-          2: 'En revisión de Contract Operator',
-          3: 'En revisión de Planificador',
-          4: 'En revisión de Planificador',
-          5: 'En revisión de Administrador de Contrato',
-          6: 'Aprobada para inicio de Levantamiento',
-          7: 'Levantamiento iniciado',
-          8: 'Levantamiento finalizado'
-        }
-
         console.log("thisWeekPlans")
         console.log(thisWeekPlants)
 
@@ -745,9 +727,9 @@ exports.sendInfoToSupervisorEveryTuesday = functions.pubsub
             subject: `Resumen de la semana ${getDateWeek(now)} - Turno ${supervisorWork.supervisorShift} - ${supervisorName}`,
             html: `
               <p>Estimados:</p>
-              <p>Se tienen ${supervisorTasks.length} ${youHaveTasks} para trabajar esta semana. A continuación se presenta el detalle de cada una de ellos:</p>
+              <p>A continuación pueden encontrar la programación semanal de trabajos para la Semana ${getDateWeek(now)}:</p>
                 ${dynamicTablesHTML}
-              <p>Para mayor información revise la solicitud en nuestra página web</p>
+              <p>Para mayor información revise la programación calendarizada en nuestra página web</p>
               <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
               `
           }
