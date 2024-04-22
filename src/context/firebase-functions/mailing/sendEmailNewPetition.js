@@ -174,6 +174,29 @@ const restructuredAttached = (attachedArray) => {
 
 }
 
+// Función para obtener el valor del contador en otCounter
+async function getLastOTValue() {
+
+  const counterRef = doc(db, 'counters', 'otCounter')
+
+  try {
+
+    // Se obtiene el número de OT en el contador.
+    const counterSnap = await getDoc(counterRef)
+    const counterData = counterSnap.data()
+    const counter = counterData.counter
+
+    return counter
+
+  } catch (error) {
+
+    console.error('Error:', error)
+
+    throw error
+  }
+
+}
+
 // Función para enviar emails de forma automática
 // user es el usuario conectado que efectúa el envío de la solicitud
 // values son los valores seleccionados en en formulario de nueva solicitud
@@ -393,10 +416,13 @@ export const sendEmailNewPetition = async (user, values, reqId) => {
       const supervisorShift = week % 2 === 0 ? 'A' : 'B'
       const supervisorData = await getSupervisorData(supervisorShift)
 
+      // Se obtiene el número de OT del contador.
+      const otNumber = await getLastOTValue()
+
       // Se almacenan las constantes a usar en el email
       const title = values.title
       const engineering = user.engineering ? 'Si' : 'No'
-      const otProcure = values.ot ? values.ot : 'Por definir'
+      const otProcure = otNumber ? otNumber : 'Por definir'
       const supervisor = supervisorData ? supervisorData.filter(doc => doc.enabled != false).map(data => data.name).join(', ') : 'Por definir'
       const start = values.start ? values.start.toLocaleDateString() : 'Por definir'
       const end = values.end ? values.end.toLocaleDateString() : 'Por definir'
