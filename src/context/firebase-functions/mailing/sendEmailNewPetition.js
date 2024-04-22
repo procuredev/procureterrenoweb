@@ -151,11 +151,34 @@ const processAttachedDocuments = async (documents) => {
 
 }
 
+// Función para rescatar el nombre del archivo que se encouentra dentro del array de strings que son subidos a Firestore
+// Se entrega como parámetro a attachedArray que es un arreglo de strings
+const restructuredAttached = (attachedArray) => {
+
+  // Inicialización del array de objetos que tendrá el link y el name de cada archivo adjunto.
+  let modifiedAttached = []
+
+  // Iteración para recorrer el arreglo
+  attachedArray.forEach(link => {
+
+    // Se hace una serie de manejos del string usando split, subString y replaceAll.
+    const lastPart = link.split('/')
+    const lastPartString = lastPart[lastPart.length - 1]
+    const lastPartSubString = lastPartString.substring(lastPartString.indexOf("fotos%2F") + 8, lastPartString.lastIndexOf("?"))
+    const name = lastPartSubString.replaceAll("%20", " ")
+    modifiedAttached.push({link: link, name: name})
+
+  })
+
+  return modifiedAttached
+
+}
+
 // Función para enviar emails de forma automática
 // user es el usuario conectado que efectúa el envío de la solicitud
 // values son los valores seleccionados en en formulario de nueva solicitud
-// reqId es el número de solicitud (Contador)
-export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
+// reqId es el id de la solicitud
+export const sendEmailNewPetition = async (user, values, reqId) => {
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
   if (user !== null) {
@@ -175,14 +198,42 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       // Se usa el nombre del C.Operator indicado en la solicitud
       userContOp = values.contop
 
-      const contOpUid = await searchbyColletionAndField('users', 'name', userContOp) // Se usa la función searchbyColletion() para buscar dentro de Firestore el usuario que se llame igual al Contract Operator del usuario
-      const dataContOp = await getUserData(contOpUid) // Para este C.Operator se obtiene su datos de Firestore
-      const cOperatorEmail = dataContOp.filter(doc => doc.enabled != false).map(data => data.email) // Se selecciona el email del C.Operator
+      // Se usa la función searchbyColletion() para buscar dentro de Firestore el uid del C.Operator, C.Owner, Petitioner, Planificador y Administrador de Contrato
+      const uids = await Promise.all([
+        searchbyColletionAndField('users', 'name', userContOp),
+        searchbyColletionAndField('users', 'role', 4),
+        searchbyColletionAndField('users', 'role', 5),
+        searchbyColletionAndField('users', 'role', 6)
+      ])
+
+      const contOpUid = uids[0]
+      const cOwnerUid = uids[1]
+      const plannerUid = uids[2]
+      const contractAdminUid = uids[3]
+
+      // Se obtienen los datos de C.Operator, C.Owner, Planificador y Administrador de Contrato
+      const usersData = await Promise.all([
+        getUserData(contOpUid),
+        getUserData(cOwnerUid),
+        getUserData(plannerUid),
+        getUserData(contractAdminUid)
+      ])
+
+      const dataContOp = usersData[0]
+      const dataContOwner = usersData[1]
+      const dataPlanner = usersData[2]
+      const dataContractAdmin = usersData[3]
+
+      // Se definen los emails de C.Operator, C.Owner, Petitioner, Planificador, Administrador de Contrator y Supervisor
+      const cOperatorEmail = dataContOp.filter(doc => doc.enabled != false).map(data => data.email)
+      const cOwnerEmail = dataContOwner.filter(doc => doc.enabled != false).map(data => data.email)
+      const plannerEmail = dataPlanner.filter(doc => doc.enabled != false).map(data => data.email)
+      const contractAdminEmail = dataContractAdmin.filter(doc => doc.enabled != false).map(data => data.email)
 
       // Datos que serán usados en el email
       userName = user.displayName // Nombre de a quien va dirigido el email
       sendTo = user.email // Email de a quien va dirigido el email
-      arrayCC = [...cOperatorEmail] // Arreglo de quienes van en copia
+      arrayCC = [...cOperatorEmail, ...cOwnerEmail, ...plannerEmail, ...contractAdminEmail] // Arreglo de quienes van en copia
       mainMessage = `Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}` // Mensaje principal
       lastMessage = `Ahora deberá esperar la aprobación de su Contract Operator ${userContOp}.` // Mensaje final
 
@@ -195,27 +246,31 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const uids = await Promise.all([
         searchbyColletionAndField('users', 'role', 4),
         searchbyColletionAndField('users', 'name', values.petitioner),
-        searchbyColletionAndField('users', 'role', 5)
+        searchbyColletionAndField('users', 'role', 5),
+        searchbyColletionAndField('users', 'role', 6)
       ])
       const cOwnerUid = uids[0]
       const petitionerUid = uids[1]
       const plannerUid = uids[2]
+      const contractAdminUid = uids[3]
 
       // Se obtienen los datos de C.Owner, petitioner y Planificador
-      const usersData = await Promise.all([getUserData(cOwnerUid), getUserData(petitionerUid), getUserData(plannerUid)])
+      const usersData = await Promise.all([getUserData(cOwnerUid), getUserData(petitionerUid), getUserData(plannerUid), getUserData(contractAdminUid)])
       const dataContOwner = usersData[0]
       const dataPetitioner = usersData[1]
       const dataPlanner = usersData[2]
+      const dataContractAdmin = usersData[3]
 
       // Se definen los emails de C.Owner, petitioner y Planificador
       const cOwnerEmail = dataContOwner.filter(doc => doc.enabled != false).map(data => data.email)
       const petitionerEmail = dataPetitioner.filter(doc => doc.enabled != false).map(data => data.email)
       const plannerEmail = dataPlanner.filter(doc => doc.enabled != false).map(data => data.email)
+      const contractAdminEmail = dataContractAdmin.filter(doc => doc.enabled != false).map(data => data.email)
 
       // Datos que serán usados en el email
       userName = user.displayName // Nombre de a quien va dirigido el email
       sendTo = user.email // Email de a quien va dirigido el email
-      arrayCC = [...cOwnerEmail, ...petitionerEmail, ...plannerEmail] // Arreglo de quienes van en copia
+      arrayCC = [...cOwnerEmail, ...petitionerEmail, ...plannerEmail, ...contractAdminEmail] // Arreglo de quienes van en copia
       mainMessage = `Usted ha generado una solicitud de trabajo el día ${fechaCompleta.toLocaleDateString()} a las ${fechaCompleta.toLocaleTimeString()}` // Mensaje principal
       lastMessage = `Ahora deberá esperar la aprobación de Procure.` // Mensaje final
 
@@ -233,6 +288,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         searchbyColletionAndField('users', 'role', 6),
         searchbyColletionAndField('users', 'role', 7)
       ])
+
       const contOpUid = uids[0]
       const cOwnerUid = uids[1]
       const petitionerUid = uids[2]
@@ -338,7 +394,6 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const supervisorData = await getSupervisorData(supervisorShift)
 
       // Se almacenan las constantes a usar en el email
-      const requestNumber = reqNumber
       const title = values.title
       const engineering = user.engineering ? 'Si' : 'No'
       const otProcure = values.ot ? values.ot : 'Por definir'
@@ -358,7 +413,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
       const deliverable = values.deliverable && values.deliverable.length !== 0 ? values.deliverable.join(', ') : 'Por definir'
       const receiver = values.receiver.map(receiver => receiver.email).join(', ')
       const description = values.description
-      const attachedDocuments = await processAttachedDocuments(values.files)
+      const attachedDocuments = values.attachedDocuments ? restructuredAttached(values.attachedDocuments).map(doc => `<a href="${doc.link}">${doc.name}</a>`).join(', ') : 'Sin documentos adjuntos'
 
       // Si la solicitud considera que se le entregue una memoria de cálculo, también se enviará un email notificando a gente de Procure y al Solicitante al respecto
       if (values.deliverable.includes('Memoria de Cálculo')) {
@@ -377,7 +432,6 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         emailHtml = getEmailTemplate(
           userName,
           mainMessage,
-          requestNumber,
           title,
           engineering,
           otProcure,
@@ -397,14 +451,14 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
           deliverable,
           receiver,
           description,
-          lastMessage
+          lastMessage,
+          attachedDocuments
         )
       } else {
         // Llamada al html del email con las constantes previamente indicadads
         emailHtml = getEmailTemplate(
           userName,
           mainMessage,
-          requestNumber,
           title,
           engineering,
           otProcure,
@@ -424,7 +478,8 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
           deliverable,
           receiver,
           description,
-          lastMessage
+          lastMessage,
+          attachedDocuments
         )
       }
 
@@ -437,8 +492,7 @@ export const sendEmailNewPetition = async (user, values, reqId, reqNumber) => {
         emailType: 'NewRequest',
         message: {
           subject: `Solicitud de levantamiento: ${values.title}`,
-          html: emailHtml,
-          attachments: attachedDocuments
+          html: emailHtml
         }
       })
 

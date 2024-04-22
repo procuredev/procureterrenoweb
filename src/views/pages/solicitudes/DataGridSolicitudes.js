@@ -60,7 +60,7 @@ const DataGrid = () => {
           info: 'Todas las solicitudes'
         },
         {
-          data: data.filter(authUser.role === 5 ? doc => doc.state === 3 || 4 : doc => doc.state === authUser.role - 1), //TODO: revisar visibilidad
+          data: data.filter(authUser.role === 5 ? doc => (doc.state === 3 || doc.state === 4) : doc => doc.state === authUser.role - 1), //TODO: revisar visibilidad
           label: 'Por aprobar',
           info: 'Solicitudes pendientes de mi aprobación'
         },

@@ -4,6 +4,7 @@ import 'moment/locale/es'
 import { useRouter } from 'next/router'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { sendEmailNewPetition } from 'src/context/firebase-functions/mailing/sendEmailNewPetition'
 import { useFirebase } from 'src/context/useFirebase'
 
 import {
@@ -41,7 +42,7 @@ import {
 
 const FormLayoutsSolicitud = () => {
   const initialValues = {
-    ot: '',
+    //* ot: '',
     urgency: '',
     title: '',
     description: '',
@@ -113,7 +114,7 @@ const FormLayoutsSolicitud = () => {
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
-  const otRef = useRef(null)
+  //* const otRef = useRef(null)
   const titleRef = useRef(null)
   const urgencyRef = useRef(null)
   const descriptionRef = useRef(null)
@@ -156,7 +157,7 @@ const FormLayoutsSolicitud = () => {
       'fnlocation',
       'tag',
       'urlVideo',
-      'ot',
+      //* 'ot',
       'mcDescription',
       'costCenter'
     ]
@@ -169,9 +170,9 @@ const FormLayoutsSolicitud = () => {
 
         newValue = validationRegex[prop] ? newValue.replace(validationRegex[prop], '') : newValue
 
-        if (prop === 'ot') {
-          newValue = Number(newValue)
-        }
+        //* if (prop === 'ot') {
+        //*   newValue = Number(newValue)
+        //* }
 
         setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
         break
@@ -226,6 +227,10 @@ const FormLayoutsSolicitud = () => {
       case prop === 'end': {
         let endDate = event
         if (endDate < values.start) {
+          setValues({
+            ...values,
+            end: endDate
+          })
           setErrors(prevErrors => ({
             ...prevErrors,
             end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
@@ -293,7 +298,8 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
-  const handleBlurOt = async e => {
+  //* Se comenta esta función debido a que la OT dejará de agregarse manualmente, ahora se generará a de forma automática.
+  /* const handleBlurOt = async e => {
     const otValue = e.target.value.trim() // .trim() devuelve el valor sin espacios extra
 
     // Verifica si el campo OT tiene algún valor antes de hacer la consulta
@@ -326,27 +332,28 @@ const FormLayoutsSolicitud = () => {
       }))
       setAlertMessage('El campo OT no puede estar vacío.')
     }
-  }
+  } */
 
   const validationRegex = {
     //title: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/,
     //description: /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9- !@#$%^&*()-_-~.+,/\"]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
-    sap: /[^\s0-9]/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
+    sap: /[^0-9]+/, // /[^A-Za-záéíóúÁÉÍÓÚñÑ\s0-9-]/g,
     fnlocation: /[^A-Za-z0-9@\/.-]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    ot: /[^\s0-9]/, // /[^0-9]/g
+    //* ot: /[^\s0-9]/, // /[^0-9]/g
     tag: /[^A-Za-z0-9@\/.-]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    costCenter: /[^\s0-9]/ // /[^0-9]/g
+    costCenter: /[^0-9]+/ // /[^0-9]/g
   }
 
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
     const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter', 'mcDescription']
-    const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
+    //* const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
+    const shouldValidateEND = authUser.role === 5 || authUser.role === 7 // validar 'end' si el usuario tiene el rol 5 o 7.
 
     // Objeto para traducir lo que se rederiza al usuario
     const fieldLabels = {
-      ot: 'OT',
+      //* ot: 'OT',
       urgency: 'Urgencia',
       title: 'Título',
       description: 'Descripción',
@@ -360,7 +367,8 @@ const FormLayoutsSolicitud = () => {
       objective: 'Tipo de Levantamiento',
       deliverable: 'Entregables del Levantamiento',
       receiver: 'Destinatarios',
-      mcDescription: 'Memoria de Cálculo'
+      mcDescription: 'Memoria de Cálculo',
+      costCenter: 'Centro de Costos'
     }
 
     for (const key in values) {
@@ -408,13 +416,13 @@ const FormLayoutsSolicitud = () => {
         }
       }
 
-      if (key === 'end' && shouldValidateOT) {
+      if (key === 'end' && shouldValidateEND /* && shouldValidateOT */) {
         if (!values[key]) {
           newErrors[key] = 'El campo Fecha de Término no puede estar vacío.'
         }
       }
-
-      if (key === 'ot' && shouldValidateOT) {
+      //* Se comenta esta función debido a que la OT dejará de agregarse manualmente, ahora se generará a de forma automática.
+      /* if (key === 'ot' && shouldValidateOT) {
         if (!values[key]) {
           newErrors[key] = 'El campo OT no puede estar vacío.'
         } else if (values[key] === 0) {
@@ -433,11 +441,18 @@ const FormLayoutsSolicitud = () => {
         if (validationRegex[key] && !validationRegex[key].test(trimmedValues[key])) {
           newErrors[key] = `Por favor, introduce una opción válida`
         }
-      }
+      } */
     }
 
     return newErrors
   }
+
+  // useEffect para habilitar el boton de envío cuando no exista errores en el formulario
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      setButtonDisabled(false)
+    }
+  }, [errors])
 
   // useEffect para buscar toda la información de la colección domain en la base de datos
   useEffect(() => {
@@ -581,7 +596,7 @@ const FormLayoutsSolicitud = () => {
 
   // Objeto para mantener las referencias
   const refs = {
-    ot: otRef,
+    //* ot: otRef,
     urgency: urgencyRef,
     title: titleRef,
     description: descriptionRef,
@@ -602,7 +617,7 @@ const FormLayoutsSolicitud = () => {
     const errorKeys = Object.keys(formErrors)
 
     const orderedErrorKeys = [
-      'ot',
+      //* 'ot',
       'urgency',
       'title',
       'description',
@@ -632,92 +647,127 @@ const FormLayoutsSolicitud = () => {
     }
   }
 
+  // Función que se ejecutará al hacer click en "ENVIAR SOLICITUD".
+  // Usa como parámetro a "event" que es el objeto del evento Submit.
   const onSubmit = async event => {
-    event.preventDefault()
-    setButtonDisabled(true)
-    const formErrors = validateForm(values)
-    setErrors(formErrors)
-    if (Object.keys(formErrors).length > 0) {
-      focusFirstError(formErrors) // Pasa formErrors como argumento
-    }
-    const requiredKeys = ['title']
-    const areFieldsValid = requiredKeys.every(key => !formErrors[key])
+    // Bloque try-catch para ejecutar las funciones de submit y obtener los errores si los hay.
+    try {
+      // Se ejecuta el método event.preventDefault() para evitar que se recargue la página al enviar la solicitud.
+      event.preventDefault()
 
-    const isUrgent =
-      ['Outage', 'Shutdown'].includes(values.type) || ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
-    const invalidFiles = validateFiles(files).filter(file => !file.isValid)
-    let isBlocked = await consultBlockDayInDB(values.start.toDate())
+      // Se bloquea el botón de "ENVIAR SOLICITUD" para evitar los multiclicks.
+      setButtonDisabled(true)
 
-    // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado
-    if (!values.deliverable.includes('Memoria de Cálculo')) {
-      delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado
-    }
+      // Se ejecuta y define formErrors que definirá cuáles son los errores o campos vacíos del formulario
+      const formErrors = validateForm(values)
+      setErrors(formErrors)
 
-    console.log(formErrors)
+      // Si existen errores, se ejecutará focus() que hará que la vista se dirija hacia el campo del primer error encontrado.
 
-    if (
-      Object.keys(formErrors).length === 0 &&
-      areFieldsValid === true &&
-      invalidFiles.length === 0 &&
-      ((isBlocked && isBlocked.blocked === false) || isUrgent)
-    ) {
-      try {
-        setIsUploading(true) // Se activa el Spinner
+      if (Object.keys(errors).length > 0) {
+        focusFirstError(errors)
 
-        // Restablecer el estado del formulario a los valores iniciales...
-        localStorage.removeItem('formData')
+        return
+      }
 
-        const solicitud = await newDoc(
-          {
+      if (Object.keys(formErrors).length > 0) {
+        focusFirstError(formErrors)
+
+        return
+      }
+
+      // Se define la variable booleana isUrgent la cual servirá para definir el mensaje "El día que está seleccionado se encuentra bloqueado".
+      const isUrgent =
+        ['Outage', 'Shutdown'].includes(values.type) ||
+        ['Urgencia', 'Emergencia', 'Oportunidad'].includes(values.urgency)
+
+      // Se define el array de booleanos invalidFiles que definirá si los documentos adjuntos son válidos o no.
+      const invalidFiles = validateFiles(files).filter(file => !file.isValid)
+
+      // Se define la variable booleana isBlocked que define si el día 'start' seleccionado está bloqueado o no.
+      const isBlocked = await consultBlockDayInDB(values.start.toDate())
+
+      // Antes de enviar los datos, revisar si 'Memoria de Cálculo' está seleccionado.
+      if (!values.deliverable.includes('Memoria de Cálculo')) {
+        delete values.mcDescription // Eliminar mcDescription si 'Memoria de Cálculo' no está seleccionado.
+      }
+
+      // Se imprimen en consola los errores en el formulario.
+      console.log(formErrors)
+
+      // Si no existen errores en el formulario se procederá.
+      if (Object.keys(formErrors).length === 0 && invalidFiles.length === 0) {
+        if ((isBlocked && isBlocked.blocked === false) || isUrgent) {
+          // Se activa el Spinner
+          setIsUploading(true)
+
+          // Se crea el objeto processedValues, que son los values del formulario modificados para poder almacenarlos correctamente en Firestore
+          const processedValues = {
             ...values,
             petitioner: values.petitioner.split(' - ')[0],
-            receiver: values.receiver.map(option => {
-              const { disabled, ...rest } = option
-
-              return {
-                id: option.id,
-                name: option.name,
-                email: option.email,
-                phone: option.phone
-              }
-            }),
+            receiver: values.receiver.map(option => ({
+              id: option.id,
+              name: option.name,
+              email: option.email,
+              phone: option.phone
+            })),
             start: moment.tz(values.start.toDate(), 'America/Santiago').startOf('day').toDate(),
             end:
-              authUser.role === 5 || authUser.role === 7
-                ? moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate()
-                : null,
-            mcDescription: values.mcDescription ? values.mcDescription : null,
-            files: files
-          },
-          authUser
-        )
+              (authUser.role === 5 || authUser.role === 7) &&
+              moment.tz(values.end.toDate(), 'America/Santiago').startOf('day').toDate(),
+            mcDescription: values.mcDescription || null
+          }
 
-        await uploadFilesToFirebaseStorage(files, solicitud.id).then(() => {
-          setIsUploading(false),
-            setButtonDisabled(false),
-            handleRemoveAllFiles(),
-            setAlertMessage('Documento creado exitosamente'),
-            setValues(initialValues),
-            setErrors({})
-        })
-      } catch (error) {
-        setAlertMessage(error.message)
-        setIsUploading(false) // Se cierra el spinner en caso de error
-        setButtonDisabled(false)
+          // Se crea en Firestore el nuevo documento de la solicitud.
+          const request = await newDoc(processedValues, authUser)
+
+          // Se almacenan en Firestore los archivos adjuntos y se registra en Firestore el link de ellos.
+          const attachedDocuments = await uploadFilesToFirebaseStorage(files, request.id)
+
+          // Se modifica processedValues para que también consideren los links de los elementos adjuntos.
+          const updatedValues = { ...processedValues, attachedDocuments }
+
+          // Se envia el e-mail con toda la información de la Solicitud.
+          await sendEmailNewPetition(authUser, updatedValues, request.id)
+
+          // Se quita de localStorage los datos del formulario que están almacenados temporalmente.
+          localStorage.removeItem('formData')
+
+          // Se detiene el Spinner.
+          setIsUploading(false)
+
+          // Se quitan los archivos adjuntos del formulario.
+          handleRemoveAllFiles()
+
+          // Se entrega el mensaje de éxito en Dialog.
+          setAlertMessage('Documento creado exitosamente')
+
+          // Se setean los valores del formulario a su condición de inicialización.
+          setValues(initialValues)
+
+          // Se setean los valores de los errores encontrados vacíoos nuevamente.
+          setErrors({})
+        } else {
+          setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
+        }
       }
-    } else {
-      if (
-        Object.keys(formErrors).length === 0 &&
-        areFieldsValid === true &&
-        invalidFiles.length === 0 &&
-        isBlocked.blocked &&
-        !isUrgent
-      ) {
-        setAlertMessage('Los días bloqueados sólo aceptan solicitudes tipo outage, shutdown u oportunidad.')
-      }
+
+      // Al terminar de ejecutarse esta función, se desbloquea el botón "ENVIAR SOLICITUD".
       setButtonDisabled(false)
+
+      // Al terminar de ejecutarse esta función, se desactiva el spinner.
       setIsUploading(false)
-      setErrors(formErrors)
+    } catch (error) {
+      console.error(error)
+
+      // Se agrega en el estado alertMessage el error que se esté recibiendo.
+      setAlertMessage(error.message)
+
+      // Se desactiva el spinner.
+      setIsUploading(false)
+
+      // Se desbloquea el botón "ENVIAR SOLICITUD".
+      setButtonDisabled(false)
     }
   }
 
@@ -828,7 +878,28 @@ const FormLayoutsSolicitud = () => {
         }))
       }
     }
-  }, [values.start])
+
+    // Agregar error 'end' en caso de que el usuario modifique la fecha de inicio despues de la de término.
+    if (values.end && !errors.end) {
+      if (values.end.toDate() < values.start.toDate()) {
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          end: 'La fecha de término no puede ser inferior a la fecha de inicio.'
+        }))
+      }
+    }
+
+    // Eliminar el error 'end' si values.end es mayor o igual a values.start
+    if (values.end && errors.end) {
+      if (values.end.toDate() >= values.start.toDate()) {
+        setErrors(prevErrors => {
+          delete prevErrors.end // Elimina el error 'end'
+
+          return { ...prevErrors }
+        })
+      }
+    }
+  }, [values.start, values.end, errors.end])
 
   useEffect(() => {
     const formDataToSave = { ...values }
@@ -869,7 +940,7 @@ const FormLayoutsSolicitud = () => {
       const parsedData = JSON.parse(savedFormData)
       const currentTime = new Date().getTime()
 
-      if (currentTime - parsedData.timestamp < 24 * 60 * 60 * 1000) {
+      if (currentTime - parsedData.timestamp < 8 * 60 * 60 * 1000) {
         if (parsedData.start) {
           parsedData.start = moment(parsedData.start)
         }
@@ -919,7 +990,7 @@ const FormLayoutsSolicitud = () => {
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
             {/* Número de OT Procure*/}
-            {(authUser.role === 5 || authUser.role === 7) && (
+            {/* (authUser.role === 5 || authUser.role === 7) && (
               <>
                 <CustomTextField
                   inputRef={otRef}
@@ -938,7 +1009,7 @@ const FormLayoutsSolicitud = () => {
                   onBlur={handleBlurOt}
                 />
               </>
-            )}
+            ) */}
 
             {/* Tipo de Urgencia */}
             {authUser.role === 7 && (
