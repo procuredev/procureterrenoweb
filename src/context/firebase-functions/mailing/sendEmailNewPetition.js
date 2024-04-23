@@ -197,11 +197,12 @@ async function getLastOTValue() {
 
 }
 
-// Función para enviar emails de forma automática
-// user es el usuario conectado que efectúa el envío de la solicitud
-// values son los valores seleccionados en en formulario de nueva solicitud
-// reqId es el id de la solicitud
-export const sendEmailNewPetition = async (user, values, reqId) => {
+// Función para enviar emails de forma automática.
+// user es el usuario conectado que efectúa el envío de la solicitud.
+// values son los valores seleccionados en en formulario de nueva solicitud.
+// reqId es el id de la solicitud.
+// otNumber es el número de OT de la solicitud, el cual se generó automáticamente al ingresar la solicitud en Firestore.
+export const sendEmailNewPetition = async (user, values, reqId, otNumber) => {
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
   if (user !== null) {
@@ -415,9 +416,6 @@ export const sendEmailNewPetition = async (user, values, reqId) => {
       const week = moment(adjustedDate.toDate()).isoWeek()
       const supervisorShift = week % 2 === 0 ? 'A' : 'B'
       const supervisorData = await getSupervisorData(supervisorShift)
-
-      // Se obtiene el número de OT del contador.
-      const otNumber = await getLastOTValue()
 
       // Se almacenan las constantes a usar en el email
       const title = values.title

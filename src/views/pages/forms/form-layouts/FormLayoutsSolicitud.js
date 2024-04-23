@@ -728,7 +728,7 @@ const FormLayoutsSolicitud = () => {
           const updatedValues = { ...processedValues, attachedDocuments }
 
           // Se envia el e-mail con toda la información de la Solicitud.
-          await sendEmailNewPetition(authUser, updatedValues, request.id)
+          await sendEmailNewPetition(authUser, updatedValues, request.id, request.ot)
 
           // Se quita de localStorage los datos del formulario que están almacenados temporalmente.
           localStorage.removeItem('formData')
