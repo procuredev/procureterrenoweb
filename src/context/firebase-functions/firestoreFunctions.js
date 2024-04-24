@@ -1163,6 +1163,130 @@ const finishPetition = async (currentPetition, authUser) => {
   }
 }
 
+const setOtHoursWorked = async (docId, values, user) => {
+  // Referencia al documento dentro de la subcolección "usersWorkedHours"
+  const userWorkedHoursRef = doc(db, 'solicitudes', docId, 'usersWorkedHours', user.uid)
+
+  // Convertimos el 'day' de 'values' a unix time y obtenemos el timestamp actual convertido a unix
+  const dayToUnix = moment(values.day).startOf('day').unix()
+  const dayToTimestamp = moment(values.day).startOf('day').toDate()
+  const logToUnix = moment().unix()
+  const logToTimestamp = Timestamp.fromDate(new Date())
+  const workType = values.type
+  const hoursWorked = values.hours
+
+  try {
+    // Verificar si el documento ya existe
+    const docSnap = await getDoc(userWorkedHoursRef)
+
+    if (docSnap.exists()) {
+      // Construimos el path del campo donde queremos añadir el nuevo registro
+      const workHoursField = `${dayToUnix}.${workType}`
+
+      // Verificamos si ya hay registros en ese día y tipo de trabajo
+      const existingWork = docSnap.data()[dayToUnix]?.[workType] ?? {}
+
+      // Añadimos el nuevo registro al objeto existente
+      existingWork[logToUnix] = {
+        hoursWorked,
+        dateLog: logToTimestamp,
+        day: dayToTimestamp,
+        name: user.displayName,
+        role: user.role
+      }
+
+      // Preparamos la estructura de actualización para Firestore
+      const updateStructure = {
+        [workHoursField]: existingWork
+      }
+
+      // Actualizamos el documento con los nuevos datos
+      await updateDoc(userWorkedHoursRef, updateStructure)
+      console.log('Horas trabajadas actualizadas.')
+    } else {
+      // Si el documento no existe, lo creamos con la estructura inicial
+      const initialStructure = {
+        [dayToUnix]: {
+          [workType]: {
+            [logToUnix]: {
+              hoursWorked,
+              dateLog: logToTimestamp,
+              day: dayToTimestamp,
+              name: user.displayName,
+              role: user.role
+            }
+          }
+        }
+      }
+
+      await setDoc(userWorkedHoursRef, initialStructure)
+      console.log('Documento y horas trabajadas creadas.')
+    }
+  } catch (error) {
+    console.error('Error al manejar las horas trabajadas:', error)
+  }
+}
+
+/* const setOtHoursWorked = async (docId, values, user) => {
+  const userWorkedHoursRef = doc(db, 'solicitudes', docId, 'usersWorkedHours', user.uid)
+  const logToUnix = moment().unix()
+  const dayToTimestamp = moment(values.day).startOf('day').toDate()
+  const logToTimestamp = Timestamp.fromDate(new Date())
+  const hoursWorked = values.hours
+
+  // Define la estructura de los datos a actualizar/crear
+  const workEntry = {
+    [logToUnix]: {
+      hoursWorked,
+      day: dayToTimestamp,
+      type: values.type,
+      dateLog: logToTimestamp,
+      role: user.role,
+      name: user.displayName
+    },
+    totalHours: increment(hoursWorked) // Esto incrementará el campo 'totalHours' o lo creará si no existe
+  }
+
+  try {
+    // Verifica si el documento ya existe
+    const docSnap = await getDoc(userWorkedHoursRef)
+
+    if (docSnap.exists()) {
+      // Si existe, actualiza el documento con la nueva entrada de trabajo y el total de horas
+      await updateDoc(userWorkedHoursRef, workEntry, { merge: true })
+      console.log('Horas trabajadas actualizadas.')
+    } else {
+      // Si no existe, crea un nuevo documento con la entrada de trabajo y totalHours inicializado
+      const initialEntry = {
+        ...workEntry,
+        totalHours: hoursWorked // Inicializa totalHours con las horas actuales si el documento no existe
+      }
+      await setDoc(userWorkedHoursRef, initialEntry)
+      console.log('Documento y horas trabajadas creadas.')
+    }
+  } catch (error) {
+    console.error('Error al manejar las horas trabajadas:', error)
+  }
+} */
+
+const loadUserHours = async (docId, UserParam) => {
+  const userWorkedHoursRef = doc(db, 'solicitudes', docId, 'usersWorkedHours', UserParam.uid)
+
+  try {
+    const docSnap = await getDoc(userWorkedHoursRef)
+    if (docSnap.exists()) {
+      // Suponiendo que se guarda el total de horas acumuladas bajo la clave 'totalHours'
+      return docSnap.data().totalHours || 0
+    }
+
+    return 0
+  } catch (error) {
+    console.error('Error al obtener las horas trabajadas:', error)
+
+    return 0
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1177,5 +1301,7 @@ export {
   updateSelectedDocuments,
   addComment,
   updateUserData,
-  finishPetition
+  finishPetition,
+  setOtHoursWorked,
+  loadUserHours
 }

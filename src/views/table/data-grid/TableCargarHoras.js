@@ -28,11 +28,12 @@ import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import { DialogDoneProject } from 'src/@core/components/dialog-doneProject'
 
-import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
+import { DialogLoadHours } from 'src/@core/components/dialog-loadHours'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 
 import EngineeringIcon from '@mui/icons-material/Engineering'
+import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined'
 import { Pause } from '@mui/icons-material'
 
 const TableCargarHoras = ({ rows, role, roleData }) => {
@@ -44,8 +45,9 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, domainDictionary } = useFirebase()
+  const { updateDocs, authUser, getUserData, domainDictionary, loadUserHours } = useFirebase()
   const [isLoading, setIsLoading] = useState(false)
+  const [userHours, setUserHours] = useState(0)
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -111,6 +113,44 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
   const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
   //const resultProyectistas = getUserProyectistas(authUser.shift)
+
+  /*  useEffect(() => {
+    // Función para cargar las horas acumuladas por usuario para cada OT
+    const loadUserHours = async () => {
+      // Objeto para acumular las horas por usuario
+      let newUserHours = {};
+
+      // Recorrer cada OT y realizar la consulta a Firestore
+      for (let doc of rows) {
+        const otHoursRef = collection(db, 'solicitudes', doc.id, 'usersWorkedHours2');
+        const querySnapshot = await getDocs(otHoursRef);
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+
+          // Asumiendo que el documento tiene un campo 'hours'
+          newUserHours[doc.id] = (newUserHours[doc.id] || 0) + data.hours;
+        });
+      }
+
+      // Actualizar el estado con las horas acumuladas
+      setUserHours(newUserHours);
+    };
+
+    // Cargar las horas al montar el componente o cuando cambian las 'rows'
+    loadUserHours();
+  }, [rows]);
+
+
+  useEffect(() => {
+    const fetchUserHours = async () => {
+      const hours = await loadUserHours(doc.id, authUser)
+      setUserHours(hours)
+    }
+
+    fetchUserHours()
+  }, [])
+*/
 
   useEffect(() => {
     // Busca el documento actualizado en rows
@@ -187,19 +227,6 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
       }
     },
     {
-      field: 'ot',
-      headerName: 'OT',
-      width: otLocalWidth ? otLocalWidth : 50,
-      minWidth: 50,
-      maxWidth: 80,
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('otLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        return <div>{row.ot || 'N/A'}</div>
-      }
-    },
-    {
       field: 'state',
       headerName: 'Estado',
       width: stateLocalWidth ? stateLocalWidth : 120,
@@ -234,78 +261,24 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
       }
     },
     {
-      field: 'date',
-      headerName: 'Creación',
-      width: dateLocalWidth ? dateLocalWidth : 90,
-      minWidth: 60,
-      maxWidth: 120,
+      field: 'ot',
+      headerName: 'OT',
+      width: otLocalWidth ? otLocalWidth : 50,
+      minWidth: 50,
+      maxWidth: 80,
       renderCell: params => {
         const { row } = params
-        localStorage.setItem('dateLevantamientosWidthColumn', params.colDef.computedWidth)
+        localStorage.setItem('otLevantamientosWidthColumn', params.colDef.computedWidth)
 
-        return <div>{unixToDate(row.date.seconds)[0]}</div>
-      }
-    },
-    {
-      field: 'start',
-      headerName: 'Inicio de Levantamiento',
-      width: startLocalWidth ? startLocalWidth : 120,
-      minWidth: 80,
-      maxWidth: 190,
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('startLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        return <div>{unixToDate(row.start.seconds)[0]}</div>
-      }
-    },
-    {
-      field: 'end',
-      headerName: 'Fin de Levantamiento',
-      width: endLocalWidth ? endLocalWidth : 120,
-      minWidth: 80,
-      maxWidth: 180,
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('endLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        return <div>{(row.end && unixToDate(row.end.seconds)[0]) || 'Pendiente'}</div>
-      }
-    },
-    {
-      field: 'deadline',
-      headerName: 'Fecha Límite',
-      width: deadlineLocalWidth ? deadlineLocalWidth : 120,
-      minWidth: 90,
-      maxWidth: 180,
-      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('deadLineLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        return <div>{(row.deadline && unixToDate(row.deadline.seconds)[0]) || 'Pendiente'}</div>
-      }
-    },
-    {
-      field: 'daysToDeadline',
-      headerName: 'Días por Vencer',
-      width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
-      minWidth: 90,
-      maxWidth: 180,
-      valueGetter: params => params.row.daysToDeadline,
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('daysToDeadLineLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        return <div>{row.daysToDeadline || 'Pendiente'}</div>
+        return <div>{row.ot || 'N/A'}</div>
       }
     },
     {
       field: 'assign',
-      headerName: 'Asignar',
-      width: assignLocalWidth ? assignLocalWidth : 90,
+      headerName: 'Cargar Horas',
+      width: assignLocalWidth ? assignLocalWidth : 160,
       minWidth: 60,
-      maxWidth: 120,
+      maxWidth: 180,
       renderCell: params => {
         const { row } = params
         localStorage.setItem('assignLevantamientosWidthColumn', params.colDef.computedWidth)
@@ -316,12 +289,12 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
               row.state === 6 ? (
                 <>
                   <Button
-                    onClick={role === 7 ? () => handleClickOpen(row) : null}
+                    onClick={() => handleClickOpen(row)}
                     variant='contained'
                     color='secondary'
                     sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
                   >
-                    <EngineeringIcon sx={{ fontSize: 18 }} />
+                    <PendingActionsOutlinedIcon sx={{ fontSize: 18 }} />
                   </Button>
                 </>
               ) : row.state === 7 ? (
@@ -345,7 +318,7 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
                 >
                   <Container sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Button
-                      onClick={role === 7 ? () => handleClickOpen(row) : null}
+                      onClick={() => handleClickOpen(row)}
                       variant='contained'
                       color='secondary'
                       sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
@@ -365,81 +338,13 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
       }
     },
     {
-      width: doneLocalWidth ? doneLocalWidth : 120,
+      field: 'accumulatedHours',
+      headerName: 'Horas Acumuladas',
+      width: 160,
       minWidth: 60,
       maxWidth: 160,
-      field: 'done',
-      headerName: 'Terminar / pausar',
-      renderCell: params => {
-        const { row } = params
-        localStorage.setItem('doneLevantamientosWidthColumn', params.colDef.computedWidth)
-
-        const RenderButtons = () => {
-          return (
-            role === 7 && (
-              <>
-                <Button
-                  onClick={() => handleClickOpenDone(row)}
-                  variant='contained'
-                  color='success'
-                  sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                >
-                  <CheckCircleOutlineIcon sx={{ fontSize: 18 }} />
-                </Button>
-                {!row.pendingReschedule && (
-                  <Button
-                    onClick={() => handlePause(row)}
-                    variant='contained'
-                    color='secondary'
-                    sx={{ margin: '5px', maxWidth: '25px', maxHeight: '25px', minWidth: '25px', minHeight: '25px' }}
-                  >
-                    <Pause sx={{ fontSize: 18 }} />
-                  </Button>
-                )}
-              </>
-            )
-          )
-        }
-
-        return (
-          <>
-            {md ? (
-              row.state === 7 ? (
-                <>
-                  <RenderButtons />
-                </>
-              ) : row.state === 6 ? (
-                'Sin asignar'
-              ) : (
-                'Terminado'
-              )
-            ) : row.state === 7 ? (
-              <>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  size='small'
-                  IconComponent={() => <MoreHorizIcon />}
-                  sx={{
-                    '& .MuiSvgIcon-root': { position: 'absolute', margin: '20%', pointerEvents: 'none !important' },
-                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                    '& .MuiSelect-select': { backgroundColor: theme.palette.customColors.tableHeaderBg },
-                    '& .MuiList-root': { display: 'flex', flexDirection: 'column' }
-                  }}
-                >
-                  <Container sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <RenderButtons />
-                  </Container>
-                </Select>
-              </>
-            ) : row.state === 6 ? (
-              'Sin asignar'
-            ) : (
-              'Terminado'
-            )}
-          </>
-        )
-      }
+      // Asumiendo que 'doc.id' es el ID de la OT
+      valueGetter: params => userHours[params.row.id] || 0
     }
   ]
 
@@ -456,9 +361,9 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
             assign: md,
             done: md,
 
-            actions: roleData.canApprove,
-            assign: authUser.role === 7,
-            done: authUser.role === 7
+            actions: roleData.canApprove
+            // assign: authUser.role === 7,
+            // done: authUser.role === 7
           }}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           sortingModel={defaultSortingModel}
@@ -472,7 +377,7 @@ const TableCargarHoras = ({ rows, role, roleData }) => {
         {loadingProyectistas ? (
           <p>Loading...</p>
         ) : (
-          <DialogAssignProject open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
+          <DialogLoadHours open={open} handleClose={handleClose} doc={doc} proyectistas={proyectistas} />
         )}
         {
           <Dialog open={isLoading}>

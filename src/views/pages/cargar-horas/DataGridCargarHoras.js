@@ -40,7 +40,7 @@ const DataGridCargarHoras = () => {
   }
 
   const tabContent =
-    authUser.role === 1
+    authUser.role === 1 || authUser.role === 5 || authUser.role === 6
       ? [
           {
             data: data.filter(doc => doc.state >= 6 && doc.state < 10),
@@ -81,13 +81,13 @@ const DataGridCargarHoras = () => {
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
       <TabContext value={value}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        {/*  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <TabList onChange={handleChange} aria-label='lab API tabs example'>
             {tabContent.map((element, index) => (
               <Tab label={element.label} value={`${index + 1}`} key={index} />
             ))}
           </TabList>
-        </Box>
+        </Box> */}
         {tabContent.map((element, index) => (
           <Grid item xs={12} key={index}>
             <TabPanel key={index} value={`${index + 1}`}>

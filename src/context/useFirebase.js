@@ -33,7 +33,9 @@ import {
   updateSelectedDocuments,
   updateUserData,
   updateUserPhone,
-  useBlueprints
+  useBlueprints,
+  setOtHoursWorked,
+  loadUserHours
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -69,7 +71,6 @@ const FirebaseContextProvider = props => {
 
       return storedUser ? JSON.parse(storedUser) : null
     } else {
-
       return null
     }
   })
@@ -157,7 +158,9 @@ const FirebaseContextProvider = props => {
     subscribeToPetition,
     consultOT,
     subscribeToUserProfileChanges,
-    subscribeToBlockDayChanges
+    subscribeToBlockDayChanges,
+    setOtHoursWorked,
+    loadUserHours
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
