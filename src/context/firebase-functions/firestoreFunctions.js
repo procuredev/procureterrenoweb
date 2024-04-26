@@ -13,7 +13,8 @@ import {
   query,
   runTransaction,
   setDoc,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
@@ -110,13 +111,10 @@ const newDoc = async (values, userParam) => {
 
     console.log('Nueva solicitud creada con éxito.')
 
-    return {id: docRef.id, ot: ot}
-
+    return { id: docRef.id, ot: ot }
   } catch (error) {
-
     console.error('Error al crear la nueva solicitud:', error)
     throw new Error('Error al crear la nueva solicitud')
-
   }
 }
 
@@ -1163,6 +1161,181 @@ const finishPetition = async (currentPetition, authUser) => {
   } catch (error) {
     console.error('Error al finalizar la solicitud:', error)
     throw new Error('Error al finalizar la solicitud')
+  }
+}
+
+const fetchWeekHoursByType = async (weekId, userId) => {
+  try {
+    const weekRef = doc(db, 'workedHours', weekId)
+    const weekSnap = await getDoc(weekRef)
+
+    if (!weekSnap.exists()) {
+      return { error: 'No se encontraron registros para la semana especificada.' }
+    }
+
+    const userRef = doc(weekRef, 'usersWorkedHours', userId)
+    const userSnap = await getDoc(userRef)
+
+    if (!userSnap.exists()) {
+      return { error: 'No se encontraron registros para el usuario especificado.' }
+    }
+
+    const weekHoursRef = collection(userRef, 'weekHoursByType')
+    const querySnapshot = await getDocs(weekHoursRef)
+
+    if (querySnapshot.empty) {
+      return { error: 'No hay registros de horas para esta semana.' }
+    }
+
+    let weekHours = []
+    querySnapshot.forEach(doc => {
+      weekHours.push({ id: doc.id, ...doc.data() })
+    })
+
+    // Devuelve los datos recopilados de la subcolección 'weekHoursByType'
+    return weekHours
+  } catch (error) {
+    console.error('Error al obtener las horas trabajadas: ', error)
+
+    return { error: 'Ocurrió un error al intentar recuperar los datos.' }
+  }
+}
+
+const createWeekHoursByType = async ({
+  actualWeek,
+  userID,
+  inputHoursType,
+  plant,
+  type = '',
+  otNumber = '',
+  otID = '',
+  costCenter = '',
+  userShift = [],
+  userUid
+}) => {
+  const weekRef = doc(db, 'workedHours', actualWeek)
+  const userWorkedHoursRef = doc(weekRef, 'usersWorkedHours', userID)
+  const weekHoursByTypeRef = doc(collection(userWorkedHoursRef, 'weekHoursByType'))
+
+  const newEntry = {
+    costCenter,
+    created: Timestamp.now(),
+    deleted: false,
+    hoursType: type || '',
+    inputHoursType,
+    typeGabinete: type === 'Gabinete',
+    physicalLocation: plant,
+    userUid,
+    ot: {
+      id: otID,
+      number: otNumber
+    },
+    userShift,
+    hoursPerWeek: {
+      totalHoursPerWeek: 0,
+      week: Array(7)
+        .fill(0)
+        .map(() => ({ totalHoursPerDay: 0 }))
+    }
+  }
+
+  // Se utiliza batch para asegurar que la creación del documento sea atómica y evitar estados intermedios inconsistentes
+  const batch = writeBatch(db)
+
+  try {
+    // verifica si existe la semana en la colección
+    const weekSnap = await getDoc(weekRef)
+    if (!weekSnap.exists()) {
+      batch.set(weekRef, { created: Timestamp.now() })
+    }
+
+    // verifica si en esa semana existe un documento con el userID
+    const userWorkedHoursSnap = await getDoc(userWorkedHoursRef)
+    if (!userWorkedHoursSnap.exists()) {
+      batch.set(userWorkedHoursRef, { created: Timestamp.now() })
+    }
+
+    // Agrega el documento a la colección weekHoursByType
+    batch.set(weekHoursByTypeRef, newEntry)
+
+    await batch.commit()
+    console.log('Documento creado con éxito:', weekHoursByTypeRef.id)
+
+    return { success: true, id: weekHoursByTypeRef.id }
+  } catch (error) {
+    console.error('Error al crear el documento:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const updateWeekHoursByType = async (actualWeek, userID, updates) => {
+  const weekRef = doc(db, 'workedHours', actualWeek)
+  const userWorkedHoursRef = doc(weekRef, 'usersWorkedHours', userID)
+
+  const batch = writeBatch(db)
+
+  try {
+    // Se obtiene el documento para acceder a los datos actuales
+    const userWorkedHoursDoc = await getDoc(userWorkedHoursRef)
+    let totalHoursPerWeek = 0
+
+    if (!userWorkedHoursDoc.exists()) {
+      console.log('No se encontró el documento correspondiente al usuario y la semana.')
+
+      return { success: false, error: 'No se encontró el documento.' }
+    }
+
+    let currentHoursByDay = {}
+
+    // Inicializa la estructura de días con los valores actuales
+    if (userWorkedHoursDoc.exists()) {
+      const weekData = userWorkedHoursDoc.data()
+      for (let i = 0; i < 7; i++) {
+        // iteramos la semana donde week[0] es lunes y week[6] es domingo
+        const dayKey = `week.${i}.totalHoursPerDay`
+        currentHoursByDay[i] = weekData[dayKey] || 0
+      }
+    }
+
+    // Aplicar actualizaciones y calcular el nuevo total
+    updates.forEach(update => {
+      const weekHoursByTypeRef = doc(userWorkedHoursRef, 'weekHoursByType', update.docID)
+
+      update.updates.forEach(dayUpdate => {
+        const dayIndex = parseInt(dayUpdate.day.replace('week[', '').replace(']', ''))
+        const dayKey = `hoursPerWeek.week.${dayUpdate.day}`
+        const newEntryKey = `${dayKey}.${Timestamp.now().toMillis()}`
+
+        // Se actualiza el valor del día específico y añadimos nuevo registro de horas
+        currentHoursByDay[dayIndex] = dayUpdate.hoursWorked // se sobrescribe el total del día
+
+        batch.update(weekHoursByTypeRef, {
+          [`${dayKey}.totalHoursPerDay`]: dayUpdate.hoursWorked,
+          [newEntryKey]: {
+            dateLog: Timestamp.now(),
+            hoursWorked: dayUpdate.hoursWorked
+          }
+        })
+      })
+    })
+
+    // Suma todos los totales de días para el total de la semana
+    totalHoursPerWeek = Object.values(currentHoursByDay).reduce((acc, val) => acc + val, 0)
+
+    // Actualizar el total de horas de la semana después de todas las actualizaciones
+    batch.update(userWorkedHoursRef, {
+      'hoursPerWeek.totalHoursPerWeek': totalHoursPerWeek
+    })
+
+    await batch.commit()
+    console.log('Las horas trabajadas y el total semanal fueron actualizados correctamente.')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error al actualizar las horas trabajadas:', error)
+
+    return { success: false, error: error.message }
   }
 }
 
