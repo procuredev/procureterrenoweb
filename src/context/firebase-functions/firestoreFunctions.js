@@ -1323,7 +1323,7 @@ const updateWeekHoursByType = async (actualWeek, userID, updates) => {
     // Suma todos los totales de días para el total de la semana
     totalHoursPerWeek = Object.values(currentHoursByDay).reduce((acc, val) => acc + val, 0)
 
-    // Actualizar el total de horas de la semana después de todas las actualizaciones
+    // Actualiza el total de horas de la semana después de todas las actualizaciones
     batch.update(userWorkedHoursRef, {
       'hoursPerWeek.totalHoursPerWeek': totalHoursPerWeek
     })
