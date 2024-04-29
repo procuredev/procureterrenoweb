@@ -39,16 +39,18 @@ const Navigation = () => {
       authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     },
     {
-      title: 'Supervisor',
+      title: 'Levantamientos',
+      path: '/levantamientos',
       icon: 'mdi:account-hard-hat',
-      children: [
-        {
-          path: '/levantamientos',
-          title: 'Levantamientos',
-          subject: 'levantamientos'
-        }
-      ],
+      subject: 'levantamientos',
       authorizedRoles: [1, 7, 8]
+    },
+    {
+      title: 'Carga de Horas',
+      path: '/carga-de-horas',
+      icon: 'mdi:hours-12',
+      subject: 'carga-de-horas',
+      authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11]
     },
     // {
     //   title: 'Gabinete',
