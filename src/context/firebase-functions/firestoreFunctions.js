@@ -1353,5 +1353,8 @@ export {
   updateSelectedDocuments,
   addComment,
   updateUserData,
-  finishPetition
+  finishPetition,
+  fetchWeekHoursByType,
+  createWeekHoursByType,
+  updateWeekHoursByType
 }
