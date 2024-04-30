@@ -946,7 +946,7 @@ const FormLayoutsSolicitud = () => {
         const currentTime = new Date().getTime()
         const hoursSinceLastEdition = (currentTime - parsedData.timestamp)/(60 * 60 * 1000)
 
-        console.log('tiempo desde última edición (Horas): ' + hoursSinceLastEdition)
+        // console.log('tiempo desde última edición (Horas): ' + hoursSinceLastEdition)
 
         // Limpiar localStorage si han pasado 8 horas
         if (hoursSinceLastEdition >= 8) {
