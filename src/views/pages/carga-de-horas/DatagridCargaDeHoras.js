@@ -26,7 +26,7 @@ const DataGridCargaDeHoras = () => {
   const [roleData, setRoleData] = useState({ name: 'admin' })
 
   //const { useSnapshot, authUser, getDomainData } = useFirebase()
-  const { authUser, fetchWeekHoursByType, fetchSolicitudes } = useFirebase()
+  const { authUser, fetchWeekHoursByType, fetchSolicitudes, useSnapshot, getDomainData } = useFirebase()
   const data = useSnapshot(true, authUser)
 
   useEffect(() => {
