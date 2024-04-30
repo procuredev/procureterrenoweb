@@ -1165,6 +1165,7 @@ const finishPetition = async (currentPetition, authUser) => {
 }
 
 const fetchWeekHoursByType = async (weekId, userId) => {
+  console.log('weekId: ', weekId)
   try {
     const weekRef = doc(db, 'workedHours', weekId)
     const weekSnap = await getDoc(weekRef)
@@ -1193,6 +1194,8 @@ const fetchWeekHoursByType = async (weekId, userId) => {
     })
 
     // Devuelve los datos recopilados de la subcolección 'weekHoursByType'
+    console.log('weekHours: ', weekHours)
+
     return weekHours
   } catch (error) {
     console.error('Error al obtener las horas trabajadas: ', error)

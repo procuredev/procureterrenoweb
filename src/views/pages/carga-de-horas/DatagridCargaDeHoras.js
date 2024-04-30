@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
@@ -12,6 +12,8 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 
+import { getWeek } from 'date-fns'
+
 // ** Custom Components Imports
 
 // ** Demo Components Imports
@@ -19,10 +21,41 @@ import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras'
 
 const DataGridCargaDeHoras = () => {
   const [value, setValue] = useState('1')
+  const [weekHours, setWeekHours] = useState([])
+  const [otFetch, setOtFetch] = useState([])
   const [roleData, setRoleData] = useState({ name: 'admin' })
 
-  const { useSnapshot, authUser, getDomainData } = useFirebase()
+  //const { useSnapshot, authUser, getDomainData } = useFirebase()
+  const { authUser, fetchWeekHoursByType, fetchSolicitudes } = useFirebase()
   const data = useSnapshot(true, authUser)
+
+  useEffect(() => {
+    const loadWeekHours = async () => {
+      const now = new Date()
+      const weekNumber = getWeek(now, { weekStartsOn: 2 }) // 2 representa el martes
+      const weekId = `${now.getFullYear()}-${weekNumber}`
+
+      const hoursData = await fetchWeekHoursByType(weekId, authUser.uid)
+      if (!hoursData.error) {
+        setWeekHours(hoursData)
+      } else {
+        console.log(hoursData.error)
+      }
+    }
+
+    const loadSolicitudes = async () => {
+      const solicitudes = await fetchSolicitudes(authUser)
+      setOtFetch(solicitudes)
+    }
+
+    if (authUser.uid) {
+      // Asegúrate de ejecutar esto solo si authUser.uid está disponible
+      loadWeekHours()
+      loadSolicitudes()
+    }
+  }, [authUser])
+
+  console.log('weekHours: ', weekHours)
 
   useEffect(() => {
     const role = async () => {
@@ -81,23 +114,33 @@ const DataGridCargaDeHoras = () => {
   return (
     <Box sx={{ width: '100%', typography: 'body1' }}>
       <TabContext value={value}>
-        {/* <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList onChange={handleChange} aria-label='lab API tabs example'>
-            {tabContent.map((element, index) => (
-              <Tab label={element.label} value={`${index + 1}`} key={index} />
-            ))}
-          </TabList>
-        </Box> */}
+        {
+          // <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          //   <TabList onChange={handleChange} aria-label='lab API tabs example'>
+          //     {tabContent.map((element, index) => (
+          //       <Tab label={element.label} value={`${index + 1}`} key={index} />
+          //     ))}
+          //   </TabList>
+          // </Box>
+        }
         {tabContent.map((element, index) => (
           <Grid item xs={12} key={index}>
             <TabPanel key={index} value={`${index + 1}`}>
-              <TableCargaDeHoras rows={element.data} roleData={roleData} role={authUser.role} />
+              <TableCargaDeHoras rows={weekHours} role={authUser.role} otOptions={otFetch} />
             </TabPanel>
           </Grid>
         ))}
       </TabContext>
     </Box>
   )
+
+  /*  return (
+    <Box sx={{ width: '100%', typography: 'body1' }}>
+      <TabContext value={value}>
+        <TableCargaDeHoras rows={weekHours} role={authUser.role} otOptions={otFetch} />
+      </TabContext>
+    </Box>
+  ) */
 }
 
 export default DataGridCargaDeHoras
