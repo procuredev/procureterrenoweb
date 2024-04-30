@@ -948,9 +948,10 @@ const FormLayoutsSolicitud = () => {
 
         // console.log('tiempo desde última edición (Horas): ' + hoursSinceLastEdition)
 
-        // Limpiar localStorage si han pasado 8 horas
+        // Limpiar localStorage y actualizar la página si han pasado más 8 horas.
         if (hoursSinceLastEdition >= 8) {
           localStorage.removeItem('formData')
+          window.location.reload()
         }
       }
 
