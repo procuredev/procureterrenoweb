@@ -934,22 +934,22 @@ const FormLayoutsSolicitud = () => {
   // Observará los cambios del estado formChanged, el cual se actualizará cuando el usuario haga algún cambio.
   useEffect(() => {
 
+    // Si formChanged es false
     if(!formChanged){
 
+      // Se almacena en una constante los datos del localStorage
       const savedFormData = localStorage.getItem('formData')
 
       if (savedFormData) {
 
         const parsedData = JSON.parse(savedFormData)
-
         const currentTime = new Date().getTime()
-
         const hoursSinceLastEdition = (currentTime - parsedData.timestamp)/(60 * 60 * 1000)
 
         console.log('tiempo desde última edición (Horas): ' + hoursSinceLastEdition)
 
+        // Limpiar localStorage si han pasado 8 horas
         if (hoursSinceLastEdition >= 8) {
-          // Limpiar localStorage si han pasado 8 horas
           localStorage.removeItem('formData')
         }
       }
