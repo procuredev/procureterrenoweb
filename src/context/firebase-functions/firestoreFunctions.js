@@ -14,7 +14,8 @@ import {
   runTransaction,
   setDoc,
   updateDoc,
-  writeBatch
+  writeBatch,
+  where
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
@@ -1165,7 +1166,6 @@ const finishPetition = async (currentPetition, authUser) => {
 }
 
 const fetchWeekHoursByType = async (weekId, userId) => {
-  console.log('weekId: ', weekId)
   try {
     const weekRef = doc(db, 'workedHours', weekId)
     const weekSnap = await getDoc(weekRef)
@@ -1193,9 +1193,6 @@ const fetchWeekHoursByType = async (weekId, userId) => {
       weekHours.push({ id: doc.id, ...doc.data() })
     })
 
-    // Devuelve los datos recopilados de la subcolección 'weekHoursByType'
-    console.log('weekHours: ', weekHours)
-
     return weekHours
   } catch (error) {
     console.error('Error al obtener las horas trabajadas: ', error)
@@ -1204,42 +1201,29 @@ const fetchWeekHoursByType = async (weekId, userId) => {
   }
 }
 
-const createWeekHoursByType = async ({
-  actualWeek,
-  userID,
-  inputHoursType,
-  plant,
-  type = '',
-  otNumber = '',
-  otID = '',
-  costCenter = '',
-  userShift = [],
-  userUid
-}) => {
+const createWeekHoursByType = async (actualWeek, userParams, newEntryData) => {
+  if (!actualWeek || !userParams || !newEntryData) {
+    console.error('Missing parameters')
+
+    return { success: false, error: 'Missing parameters' }
+  }
   const weekRef = doc(db, 'workedHours', actualWeek)
-  const userWorkedHoursRef = doc(weekRef, 'usersWorkedHours', userID)
+  const userWorkedHoursRef = doc(weekRef, 'usersWorkedHours', userParams.uid)
   const weekHoursByTypeRef = doc(collection(userWorkedHoursRef, 'weekHoursByType'))
 
   const newEntry = {
-    costCenter,
     created: Timestamp.now(),
     deleted: false,
-    hoursType: type || '',
-    inputHoursType,
-    typeGabinete: type === 'Gabinete',
-    physicalLocation: plant,
-    userUid,
-    ot: {
-      id: otID,
-      number: otNumber
-    },
-    userShift,
+    inputHoursType: newEntryData.inputHoursType,
+    plant: newEntryData.plant,
     hoursPerWeek: {
       totalHoursPerWeek: 0,
       week: Array(7)
         .fill(0)
         .map(() => ({ totalHoursPerDay: 0 }))
-    }
+    },
+    ...newEntryData,
+    ...((userParams.role === 7 || userParams.role === 8) && { supervisorShift: userParams.shift[0] })
   }
 
   // Se utiliza batch para asegurar que la creación del documento sea atómica y evitar estados intermedios inconsistentes
@@ -1295,7 +1279,7 @@ const updateWeekHoursByType = async (actualWeek, userID, updates) => {
     if (userWorkedHoursDoc.exists()) {
       const weekData = userWorkedHoursDoc.data()
       for (let i = 0; i < 7; i++) {
-        // iteramos la semana donde week[0] es lunes y week[6] es domingo
+        // iteramos la semana donde week[0] es martes y week[6] es lunes
         const dayKey = `week.${i}.totalHoursPerDay`
         currentHoursByDay[i] = weekData[dayKey] || 0
       }
@@ -1342,6 +1326,38 @@ const updateWeekHoursByType = async (actualWeek, userID, updates) => {
   }
 }
 
+const fetchSolicitudes = async authUser => {
+  console.log('authUser:', authUser)
+  const solicitudesRef = collection(db, 'solicitudes')
+  let queryRef
+
+  if (authUser.role === 7 || authUser.role === 8) {
+    // Filtrar por shift si el usuario tiene uno o dos turnos.
+    queryRef = query(solicitudesRef, where('state', '>=', 6), where('supervisorShift', '==', authUser.shift[0]))
+  } else if (authUser.role >= 5 && authUser.role <= 12) {
+    // Usuarios con roles específicos pueden ver todas las solicitudes mayores al estado 6.
+    queryRef = query(solicitudesRef, where('state', '>=', 6))
+  }
+
+  try {
+    const querySnapshot = await getDocs(queryRef)
+
+    const solicitudes = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ot: doc.data().ot,
+      plant: doc.data().plant,
+      area: doc.data().area,
+      costCenter: doc.data().costCenter,
+      supervisorShift: doc.data().supervisorShift || []
+    }))
+
+    return solicitudes
+  } catch (error) {
+    console.error('Error fetching solicitudes: ', error)
+    throw new Error('Failed to fetch solicitudes.')
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1359,5 +1375,6 @@ export {
   finishPetition,
   fetchWeekHoursByType,
   createWeekHoursByType,
-  updateWeekHoursByType
+  updateWeekHoursByType,
+  fetchSolicitudes
 }

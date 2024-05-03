@@ -1,62 +1,236 @@
 import React, { useState, useEffect } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
-import TextField from '@mui/material/TextField'
+import { TextField, Typography, Box } from '@mui/material'
 
-const TableCargaDeHoras = ({ rows, role, otOptions, createWeekHoursByType, updateWeekHoursByType }) => {
-  const [open, setOpen] = useState(false)
-  const [selectedRow, setSelectedRow] = useState({})
+const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
+  const [data, setData] = useState(rows)
 
-  const handleOpenDialog = () => setOpen(true)
-  const handleCloseDialog = () => setOpen(false)
+  useEffect(() => {
+    setData(rows)
+  }, [rows])
 
-  const handleCreate = async () => {
-    const result = await createWeekHoursByType({
-      actualWeek: '2024-17',
-      userID: 'user123',
-      inputHoursType: 'OT',
-      plant: 'Planta1',
-      type: 'Levantamiento',
-      otNumber: '1234',
-      userUid: 'user123'
+  const handleCellEditCommit = params => {
+    const { id, field, value } = params
+
+    const newValue = parseInt(value)
+
+    const newData = data.map(row => {
+      if (row.id === id) {
+        const dayIndex = parseInt(field)
+        const oldDayValue = row.hoursPerWeek.week[dayIndex]?.totalHoursDay || 0
+
+        if (newValue !== oldDayValue) {
+          const updatedWeek = [...row.hoursPerWeek.week]
+          updatedWeek[dayIndex] = { ...updatedWeek[dayIndex], totalHoursDay: newValue }
+
+          onChangesDetected({ id, [field]: newValue })
+
+          return { ...row, hoursPerWeek: { ...row.hoursPerWeek, week: updatedWeek } }
+        }
+      }
+
+      return row
     })
-    console.log(result)
-    handleCloseDialog()
-  }
 
-  const handleUpdate = async () => {
-    const result = await updateWeekHoursByType('2024-17', 'user123', [
-      { docID: selectedRow.id, updates: [{ hoursWorked: 8, day: 'week[0]' }] }
-    ])
-    console.log(result)
+    setData(newData)
   }
 
   const columns = [
-    { field: 'ot', headerName: 'OT', width: 130 },
-    { field: 'type', headerName: 'Type', width: 130 },
-    { field: 'hoursWorked', headerName: 'Hours Worked', width: 130, editable: true }
+    {
+      field: 'ot',
+      headerName: 'OT',
+      width: 130,
+      renderCell: params => {
+        const { row } = params
+        let otNumber = row.inputHoursType === 'OT' ? row.otNumber : row.inputHoursType
+
+        return (
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography>{otNumber}</Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      field: 'type',
+      headerName: 'Tipo',
+      width: 190,
+      renderCell: params => {
+        const { row } = params
+
+        const tipo =
+          row.inputHoursType === 'OT' ? (row.isGabinete === true ? 'Gabinete' : 'Levantamiento') : row.inputHoursType
+
+        return (
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography>{tipo}</Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      field: 'plant',
+      headerName: 'Planta',
+      width: 280,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography>{row.plant}</Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      field: 'martes',
+      headerName: 'Martes',
+      width: 130,
+      editable: true,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <TextField
+            fullWidth
+            value={row.hoursPerWeek?.week[0]?.totalHoursDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 0, value: e.target.value })}
+            inputProps={{ type: 'number', min: 0, max: 12 }}
+          />
+        )
+      }
+    },
+    {
+      field: 'miercoles',
+      headerName: 'Miercoles',
+      width: 130,
+      editable: true,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <TextField
+            fullWidth
+            value={row.hoursPerWeek?.week[1]?.totalHoursDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 1, value: e.target.value })}
+            inputProps={{ type: 'number', min: 0, max: 12 }}
+          />
+        )
+      }
+    },
+    {
+      field: 'jueves',
+      headerName: 'Jueves',
+      width: 130,
+      editable: true,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <TextField
+            fullWidth
+            value={row.hoursPerWeek?.week[2]?.totalHoursDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 2, value: e.target.value })}
+            inputProps={{ type: 'number', min: 0, max: 12 }}
+          />
+        )
+      }
+    },
+    {
+      field: 'viernes',
+      headerName: 'Viernes',
+      width: 130,
+      editable: true,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <TextField
+            fullWidth
+            value={row.hoursPerWeek?.week[3]?.totalHoursDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 3, value: e.target.value })}
+            inputProps={{ type: 'number', min: 0, max: 12 }}
+          />
+        )
+      }
+    },
+    {
+      field: 'sabado',
+      headerName: 'Sabado',
+      width: 130,
+      editable: true,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <TextField
+            fullWidth
+            value={row.hoursPerWeek?.week[4]?.totalHoursDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 4, value: e.target.value })}
+            inputProps={{ type: 'number', min: 0, max: 12 }}
+          />
+        )
+      }
+    },
+    {
+      field: 'domingo',
+      headerName: 'Domingo',
+      width: 130,
+      editable: true,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <TextField
+            fullWidth
+            value={row.hoursPerWeek?.week[5]?.totalHoursDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 5, value: e.target.value })}
+            inputProps={{ type: 'number', min: 0, max: 12 }}
+          />
+        )
+      }
+    },
+    {
+      field: 'lunes',
+      headerName: 'Lunes',
+      width: 130,
+      editable: true,
+      renderCell: params => {
+        const { row } = params
+
+        return (
+          <TextField
+            fullWidth
+            value={row.hoursPerWeek?.week[6]?.totalHoursDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 6, value: e.target.value })}
+            inputProps={{ type: 'number', min: 0, max: 12 }}
+          />
+        )
+      }
+    },
+    {
+      field: 'totalWeekHours',
+      headerName: 'Total de horas por semana',
+      width: 190,
+      renderCell: params => {
+        const total = Object.keys(params.row)
+          .filter(key => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].includes(key))
+          .reduce((acc, day) => acc + (Number(params.row[day]) || 0), 0)
+
+        return <div>{total}</div>
+      }
+    }
   ]
 
   return (
-    <div style={{ height: 400, width: '100%' }}>
-      <Button onClick={handleOpenDialog}>Agregar Nueva Fila</Button>
-      <Button onClick={handleUpdate}>Actualizar Tabla</Button>
-      <DataGrid rows={rows} columns={columns} onCellEditCommit={params => setSelectedRow(params)} />
-      <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>Agregar Nueva Hora</DialogTitle>
-        <DialogContent>
-          <TextField label='OT' variant='outlined' fullWidth />
-          <TextField label='Hours' variant='outlined' fullWidth />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCreate}>Crear</Button>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-        </DialogActions>
-      </Dialog>
+    <div style={{ height: 600, width: '100%' }}>
+      <DataGrid
+        rows={data}
+        columns={columns}
+        getRowId={row => row.id}
+        onCellEditCommit={handleCellEditCommit}
+        pageSize={5}
+      />
     </div>
   )
 }

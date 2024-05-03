@@ -1,5 +1,6 @@
 // ** React Imports
 import React, { useState, useEffect } from 'react'
+import { getWeek, startOfWeek, eachDayOfInterval, format } from 'date-fns'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
@@ -7,140 +8,124 @@ import { useFirebase } from 'src/context/useFirebase'
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
-import Tab from '@mui/material/Tab'
-import TabContext from '@mui/lab/TabContext'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-
-import { getWeek } from 'date-fns'
+import Button from '@mui/material/Button'
 
 // ** Custom Components Imports
-
-// ** Demo Components Imports
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras'
+import DialogCreateHours from 'src/@core/components/DialogCreateHours'
 
 const DataGridCargaDeHoras = () => {
-  const [value, setValue] = useState('1')
   const [weekHours, setWeekHours] = useState([])
   const [otFetch, setOtFetch] = useState([])
-  const [roleData, setRoleData] = useState({ name: 'admin' })
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)
+  const [changes, setChanges] = useState({})
 
-  //const { useSnapshot, authUser, getDomainData } = useFirebase()
-  const { authUser, fetchWeekHoursByType, fetchSolicitudes, useSnapshot, getDomainData } = useFirebase()
-  const data = useSnapshot(true, authUser)
+  const {
+    authUser,
+    fetchWeekHoursByType,
+    fetchSolicitudes,
+    createWeekHoursByType,
+    updateWeekHoursByType
+  } = useFirebase()
 
   useEffect(() => {
-    const loadWeekHours = async () => {
+    const loadInitialData = async () => {
       const now = new Date()
-      const weekNumber = getWeek(now, { weekStartsOn: 2 }) // 2 representa el martes
+      const weekNumber = getWeek(now, { weekStartsOn: 1 })
       const weekId = `${now.getFullYear()}-${weekNumber}`
 
       const hoursData = await fetchWeekHoursByType(weekId, authUser.uid)
-      if (!hoursData.error) {
-        setWeekHours(hoursData)
+      if (hoursData.error) {
+        console.error(hoursData.error)
+        setWeekHours([])
       } else {
-        console.log(hoursData.error)
+        setWeekHours(hoursData)
       }
-    }
 
-    const loadSolicitudes = async () => {
       const solicitudes = await fetchSolicitudes(authUser)
-      setOtFetch(solicitudes)
+      setOtFetch(solicitudes || [])
     }
 
-    if (authUser.uid) {
-      // Asegúrate de ejecutar esto solo si authUser.uid está disponible
-      loadWeekHours()
-      loadSolicitudes()
+    if (authUser && authUser.uid) {
+      loadInitialData()
     }
   }, [authUser])
 
-  console.log('weekHours: ', weekHours)
+  const handleCreateHours = async newHourDetails => {
+    const now = new Date()
+    const weekNumber = getWeek(now, { weekStartsOn: 1 })
+    const weekId = `${now.getFullYear()}-${weekNumber}`
 
-  useEffect(() => {
-    const role = async () => {
-      if (authUser) {
-        const role = await getDomainData('roles', authUser.role.toString())
-        setRoleData(role)
+    const result = await createWeekHoursByType(weekId, authUser, newHourDetails)
+    if (result.success) {
+      const newData = {
+        ...newHourDetails,
+        id: result.id
       }
+      setWeekHours(prev => [...prev, newData])
     }
-
-    role()
-  }, [])
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
+    setDialogOpen(false)
   }
 
-  const tabContent =
-    authUser.role === 1 || authUser.role === 5 || authUser.role === 6 || authUser.role === 10
-      ? [
-          {
-            data: data.filter(doc => doc.state >= 6 && doc.state < 10),
-            label: 'Todos los levantamientos'
-          },
-          {
-            data: data.filter(doc => doc.state === 6),
-            label: 'Agendados'
-          },
-          {
-            data: data.filter(doc => doc.state === 7),
-            label: 'En Proceso'
-          },
-          {
-            data: data.filter(doc => doc.state === 8),
-            label: 'Terminados'
-          }
-        ]
-      : [
-          {
-            data: data.filter(doc => doc.state >= 6 && doc.state < 10 && doc.supervisorShift === authUser.shift[0]),
-            label: 'Todos los levantamientos'
-          },
-          {
-            data: data.filter(doc => doc.state === 6 && doc.supervisorShift === authUser.shift[0]),
-            label: 'Por Revisar'
-          },
-          {
-            data: data.filter(doc => doc.state === 7 && doc.supervisorShift === authUser.shift[0]),
-            label: 'En Proceso'
-          },
-          {
-            data: data.filter(doc => doc.state === 8 && doc.supervisorShift === authUser.shift[0]),
-            label: 'Terminados'
-          }
-        ]
+  const handleUpdateHours = async () => {
+    const updates = Object.entries(changes).map(([docID, dayChanges]) => ({
+      docID,
+      updates: Object.entries(dayChanges).map(([day, hoursWorked]) => ({
+        day: parseInt(day),
+        hoursWorked: parseInt(hoursWorked)
+      }))
+    }))
+
+    const now = new Date()
+    const weekNumber = getWeek(now, { weekStartsOn: 1 })
+    const weekId = `${now.getFullYear()}-${weekNumber}`
+
+    const result = await updateWeekHoursByType(weekId, authUser.uid, updates)
+    console.log(result)
+  }
+
+  const handleChangesDetected = change => {
+    const { id, field, value } = change
+    setChanges(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value
+      }
+    }))
+    setHasChanges(true)
+  }
+
+  console.log('Object.keys(changes): ', Object.keys(changes))
 
   return (
-    <Box sx={{ width: '100%', typography: 'body1' }}>
-      <TabContext value={value}>
-        {
-          // <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          //   <TabList onChange={handleChange} aria-label='lab API tabs example'>
-          //     {tabContent.map((element, index) => (
-          //       <Tab label={element.label} value={`${index + 1}`} key={index} />
-          //     ))}
-          //   </TabList>
-          // </Box>
-        }
-        {tabContent.map((element, index) => (
-          <Grid item xs={12} key={index}>
-            <TabPanel key={index} value={`${index + 1}`}>
-              <TableCargaDeHoras rows={weekHours} role={authUser.role} otOptions={otFetch} />
-            </TabPanel>
-          </Grid>
-        ))}
-      </TabContext>
+    <Box sx={{ width: '100%' }}>
+      <Button onClick={() => setDialogOpen(true)}>Agregar Nueva Fila</Button>
+      <Button onClick={handleUpdateHours} disabled={Object.keys(changes).length === 0}>
+        Actualizar Tabla
+      </Button>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <TableCargaDeHoras
+            rows={weekHours}
+            updateWeekHoursByType={updateWeekHoursByType}
+            onChangesDetected={handleChangesDetected}
+          />
+        </Grid>
+      </Grid>
+      {dialogOpen && (
+        <DialogCreateHours
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onSubmit={handleCreateHours}
+          otOptions={otFetch}
+          existingRows={weekHours}
+          userParams={authUser}
+        />
+      )}
     </Box>
   )
-
-  /*  return (
-    <Box sx={{ width: '100%', typography: 'body1' }}>
-      <TabContext value={value}>
-        <TableCargaDeHoras rows={weekHours} role={authUser.role} otOptions={otFetch} />
-      </TabContext>
-    </Box>
-  ) */
 }
 
 export default DataGridCargaDeHoras

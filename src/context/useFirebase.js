@@ -36,7 +36,8 @@ import {
   useBlueprints,
   fetchWeekHoursByType,
   createWeekHoursByType,
-  updateWeekHoursByType
+  updateWeekHoursByType,
+  fetchSolicitudes
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -162,7 +163,8 @@ const FirebaseContextProvider = props => {
     subscribeToBlockDayChanges,
     fetchWeekHoursByType,
     createWeekHoursByType,
-    updateWeekHoursByType
+    updateWeekHoursByType,
+    fetchSolicitudes
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
