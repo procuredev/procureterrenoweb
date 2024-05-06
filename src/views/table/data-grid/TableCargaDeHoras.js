@@ -6,27 +6,43 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
   const [data, setData] = useState(rows)
 
   useEffect(() => {
-    setData(rows)
+    const initializedRows = rows.map(row => ({
+      ...row,
+      hoursPerWeek: {
+        ...row.hoursPerWeek,
+        totalHoursPerWeek: row.hoursPerWeek.totalHoursPerWeek
+      }
+    }))
+    const sortedRows = initializedRows.sort((a, b) => a.created - b.created)
+
+    setData(sortedRows)
   }, [rows])
 
   const handleCellEditCommit = params => {
     const { id, field, value } = params
 
-    const newValue = parseInt(value)
+    const newValue = parseInt(value) || 0
 
     const newData = data.map(row => {
       if (row.id === id) {
-        const dayIndex = parseInt(field)
-        const oldDayValue = row.hoursPerWeek.week[dayIndex]?.totalHoursDay || 0
-
-        if (newValue !== oldDayValue) {
-          const updatedWeek = [...row.hoursPerWeek.week]
-          updatedWeek[dayIndex] = { ...updatedWeek[dayIndex], totalHoursDay: newValue }
-
-          onChangesDetected({ id, [field]: newValue })
-
-          return { ...row, hoursPerWeek: { ...row.hoursPerWeek, week: updatedWeek } }
+        if (!row.hoursPerWeek) {
+          row.hoursPerWeek = { totalHoursPerWeek: 0, week: {} }
         }
+        if (!row.hoursPerWeek.week[field]) {
+          row.hoursPerWeek.week[field] = { totalHoursPerDay: 0, logs: {} }
+        }
+
+        // Actualiza el día específico y recalcula el total de horas de la semana.
+        row.hoursPerWeek.week[field].totalHoursPerDay = newValue
+        row.hoursPerWeek.totalHoursPerWeek = Object.values(row.hoursPerWeek.week).reduce(
+          (total, day) => total + (day.totalHoursPerDay || 0),
+          0
+        )
+
+        // Notifica el cambio para el manejo global
+        onChangesDetected({ id, field, value: newValue, totalHoursPerWeek: row.hoursPerWeek.totalHoursPerWeek })
+
+        return { ...row }
       }
 
       return row
@@ -93,8 +109,8 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
         return (
           <TextField
             fullWidth
-            value={row.hoursPerWeek?.week[0]?.totalHoursDay || '0'}
-            onChange={e => handleCellEditCommit({ id: params.id, field: 0, value: e.target.value })}
+            value={row.hoursPerWeek?.week.martes?.totalHoursPerDay || 0}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 'martes', value: e.target.value })}
             inputProps={{ type: 'number', min: 0, max: 12 }}
           />
         )
@@ -111,8 +127,8 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
         return (
           <TextField
             fullWidth
-            value={row.hoursPerWeek?.week[1]?.totalHoursDay || '0'}
-            onChange={e => handleCellEditCommit({ id: params.id, field: 1, value: e.target.value })}
+            value={row.hoursPerWeek?.week.miercoles?.totalHoursPerDay || 0}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 'miercoles', value: e.target.value })}
             inputProps={{ type: 'number', min: 0, max: 12 }}
           />
         )
@@ -129,8 +145,8 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
         return (
           <TextField
             fullWidth
-            value={row.hoursPerWeek?.week[2]?.totalHoursDay || '0'}
-            onChange={e => handleCellEditCommit({ id: params.id, field: 2, value: e.target.value })}
+            value={row.hoursPerWeek?.week.jueves?.totalHoursPerDay || 0}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 'jueves', value: e.target.value })}
             inputProps={{ type: 'number', min: 0, max: 12 }}
           />
         )
@@ -147,8 +163,8 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
         return (
           <TextField
             fullWidth
-            value={row.hoursPerWeek?.week[3]?.totalHoursDay || '0'}
-            onChange={e => handleCellEditCommit({ id: params.id, field: 3, value: e.target.value })}
+            value={row.hoursPerWeek?.week.viernes?.totalHoursPerDay || 0}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 'viernes', value: e.target.value })}
             inputProps={{ type: 'number', min: 0, max: 12 }}
           />
         )
@@ -165,8 +181,8 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
         return (
           <TextField
             fullWidth
-            value={row.hoursPerWeek?.week[4]?.totalHoursDay || '0'}
-            onChange={e => handleCellEditCommit({ id: params.id, field: 4, value: e.target.value })}
+            value={row.hoursPerWeek?.week.sabado?.totalHoursPerDay || 0}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 'sabado', value: e.target.value })}
             inputProps={{ type: 'number', min: 0, max: 12 }}
           />
         )
@@ -183,8 +199,8 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
         return (
           <TextField
             fullWidth
-            value={row.hoursPerWeek?.week[5]?.totalHoursDay || '0'}
-            onChange={e => handleCellEditCommit({ id: params.id, field: 5, value: e.target.value })}
+            value={row.hoursPerWeek?.week.domingo?.totalHoursPerDay || 0}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 'domingo', value: e.target.value })}
             inputProps={{ type: 'number', min: 0, max: 12 }}
           />
         )
@@ -201,8 +217,8 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
         return (
           <TextField
             fullWidth
-            value={row.hoursPerWeek?.week[6]?.totalHoursDay || '0'}
-            onChange={e => handleCellEditCommit({ id: params.id, field: 6, value: e.target.value })}
+            value={row.hoursPerWeek?.week.lunes?.totalHoursPerDay || '0'}
+            onChange={e => handleCellEditCommit({ id: params.id, field: 'lunes', value: e.target.value })}
             inputProps={{ type: 'number', min: 0, max: 12 }}
           />
         )
@@ -213,11 +229,9 @@ const TableCargaDeHoras = ({ rows, onChangesDetected }) => {
       headerName: 'Total de horas por semana',
       width: 190,
       renderCell: params => {
-        const total = Object.keys(params.row)
-          .filter(key => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].includes(key))
-          .reduce((acc, day) => acc + (Number(params.row[day]) || 0), 0)
+        const { row } = params
 
-        return <div>{total}</div>
+        return <Typography>{row?.hoursPerWeek?.totalHoursPerWeek}</Typography>
       }
     }
   ]

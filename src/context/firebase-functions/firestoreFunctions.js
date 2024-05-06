@@ -1203,10 +1203,11 @@ const fetchWeekHoursByType = async (weekId, userId) => {
 
 const createWeekHoursByType = async (actualWeek, userParams, newEntryData) => {
   if (!actualWeek || !userParams || !newEntryData) {
-    console.error('Missing parameters')
+    console.error('complete todos los datos necesarios para crear un nuevo registro de horas.')
 
     return { success: false, error: 'Missing parameters' }
   }
+
   const weekRef = doc(db, 'workedHours', actualWeek)
   const userWorkedHoursRef = doc(weekRef, 'usersWorkedHours', userParams.uid)
   const weekHoursByTypeRef = doc(collection(userWorkedHoursRef, 'weekHoursByType'))
@@ -1218,9 +1219,15 @@ const createWeekHoursByType = async (actualWeek, userParams, newEntryData) => {
     plant: newEntryData.plant,
     hoursPerWeek: {
       totalHoursPerWeek: 0,
-      week: Array(7)
-        .fill(0)
-        .map(() => ({ totalHoursPerDay: 0 }))
+      week: {
+        martes: { totalHoursPerDay: 0, logs: {} },
+        miercoles: { totalHoursPerDay: 0, logs: {} },
+        jueves: { totalHoursPerDay: 0, logs: {} },
+        viernes: { totalHoursPerDay: 0, logs: {} },
+        sabado: { totalHoursPerDay: 0, logs: {} },
+        domingo: { totalHoursPerDay: 0, logs: {} },
+        lunes: { totalHoursPerDay: 0, logs: {} }
+      }
     },
     ...newEntryData,
     ...((userParams.role === 7 || userParams.role === 8) && { supervisorShift: userParams.shift[0] })
@@ -1246,6 +1253,7 @@ const createWeekHoursByType = async (actualWeek, userParams, newEntryData) => {
     batch.set(weekHoursByTypeRef, newEntry)
 
     await batch.commit()
+
     console.log('Documento creado con éxito:', weekHoursByTypeRef.id)
 
     return { success: true, id: weekHoursByTypeRef.id }
@@ -1265,7 +1273,6 @@ const updateWeekHoursByType = async (actualWeek, userID, updates) => {
   try {
     // Se obtiene el documento para acceder a los datos actuales
     const userWorkedHoursDoc = await getDoc(userWorkedHoursRef)
-    let totalHoursPerWeek = 0
 
     if (!userWorkedHoursDoc.exists()) {
       console.log('No se encontró el documento correspondiente al usuario y la semana.')
@@ -1273,46 +1280,26 @@ const updateWeekHoursByType = async (actualWeek, userID, updates) => {
       return { success: false, error: 'No se encontró el documento.' }
     }
 
-    let currentHoursByDay = {}
+    const userData = userWorkedHoursDoc.data()
 
-    // Inicializa la estructura de días con los valores actuales
-    if (userWorkedHoursDoc.exists()) {
-      const weekData = userWorkedHoursDoc.data()
-      for (let i = 0; i < 7; i++) {
-        // iteramos la semana donde week[0] es martes y week[6] es lunes
-        const dayKey = `week.${i}.totalHoursPerDay`
-        currentHoursByDay[i] = weekData[dayKey] || 0
-      }
-    }
+    const currentHoursByDay = userData.hoursPerWeek?.week || {}
 
-    // Aplicar actualizaciones y calcular el nuevo total
+    // Prepara las actualizaciones sin ejecutarlas aún
     updates.forEach(update => {
       const weekHoursByTypeRef = doc(userWorkedHoursRef, 'weekHoursByType', update.docID)
 
       update.updates.forEach(dayUpdate => {
-        const dayIndex = parseInt(dayUpdate.day.replace('week[', '').replace(']', ''))
-        const dayKey = `hoursPerWeek.week.${dayUpdate.day}`
-        const newEntryKey = `${dayKey}.${Timestamp.now().toMillis()}`
+        const dayKey = `hoursPerWeek.week.${dayUpdate.day}.totalHoursPerDay`
+        const newLogKey = `hoursPerWeek.week.${dayUpdate.day}.logs.${Timestamp.now().toMillis()}`
 
-        // Se actualiza el valor del día específico y añadimos nuevo registro de horas
-        currentHoursByDay[dayIndex] = dayUpdate.hoursWorked // se sobrescribe el total del día
-
+        // Prepara actualización de las horas por día
         batch.update(weekHoursByTypeRef, {
-          [`${dayKey}.totalHoursPerDay`]: dayUpdate.hoursWorked,
-          [newEntryKey]: {
-            dateLog: Timestamp.now(),
-            hoursWorked: dayUpdate.hoursWorked
-          }
+          [dayKey]: dayUpdate.hoursWorked,
+          [newLogKey]: { dateLog: Timestamp.now(), hoursWorked: dayUpdate.hoursWorked }
         })
       })
-    })
-
-    // Suma todos los totales de días para el total de la semana
-    totalHoursPerWeek = Object.values(currentHoursByDay).reduce((acc, val) => acc + val, 0)
-
-    // Actualiza el total de horas de la semana después de todas las actualizaciones
-    batch.update(userWorkedHoursRef, {
-      'hoursPerWeek.totalHoursPerWeek': totalHoursPerWeek
+      // Actualiza el total de horas por semana para el documento específico
+      batch.update(weekHoursByTypeRef, { 'hoursPerWeek.totalHoursPerWeek': update.totalHoursPerWeek })
     })
 
     await batch.commit()

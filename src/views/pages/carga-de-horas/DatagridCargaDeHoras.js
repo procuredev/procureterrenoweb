@@ -40,7 +40,9 @@ const DataGridCargaDeHoras = () => {
         console.error(hoursData.error)
         setWeekHours([])
       } else {
-        setWeekHours(hoursData)
+        const sortedData = hoursData.sort((a, b) => a.created - b.created)
+
+        setWeekHours(sortedData)
       }
 
       const solicitudes = await fetchSolicitudes(authUser)
@@ -61,7 +63,19 @@ const DataGridCargaDeHoras = () => {
     if (result.success) {
       const newData = {
         ...newHourDetails,
-        id: result.id
+        id: result.id,
+        hoursPerWeek: {
+          totalHoursPerWeek: 0,
+          week: {
+            martes: { totalHoursPerDay: 0, logs: {} },
+            miercoles: { totalHoursPerDay: 0, logs: {} },
+            jueves: { totalHoursPerDay: 0, logs: {} },
+            viernes: { totalHoursPerDay: 0, logs: {} },
+            sabado: { totalHoursPerDay: 0, logs: {} },
+            domingo: { totalHoursPerDay: 0, logs: {} },
+            lunes: { totalHoursPerDay: 0, logs: {} }
+          }
+        }
       }
       setWeekHours(prev => [...prev, newData])
     }
@@ -69,40 +83,77 @@ const DataGridCargaDeHoras = () => {
   }
 
   const handleUpdateHours = async () => {
-    const updates = Object.entries(changes).map(([docID, dayChanges]) => ({
-      docID,
-      updates: Object.entries(dayChanges).map(([day, hoursWorked]) => ({
-        day: parseInt(day),
-        hoursWorked: parseInt(hoursWorked)
+    if (hasChanges) {
+      const now = new Date()
+      const weekNumber = getWeek(now, { weekStartsOn: 1 })
+      const weekId = `${now.getFullYear()}-${weekNumber}`
+
+      const updatesFormatted = Object.entries(changes).map(([docID, changes]) => ({
+        docID,
+        updates: Object.entries(changes)
+          .filter(([key]) => key !== 'totalHoursPerWeek')
+          .map(([day, hoursWorked]) => ({
+            day,
+            hoursWorked: hoursWorked
+          })),
+        totalHoursPerWeek: changes.totalHoursPerWeek
       }))
-    }))
 
-    const now = new Date()
-    const weekNumber = getWeek(now, { weekStartsOn: 1 })
-    const weekId = `${now.getFullYear()}-${weekNumber}`
-
-    const result = await updateWeekHoursByType(weekId, authUser.uid, updates)
-    console.log(result)
+      const result = await updateWeekHoursByType(weekId, authUser.uid, updatesFormatted)
+      if (result.success) {
+        console.log('Actualización exitosa')
+        setHasChanges(false) // Restablece el estado para deshabilitar el botón
+      } else {
+        console.error('Error en la actualización:', result.error)
+      }
+    }
   }
 
   const handleChangesDetected = change => {
-    const { id, field, value } = change
-    setChanges(prev => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        [field]: value
+    const { id, field, value, totalHoursPerWeek } = change
+
+    if (!id) {
+      console.error('ID is undefined', { id, value })
+
+      return
+    }
+
+    if (!field) {
+      console.error('Field is undefined', { field, value })
+
+      return
+    }
+
+    const parsedValue = parseInt(value, 10)
+    if (isNaN(parsedValue)) {
+      console.error('Value is not a number', value)
+
+      return
+    }
+
+    setChanges(prev => {
+      const updatedChanges = { ...prev }
+
+      if (!updatedChanges[id]) {
+        updatedChanges[id] = {
+          totalHoursPerWeek: totalHoursPerWeek
+        }
       }
-    }))
+
+      // Asegura que el cambio registrado para el día específico se actualice correctamente.
+      updatedChanges[id][field] = parsedValue
+      updatedChanges[id].totalHoursPerWeek = totalHoursPerWeek
+
+      return updatedChanges
+    })
+
     setHasChanges(true)
   }
-
-  console.log('Object.keys(changes): ', Object.keys(changes))
 
   return (
     <Box sx={{ width: '100%' }}>
       <Button onClick={() => setDialogOpen(true)}>Agregar Nueva Fila</Button>
-      <Button onClick={handleUpdateHours} disabled={Object.keys(changes).length === 0}>
+      <Button onClick={handleUpdateHours} disabled={!hasChanges}>
         Actualizar Tabla
       </Button>
       <Grid container spacing={2}>
