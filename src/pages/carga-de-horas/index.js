@@ -1,6 +1,6 @@
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
-import DataGridCargaDeHoras from 'src/views/pages/carga-de-horas/DataGridCargaDeHoras'
+import DataGridCargaDeHoras from 'src/views/pages/carga-de-horas/DatagridCargaDeHoras'
 
 // ** Styled Component
 

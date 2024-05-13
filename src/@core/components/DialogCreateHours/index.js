@@ -1,131 +1,108 @@
-import React, { useState, useMemo } from 'react'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import InputLabel from '@mui/material/InputLabel'
-import FormControl from '@mui/material/FormControl'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import ToggleButton from '@mui/material/ToggleButton'
+import React, { useState } from 'react'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl
+} from '@mui/material'
+import { format, getISOWeek } from 'date-fns'
 
-const DialogCreateHours = ({ open, onClose, onSubmit, otOptions, existingRows, userParams }) => {
-  const [inputHoursType, setInputHoursType] = useState('')
+const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows }) => {
+  const [hoursType, setHoursType] = useState('')
   const [plant, setPlant] = useState('')
-  const [isGabinete, setIsGabinete] = useState(true)
+  const [otType, setOtType] = useState('')
   const [otNumber, setOtNumber] = useState('')
-  const [otID, setOtID] = useState('')
-  const [otPlant, setOtPlant] = useState('')
-  const [otCostCenter, setOtCostCenter] = useState('')
-  const [selectedOt, setSelectedOt] = useState({})
+  const [selectedOT, setSelectedOT] = useState({})
 
-  const handleInputHoursTypeChange = event => {
-    setInputHoursType(event.target.value)
-    setPlant('')
-    setIsGabinete(true)
-    setOtNumber('')
+  const generateRowId = (uid, weekNumber, index) => {
+    return `${uid}_${weekNumber}_${index}`
   }
 
-  const handlePlantChange = event => {
-    setPlant(event.target.value)
-  }
+  const handleFormSubmit = () => {
+    const weekNumber = getISOWeek(new Date()) // Usa date-fns para obtener el número de la semana ISO
+    const existingRowsCount = rows.length // 'rows' disponibles en el contexto con las filas actuales
 
-  const handleIsGabineteChange = (event, newAlignment) => {
-    if (newAlignment !== null) {
-      setIsGabinete(newAlignment)
-    }
-  }
+    if (hoursType && (hoursType === 'OT' ? otType && otNumber && selectedOT.plant : plant)) {
+      const newRowId = generateRowId(authUser.uid, weekNumber, existingRowsCount + 1)
 
-  const handleOtNumberChange = event => {
-    const selectedValue = event.target.value
-    const foundOt = otOptions.find(option => option.ot === selectedValue)
-    if (foundOt) {
-      setOtNumber(foundOt.ot)
-      setSelectedOt(foundOt)
-    }
-  }
-
-  const handleSubmit = event => {
-    event.preventDefault()
-    if (inputHoursType && ((inputHoursType === 'OT' && selectedOt.ot) || (inputHoursType !== 'OT' && plant))) {
       onSubmit({
-        inputHoursType,
-        plant: inputHoursType === 'OT' ? selectedOt.plant : plant,
-        ...(inputHoursType === 'OT' && {
-          isGabinete,
-          otID: selectedOt.id,
-          otNumber: selectedOt.ot,
-          costCenter: selectedOt.costCenter
-        })
+        rowId: newRowId,
+        hoursType,
+        plant: hoursType === 'OT' ? selectedOT.plant : plant,
+        otType,
+        otNumber,
+        costCenter: selectedOT.costCenter || '',
+        otID: selectedOT.id || '',
+        supervisorShift: selectedOT.supervisorShift || '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        createdBy: authUser.uid
       })
+      onClose()
     } else {
-      alert('Por favor, llena todos los campos requeridos.')
+      alert('Por favor, complete todos los campos requeridos.')
     }
   }
 
-  const filteredOtOptions = useMemo(() => {
-    const existingOtNumbers = new Set(
-      existingRows.filter(row => row.inputHoursType === 'OT' && row.isGabinete === isGabinete).map(row => row.otNumber)
-    )
-
-    return otOptions.filter(option => !existingOtNumbers.has(option.ot))
-  }, [otOptions, existingRows, isGabinete])
-
-  const showISC = useMemo(() => !existingRows.some(row => row.inputHoursType === 'ISC'), [existingRows])
-  const showVacations = useMemo(() => !existingRows.some(row => row.inputHoursType === 'Vacaciones'), [existingRows])
+  const handleOTNumberChange = event => {
+    const otNumber = event.target.value
+    const otDetails = otOptions.find(option => option.ot === otNumber)
+    setSelectedOT(otDetails || {})
+    setOtNumber(otNumber)
+  }
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Agregar Nueva Jornada</DialogTitle>
+      <DialogTitle>Agregar Nueva Hora</DialogTitle>
       <DialogContent>
         <FormControl fullWidth margin='normal'>
-          <InputLabel id='inputHoursType-label'>Tipo de Horas</InputLabel>
+          <InputLabel id='hoursType-label'>Tipo de Horas</InputLabel>
           <Select
-            labelId='inputHoursType-label'
-            id='inputHoursType'
-            value={inputHoursType}
-            label='Tipo de Horas'
-            onChange={handleInputHoursTypeChange}
+            labelId='hoursType-label'
+            id='hoursType-select'
+            value={hoursType}
+            onChange={e => setHoursType(e.target.value)}
           >
-            {showISC && <MenuItem value='ISC'>ISC</MenuItem>}
-            {showVacations && <MenuItem value='Vacaciones'>Vacaciones</MenuItem>}
+            <MenuItem value='isc'>ISC</MenuItem>
+            <MenuItem value='vacaciones'>Vacaciones</MenuItem>
             <MenuItem value='OT'>OT</MenuItem>
           </Select>
         </FormControl>
-
-        {(inputHoursType === 'ISC' || inputHoursType === 'Vacaciones') && (
+        {hoursType !== 'OT' && (
           <FormControl fullWidth margin='normal'>
             <InputLabel id='plant-label'>Planta</InputLabel>
-            <Select labelId='plant-label' id='plant' value={plant} label='Planta' onChange={handlePlantChange}>
-              {userParams.plant.map(plantOption => (
-                <MenuItem key={plantOption} value={plantOption}>
-                  {plantOption}
+            <Select labelId='plant-label' id='plant-select' value={plant} onChange={e => setPlant(e.target.value)}>
+              {authUser.plant.map(p => (
+                <MenuItem key={p} value={p}>
+                  {p}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         )}
-
-        {inputHoursType === 'OT' && (
+        {hoursType === 'OT' && (
           <>
-            <ToggleButtonGroup color='primary' value={isGabinete} exclusive onChange={handleIsGabineteChange} fullWidth>
-              <ToggleButton value={true}>Gabinete</ToggleButton>
-              <ToggleButton value={false}>Levantamiento</ToggleButton>
-            </ToggleButtonGroup>
+            <FormControl fullWidth margin='normal'>
+              <InputLabel id='otType-label'>Tipo OT</InputLabel>
+              <Select
+                labelId='otType-label'
+                id='otType-select'
+                value={otType}
+                onChange={e => setOtType(e.target.value)}
+              >
+                <MenuItem value='Gabinete'>Gabinete</MenuItem>
+                <MenuItem value='Levantamiento'>Levantamiento</MenuItem>
+              </Select>
+            </FormControl>
             <FormControl fullWidth margin='normal'>
               <InputLabel id='otNumber-label'>Número OT</InputLabel>
-              <Select
-                labelId='otNumber-label'
-                id='otNumber'
-                value={otNumber}
-                label='Número OT'
-                onChange={handleOtNumberChange}
-              >
-                {filteredOtOptions.map(option => (
-                  <MenuItem key={option.id} value={option.ot}>
+              <Select labelId='otNumber-label' id='otNumber-select' value={otNumber} onChange={handleOTNumberChange}>
+                {otOptions.map(option => (
+                  <MenuItem key={option.ot} value={option.ot}>
                     {option.ot}
                   </MenuItem>
                 ))}
@@ -136,7 +113,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, otOptions, existingRows, u
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={event => handleSubmit(event)}>Crear</Button>
+        <Button onClick={handleFormSubmit}>Crear</Button>
       </DialogActions>
     </Dialog>
   )

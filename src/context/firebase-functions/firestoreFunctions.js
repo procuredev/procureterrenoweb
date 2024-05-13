@@ -1165,156 +1165,111 @@ const finishPetition = async (currentPetition, authUser) => {
   }
 }
 
-const fetchWeekHoursByType = async (weekId, userId) => {
+const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
   try {
-    const weekRef = doc(db, 'workedHours', weekId)
-    const weekSnap = await getDoc(weekRef)
+    const userDocRef = doc(db, 'usersTest', userId)
+    const weekHoursRef = collection(userDocRef, 'workedHours')
 
-    if (!weekSnap.exists()) {
-      return { error: 'No se encontraron registros para la semana especificada.' }
-    }
-
-    const userRef = doc(weekRef, 'usersWorkedHours', userId)
-    const userSnap = await getDoc(userRef)
-
-    if (!userSnap.exists()) {
-      return { error: 'No se encontraron registros para el usuario especificado.' }
-    }
-
-    const weekHoursRef = collection(userRef, 'weekHoursByType')
-    const querySnapshot = await getDocs(weekHoursRef)
-
+    const q = query(weekHoursRef, where('day', '>=', weekStart), where('day', '<=', weekEnd))
+    const querySnapshot = await getDocs(q)
     if (querySnapshot.empty) {
-      return { error: 'No hay registros de horas para esta semana.' }
+      return { error: 'No records found for this week.' }
     }
-
-    let weekHours = []
+    const weekHours = []
     querySnapshot.forEach(doc => {
       weekHours.push({ id: doc.id, ...doc.data() })
     })
 
     return weekHours
   } catch (error) {
-    console.error('Error al obtener las horas trabajadas: ', error)
+    console.error('Error fetching week hours:', error)
 
-    return { error: 'Ocurrió un error al intentar recuperar los datos.' }
+    return { error: 'Failed to fetch week hours.' }
   }
 }
 
-const createWeekHoursByType = async (actualWeek, userParams, newEntryData) => {
-  if (!actualWeek || !userParams || !newEntryData) {
-    console.error('complete todos los datos necesarios para crear un nuevo registro de horas.')
-
-    return { success: false, error: 'Missing parameters' }
-  }
-
-  const weekRef = doc(db, 'workedHours', actualWeek)
-  const userWorkedHoursRef = doc(weekRef, 'usersWorkedHours', userParams.uid)
-  const weekHoursByTypeRef = doc(collection(userWorkedHoursRef, 'weekHoursByType'))
-
-  const newEntry = {
-    created: Timestamp.now(),
-    deleted: false,
-    inputHoursType: newEntryData.inputHoursType,
-    plant: newEntryData.plant,
-    hoursPerWeek: {
-      totalHoursPerWeek: 0,
-      week: {
-        martes: { totalHoursPerDay: 0, logs: {} },
-        miercoles: { totalHoursPerDay: 0, logs: {} },
-        jueves: { totalHoursPerDay: 0, logs: {} },
-        viernes: { totalHoursPerDay: 0, logs: {} },
-        sabado: { totalHoursPerDay: 0, logs: {} },
-        domingo: { totalHoursPerDay: 0, logs: {} },
-        lunes: { totalHoursPerDay: 0, logs: {} }
-      }
-    },
-    ...newEntryData,
-    ...((userParams.role === 7 || userParams.role === 8) && { supervisorShift: userParams.shift[0] })
-  }
-
-  // Se utiliza batch para asegurar que la creación del documento sea atómica y evitar estados intermedios inconsistentes
-  const batch = writeBatch(db)
+const createWeekHoursByType = async (userId, creations) => {
+  const batch = writeBatch(db) // Correctamente inicializar el batch usando writeBatch
 
   try {
-    // verifica si existe la semana en la colección
-    const weekSnap = await getDoc(weekRef)
-    if (!weekSnap.exists()) {
-      batch.set(weekRef, { created: Timestamp.now() })
-    }
+    const userDocRef = doc(db, 'usersTest', userId)
+    const weekHoursRef = collection(userDocRef, 'workedHours')
 
-    // verifica si en esa semana existe un documento con el userID
-    const userWorkedHoursSnap = await getDoc(userWorkedHoursRef)
-    if (!userWorkedHoursSnap.exists()) {
-      batch.set(userWorkedHoursRef, { created: Timestamp.now() })
-    }
+    creations.forEach(change => {
+      console.log('change: ', change)
+      const newDocRef = doc(weekHoursRef)
+      const dayDate = new Date(change.day) // Asegúrate de que 'day' sea una instancia de Date
+      dayDate.setHours(0, 0, 0, 0)
 
-    // Agrega el documento a la colección weekHoursByType
-    batch.set(weekHoursByTypeRef, newEntry)
+      const docData = {
+        created: Timestamp.fromDate(new Date()),
+        day: Timestamp.fromDate(dayDate), // Asegurarse que la fecha está en formato ISO adecuado
+        deleted: false, // Asumiendo que cuando se crea un registro, no está eliminado
+        hours: change.newValue,
+        hoursSubType: change.hoursSubType || 'OPE',
+        hoursType: change.hoursType,
+        physicalLocation: '5.1 MEL - NPI&CHO-PRODUCTION CHO',
+        plant: change.plant,
+        user: {
+          role: change.userRole,
+          shift: change.userShift
+        },
+        rowId: change.rowId,
+        column: change.field,
+        ...(change.hoursType === 'OT'
+          ? {
+              ot: {
+                id: change.otID,
+                number: change.otNumber,
+                type: change.otType
+              }
+            }
+          : {})
+      }
 
-    await batch.commit()
+      batch.set(newDocRef, docData) // Añade la operación de creación al batch
+    })
 
-    console.log('Documento creado con éxito:', weekHoursByTypeRef.id)
+    await batch.commit() // Ejecuta todas las operaciones en el batch
+    console.log('All documents successfully created')
 
-    return { success: true, id: weekHoursByTypeRef.id }
+    return { success: true }
   } catch (error) {
-    console.error('Error al crear el documento:', error)
+    console.error('Error creating week hours with batch:', error)
 
     return { success: false, error: error.message }
   }
 }
 
-const updateWeekHoursByType = async (actualWeek, userID, updates) => {
-  const weekRef = doc(db, 'workedHours', actualWeek)
-  const userWorkedHoursRef = doc(weekRef, 'usersWorkedHours', userID)
-
-  const batch = writeBatch(db)
-
+const updateWeekHoursByType = async (userId, docId, updates) => {
   try {
-    // Se obtiene el documento para acceder a los datos actuales
-    const userWorkedHoursDoc = await getDoc(userWorkedHoursRef)
-
-    if (!userWorkedHoursDoc.exists()) {
-      console.log('No se encontró el documento correspondiente al usuario y la semana.')
-
-      return { success: false, error: 'No se encontró el documento.' }
-    }
-
-    const userData = userWorkedHoursDoc.data()
-
-    const currentHoursByDay = userData.hoursPerWeek?.week || {}
-
-    // Prepara las actualizaciones sin ejecutarlas aún
-    updates.forEach(update => {
-      const weekHoursByTypeRef = doc(userWorkedHoursRef, 'weekHoursByType', update.docID)
-
-      update.updates.forEach(dayUpdate => {
-        const dayKey = `hoursPerWeek.week.${dayUpdate.day}.totalHoursPerDay`
-        const newLogKey = `hoursPerWeek.week.${dayUpdate.day}.logs.${Timestamp.now().toMillis()}`
-
-        // Prepara actualización de las horas por día
-        batch.update(weekHoursByTypeRef, {
-          [dayKey]: dayUpdate.hoursWorked,
-          [newLogKey]: { dateLog: Timestamp.now(), hoursWorked: dayUpdate.hoursWorked }
-        })
-      })
-      // Actualiza el total de horas por semana para el documento específico
-      batch.update(weekHoursByTypeRef, { 'hoursPerWeek.totalHoursPerWeek': update.totalHoursPerWeek })
-    })
-
-    await batch.commit()
-    console.log('Las horas trabajadas y el total semanal fueron actualizados correctamente.')
+    const weekHoursRef = doc(db, 'usersTest', userId, 'workedHours', docId)
+    await updateDoc(weekHoursRef, updates)
 
     return { success: true }
   } catch (error) {
-    console.error('Error al actualizar las horas trabajadas:', error)
+    console.error('Error updating week hours:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const deleteWeekHoursByType = async (userId, docId) => {
+  try {
+    const weekHoursRef = doc(db, 'usersTest', userId, 'workedHours', docId)
+    await updateDoc(weekHoursRef, {
+      deleted: true // Suponiendo que queremos marcar como eliminado en lugar de borrar completamente
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting week hours:', error)
 
     return { success: false, error: error.message }
   }
 }
 
 const fetchSolicitudes = async authUser => {
-  console.log('authUser:', authUser)
   const solicitudesRef = collection(db, 'solicitudes')
   let queryRef
 
@@ -1363,5 +1318,6 @@ export {
   fetchWeekHoursByType,
   createWeekHoursByType,
   updateWeekHoursByType,
+  deleteWeekHoursByType,
   fetchSolicitudes
 }
