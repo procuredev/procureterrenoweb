@@ -1189,7 +1189,7 @@ const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
 }
 
 const createWeekHoursByType = async (userId, creations) => {
-  const batch = writeBatch(db) // Correctamente inicializar el batch usando writeBatch
+  const batch = writeBatch(db)
 
   try {
     const userDocRef = doc(db, 'usersTest', userId)
@@ -1198,13 +1198,13 @@ const createWeekHoursByType = async (userId, creations) => {
     creations.forEach(change => {
       console.log('change: ', change)
       const newDocRef = doc(weekHoursRef)
-      const dayDate = new Date(change.day) // Asegúrate de que 'day' sea una instancia de Date
+      const dayDate = new Date(change.day)
       dayDate.setHours(0, 0, 0, 0)
 
       const docData = {
         created: Timestamp.fromDate(new Date()),
-        day: Timestamp.fromDate(dayDate), // Asegurarse que la fecha está en formato ISO adecuado
-        deleted: false, // Asumiendo que cuando se crea un registro, no está eliminado
+        day: Timestamp.fromDate(dayDate),
+        deleted: false,
         hours: change.newValue,
         hoursSubType: change.hoursSubType || 'OPE',
         hoursType: change.hoursType,
@@ -1258,7 +1258,7 @@ const deleteWeekHoursByType = async (userId, docId) => {
   try {
     const weekHoursRef = doc(db, 'usersTest', userId, 'workedHours', docId)
     await updateDoc(weekHoursRef, {
-      deleted: true // Suponiendo que queremos marcar como eliminado en lugar de borrar completamente
+      deleted: true
     })
 
     return { success: true }
