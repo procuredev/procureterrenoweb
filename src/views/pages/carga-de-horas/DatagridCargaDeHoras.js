@@ -6,9 +6,7 @@ import { es } from 'date-fns/locale'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-
+import { Box, Button, Typography } from '@mui/material'
 // ** Custom Components Imports
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
@@ -16,15 +14,42 @@ import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
 const initialState = {
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 2 }),
   currentWeekEnd: endOfWeek(new Date(), { weekStartsOn: 2 }),
+  currentWeekNumber: getWeek(new Date(), { weekStartsOn: 2 }),
   weekHours: [],
   changes: [],
   otOptions: [],
   existingOTs: [],
-  dialogOpen: false
+  dialogOpen: false,
+  selectedRow: null,
+  dailyTotals: {
+    martes: 0,
+    miércoles: 0,
+    jueves: 0,
+    viernes: 0,
+    sábado: 0,
+    domingo: 0,
+    lunes: 0
+  }
 }
 
 function reducer(state, action) {
   switch (action.type) {
+    case 'SET_SELECTED_ROW':
+      return { ...state, selectedRow: action.payload }
+    case 'CHANGE_WEEK':
+      const newStart = addWeeks(state.currentWeekStart, action.payload)
+
+      return {
+        ...state,
+        currentWeekStart: newStart,
+        currentWeekEnd: endOfWeek(newStart, { weekStartsOn: 2 }),
+        currentWeekNumber: getWeek(newStart, { weekStartsOn: 2 })
+      }
+    case 'UPDATE_DAILY_TOTALS':
+      return {
+        ...state,
+        dailyTotals: { ...state.dailyTotals, [action.field]: action.newTotal }
+      }
     case 'SET_CHANGES':
       return { ...state, changes: action.payload }
     case 'SET_WEEK_HOURS':
@@ -80,36 +105,78 @@ const DataGridCargaDeHoras = () => {
     loadWeekData()
   }, [state.currentWeekStart, authUser, fetchWeekHoursByType])
 
+  // Funciones para manejar los botones de cambio de semana
+  const handlePreviousWeek = () => {
+    dispatch({ type: 'CHANGE_WEEK', payload: -1 })
+  }
+
+  const handleNextWeek = () => {
+    dispatch({ type: 'CHANGE_WEEK', payload: 1 })
+  }
+
+  const handleSelectionChange = selectionModel => {
+    if (selectionModel.length === 0) {
+      dispatch({ type: 'SET_SELECTED_ROW', payload: null })
+    } else {
+      dispatch({ type: 'SET_SELECTED_ROW', payload: selectionModel[0] })
+    }
+  }
+
+  const handleDeleteRow = () => {
+    if (state.selectedRow) {
+      const newWeekHours = state.weekHours.filter(row => row.rowId !== state.selectedRow)
+      dispatch({ type: 'SET_WEEK_HOURS', payload: newWeekHours })
+      dispatch({ type: 'SET_SELECTED_ROW', payload: null }) // Resetea la selección
+    }
+  }
+
   const handleCellEditCommit = (rowId, field, newValue, rowData, dayTimestamp, dayDocId) => {
     console.log('Edit committed', { rowId, field, newValue, dayDocId })
     // Encuentra el índice de la fila modificada
     const rowIndex = state.weekHours.findIndex(row => row.rowId === rowId)
-    if (rowIndex === -1) return // Si no se encuentra la fila, no hagas nada
+    if (rowIndex === -1) return
+
+    let oldRowValue = state.weekHours[rowIndex][field] || 0
+    let newRowValue = newValue
+    let newTotalDayHours = state.dailyTotals[field] - oldRowValue + newRowValue
+
+    if (newTotalDayHours > 12) {
+      alert('No se pueden exceder 12 horas por día.')
+
+      return
+    }
 
     // Crea una nueva fila con el cambio aplicado
     const updatedRow = {
       ...state.weekHours[rowIndex],
       [field]: newValue,
+      totalRowHours: state.weekHours[rowIndex].totalRowHours - oldRowValue + newRowValue,
       [`${field}DocId`]: dayDocId // Actualiza el ID del documento si es necesario
     }
+
+    // Actualizar los totales diarios
+    let newDailyTotal = state.dailyTotals[field] - oldRowValue + newValue
 
     // Crea un nuevo array de 'weekHours' con la fila actualizada
     const updatedWeekHours = [...state.weekHours.slice(0, rowIndex), updatedRow, ...state.weekHours.slice(rowIndex + 1)]
 
     // Actualiza el estado de 'weekHours' y 'changes'
     dispatch({ type: 'SET_WEEK_HOURS', payload: updatedWeekHours })
+    dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: { ...state.dailyTotals, [field]: newDailyTotal } })
+    dispatch({ type: 'UPDATE_DAILY_TOTALS', field, newTotal: newTotalDayHours })
 
     // Prepara el cambio con datos adicionales dependiendo si isNew es true
     const change = {
-      rowId: rowId,
-      field: field,
-      newValue: newValue,
+      rowId,
+      field,
+      newValue,
       isNew: !dayDocId, // Determina si es una nueva creación
       day: dayTimestamp,
       userRole: authUser.role,
       userShift: authUser.shift,
       plant: rowData.plant,
-      hoursType: rowData.hoursType
+      hoursType: rowData.hoursType,
+      dayDocId
     }
 
     if (rowData.hoursType === 'OT') {
@@ -123,17 +190,17 @@ const DataGridCargaDeHoras = () => {
     const existingChangeIndex = state.changes.findIndex(change => change.rowId === rowId && change.field === field)
 
     if (existingChangeIndex >= 0) {
-      const newChanges = [...state.changes]
-      newChanges[existingChangeIndex] = change
-      dispatch({ type: 'SET_CHANGES', payload: newChanges })
+      state.changes[existingChangeIndex] = change
     } else {
-      dispatch({ type: 'ADD_CHANGE', payload: change })
+      state.changes.push(change)
     }
+
+    dispatch({ type: 'UPDATE_CHANGES', payload: state.changes })
   }
 
   const handleUpdateTable = async () => {
-    const creations = state.changes.filter(change => change.isNew)
-    const updates = state.changes.filter(change => !change.isNew)
+    const creations = state.changes.filter(change => change.isNew && !change.dayDocId)
+    const updates = state.changes.filter(change => !change.isNew && change.dayDocId)
 
     const loadWeekData = async () => {
       const data = await fetchWeekHoursByType(authUser.uid, state.currentWeekStart, state.currentWeekEnd)
@@ -151,9 +218,9 @@ const DataGridCargaDeHoras = () => {
       console.log('Creation result:', creationResult)
     }
     if (updates.length > 0) {
-      await Promise.all(updates.map(change => updateWeekHoursByType(change)))
+      const updatesResult = await updateWeekHoursByType(authUser.uid, updates)
+      console.log('Updates result: ', updatesResult)
     }
-    await Promise.all(updates.map(change => updateWeekHoursByType(change)))
 
     dispatch({ type: 'CLEAR_CHANGES' })
     loadWeekData() // Re-fetch the data
@@ -180,7 +247,19 @@ const DataGridCargaDeHoras = () => {
   }
 
   const prepareWeekHoursData = data => {
+    let newDailyTotals = { ...state.dailyTotals }
+
+    let dailyTotalsTemp = {
+      martes: 0,
+      miércoles: 0,
+      jueves: 0,
+      viernes: 0,
+      sábado: 0,
+      domingo: 0,
+      lunes: 0
+    }
     // Inicializa un objeto para almacenar las filas agrupadas por rowId
+
     const rowsById = data.reduce((acc, doc) => {
       // Crea una nueva entrada si no existe
       if (!acc[doc.rowId]) {
@@ -188,6 +267,7 @@ const DataGridCargaDeHoras = () => {
           rowId: doc.rowId, // MUI DataGrid necesita un identificador único por fila
           plant: doc.plant,
           hoursType: doc.hoursType,
+          totalRowHours: 0,
           lunes: 0, // Inicializa todos los días a 0
           martes: 0,
           miércoles: 0,
@@ -195,44 +275,65 @@ const DataGridCargaDeHoras = () => {
           viernes: 0,
           sábado: 0,
           domingo: 0,
-          // Inicializa los docIds para cada día
-          lunesDocId: null,
-          martesDocId: null,
-          miércolesDocId: null,
-          juevesDocId: null,
-          viernesDocId: null,
-          sábadoDocId: null,
-          domingoDocId: null,
           ...(doc.hoursType === 'OT'
             ? {
                 otNumber: doc.ot.number || '',
                 otType: doc.ot.type || '',
                 otID: doc.ot.id || ''
               }
-            : {})
+            : {}),
+          ...state.dailyTotals
         }
       }
       // Asigna las horas y el ID del documento para el día específico
       acc[doc.rowId][doc.column] = doc.hours
-      acc[doc.rowId][`${doc.column}DocId`] = doc.id
+      acc[doc.rowId].totalRowHours += doc.hours
+      newDailyTotals[doc.column] += doc.hours
+      if (doc.id) {
+        acc[doc.rowId][`${doc.column}DocId`] = doc.id
+      }
 
       return acc
     }, {})
 
+    dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: newDailyTotals })
+
     // Convierte el objeto de filas en un array para su uso en DataGrid
     return Object.values(rowsById)
   }
+
   console.log('state: ', state)
+  console.log('state.dailyTotals: ', state.dailyTotals)
 
   return (
     <Box sx={{ width: '100%' }}>
+      <Typography variant='h4' gutterBottom>
+        Carga de Horas
+      </Typography>
+      <Typography variant='subtitle1'>
+        {`${format(state.currentWeekStart, 'dd MMM', {
+          locale: es
+        })} - ${format(state.currentWeekEnd, 'dd MMM', { locale: es })}  (Semana ${state.currentWeekNumber})`}
+      </Typography>
       <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })}>Crear Fila</Button>
       <Button variant='contained' color='primary' onClick={handleUpdateTable} disabled={state.changes.length === 0}>
         Actualizar Tabla
       </Button>
-      <Button onClick={() => dispatch({ type: 'CHANGE_WEEK', payload: -1 })}>Semana Anterior</Button>
-      <Button onClick={() => dispatch({ type: 'CHANGE_WEEK', payload: 1 })}>Semana Siguiente</Button>
-      <TableCargaDeHoras rows={state.weekHours} handleCellEditCommit={handleCellEditCommit} authUser={authUser} />
+      <Button onClick={handleDeleteRow} disabled={!state.selectedRow} variant='contained' color='error'>
+        Eliminar Fila
+      </Button>
+      <Button onClick={handlePreviousWeek}>Semana Anterior</Button>
+      <Button onClick={handleNextWeek}>Semana Siguiente</Button>
+      <TableCargaDeHoras
+        rows={state.weekHours}
+        handleCellEditCommit={handleCellEditCommit}
+        authUser={authUser}
+        dailyTotals={state.dailyTotals}
+        handleSelectionChange={handleSelectionChange}
+        selectedRow={state.selectedRow}
+        handleDeleteRow={handleDeleteRow}
+        state={state}
+      />
       {state.dialogOpen && (
         <DialogCreateHours
           open={state.dialogOpen}

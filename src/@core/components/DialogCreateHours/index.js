@@ -57,7 +57,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Agregar Nueva Hora</DialogTitle>
+      <DialogTitle>Crear Nueva Fila</DialogTitle>
       <DialogContent>
         <FormControl fullWidth margin='normal'>
           <InputLabel id='hoursType-label'>Tipo de Horas</InputLabel>

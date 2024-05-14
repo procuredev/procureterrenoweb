@@ -1241,14 +1241,21 @@ const createWeekHoursByType = async (userId, creations) => {
   }
 }
 
-const updateWeekHoursByType = async (userId, docId, updates) => {
+const updateWeekHoursByType = async (userId, updates) => {
+  const batch = writeBatch(db)
+
+  updates.forEach(update => {
+    const docRef = doc(db, 'usersTest', userId, 'workedHours', update.dayDocId)
+    batch.update(docRef, { hours: update.newValue })
+  })
+
   try {
-    const weekHoursRef = doc(db, 'usersTest', userId, 'workedHours', docId)
-    await updateDoc(weekHoursRef, updates)
+    await batch.commit()
+    console.log('All updates successfully committed')
 
     return { success: true }
   } catch (error) {
-    console.error('Error updating week hours:', error)
+    console.error('Error updating week hours with batch:', error)
 
     return { success: false, error: error.message }
   }
