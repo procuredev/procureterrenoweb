@@ -278,7 +278,7 @@ const DataGridCargaDeHoras = () => {
       // Asigna las horas y el ID del documento para el día específico
       const day = doc.column && doc.column.toLowerCase()
       if (day && newDailyTotals.hasOwnProperty(day)) {
-        const hoursToAdd = parseFloat(doc.hours) || 0 // Asegúrate de que es un número
+        const hoursToAdd = parseFloat(doc.hours) || 0
         acc[doc.rowId][day] = hoursToAdd
         acc[doc.rowId].totalRowHours += hoursToAdd
         newDailyTotals[doc.column] += hoursToAdd
