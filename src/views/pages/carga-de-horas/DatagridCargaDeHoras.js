@@ -48,7 +48,7 @@ function reducer(state, action) {
     case 'UPDATE_DAILY_TOTALS':
       return {
         ...state,
-        dailyTotals: { ...state.dailyTotals, [action.field]: action.newTotal }
+        dailyTotals: { ...state.dailyTotals, ...action.payload }
       }
     case 'SET_CHANGES':
       return { ...state, changes: action.payload }
@@ -131,7 +131,6 @@ const DataGridCargaDeHoras = () => {
   }
 
   const handleCellEditCommit = (rowId, field, newValue, rowData, dayTimestamp, dayDocId) => {
-    console.log('Edit committed', { rowId, field, newValue, dayDocId })
     // Encuentra el índice de la fila modificada
     const rowIndex = state.weekHours.findIndex(row => row.rowId === rowId)
     if (rowIndex === -1) return
@@ -160,10 +159,11 @@ const DataGridCargaDeHoras = () => {
     // Crea un nuevo array de 'weekHours' con la fila actualizada
     const updatedWeekHours = [...state.weekHours.slice(0, rowIndex), updatedRow, ...state.weekHours.slice(rowIndex + 1)]
 
+    const updatedDailyTotals = { ...state.dailyTotals, [field]: newDailyTotal }
+
     // Actualiza el estado de 'weekHours' y 'changes'
     dispatch({ type: 'SET_WEEK_HOURS', payload: updatedWeekHours })
-    dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: { ...state.dailyTotals, [field]: newDailyTotal } })
-    dispatch({ type: 'UPDATE_DAILY_TOTALS', field, newTotal: newTotalDayHours })
+    dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: updatedDailyTotals })
 
     // Prepara el cambio con datos adicionales dependiendo si isNew es true
     const change = {
@@ -241,6 +241,7 @@ const DataGridCargaDeHoras = () => {
   const handleCreateNewRow = newRow => {
     const initializedRow = {
       ...newRow,
+      totalRowHours: 0,
       ...initializeWeekDays(newRow)
     }
     dispatch({ type: 'SET_WEEK_HOURS', payload: [...state.weekHours, initializedRow] })
@@ -249,17 +250,7 @@ const DataGridCargaDeHoras = () => {
   const prepareWeekHoursData = data => {
     let newDailyTotals = { ...state.dailyTotals }
 
-    let dailyTotalsTemp = {
-      martes: 0,
-      miércoles: 0,
-      jueves: 0,
-      viernes: 0,
-      sábado: 0,
-      domingo: 0,
-      lunes: 0
-    }
     // Inicializa un objeto para almacenar las filas agrupadas por rowId
-
     const rowsById = data.reduce((acc, doc) => {
       // Crea una nueva entrada si no existe
       if (!acc[doc.rowId]) {
@@ -281,21 +272,25 @@ const DataGridCargaDeHoras = () => {
                 otType: doc.ot.type || '',
                 otID: doc.ot.id || ''
               }
-            : {}),
-          ...state.dailyTotals
+            : {})
         }
       }
       // Asigna las horas y el ID del documento para el día específico
-      acc[doc.rowId][doc.column] = doc.hours
-      acc[doc.rowId].totalRowHours += doc.hours
-      newDailyTotals[doc.column] += doc.hours
+      const day = doc.column && doc.column.toLowerCase()
+      if (day && newDailyTotals.hasOwnProperty(day)) {
+        const hoursToAdd = parseFloat(doc.hours) || 0 // Asegúrate de que es un número
+        acc[doc.rowId][day] = hoursToAdd
+        acc[doc.rowId].totalRowHours += hoursToAdd
+        newDailyTotals[doc.column] += hoursToAdd
+      } else {
+        console.error('Columna indefinida o no válida: ', doc.column)
+      }
       if (doc.id) {
         acc[doc.rowId][`${doc.column}DocId`] = doc.id
       }
 
       return acc
     }, {})
-
     dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: newDailyTotals })
 
     // Convierte el objeto de filas en un array para su uso en DataGrid

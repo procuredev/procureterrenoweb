@@ -20,7 +20,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
   const [selectedOT, setSelectedOT] = useState({})
 
   const generateRowId = (uid, weekNumber, index) => {
-    return `${uid}_${weekNumber}_${index}`
+    return `${uid}_${weekNumber}_${new Date().getTime()}`
   }
 
   const handleFormSubmit = () => {
