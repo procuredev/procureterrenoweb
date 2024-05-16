@@ -1,8 +1,9 @@
-import React from 'react'
-import { DataGridPremium } from '@mui/x-data-grid-premium'
+import React, { useEffect, useState } from 'react'
+import { DataGridPremium, GRID_AGGREGATION_FUNCTIONS } from '@mui/x-data-grid-premium'
 import { startOfWeek, addDays, format, isToday, isPast } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Box, Button } from '@mui/material'
+import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput' // Importa el componente NumberInput
 
 const TableCargaDeHoras = ({
   rows,
@@ -17,26 +18,27 @@ const TableCargaDeHoras = ({
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
 
   const NumericInputCell = ({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) => {
-    const maxInput = 12 - (dailyTotals[field] - (value || 0))
-
     return (
-      <input
-        type='number'
+      <NumberInput
         value={value || 0}
-        onChange={e => {
-          // Llama al onCommit con los parámetros requeridos, pasando dayDocId solo si está presente
-          const newValue = Math.min(parseInt(e.target.value, 10) || 0, maxInput)
-          const args = [rowId, field, newValue, rowData, dayTimestamp]
+        onChange={(event, val) => {
+          // Maneja la lógica del dayDocId
           if (dayDocId) {
-            args.push(dayDocId)
+            onCommit(rowId, field, val, rowData, dayTimestamp, dayDocId)
+          } else {
+            onCommit(rowId, field, val, rowData, dayTimestamp)
           }
-          onCommit(...args) // Usa spread para pasar los argumentos
         }}
         style={{ width: '100%' }}
-        min='0'
-        max={maxInput}
+        min={0}
+        max={12}
+        step={1}
       />
     )
+  }
+
+  const calculateTotalHours = (rows, dayKey) => {
+    return rows.reduce((total, row) => total + (Number(row[dayKey]) || 0), 0)
   }
 
   const columns = [
@@ -62,13 +64,16 @@ const TableCargaDeHoras = ({
       const day = addDays(startOfWeek(new Date(), { weekStartsOn: 2 }), index)
       const dayKey = format(day, 'eeee', { locale: es }).toLowerCase()
       const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
+      const formattedDayKey = dayKey.charAt(0).toUpperCase() + dayKey.slice(1)
 
       return {
         field: dayKey,
         headerName: `${format(day, 'eee', { locale: es })} ${format(day, 'd')}`,
         width: 130,
-        renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
         editable: authUser.role === 1 || isToday(day) || isPast(day),
+        type: 'number',
+        aggregable: true,
+        valueGetter: params => params.row[dayKey] || 0,
         renderCell: params => (
           <NumericInputCell
             value={params.row[dayKey] !== undefined ? params.row[dayKey] : 0}
@@ -79,20 +84,33 @@ const TableCargaDeHoras = ({
             rowData={params.row} // Asegura que pase todo el objeto de la fila
             dayTimestamp={dayTimestamp}
           />
-        ),
-        footer: `${dailyTotals[dayKey]} hrs`
+        )
       }
     }),
     {
       field: 'totalRowHours',
       headerName: 'Total Horas',
       width: 130,
-      renderFooter: () => (
-        <Box textAlign='center'>{rows.reduce((acc, row) => acc + (row.totalRowHours || 0), 0)} hrs</Box>
-      ),
+      // renderFooter: () => (
+      //   <Box textAlign='center'>{rows.reduce((acc, row) => acc + (row.totalRowHours || 0), 0)} hrs</Box>
+      // ),
       renderCell: params => <span>{params.row.totalRowHours || 0}</span>
     }
   ]
+
+  const initialAggregationModel = columns.reduce((acc, col) => {
+    if (col.aggregable) acc[col.field] = 'sum'
+
+    return acc
+  }, {})
+
+  const [aggregationModel, setAggregationModel] = useState(initialAggregationModel)
+
+  useEffect(() => {
+    setAggregationModel({ ...initialAggregationModel })
+  }, [rows])
+
+  console.log('aggregationModel: ', aggregationModel)
 
   return (
     <Box style={{ height: 400, width: '100%' }}>
@@ -115,6 +133,16 @@ const TableCargaDeHoras = ({
         disableSelectionOnClick
         onCellEditCommit={handleCellEditCommit}
         getRowId={row => row.rowId}
+        aggregationFunctions={{
+          ...GRID_AGGREGATION_FUNCTIONS,
+          sumAggregation: {
+            apply: ({ values }) => values.reduce((sum, value) => sum + (value || 0), 0),
+            columnTypes: ['number'],
+            label: 'Sum'
+          }
+        }}
+        aggregationModel={aggregationModel}
+        onAggregationModelChange={newModel => setAggregationModel(newModel)}
       />
     </Box>
   )
