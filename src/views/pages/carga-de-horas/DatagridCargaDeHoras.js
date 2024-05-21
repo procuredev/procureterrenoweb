@@ -39,11 +39,22 @@ function reducer(state, action) {
     case 'CHANGE_WEEK':
       const newStart = addWeeks(state.currentWeekStart, action.payload)
 
+      const resetDailyTotals = {
+        martes: 0,
+        miércoles: 0,
+        jueves: 0,
+        viernes: 0,
+        sábado: 0,
+        domingo: 0,
+        lunes: 0
+      }
+
       return {
         ...state,
         currentWeekStart: newStart,
         currentWeekEnd: endOfWeek(newStart, { weekStartsOn: 2 }),
-        currentWeekNumber: getWeek(newStart, { weekStartsOn: 2 })
+        currentWeekNumber: getWeek(newStart, { weekStartsOn: 2 }),
+        dailyTotals: resetDailyTotals
       }
     case 'UPDATE_DAILY_TOTALS':
       return {
