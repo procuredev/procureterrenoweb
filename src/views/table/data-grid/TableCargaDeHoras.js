@@ -1,8 +1,9 @@
-import React from 'react'
-import { DataGridPremium } from '@mui/x-data-grid-premium'
+import React, { useState, useEffect } from 'react'
+import { DataGridPremium, GRID_AGGREGATION_FUNCTIONS, GridAggregationFunction } from '@mui/x-data-grid-premium'
 import { startOfWeek, addDays, format, isToday, isPast } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Box, Button } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
+import NumberInputBasic from 'src/@core/components/custom-number_input/index'
 
 const TableCargaDeHoras = ({
   rows,
@@ -43,18 +44,21 @@ const TableCargaDeHoras = ({
     {
       field: 'otNumber',
       headerName: 'OT',
+      sortable: false,
       width: 130,
       renderCell: params => (params.row.hoursType === 'OT' ? params.row.otNumber : params.row.hoursType)
     },
     {
       field: 'otType',
       headerName: 'Tipo',
+      sortable: false,
       width: 130,
       renderCell: params => (params.row.hoursType === 'OT' ? params.row.otType : params.row.hoursType)
     },
     {
       field: 'plant',
       headerName: 'Planta',
+      sortable: false,
       width: 130,
       renderCell: params => params.row.plant || ''
     },
@@ -67,20 +71,28 @@ const TableCargaDeHoras = ({
         field: dayKey,
         headerName: `${format(day, 'eee', { locale: es })} ${format(day, 'd')}`,
         width: 130,
+        sortable: false,
         renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
         editable: authUser.role === 1 || isToday(day) || isPast(day),
-        renderCell: params => (
-          <NumericInputCell
-            value={params.row[dayKey] !== undefined ? params.row[dayKey] : 0}
-            onCommit={handleCellEditCommit}
-            rowId={params.row.rowId}
-            field={dayKey}
-            dayDocId={params.row[`${dayKey}DocId`]}
-            rowData={params.row} // Asegura que pase todo el objeto de la fila
-            dayTimestamp={dayTimestamp}
-          />
-        ),
-        footer: `${dailyTotals[dayKey]} hrs`
+        aggregable: true,
+        valueFormatter: ({ value }) => value || 0,
+        type: 'number',
+        renderCell: params =>
+          params.row.isTotalRow ? (
+            <Box>
+              <Typography /* sx={{ color: 'red' }} */>{params.row[dayKey]}</Typography>
+            </Box>
+          ) : (
+            <NumericInputCell
+              value={params.row[dayKey] !== undefined ? params.row[dayKey] : 0}
+              onCommit={handleCellEditCommit}
+              rowId={params.row.rowId}
+              field={dayKey}
+              dayDocId={params.row[`${dayKey}DocId`]}
+              rowData={params.row}
+              dayTimestamp={dayTimestamp}
+            />
+          )
       }
     }),
     {
@@ -94,6 +106,51 @@ const TableCargaDeHoras = ({
     }
   ]
 
+  const initialAggregationModel = columns.reduce((acc, col) => {
+    if (col.aggregable) {
+      acc[col.field] = 'sum'
+      // Forzar el valor inicial de dailyTotals en el modelo de agregación
+      state.dailyTotals[col.field] = state.dailyTotals[col.field] || 0
+    }
+
+    return acc
+  }, {})
+
+  const [aggregationModel, setAggregationModel] = useState(initialAggregationModel)
+
+  useEffect(() => {
+    setAggregationModel({ ...initialAggregationModel })
+  }, [rows])
+
+  const sumAggregation = {
+    apply: ({ values, column }) => {
+      console.log(`Applying aggregation for column: ${column.field}`)
+      if (column.field in state.dailyTotals) {
+        console.log(`Using dailyTotals for ${column.field}: ${state.dailyTotals[column.field]}`)
+
+        return state.dailyTotals[column.field]
+      }
+      console.log(`Calculating sum for ${column.field}`)
+
+      return values.reduce((sum, value) => sum + (value || 0), 0)
+    },
+    columnTypes: ['number'],
+    label: 'Sum'
+  }
+
+  const aggregatedRow = {
+    rowId: 'totalRow',
+    otNumber: 'Total',
+    otType: '',
+    plant: '',
+    isTotalRow: true,
+    totalRowHours: rows.reduce((acc, row) => acc + (row.totalRowHours || 0), 0),
+    ...state.dailyTotals
+  }
+
+  const getRowClassName = params => (params.row.isTotalRow ? 'total-row' : '')
+  const isRowSelectable = params => !params.row.isTotalRow
+
   return (
     <Box style={{ height: 400, width: '100%' }}>
       {/* <Button
@@ -105,7 +162,14 @@ const TableCargaDeHoras = ({
         Eliminar Fila
       </Button> */}
       <DataGridPremium
-        rows={rows}
+        sx={{
+          height: 600,
+          '& .total-row': {
+            display: 'flex',
+            justifyContent: 'flex-end'
+          }
+        }}
+        rows={[...rows, aggregatedRow]}
         columns={columns}
         pageSize={5}
         checkboxSelection
@@ -115,7 +179,25 @@ const TableCargaDeHoras = ({
         disableSelectionOnClick
         onCellEditCommit={handleCellEditCommit}
         getRowId={row => row.rowId}
+        aggregationFunctions={{
+          ...GRID_AGGREGATION_FUNCTIONS,
+          sumAggregation
+        }}
+        aggregationModel={aggregationModel}
+        onAggregationModelChange={newModel => setAggregationModel(newModel)}
+        getRowClassName={getRowClassName}
+        isRowSelectable={isRowSelectable}
       />
+      <style>
+        {`
+          .total-row .MuiDataGrid-checkboxInput {
+            display: none;
+          }
+          .total-row {
+
+          }
+        `}
+      </style>
     </Box>
   )
 }
