@@ -6,7 +6,7 @@ import { es } from 'date-fns/locale'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import { Box, Button, Typography, Snackbar } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 // ** Custom Components Imports
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
@@ -29,8 +29,7 @@ const initialState = {
     sábado: 0,
     domingo: 0,
     lunes: 0
-  },
-  snackbar: { open: false, message: '' } // LÍNEA MODIFICADA: añadido estado de snackbar
+  }
 }
 
 function reducer(state, action) {
@@ -40,22 +39,11 @@ function reducer(state, action) {
     case 'CHANGE_WEEK':
       const newStart = addWeeks(state.currentWeekStart, action.payload)
 
-      const resetDailyTotals = {
-        martes: 0,
-        miércoles: 0,
-        jueves: 0,
-        viernes: 0,
-        sábado: 0,
-        domingo: 0,
-        lunes: 0
-      }
-
       return {
         ...state,
         currentWeekStart: newStart,
         currentWeekEnd: endOfWeek(newStart, { weekStartsOn: 2 }),
-        currentWeekNumber: getWeek(newStart, { weekStartsOn: 2 }),
-        dailyTotals: resetDailyTotals
+        currentWeekNumber: getWeek(newStart, { weekStartsOn: 2 })
       }
     case 'UPDATE_DAILY_TOTALS':
       return {
@@ -74,8 +62,6 @@ function reducer(state, action) {
       return { ...state, dialogOpen: !state.dialogOpen }
     case 'SET_OT_OPTIONS':
       return { ...state, otOptions: action.payload }
-    case 'SET_SNACKBAR': // LÍNEA MODIFICADA: añadir caso para manejar el estado de Snackbar
-      return { ...state, snackbar: action.payload }
     case 'CHANGE_WEEK':
       return { ...state, currentWeekStart: addWeeks(state.currentWeekStart, action.payload) }
     default:
@@ -120,11 +106,6 @@ const DataGridCargaDeHoras = () => {
   }, [state.currentWeekStart, authUser, fetchWeekHoursByType])
 
   // Funciones para manejar los botones de cambio de semana
-
-  const handleSnackbarClose = () => {
-    dispatch({ type: 'SET_SNACKBAR', payload: { ...state.snackbar, open: false } })
-  }
-
   const handlePreviousWeek = () => {
     dispatch({ type: 'CHANGE_WEEK', payload: -1 })
   }
@@ -358,12 +339,6 @@ const DataGridCargaDeHoras = () => {
           rows={state.weekHours}
         />
       )}
-      <Snackbar
-        open={state.snackbar.open} // LÍNEA MODIFICADA: añadido Snackbar
-        message={state.snackbar.message} // LÍNEA MODIFICADA: añadido Snackbar
-        autoHideDuration={6000} // LÍNEA MODIFICADA: añadido Snackbar
-        onClose={handleSnackbarClose} // LÍNEA MODIFICADA: añadido Snackbar
-      />
     </Box>
   )
 }
