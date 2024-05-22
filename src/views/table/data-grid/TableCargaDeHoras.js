@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { DataGridPremium, GRID_AGGREGATION_FUNCTIONS, GridAggregationFunction } from '@mui/x-data-grid-premium'
+import {
+  DataGridPremium,
+  GridToolbar,
+  useGridApiRef,
+  GRID_AGGREGATION_FUNCTIONS,
+  GridAggregationFunction
+} from '@mui/x-data-grid-premium'
 import { startOfWeek, addDays, format, isToday, isPast } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Box, Button, Typography } from '@mui/material'
@@ -16,6 +22,7 @@ const TableCargaDeHoras = ({
   state
 }) => {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
+  const apiRef = useGridApiRef()
 
   const NumericInputCell = ({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) => {
     const maxInput = 12 - (dailyTotals[field] - (value || 0))
@@ -38,6 +45,22 @@ const TableCargaDeHoras = ({
         max={maxInput}
       />
     )
+  }
+
+  const sumAggregation = {
+    apply: ({ values, column }) => {
+      console.log(`Applying aggregation for column: ${column.field}`)
+      if (column.field in state.dailyTotals) {
+        console.log(`Using dailyTotals for ${column.field}: ${state.dailyTotals[column.field]}`)
+
+        return state.dailyTotals[column.field]
+      }
+      console.log(`Calculating sum for ${column.field}`)
+
+      return values.reduce((sum, value) => sum + (value || 0), 0)
+    },
+    columnTypes: ['number'],
+    label: 'Sum'
   }
 
   const columns = [
@@ -75,6 +98,7 @@ const TableCargaDeHoras = ({
         renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
         editable: authUser.role === 1 || isToday(day) || isPast(day),
         aggregable: true,
+        aggregationFunction: 'sumAggregation',
         valueFormatter: ({ value }) => value || 0,
         type: 'number',
         renderCell: params =>
@@ -122,22 +146,6 @@ const TableCargaDeHoras = ({
     setAggregationModel({ ...initialAggregationModel })
   }, [rows])
 
-  const sumAggregation = {
-    apply: ({ values, column }) => {
-      console.log(`Applying aggregation for column: ${column.field}`)
-      if (column.field in state.dailyTotals) {
-        console.log(`Using dailyTotals for ${column.field}: ${state.dailyTotals[column.field]}`)
-
-        return state.dailyTotals[column.field]
-      }
-      console.log(`Calculating sum for ${column.field}`)
-
-      return values.reduce((sum, value) => sum + (value || 0), 0)
-    },
-    columnTypes: ['number'],
-    label: 'Sum'
-  }
-
   const aggregatedRow = {
     rowId: 'totalRow',
     otNumber: 'Total',
@@ -162,6 +170,7 @@ const TableCargaDeHoras = ({
         Eliminar Fila
       </Button> */}
       <DataGridPremium
+        apiRef={apiRef}
         sx={{
           height: 600,
           '& .total-row': {

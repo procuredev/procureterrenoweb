@@ -104,6 +104,17 @@ const DataGridCargaDeHoras = () => {
 
   useEffect(() => {
     const loadWeekData = async () => {
+      const resetDailyTotals = {
+        martes: 0,
+        miércoles: 0,
+        jueves: 0,
+        viernes: 0,
+        sábado: 0,
+        domingo: 0,
+        lunes: 0
+      }
+      dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: resetDailyTotals })
+
       const data = await fetchWeekHoursByType(authUser.uid, state.currentWeekStart, state.currentWeekEnd)
       if (!data.error) {
         const preparedData = prepareWeekHoursData(data)
@@ -164,7 +175,7 @@ const DataGridCargaDeHoras = () => {
       [`${field}DocId`]: dayDocId // Actualiza el ID del documento si es necesario
     }
 
-    // Actualizar los totales diarios
+    // Actualiza los totales diarios
     let newDailyTotal = state.dailyTotals[field] - oldRowValue + newValue
 
     // Crea un nuevo array de 'weekHours' con la fila actualizada
@@ -197,7 +208,7 @@ const DataGridCargaDeHoras = () => {
       change.otID = rowData.otID
     }
 
-    // Agregar o actualizar el registro en el array de cambios
+    // Agrega o actualiza el registro en el array de cambios
     const existingChangeIndex = state.changes.findIndex(change => change.rowId === rowId && change.field === field)
 
     if (existingChangeIndex >= 0) {
@@ -214,6 +225,17 @@ const DataGridCargaDeHoras = () => {
     const updates = state.changes.filter(change => !change.isNew && change.dayDocId)
 
     const loadWeekData = async () => {
+      const resetDailyTotals = {
+        martes: 0,
+        miércoles: 0,
+        jueves: 0,
+        viernes: 0,
+        sábado: 0,
+        domingo: 0,
+        lunes: 0
+      }
+      dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: resetDailyTotals })
+
       const data = await fetchWeekHoursByType(authUser.uid, state.currentWeekStart, state.currentWeekEnd)
       if (!data.error) {
         const preparedData = prepareWeekHoursData(data)
@@ -259,14 +281,22 @@ const DataGridCargaDeHoras = () => {
   }
 
   const prepareWeekHoursData = data => {
-    let newDailyTotals = { ...state.dailyTotals }
+    let newDailyTotals = {
+      martes: 0,
+      miércoles: 0,
+      jueves: 0,
+      viernes: 0,
+      sábado: 0,
+      domingo: 0,
+      lunes: 0
+    }
 
     // Inicializa un objeto para almacenar las filas agrupadas por rowId
     const rowsById = data.reduce((acc, doc) => {
       // Crea una nueva entrada si no existe
       if (!acc[doc.rowId]) {
         acc[doc.rowId] = {
-          rowId: doc.rowId, // MUI DataGrid necesita un identificador único por fila
+          rowId: doc.rowId,
           plant: doc.plant,
           hoursType: doc.hoursType,
           totalRowHours: 0,
