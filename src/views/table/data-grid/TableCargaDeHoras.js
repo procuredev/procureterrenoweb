@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import {
   DataGridPremium,
-  GridToolbar,
   useGridApiRef,
   GRID_AGGREGATION_FUNCTIONS,
   GridAggregationFunction
 } from '@mui/x-data-grid-premium'
-import { startOfWeek, addDays, format, isToday, isPast } from 'date-fns'
+import { startOfWeek, addDays, format, isToday, isPast, subDays, isSameWeek, isSameDay, isFuture } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Box, Button, Typography } from '@mui/material'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
@@ -43,8 +42,22 @@ const TableCargaDeHoras = ({
         style={{ width: '100%' }}
         min='0'
         max={maxInput}
+        disabled={!isEditable(dayTimestamp)}
       />
     )
+  }
+
+  const isEditable = dayTimestamp => {
+    const today = new Date()
+    const yesterday = subDays(today, 1)
+    const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 2 })
+    const endOfCurrentWeek = addDays(startOfCurrentWeek, 6)
+    const weekOfDay = startOfWeek(dayTimestamp, { weekStartsOn: 2 })
+    //const isCurrentWeek = isSameWeek(today, weekOfDay, { weekStartsOn: 2 })
+
+    const isCurrentWeek = dayTimestamp >= startOfCurrentWeek && dayTimestamp <= endOfCurrentWeek
+
+    return isCurrentWeek && (isToday(dayTimestamp) || isSameDay(dayTimestamp, yesterday))
   }
 
   const sumAggregation = {
@@ -86,7 +99,7 @@ const TableCargaDeHoras = ({
       renderCell: params => params.row.plant || ''
     },
     ...Array.from({ length: 7 }).map((_, index) => {
-      const day = addDays(startOfWeek(new Date(), { weekStartsOn: 2 }), index)
+      const day = addDays(state.currentWeekStart, index)
       const dayKey = format(day, 'eeee', { locale: es }).toLowerCase()
       const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
 
@@ -96,7 +109,7 @@ const TableCargaDeHoras = ({
         width: 130,
         sortable: false,
         renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
-        editable: authUser.role === 1 || isToday(day) || isPast(day),
+        editable: isEditable(dayTimestamp),
         aggregable: true,
         aggregationFunction: 'sumAggregation',
         valueFormatter: ({ value }) => value || 0,
