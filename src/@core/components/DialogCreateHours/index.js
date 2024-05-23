@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -17,6 +17,17 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
   const [otType, setOtType] = useState('')
   const [otNumber, setOtNumber] = useState('')
   const [selectedOT, setSelectedOT] = useState({})
+  const [filteredOtOptions, setFilteredOtOptions] = useState([])
+
+  // Obtiene los tipos de horas existentes en las filas
+  const existingHoursTypes = rows.map(row => row.hoursType)
+
+  // Filtra las opciones basadas en los tipos de horas existentes
+  const getFilteredHoursTypeOptions = () => {
+    const options = ['ISC', 'Vacaciones', 'OT']
+
+    return options.filter(option => !existingHoursTypes.includes(option.toLowerCase()))
+  }
 
   const generateRowId = (uid, weekNumber, index) => {
     return `${uid}_${weekNumber}_${new Date().getTime()}`
@@ -53,6 +64,20 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
     setOtNumber(otNumber)
   }
 
+  // Filtrar las opciones de otNumber basadas en la selección de otType
+  useEffect(() => {
+    if (otType) {
+      const existingOtNumbers = rows
+        .filter(row => row.hoursType === 'OT' && row.otType === otType)
+        .map(row => row.otNumber)
+
+      const filteredOptions = otOptions.filter(option => !existingOtNumbers.includes(option.ot))
+      setFilteredOtOptions(filteredOptions)
+    } else {
+      setFilteredOtOptions(otOptions)
+    }
+  }, [otType, rows, otOptions])
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Crear Nueva Fila</DialogTitle>
@@ -65,9 +90,11 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
             value={hoursType}
             onChange={e => setHoursType(e.target.value)}
           >
-            <MenuItem value='isc'>ISC</MenuItem>
-            <MenuItem value='vacaciones'>Vacaciones</MenuItem>
-            <MenuItem value='OT'>OT</MenuItem>
+            {getFilteredHoursTypeOptions().map(option => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
         {hoursType === 'OT' && (
@@ -87,7 +114,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
             <FormControl fullWidth margin='normal'>
               <InputLabel id='otNumber-label'>Número OT</InputLabel>
               <Select labelId='otNumber-label' id='otNumber-select' value={otNumber} onChange={handleOTNumberChange}>
-                {otOptions.map(option => (
+                {filteredOtOptions.map(option => (
                   <MenuItem key={option.ot} value={option.ot}>
                     {option.ot}
                   </MenuItem>
