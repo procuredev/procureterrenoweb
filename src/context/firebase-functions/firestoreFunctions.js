@@ -1188,11 +1188,11 @@ const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
   }
 }
 
-const createWeekHoursByType = async (userId, creations) => {
+const createWeekHoursByType = async (userParams, creations) => {
   const batch = writeBatch(db)
 
   try {
-    const userDocRef = doc(db, 'usersTest', userId)
+    const userDocRef = doc(db, 'usersTest', userParams.uid)
     const weekHoursRef = collection(userDocRef, 'workedHours')
 
     creations.forEach(change => {
@@ -1206,10 +1206,14 @@ const createWeekHoursByType = async (userId, creations) => {
         day: Timestamp.fromDate(dayDate),
         deleted: false,
         hours: change.newValue,
-        hoursSubType: change.hoursSubType || 'OPE',
+        hoursSubType:
+          change.hoursType !== 'OT'
+            ? change.hoursType
+            : userParams.role === 6 || userParams.role === 7 || userParams.role === 8 || userParams.role === 11
+            ? 'OPP'
+            : 'OPE',
         hoursType: change.hoursType,
         physicalLocation: '5.1 MEL - NPI&CHO-PRODUCTION CHO',
-        plant: change.plant,
         user: {
           role: change.userRole,
           shift: change.userShift
@@ -1224,7 +1228,8 @@ const createWeekHoursByType = async (userId, creations) => {
                 type: change.otType
               }
             }
-          : {})
+          : {}),
+        ...(change.plant && { plant: change.plant })
       }
 
       batch.set(newDocRef, docData) // Añade la operación de creación al batch
@@ -1241,21 +1246,14 @@ const createWeekHoursByType = async (userId, creations) => {
   }
 }
 
-const updateWeekHoursByType = async (userId, updates) => {
-  const batch = writeBatch(db)
-
-  updates.forEach(update => {
-    const docRef = doc(db, 'usersTest', userId, 'workedHours', update.dayDocId)
-    batch.update(docRef, { hours: update.newValue })
-  })
-
+const updateWeekHoursByType = async (userId, docId, updates) => {
   try {
-    await batch.commit()
-    console.log('All updates successfully committed')
+    const weekHoursRef = doc(db, 'usersTest', userId, 'workedHours', docId)
+    await updateDoc(weekHoursRef, updates)
 
     return { success: true }
   } catch (error) {
-    console.error('Error updating week hours with batch:', error)
+    console.error('Error updating week hours:', error)
 
     return { success: false, error: error.message }
   }

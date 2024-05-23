@@ -9,6 +9,7 @@ import { startOfWeek, addDays, format, isToday, isPast, subDays, isSameWeek, isS
 import { es } from 'date-fns/locale'
 import { Box, Button, Typography } from '@mui/material'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
+import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
 
 const TableCargaDeHoras = ({
   rows,
@@ -23,24 +24,39 @@ const TableCargaDeHoras = ({
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
   const apiRef = useGridApiRef()
 
+  const validationRegex = /^[0-9]*$/
+
   const NumericInputCell = ({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) => {
     const maxInput = 12 - (dailyTotals[field] - (value || 0))
 
+    const handleInputChange = (e, val) => {
+      console.log(`${e.type} event: the new value is ${val}`)
+      if (!validationRegex.test(val)) {
+        return
+      }
+      const newValue = Math.min(parseInt(val, 10) || 0, maxInput)
+      const args = [rowId, field, newValue, rowData, dayTimestamp]
+      if (dayDocId) {
+        args.push(dayDocId)
+      }
+      onCommit(...args)
+    }
+
     return (
-      <input
-        type='number'
-        value={value || 0}
-        onChange={e => {
-          // Llama al onCommit con los parámetros requeridos, pasando dayDocId solo si está presente
-          const newValue = Math.min(parseInt(e.target.value, 10) || 0, maxInput)
-          const args = [rowId, field, newValue, rowData, dayTimestamp]
-          if (dayDocId) {
-            args.push(dayDocId)
+      <NumberInput
+        // type='number'
+        value={value}
+        onChange={(e, val, onCommit) => handleInputChange(e, val, onCommit)}
+        onInput={e => {
+          const input = e.target
+          const inputValue = input.value
+          console.log(`the input value is: ${e.target.value}`)
+          if (!validationRegex.test(inputValue)) {
+            input.value = inputValue.replace(/[^0-9]/g, '')
           }
-          onCommit(...args) // Usa spread para pasar los argumentos
         }}
         style={{ width: '100%' }}
-        min='0'
+        min={0}
         max={maxInput}
         disabled={!isEditable(dayTimestamp)}
       />
@@ -145,7 +161,7 @@ const TableCargaDeHoras = ({
 
   const initialAggregationModel = columns.reduce((acc, col) => {
     if (col.aggregable) {
-      acc[col.field] = 'sum'
+      //*acc[col.field] = 'sum'
       // Forzar el valor inicial de dailyTotals en el modelo de agregación
       state.dailyTotals[col.field] = state.dailyTotals[col.field] || 0
     }
@@ -195,10 +211,10 @@ const TableCargaDeHoras = ({
         columns={columns}
         pageSize={5}
         checkboxSelection
-        selectionModel={state.selectedRow ? [state.selectedRow] : []}
-        onSelectionModelChange={handleSelectionChange}
-        disableMultipleSelection
-        disableSelectionOnClick
+        rowSelectionModel={state.selectedRow ? [state.selectedRow] : []}
+        onRowSelectionModelChange={handleSelectionChange}
+        disableMultipleRowSelection
+        disableRowSelectionOnClick
         onCellEditCommit={handleCellEditCommit}
         getRowId={row => row.rowId}
         aggregationFunctions={{

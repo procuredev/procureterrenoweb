@@ -14,7 +14,6 @@ import { format, getISOWeek } from 'date-fns'
 
 const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows }) => {
   const [hoursType, setHoursType] = useState('')
-  const [plant, setPlant] = useState('')
   const [otType, setOtType] = useState('')
   const [otNumber, setOtNumber] = useState('')
   const [selectedOT, setSelectedOT] = useState({})
@@ -27,20 +26,19 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
     const weekNumber = getISOWeek(new Date()) // Usa date-fns para obtener el número de la semana ISO
     const existingRowsCount = rows.length // 'rows' disponibles en el contexto con las filas actuales
 
-    if (hoursType && (hoursType === 'OT' ? otType && otNumber && selectedOT.plant : plant)) {
+    if (hoursType && (hoursType !== 'OT' || (hoursType === 'OT' && otType && otNumber))) {
       const newRowId = generateRowId(authUser.uid, weekNumber, existingRowsCount + 1)
 
       onSubmit({
         rowId: newRowId,
         hoursType,
-        plant: hoursType === 'OT' ? selectedOT.plant : plant,
-        otType,
-        otNumber,
-        costCenter: selectedOT.costCenter || '',
-        otID: selectedOT.id || '',
-        supervisorShift: selectedOT.supervisorShift || '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        createdBy: authUser.uid
+        ...(hoursType === 'OT' && {
+          otID: selectedOT.id,
+          otNumber,
+          otType,
+          plant: selectedOT.plant,
+          costCenter: selectedOT.costCenter
+        })
       })
       onClose()
     } else {
@@ -72,18 +70,6 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
             <MenuItem value='OT'>OT</MenuItem>
           </Select>
         </FormControl>
-        {hoursType !== 'OT' && (
-          <FormControl fullWidth margin='normal'>
-            <InputLabel id='plant-label'>Planta</InputLabel>
-            <Select labelId='plant-label' id='plant-select' value={plant} onChange={e => setPlant(e.target.value)}>
-              {authUser.plant.map(p => (
-                <MenuItem key={p} value={p}>
-                  {p}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
         {hoursType === 'OT' && (
           <>
             <FormControl fullWidth margin='normal'>

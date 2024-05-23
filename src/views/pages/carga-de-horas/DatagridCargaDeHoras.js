@@ -157,9 +157,9 @@ const DataGridCargaDeHoras = () => {
     const rowIndex = state.weekHours.findIndex(row => row.rowId === rowId)
     if (rowIndex === -1) return
 
-    let oldRowValue = state.weekHours[rowIndex][field] || 0
-    let newRowValue = newValue
-    let newTotalDayHours = state.dailyTotals[field] - oldRowValue + newRowValue
+    const oldRowValue = state.weekHours[rowIndex][field] || 0
+    const newRowValue = newValue
+    const newTotalDayHours = state.dailyTotals[field] - oldRowValue + newRowValue
 
     if (newTotalDayHours > 12) {
       alert('No se pueden exceder 12 horas por día.')
@@ -172,7 +172,7 @@ const DataGridCargaDeHoras = () => {
       ...state.weekHours[rowIndex],
       [field]: newValue,
       totalRowHours: state.weekHours[rowIndex].totalRowHours - oldRowValue + newRowValue,
-      [`${field}DocId`]: dayDocId // Actualiza el ID del documento si es necesario
+      ...(state.weekHours[rowIndex].dayDocId && { [`${field}DocId`]: dayDocId }) // Actualiza el ID del documento si es necesario
     }
 
     // Actualiza los totales diarios
@@ -196,9 +196,9 @@ const DataGridCargaDeHoras = () => {
       day: dayTimestamp,
       userRole: authUser.role,
       userShift: authUser.shift,
-      plant: rowData.plant,
       hoursType: rowData.hoursType,
-      dayDocId
+      ...(dayDocId && { dayDocId }),
+      ...(rowData.plant && { plant: rowData.plant })
     }
 
     if (rowData.hoursType === 'OT') {
@@ -247,7 +247,7 @@ const DataGridCargaDeHoras = () => {
     }
 
     if (creations.length > 0) {
-      const creationResult = await createWeekHoursByType(authUser.uid, creations)
+      const creationResult = await createWeekHoursByType(authUser, creations)
       console.log('Creation result:', creationResult)
     }
     if (updates.length > 0) {
@@ -297,7 +297,7 @@ const DataGridCargaDeHoras = () => {
       if (!acc[doc.rowId]) {
         acc[doc.rowId] = {
           rowId: doc.rowId,
-          plant: doc.plant,
+          plant: doc.plant ? doc.plant : authUser.role === 5 || authUser.role === 10 ? <Button>Asignar</Button> : '',
           hoursType: doc.hoursType,
           totalRowHours: 0,
           lunes: 0, // Inicializa todos los días a 0
@@ -309,9 +309,9 @@ const DataGridCargaDeHoras = () => {
           domingo: 0,
           ...(doc.hoursType === 'OT'
             ? {
-                otNumber: doc.ot.number || '',
-                otType: doc.ot.type || '',
-                otID: doc.ot.id || ''
+                otNumber: doc.ot.number,
+                otType: doc.ot.type,
+                otID: doc.ot.id
               }
             : {})
         }
