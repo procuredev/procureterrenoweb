@@ -1190,9 +1190,9 @@ const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
 
 const createWeekHoursByType = async (userParams, creations) => {
   const batch = writeBatch(db)
-
+  const userRef = userParams.uid || userParams.id
   try {
-    const userDocRef = doc(db, 'usersTest', userParams.uid)
+    const userDocRef = doc(db, 'usersTest', userRef)
     const weekHoursRef = collection(userDocRef, 'workedHours')
 
     creations.forEach(change => {
@@ -1312,6 +1312,12 @@ const fetchSolicitudes = async authUser => {
   }
 }
 
+const fetchUserList = async () => {
+  const userListSnapshot = await getDocs(collection(db, 'usersTest'))
+
+  return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1331,5 +1337,6 @@ export {
   createWeekHoursByType,
   updateWeekHoursByType,
   deleteWeekHoursByType,
-  fetchSolicitudes
+  fetchSolicitudes,
+  fetchUserList
 }

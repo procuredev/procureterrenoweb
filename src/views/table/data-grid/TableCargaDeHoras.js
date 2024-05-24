@@ -73,7 +73,12 @@ const TableCargaDeHoras = ({
 
     const isCurrentWeek = dayTimestamp >= startOfCurrentWeek && dayTimestamp <= endOfCurrentWeek
 
-    return isCurrentWeek && (isToday(dayTimestamp) || isSameDay(dayTimestamp, yesterday))
+    if (authUser.role === 5 || authUser.role === 10) {
+      // Usuarios con roles 5 o 10 pueden editar días actuales y pasados, pero no futuros
+      return dayTimestamp <= today
+    } else {
+      return isCurrentWeek && (isToday(dayTimestamp) || isSameDay(dayTimestamp, yesterday))
+    }
   }
 
   const sumAggregation = {

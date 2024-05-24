@@ -6,7 +6,7 @@ import { es } from 'date-fns/locale'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, Typography, Switch, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 // ** Custom Components Imports
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
@@ -29,7 +29,10 @@ const initialState = {
     sábado: 0,
     domingo: 0,
     lunes: 0
-  }
+  },
+  toggleValue: 'misDatos',
+  selectedUser: null,
+  userList: []
 }
 
 function reducer(state, action) {
@@ -75,6 +78,12 @@ function reducer(state, action) {
       return { ...state, otOptions: action.payload }
     case 'CHANGE_WEEK':
       return { ...state, currentWeekStart: addWeeks(state.currentWeekStart, action.payload) }
+    case 'SET_TOGGLE_VALUE':
+      return { ...state, toggleValue: action.payload }
+    case 'SET_SELECTED_USER':
+      return { ...state, selectedUser: action.payload }
+    case 'SET_USER_LIST':
+      return { ...state, userList: action.payload }
     default:
       return state
   }
@@ -89,7 +98,8 @@ const DataGridCargaDeHoras = () => {
     updateWeekHoursByType,
     fetchSolicitudes,
     loadWeekData,
-    authUser
+    authUser,
+    fetchUserList
   } = useFirebase()
 
   useEffect(() => {
@@ -115,7 +125,8 @@ const DataGridCargaDeHoras = () => {
       }
       dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: resetDailyTotals })
 
-      const data = await fetchWeekHoursByType(authUser.uid, state.currentWeekStart, state.currentWeekEnd)
+      const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+      const data = await fetchWeekHoursByType(userId, state.currentWeekStart, state.currentWeekEnd)
       if (!data.error) {
         const preparedData = prepareWeekHoursData(data)
         dispatch({ type: 'SET_WEEK_HOURS', payload: preparedData })
@@ -124,8 +135,24 @@ const DataGridCargaDeHoras = () => {
         dispatch({ type: 'SET_WEEK_HOURS', payload: [] })
       }
     }
-    loadWeekData()
-  }, [state.currentWeekStart, authUser, fetchWeekHoursByType])
+    if (
+      authUser &&
+      (state.toggleValue === 'misDatos' || (state.toggleValue === 'cambiarUsuario' && state.selectedUser))
+    ) {
+      loadWeekData()
+    }
+  }, [state.currentWeekStart, authUser, state.toggleValue, state.selectedUser, fetchWeekHoursByType])
+
+  useEffect(() => {
+    const loadUserList = async () => {
+      const userList = await fetchUserList() // Llama a la función desde useFirebase
+      dispatch({ type: 'SET_USER_LIST', payload: userList })
+    }
+
+    if (authUser && (authUser.role === 5 || authUser.role === 10)) {
+      loadUserList()
+    }
+  }, [authUser, fetchUserList])
 
   // Funciones para manejar los botones de cambio de semana
   const handlePreviousWeek = () => {
@@ -236,7 +263,8 @@ const DataGridCargaDeHoras = () => {
       }
       dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: resetDailyTotals })
 
-      const data = await fetchWeekHoursByType(authUser.uid, state.currentWeekStart, state.currentWeekEnd)
+      const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+      const data = await fetchWeekHoursByType(userId, state.currentWeekStart, state.currentWeekEnd)
       if (!data.error) {
         const preparedData = prepareWeekHoursData(data)
         dispatch({ type: 'SET_WEEK_HOURS', payload: preparedData })
@@ -247,11 +275,13 @@ const DataGridCargaDeHoras = () => {
     }
 
     if (creations.length > 0) {
-      const creationResult = await createWeekHoursByType(authUser, creations)
+      const user = state.toggleValue === 'misDatos' ? authUser : state.selectedUser
+      const creationResult = await createWeekHoursByType(user, creations)
       console.log('Creation result:', creationResult)
     }
     if (updates.length > 0) {
-      const updatesResult = await updateWeekHoursByType(authUser.uid, updates)
+      const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+      const updatesResult = await updateWeekHoursByType(userId, updates)
       console.log('Updates result: ', updatesResult)
     }
 
@@ -338,6 +368,8 @@ const DataGridCargaDeHoras = () => {
     return Object.values(rowsById)
   }
 
+  const isUserChangeAllowed = authUser.role === 5 || authUser.role === 10
+
   console.log('state: ', state)
   console.log('state.dailyTotals: ', state.dailyTotals)
 
@@ -351,11 +383,48 @@ const DataGridCargaDeHoras = () => {
           locale: es
         })} - ${format(state.currentWeekEnd, 'dd MMM', { locale: es })}  (Semana ${state.currentWeekNumber})`}
       </Typography>
-      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })}>Crear Fila</Button>
+      {isUserChangeAllowed && (
+        <Box>
+          <Switch
+            checked={state.toggleValue === 'cambiarUsuario'}
+            onChange={e =>
+              dispatch({ type: 'SET_TOGGLE_VALUE', payload: e.target.checked ? 'cambiarUsuario' : 'misDatos' })
+            }
+          />
+          {state.toggleValue === 'cambiarUsuario' && (
+            <FormControl fullWidth margin='normal'>
+              <InputLabel id='user-select-label'>Seleccionar Usuario</InputLabel>
+              <Select
+                labelId='user-select-label'
+                id='user-select'
+                value={state.selectedUser ? state.selectedUser.id : ''}
+                onChange={e => {
+                  const selectedUser = state.userList.find(user => user.id === e.target.value)
+                  dispatch({ type: 'SET_SELECTED_USER', payload: selectedUser })
+                }}
+              >
+                {state.userList.map(user => (
+                  <MenuItem key={user.id} value={user.id}>
+                    {user.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </Box>
+      )}
+      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={state.toggleValue === 'cambiarUsuario'}>
+        Crear Fila
+      </Button>
       <Button variant='contained' color='primary' onClick={handleUpdateTable} disabled={state.changes.length === 0}>
         Actualizar Tabla
       </Button>
-      <Button onClick={handleDeleteRow} disabled={!state.selectedRow} variant='contained' color='error'>
+      <Button
+        onClick={handleDeleteRow}
+        disabled={!state.selectedRow || state.toggleValue === 'cambiarUsuario'}
+        variant='contained'
+        color='error'
+      >
         Eliminar Fila
       </Button>
       <Button onClick={handlePreviousWeek}>Semana Anterior</Button>
