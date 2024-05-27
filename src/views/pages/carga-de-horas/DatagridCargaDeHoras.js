@@ -1,5 +1,5 @@
 // ** React Imports
-import React, { useReducer, useEffect, useCallback } from 'react'
+import React, { useReducer, useEffect, useState, useCallback } from 'react'
 import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 // ** Hooks
@@ -10,6 +10,7 @@ import { Box, Button, Typography, Switch, FormControl, InputLabel, Select, MenuI
 // ** Custom Components Imports
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
+import ConfirmDeleteDialog from 'src/@core/components/dialog-confirmDeleteRowHH/index.js'
 
 const initialState = {
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 2 }),
@@ -91,6 +92,7 @@ function reducer(state, action) {
 
 const DataGridCargaDeHoras = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   const {
     fetchWeekHoursByType,
@@ -100,7 +102,8 @@ const DataGridCargaDeHoras = () => {
     loadWeekData,
     authUser,
     fetchUserList,
-    updateWeekHoursWithPlant
+    updateWeekHoursWithPlant,
+    deleteWeekHoursByType
   } = useFirebase()
 
   useEffect(() => {
@@ -155,6 +158,19 @@ const DataGridCargaDeHoras = () => {
     }
   }, [authUser, fetchUserList])
 
+  const handleOpenConfirmDelete = () => {
+    setConfirmDeleteOpen(true)
+  }
+
+  const handleCloseConfirmDelete = () => {
+    setConfirmDeleteOpen(false)
+  }
+
+  const handleConfirmDelete = async () => {
+    await handleDeleteRow()
+    setConfirmDeleteOpen(false)
+  }
+
   // Funciones para manejar los botones de cambio de semana
   const handlePreviousWeek = () => {
     dispatch({ type: 'CHANGE_WEEK', payload: -1 })
@@ -172,11 +188,31 @@ const DataGridCargaDeHoras = () => {
     }
   }
 
-  const handleDeleteRow = () => {
+  const handleDeleteRow = async () => {
     if (state.selectedRow) {
-      const newWeekHours = state.weekHours.filter(row => row.rowId !== state.selectedRow)
-      dispatch({ type: 'SET_WEEK_HOURS', payload: newWeekHours })
-      dispatch({ type: 'SET_SELECTED_ROW', payload: null }) // Resetea la selección
+      const rowToDelete = state.weekHours.find(row => row.rowId === state.selectedRow)
+      if (rowToDelete) {
+        const dayDocIds = Object.keys(rowToDelete)
+          .filter(key => key.endsWith('DocId'))
+          .map(key => rowToDelete[key])
+
+        const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+        const result = await deleteWeekHoursByType(userId, dayDocIds)
+        if (result.success) {
+          // Recargar los datos de la tabla después de la eliminación exitosa
+          const data = await fetchWeekHoursByType(userId, state.currentWeekStart, state.currentWeekEnd)
+          if (!data.error) {
+            const preparedData = prepareWeekHoursData(data)
+            dispatch({ type: 'SET_WEEK_HOURS', payload: preparedData })
+          } else {
+            console.error(data.error)
+            dispatch({ type: 'SET_WEEK_HOURS', payload: [] })
+          }
+          dispatch({ type: 'SET_SELECTED_ROW', payload: null })
+        } else {
+          console.error(result.error)
+        }
+      }
     }
   }
 
@@ -226,7 +262,8 @@ const DataGridCargaDeHoras = () => {
       userShift: authUser.shift,
       hoursType: rowData.hoursType,
       ...(dayDocId && { dayDocId }),
-      ...(rowData.plant && { plant: rowData.plant })
+      ...(rowData.plant && { plant: rowData.plant }),
+      ...(rowData.costCenter && { costCenter: rowData.costCenter })
     }
 
     if (rowData.hoursType === 'OT') {
@@ -421,12 +458,7 @@ const DataGridCargaDeHoras = () => {
       <Button variant='contained' color='primary' onClick={handleUpdateTable} disabled={state.changes.length === 0}>
         Actualizar Tabla
       </Button>
-      <Button
-        onClick={handleDeleteRow}
-        disabled={!state.selectedRow || state.toggleValue === 'cambiarUsuario'}
-        variant='contained'
-        color='error'
-      >
+      <Button onClick={handleOpenConfirmDelete} disabled={!state.selectedRow} variant='contained' color='error'>
         Eliminar Fila
       </Button>
       <Button onClick={handlePreviousWeek}>Semana Anterior</Button>
@@ -453,6 +485,11 @@ const DataGridCargaDeHoras = () => {
           rows={state.weekHours}
         />
       )}
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onClose={handleCloseConfirmDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </Box>
   )
 }

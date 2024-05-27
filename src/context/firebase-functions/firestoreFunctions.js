@@ -1170,7 +1170,12 @@ const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
     const userDocRef = doc(db, 'usersTest', userId)
     const weekHoursRef = collection(userDocRef, 'workedHours')
 
-    const q = query(weekHoursRef, where('day', '>=', weekStart), where('day', '<=', weekEnd))
+    const q = query(
+      weekHoursRef,
+      where('day', '>=', weekStart),
+      where('day', '<=', weekEnd),
+      where('deleted', '==', false)
+    )
     const querySnapshot = await getDocs(q)
     if (querySnapshot.empty) {
       return { error: 'No records found for this week.' }
@@ -1267,12 +1272,17 @@ const updateWeekHoursByType = async (userId, updates) => {
   }
 }
 
-const deleteWeekHoursByType = async (userId, docId) => {
+const deleteWeekHoursByType = async (userId, dayDocIds) => {
+  const batch = writeBatch(db)
+
   try {
-    const weekHoursRef = doc(db, 'usersTest', userId, 'workedHours', docId)
-    await updateDoc(weekHoursRef, {
-      deleted: true
+    dayDocIds.forEach(docId => {
+      const docRef = doc(db, 'usersTest', userId, 'workedHours', docId)
+      batch.update(docRef, { deleted: true })
     })
+
+    await batch.commit()
+    console.log('All documents successfully marked as deleted')
 
     return { success: true }
   } catch (error) {
