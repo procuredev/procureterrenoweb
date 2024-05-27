@@ -8,6 +8,7 @@ import {
 import { startOfWeek, addDays, format, isToday, isPast, subDays, isSameWeek, isSameDay, isFuture } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Box, Button, Typography } from '@mui/material'
+import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
 import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
 
@@ -19,8 +20,12 @@ const TableCargaDeHoras = ({
   handleSelectionChange,
   selectedRow,
   handleDeleteRow,
-  state
+  state,
+  updateWeekHoursWithPlant,
+  reloadTable
 }) => {
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [selectedDayDocIds, setSelectedDayDocIds] = useState([])
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
   const apiRef = useGridApiRef()
 
@@ -97,6 +102,27 @@ const TableCargaDeHoras = ({
     label: 'Sum'
   }
 
+  const handleAssignPlantClick = row => {
+    setSelectedDayDocIds(
+      ['lunesDocId', 'martesDocId', 'miércolesDocId', 'juevesDocId', 'viernesDocId', 'sábadoDocId', 'domingoDocId']
+        .map(dayKey => row[dayKey])
+        .filter(docId => docId)
+    )
+    setAssignDialogOpen(true)
+  }
+
+  const handleAssignPlant = async (plant, costCenter) => {
+    const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+
+    const result = await updateWeekHoursWithPlant(userId, selectedDayDocIds, plant, costCenter)
+    if (result.success) {
+      console.log('Plant and cost center assigned successfully')
+      reloadTable()
+    } else {
+      console.error('Error assigning plant and cost center:', result.error)
+    }
+  }
+
   const columns = [
     {
       field: 'otNumber',
@@ -117,7 +143,14 @@ const TableCargaDeHoras = ({
       headerName: 'Planta',
       sortable: false,
       width: 130,
-      renderCell: params => params.row.plant || ''
+      renderCell: params =>
+        params.row.plant ? (
+          params.row.plant
+        ) : (authUser.role === 5 || authUser.role === 10) && !params.row.isTotalRow ? (
+          <Button onClick={() => handleAssignPlantClick(params.row)}>Asignar</Button>
+        ) : (
+          ''
+        )
     },
     ...Array.from({ length: 7 }).map((_, index) => {
       const day = addDays(state.currentWeekStart, index)
@@ -230,6 +263,13 @@ const TableCargaDeHoras = ({
         onAggregationModelChange={newModel => setAggregationModel(newModel)}
         getRowClassName={getRowClassName}
         isRowSelectable={isRowSelectable}
+      />
+      <AssignPlantDialog
+        open={assignDialogOpen}
+        onClose={() => setAssignDialogOpen(false)}
+        userId={authUser.uid}
+        dayDocIds={selectedDayDocIds}
+        onAssign={handleAssignPlant}
       />
       <style>
         {`

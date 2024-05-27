@@ -99,7 +99,8 @@ const DataGridCargaDeHoras = () => {
     fetchSolicitudes,
     loadWeekData,
     authUser,
-    fetchUserList
+    fetchUserList,
+    updateWeekHoursWithPlant
   } = useFirebase()
 
   useEffect(() => {
@@ -327,7 +328,7 @@ const DataGridCargaDeHoras = () => {
       if (!acc[doc.rowId]) {
         acc[doc.rowId] = {
           rowId: doc.rowId,
-          plant: doc.plant ? doc.plant : authUser.role === 5 || authUser.role === 10 ? <Button>Asignar</Button> : '',
+          plant: doc.plant,
           hoursType: doc.hoursType,
           totalRowHours: 0,
           lunes: 0, // Inicializa todos los días a 0
@@ -438,6 +439,8 @@ const DataGridCargaDeHoras = () => {
         selectedRow={state.selectedRow}
         handleDeleteRow={handleDeleteRow}
         state={state}
+        updateWeekHoursWithPlant={updateWeekHoursWithPlant}
+        reloadTable={handleUpdateTable}
       />
       {state.dialogOpen && (
         <DialogCreateHours

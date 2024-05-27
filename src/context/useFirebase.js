@@ -39,7 +39,8 @@ import {
   updateWeekHoursByType,
   deleteWeekHoursByType,
   fetchSolicitudes,
-  fetchUserList
+  fetchUserList,
+  updateWeekHoursWithPlant
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -168,7 +169,8 @@ const FirebaseContextProvider = props => {
     updateWeekHoursByType,
     deleteWeekHoursByType,
     fetchSolicitudes,
-    fetchUserList
+    fetchUserList,
+    updateWeekHoursWithPlant
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

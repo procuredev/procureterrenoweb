@@ -1319,6 +1319,25 @@ const fetchUserList = async () => {
   return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 }
 
+const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) => {
+  const batch = writeBatch(db)
+
+  dayDocIds.forEach(docId => {
+    const docRef = doc(db, 'usersTest', userId, 'workedHours', docId)
+    batch.update(docRef, { plant, costCenter })
+  })
+
+  try {
+    await batch.commit()
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating week hours with plant and cost center:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1339,5 +1358,6 @@ export {
   updateWeekHoursByType,
   deleteWeekHoursByType,
   fetchSolicitudes,
-  fetchUserList
+  fetchUserList,
+  updateWeekHoursWithPlant
 }
