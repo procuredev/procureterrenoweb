@@ -1219,6 +1219,7 @@ const createWeekHoursByType = async (userParams, creations) => {
           shift: change.userShift
         },
         rowId: change.rowId,
+        costCenter: change.costCenter,
         column: change.field,
         ...(change.hoursType === 'OT'
           ? {
