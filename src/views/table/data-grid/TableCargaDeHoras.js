@@ -142,7 +142,7 @@ const TableCargaDeHoras = ({
       field: 'plant',
       headerName: 'Planta',
       sortable: false,
-      width: 130,
+      width: 280,
       renderCell: params =>
         params.row.plant ? (
           params.row.plant
@@ -151,6 +151,13 @@ const TableCargaDeHoras = ({
         ) : (
           ''
         )
+    },
+    {
+      field: 'costCenter',
+      headerName: 'Centro de Costo',
+      sortable: false,
+      width: 180,
+      renderCell: params => params.row.costCenter
     },
     ...Array.from({ length: 7 }).map((_, index) => {
       const day = addDays(state.currentWeekStart, index)
@@ -247,6 +254,9 @@ const TableCargaDeHoras = ({
         }}
         rows={[...rows, aggregatedRow]}
         columns={columns}
+        columnVisibilityModel={{
+          costCenter: authUser.role === 5 || authUser.role === 10
+        }}
         pageSize={5}
         checkboxSelection
         rowSelectionModel={state.selectedRow ? [state.selectedRow] : []}

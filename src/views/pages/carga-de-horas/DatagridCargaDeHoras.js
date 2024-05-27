@@ -329,6 +329,7 @@ const DataGridCargaDeHoras = () => {
         acc[doc.rowId] = {
           rowId: doc.rowId,
           plant: doc.plant,
+          costCenter: doc.costCenter,
           hoursType: doc.hoursType,
           totalRowHours: 0,
           lunes: 0, // Inicializa todos los días a 0
