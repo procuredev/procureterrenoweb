@@ -217,6 +217,10 @@ const DataGridCargaDeHoras = () => {
   }
 
   const handleCellEditCommit = (rowId, field, newValue, rowData, dayTimestamp, dayDocId) => {
+    console.log(
+      `Edit commit from handleCellEditCommit in DataGridCargaDeHoras: rowId=${rowId}, field=${field}, newValue=${newValue}, dayDocId=${dayDocId}`
+    )
+
     // Encuentra el índice de la fila modificada
     const rowIndex = state.weekHours.findIndex(row => row.rowId === rowId)
     if (rowIndex === -1) return

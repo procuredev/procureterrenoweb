@@ -20,13 +20,13 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
   const [filteredOtOptions, setFilteredOtOptions] = useState([])
 
   // Obtiene los tipos de horas existentes en las filas
-  const existingHoursTypes = rows.map(row => row.hoursType)
+  const existingHoursTypes = rows.map(row => row.hoursType.toUpperCase())
 
   // Filtra las opciones basadas en los tipos de horas existentes
   const getFilteredHoursTypeOptions = () => {
     const options = ['ISC', 'Vacaciones', 'OT']
 
-    return options.filter(option => !existingHoursTypes.includes(option.toLowerCase()))
+    return options.filter(option => option === 'OT' || !existingHoursTypes.includes(option.toUpperCase()))
   }
 
   const generateRowId = (uid, weekNumber, index) => {
@@ -91,7 +91,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
             onChange={e => setHoursType(e.target.value)}
           >
             {getFilteredHoursTypeOptions().map(option => (
-              <MenuItem key={option} value={option}>
+              <MenuItem key={`hoursType-${option}`} value={option}>
                 {option}
               </MenuItem>
             ))}
@@ -107,15 +107,19 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
                 value={otType}
                 onChange={e => setOtType(e.target.value)}
               >
-                <MenuItem value='Gabinete'>Gabinete</MenuItem>
-                <MenuItem value='Levantamiento'>Levantamiento</MenuItem>
+                <MenuItem key={`otType-Gabinete`} value='Gabinete'>
+                  Gabinete
+                </MenuItem>
+                <MenuItem key={`otType-Levantamiento`} value='Levantamiento'>
+                  Levantamiento
+                </MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth margin='normal'>
               <InputLabel id='otNumber-label'>Número OT</InputLabel>
               <Select labelId='otNumber-label' id='otNumber-select' value={otNumber} onChange={handleOTNumberChange}>
                 {filteredOtOptions.map(option => (
-                  <MenuItem key={option.ot} value={option.ot}>
+                  <MenuItem key={`otNumber-${option.ot}`} value={option.ot}>
                     {option.ot}
                   </MenuItem>
                 ))}

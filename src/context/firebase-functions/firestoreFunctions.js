@@ -1224,7 +1224,6 @@ const createWeekHoursByType = async (userParams, creations) => {
           shift: change.userShift
         },
         rowId: change.rowId,
-        costCenter: change.costCenter,
         column: change.field,
         ...(change.hoursType === 'OT'
           ? {
@@ -1235,7 +1234,8 @@ const createWeekHoursByType = async (userParams, creations) => {
               }
             }
           : {}),
-        ...(change.plant && { plant: change.plant })
+        ...(change.plant && { plant: change.plant }),
+        ...(change.costCenter && { costCenter: change.costCenter })
       }
 
       batch.set(newDocRef, docData) // Añade la operación de creación al batch
@@ -1324,9 +1324,16 @@ const fetchSolicitudes = async authUser => {
 }
 
 const fetchUserList = async () => {
-  const userListSnapshot = await getDocs(collection(db, 'usersTest'))
+  try {
+    const userQuery = query(collection(db, 'usersTest'), where('role', '>=', 5), where('role', '<=', 12))
+    const userListSnapshot = await getDocs(userQuery)
 
-  return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error('Error fetching user list:', error)
+
+    return { error: 'Failed to fetch user list.' }
+  }
 }
 
 const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) => {

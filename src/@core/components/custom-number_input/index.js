@@ -3,6 +3,18 @@ import { Unstable_NumberInput as BaseNumberInput, numberInputClasses } from '@mu
 import { styled } from '@mui/system'
 
 const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
+  const { onChange, ...other } = props
+
+  const handleChange = (event, value) => {
+    console.log('value from CustomNumberInput: ', value)
+    const numericValue = parseFloat(value)
+    if (!isNaN(numericValue)) {
+      if (onChange) {
+        onChange(numericValue)
+      }
+    }
+  }
+
   return (
     <BaseNumberInput
       slots={{
@@ -19,36 +31,43 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
           children: '▾'
         }
       }}
-      {...props}
+      {...other}
+      onChange={handleChange}
       ref={ref}
+      onKeyDown={e => {
+        // Permitir solo teclas numéricas y algunas teclas especiales
+        const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End']
+
+        if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
+          console.log('e.key: ', e.key)
+          console.log('e.keyCode: ', e.keyCode)
+          //e.preventDefault()
+        } else {
+          if (e.keyCode <= 48 || e.keyCode >= 57 || e.keyCode <= 96 || e.keyCode >= 105) {
+            console.log('2e.key: ', e.key)
+            console.log('2e.keyCode: ', e.keyCode)
+            e.preventDefault()
+          }
+        }
+      }}
     />
   )
 })
 
-export default function NumberInputBasic({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) {
-  const handleChange = (event, val) => {
-    console.log('NumberInputBasic onChange:', val)
-    if (!isNaN(val)) {
-      if (dayDocId) {
-        onCommit(rowId, field, val, rowData, dayTimestamp, dayDocId)
-      } else {
-        onCommit(rowId, field, val, rowData, dayTimestamp)
-      }
-    } else {
-      console.log('Val isNaN', val)
-    }
-  }
+export default function NumberInputBasic({ value, onChange, min, max, disabled }) {
+  const safeValue = value !== undefined && !isNaN(value) ? value : ''
 
   return (
     <NumberInput
       aria-label='Demo number input'
       placeholder='Horas'
       variant='outlined'
-      value={value}
-      min={0}
-      max={12}
-      onChange={handleChange}
+      value={safeValue}
+      min={min}
+      max={max}
+      onChange={onChange}
       sx={{ my: 5 }}
+      disabled={disabled}
     />
   )
 }
@@ -89,6 +108,7 @@ const StyledInputRoot = styled('div')(
   overflow: hidden;
   column-gap: 8px;
   padding: 4px;
+  width: 100%;
 
   &.${numberInputClasses.focused} {
     border-color: ${'#88b340'};
@@ -118,6 +138,7 @@ const StyledInputElement = styled('input')(
   border-radius: inherit;
   padding: 8px 12px;
   outline: 0;
+  width: 48px;
 `
 )
 

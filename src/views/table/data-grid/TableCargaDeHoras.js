@@ -33,34 +33,26 @@ const TableCargaDeHoras = ({
 
   const NumericInputCell = ({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) => {
     const maxInput = 12 - (dailyTotals[field] - (value || 0))
+    const safeValue = value !== undefined && !isNaN(value) ? value : 0
 
-    const handleInputChange = (e, val) => {
-      console.log(`${e.type} event: the new value is ${val}`)
-      if (!validationRegex.test(val)) {
-        return
+    const handleChange = val => {
+      // Verificar que val sea un número
+      const numericValue = parseFloat(val)
+      if (!isNaN(numericValue)) {
+        const newVal = Math.min(numericValue, maxInput)
+        const args = [rowId, field, newVal, rowData, dayTimestamp]
+        if (dayDocId) {
+          args.push(dayDocId)
+        }
+        onCommit(...args)
       }
-      const newValue = Math.min(parseInt(val, 10) || 0, maxInput)
-      const args = [rowId, field, newValue, rowData, dayTimestamp]
-      if (dayDocId) {
-        args.push(dayDocId)
-      }
-      onCommit(...args)
     }
 
     return (
-      <NumberInput
+      <NumberInputBasic
         // type='number'
-        value={value}
-        onChange={(e, val, onCommit) => handleInputChange(e, val, onCommit)}
-        onInput={e => {
-          const input = e.target
-          const inputValue = input.value
-          console.log(`the input value is: ${e.target.value}`)
-          if (!validationRegex.test(inputValue)) {
-            input.value = inputValue.replace(/[^0-9]/g, '')
-          }
-        }}
-        style={{ width: '100%' }}
+        value={safeValue}
+        onChange={handleChange}
         min={0}
         max={maxInput}
         disabled={!isEditable(dayTimestamp)}
