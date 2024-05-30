@@ -6,7 +6,18 @@ import { es } from 'date-fns/locale'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import { Box, Button, Typography, Switch, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import {
+  Box,
+  Button,
+  Typography,
+  Switch,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Autocomplete,
+  TextField
+} from '@mui/material'
 // ** Custom Components Imports
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
@@ -157,6 +168,12 @@ const DataGridCargaDeHoras = () => {
       loadUserList()
     }
   }, [authUser, fetchUserList])
+
+  useEffect(() => {
+    if (state.toggleValue === 'misDatos') {
+      dispatch({ type: 'SET_SELECTED_USER', payload: null })
+    }
+  }, [state.toggleValue])
 
   const handleOpenConfirmDelete = () => {
     setConfirmDeleteOpen(true)
@@ -436,22 +453,16 @@ const DataGridCargaDeHoras = () => {
           />
           {state.toggleValue === 'cambiarUsuario' && (
             <FormControl fullWidth margin='normal'>
-              <InputLabel id='user-select-label'>Seleccionar Usuario</InputLabel>
-              <Select
-                labelId='user-select-label'
-                id='user-select'
-                value={state.selectedUser ? state.selectedUser.id : ''}
-                onChange={e => {
-                  const selectedUser = state.userList.find(user => user.id === e.target.value)
-                  dispatch({ type: 'SET_SELECTED_USER', payload: selectedUser })
+              <Autocomplete
+                id='user-select-autocomplete'
+                options={state.userList}
+                getOptionLabel={option => option.name}
+                value={state.selectedUser}
+                onChange={(event, newValue) => {
+                  dispatch({ type: 'SET_SELECTED_USER', payload: newValue })
                 }}
-              >
-                {state.userList.map(user => (
-                  <MenuItem key={user.id} value={user.id}>
-                    {user.name}
-                  </MenuItem>
-                ))}
-              </Select>
+                renderInput={params => <TextField {...params} label='Seleccionar Usuario' variant='outlined' />}
+              />
             </FormControl>
           )}
         </Box>
