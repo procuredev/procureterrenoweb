@@ -1,6 +1,6 @@
 // ** React Imports
 import React, { useReducer, useEffect, useState, useCallback } from 'react'
-import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays } from 'date-fns'
+import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays, isSameWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
@@ -430,6 +430,14 @@ const DataGridCargaDeHoras = () => {
 
   const isUserChangeAllowed = authUser.role === 5 || authUser.role === 10
 
+  function checkIfSameWeek(dateToCheck) {
+    const now = new Date()
+
+    return isSameWeek(startOfWeek(now), startOfWeek(dateToCheck))
+  }
+  const now = new Date()
+  const isButtonDisabled = !isUserChangeAllowed && !checkIfSameWeek(state.currentWeekStart)
+
   console.log('state: ', state)
   console.log('state.dailyTotals: ', state.dailyTotals)
 
@@ -467,7 +475,7 @@ const DataGridCargaDeHoras = () => {
           )}
         </Box>
       )}
-      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={state.toggleValue === 'cambiarUsuario'}>
+      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={isButtonDisabled}>
         Crear Fila
       </Button>
       <Button variant='contained' color='primary' onClick={handleUpdateTable} disabled={state.changes.length === 0}>
