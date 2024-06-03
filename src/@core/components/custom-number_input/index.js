@@ -42,7 +42,7 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
       onChange={handleChange}
       onBlur={handleBlur}
       ref={ref}
-      onKeyDown={e => {
+      onKeyDown={(e, value) => {
         // Permitir solo teclas numéricas y algunas teclas especiales
         const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End']
 
@@ -50,6 +50,13 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
           console.log('e.key: ', e.key)
           console.log('e.keyCode: ', e.keyCode)
           //e.preventDefault()
+
+          const numericValue = Math.min(parseInt(e.key, 10), 12)
+          if (!isNaN(numericValue)) {
+            if (onChange) {
+              onChange(numericValue)
+            }
+          }
         } else {
           if (e.keyCode <= 48 || e.keyCode >= 57 || e.keyCode <= 96 || e.keyCode >= 105) {
             console.log('2e.key: ', e.key)
