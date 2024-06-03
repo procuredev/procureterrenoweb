@@ -1325,7 +1325,12 @@ const fetchSolicitudes = async authUser => {
 
 const fetchUserList = async () => {
   try {
-    const userQuery = query(collection(db, 'usersTest'), where('role', '>=', 5), where('role', '<=', 12))
+    const userQuery = query(
+      collection(db, 'usersTest'),
+      where('role', '>=', 5),
+      where('role', '<=', 12),
+      orderBy('name')
+    )
     const userListSnapshot = await getDocs(userQuery)
 
     return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))

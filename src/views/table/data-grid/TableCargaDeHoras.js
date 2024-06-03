@@ -155,7 +155,7 @@ const TableCargaDeHoras = ({
       field: 'plant',
       headerName: 'Planta',
       sortable: false,
-      width: 280,
+      width: 320,
       renderCell: params =>
         params.row.plant ? (
           params.row.plant
@@ -187,12 +187,13 @@ const TableCargaDeHoras = ({
         aggregable: true,
         aggregationFunction: 'sumAggregation',
         valueFormatter: ({ value }) => value || 0,
+        headerAlign: 'left',
+        getCellClassName: params => (params.row.isTotalRow ? 'MuiDataGrid-cell--textLeft' : ''),
         type: 'number',
+        align: 'left',
         renderCell: params =>
           params.row.isTotalRow ? (
-            <Box>
-              <Typography /* sx={{ color: 'red' }} */>{params.row[dayKey]}</Typography>
-            </Box>
+            <Typography ml={4}>{params.row[dayKey]}</Typography>
           ) : (
             <NumericInputCell
               value={params.row[dayKey] !== undefined ? params.row[dayKey] : 0}
@@ -248,21 +249,12 @@ const TableCargaDeHoras = ({
 
   return (
     <Box style={{ height: 400, width: '100%' }}>
-      {/* <Button
-        variant='contained'
-        color='primary'
-        onClick={handleDeleteRow}
-        disabled={!selectedRow} // El botón está desactivado si no hay fila seleccionada
-      >
-        Eliminar Fila
-      </Button> */}
       <DataGridPremium
         apiRef={apiRef}
         sx={{
           height: 600,
-          '& .total-row': {
-            display: 'flex',
-            justifyContent: 'flex-end'
+          '& .MuiDataGrid-cell--textLeft': {
+            align: 'left'
           }
         }}
         rows={[...rows, aggregatedRow]}
@@ -299,8 +291,8 @@ const TableCargaDeHoras = ({
           .total-row .MuiDataGrid-checkboxInput {
             display: none;
           }
-          .total-row {
-
+          .MuiDataGrid-cell--textLeft {
+            text-align: left !important;
           }
         `}
       </style>

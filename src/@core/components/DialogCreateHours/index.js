@@ -8,9 +8,12 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  FormControl
+  FormControl,
+  Box,
+  OutlinedInput
 } from '@mui/material'
 import { format, getISOWeek } from 'date-fns'
+import { CustomSelectOptions } from 'src/@core/components/custom-form/index'
 
 const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows }) => {
   const [hoursType, setHoursType] = useState('')
@@ -82,50 +85,42 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Crear Nueva Fila</DialogTitle>
       <DialogContent>
-        <FormControl fullWidth margin='normal'>
-          <InputLabel id='hoursType-label'>Tipo de Horas</InputLabel>
-          <Select
-            labelId='hoursType-label'
-            id='hoursType-select'
+        <Box component='form' sx={{ '& .MuiFormControl-root': { marginTop: 2, width: '100%' } }}>
+          <CustomSelectOptions
+            options={getFilteredHoursTypeOptions()}
+            label='Tipo de Horas'
             value={hoursType}
             onChange={e => setHoursType(e.target.value)}
-          >
-            {getFilteredHoursTypeOptions().map(option => (
-              <MenuItem key={`hoursType-${option}`} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          />
+        </Box>
         {hoursType === 'OT' && (
-          <>
-            <FormControl fullWidth margin='normal'>
-              <InputLabel id='otType-label'>Tipo OT</InputLabel>
-              <Select
-                labelId='otType-label'
-                id='otType-select'
-                value={otType}
-                onChange={e => setOtType(e.target.value)}
-              >
-                <MenuItem key={`otType-Gabinete`} value='Gabinete'>
-                  Gabinete
-                </MenuItem>
-                <MenuItem key={`otType-Levantamiento`} value='Levantamiento'>
-                  Levantamiento
-                </MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin='normal'>
+          <Box sx={{ marginTop: 4 }}>
+            <CustomSelectOptions
+              options={['Gabinete', 'Levantamiento']}
+              label='Tipo OT'
+              value={otType}
+              onChange={e => setOtType(e.target.value)}
+            />
+
+            <FormControl fullWidth margin='normal' sx={{ '& .MuiInputBase-root ': { width: '100%' } }}>
               <InputLabel id='otNumber-label'>Número OT</InputLabel>
-              <Select labelId='otNumber-label' id='otNumber-select' value={otNumber} onChange={handleOTNumberChange}>
-                {filteredOtOptions.map(option => (
-                  <MenuItem key={`otNumber-${option.ot}`} value={option.ot}>
-                    {option.ot}
-                  </MenuItem>
-                ))}
-              </Select>
+              <Box width={'100%'}>
+                <Select
+                  labelId='otNumber-label'
+                  id='otNumber-select'
+                  value={otNumber}
+                  onChange={handleOTNumberChange}
+                  input={<OutlinedInput label={'Número OT'} />}
+                >
+                  {filteredOtOptions.map(option => (
+                    <MenuItem key={`otNumber-${option.ot}`} value={option.ot}>
+                      {option.ot}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Box>
             </FormControl>
-          </>
+          </Box>
         )}
       </DialogContent>
       <DialogActions>

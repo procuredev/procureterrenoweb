@@ -433,7 +433,7 @@ const DataGridCargaDeHoras = () => {
   function checkIfSameWeek(dateToCheck) {
     const now = new Date()
 
-    return isSameWeek(startOfWeek(now), startOfWeek(dateToCheck))
+    return isSameWeek(startOfWeek(now, { weekStartsOn: 2 }), startOfWeek(dateToCheck))
   }
   const now = new Date()
   const isButtonDisabled = !isUserChangeAllowed && !checkIfSameWeek(state.currentWeekStart)
