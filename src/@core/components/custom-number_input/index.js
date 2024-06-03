@@ -3,15 +3,22 @@ import { Unstable_NumberInput as BaseNumberInput, numberInputClasses } from '@mu
 import { styled } from '@mui/system'
 
 const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
-  const { onChange, ...other } = props
+  const { onChange, onBlur, ...other } = props
 
-  const handleChange = (event, value) => {
+  const handleChange = (e, value) => {
     console.log('value from CustomNumberInput: ', value)
-    const numericValue = parseFloat(value)
+
+    const numericValue = Math.min(parseInt(value, 10), 12)
     if (!isNaN(numericValue)) {
       if (onChange) {
         onChange(numericValue)
       }
+    }
+  }
+
+  const handleBlur = e => {
+    if (onBlur) {
+      onBlur(e)
     }
   }
 
@@ -33,6 +40,7 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
       }}
       {...other}
       onChange={handleChange}
+      onBlur={handleBlur}
       ref={ref}
       onKeyDown={e => {
         // Permitir solo teclas numéricas y algunas teclas especiales
@@ -54,7 +62,7 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
   )
 })
 
-export default function NumberInputBasic({ value, onChange, min, max, disabled }) {
+export default function NumberInputBasic({ value, onChange, onBlur, min, max, disabled }) {
   const safeValue = value !== undefined && !isNaN(value) ? value : ''
 
   return (
@@ -66,6 +74,7 @@ export default function NumberInputBasic({ value, onChange, min, max, disabled }
       min={min}
       max={max}
       onChange={onChange}
+      onBlur={onBlur}
       sx={{ my: 5 }}
       disabled={disabled}
     />

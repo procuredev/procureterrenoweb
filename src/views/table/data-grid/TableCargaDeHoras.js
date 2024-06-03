@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   DataGridPremium,
   useGridApiRef,
@@ -7,7 +7,7 @@ import {
 } from '@mui/x-data-grid-premium'
 import { startOfWeek, addDays, format, isToday, isPast, subDays, isSameWeek, isSameDay, isFuture } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, Typography, FormControl } from '@mui/material'
 import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
 import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
@@ -22,7 +22,8 @@ const TableCargaDeHoras = ({
   handleDeleteRow,
   state,
   updateWeekHoursWithPlant,
-  reloadTable
+  reloadTable,
+  updateDailyTotals
 }) => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedDayDocIds, setSelectedDayDocIds] = useState([])
@@ -32,8 +33,15 @@ const TableCargaDeHoras = ({
   const validationRegex = /^[0-9]*$/
 
   const NumericInputCell = ({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) => {
+    const [inputValue, setInputValue] = useState(value || 0)
+    const inputRef = useRef(inputValue)
+
     const maxInput = 12 - (dailyTotals[field] - (value || 0))
     const safeValue = value !== undefined && !isNaN(value) ? value : 0
+
+    useEffect(() => {
+      inputRef.current = inputValue
+    }, [inputValue])
 
     const handleChange = val => {
       // Verificar que val sea un número
@@ -48,15 +56,28 @@ const TableCargaDeHoras = ({
       }
     }
 
+    const handleBlur = () => {
+      const newValue = Math.min(inputRef.current, maxInput)
+      console.log('handleBlur inputValue (from ref):', inputRef.current)
+      const args = [rowId, field, newValue, rowData, dayTimestamp]
+      if (dayDocId) {
+        args.push(dayDocId)
+      }
+      onCommit(...args)
+    }
+
     return (
-      <NumberInputBasic
-        // type='number'
-        value={safeValue}
-        onChange={handleChange}
-        min={0}
-        max={maxInput}
-        disabled={!isEditable(dayTimestamp)}
-      />
+      <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
+        <NumberInputBasic
+          // type='number'
+          value={safeValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          min={0}
+          max={maxInput}
+          disabled={!isEditable(dayTimestamp)}
+        />
+      </FormControl>
     )
   }
 
