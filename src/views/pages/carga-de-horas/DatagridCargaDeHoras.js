@@ -458,7 +458,8 @@ const DataGridCargaDeHoras = () => {
             onChange={e =>
               dispatch({ type: 'SET_TOGGLE_VALUE', payload: e.target.checked ? 'cambiarUsuario' : 'misDatos' })
             }
-          />
+          />{' '}
+          <span>Seleccionar otro usuario</span>
           {state.toggleValue === 'cambiarUsuario' && (
             <FormControl fullWidth margin='normal'>
               <Autocomplete
