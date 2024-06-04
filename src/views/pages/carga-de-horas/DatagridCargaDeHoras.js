@@ -352,10 +352,10 @@ const DataGridCargaDeHoras = () => {
     loadWeekData() // Re-fetch the data
   }
 
-  const handleSwitchToggle = (newSwitchState, switchType) => {
+  const handleSwitchToggle = newSwitchState => {
     if (state.changes.length > 0) {
       dispatch({ type: 'TOGGLE_WARNING_DIALOG', payload: true })
-      dispatch({ type: 'SET_PREVIOUS_SWITCH_STATE', payload: { newSwitchState, switchType } })
+      dispatch({ type: 'SET_PREVIOUS_SWITCH_STATE', payload: { newSwitchState } })
     } else {
       dispatch({ type: 'SET_TOGGLE_VALUE', payload: newSwitchState })
     }
@@ -485,10 +485,7 @@ const DataGridCargaDeHoras = () => {
       </Typography>
       {isUserChangeAllowed && (
         <Box>
-          <Switch
-            checked={state.toggleValue === true}
-            onChange={() => handleSwitchToggle(!state.toggleValue, 'switchType')}
-          />{' '}
+          <Switch checked={state.toggleValue === true} onChange={() => handleSwitchToggle(!state.toggleValue)} />{' '}
           <span>Seleccionar otro usuario</span>
           {state.toggleValue === true && (
             <FormControl fullWidth margin='normal'>
