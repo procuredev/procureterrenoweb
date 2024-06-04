@@ -143,7 +143,7 @@ const DataGridCargaDeHoras = () => {
       const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
       const data = await fetchWeekHoursByType(userId, state.currentWeekStart, state.currentWeekEnd)
       if (!data.error) {
-        const preparedData = prepareWeekHoursData(data)
+        const preparedData = prepareWeekHoursData(data).sort(sortByRowId)
         dispatch({ type: 'SET_WEEK_HOURS', payload: preparedData })
       } else {
         console.error(data.error)
@@ -437,6 +437,13 @@ const DataGridCargaDeHoras = () => {
   }
   const now = new Date()
   const isButtonDisabled = !isUserChangeAllowed && !checkIfSameWeek(state.currentWeekStart)
+
+  const sortByRowId = (a, b) => {
+    if (a.rowId < b.rowId) return -1
+    if (a.rowId > b.rowId) return 1
+
+    return 0
+  }
 
   console.log('state: ', state)
   console.log('state.dailyTotals: ', state.dailyTotals)
