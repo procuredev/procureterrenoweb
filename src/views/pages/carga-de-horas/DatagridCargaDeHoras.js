@@ -22,6 +22,7 @@ import {
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
 import ConfirmDeleteDialog from 'src/@core/components/dialog-confirmDeleteRowHH/index.js'
+import WarningDialog from 'src/@core/components/dialog-warningSaveChanges/index.js'
 
 const initialState = {
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 2 }),
@@ -29,6 +30,8 @@ const initialState = {
   currentWeekNumber: getWeek(new Date(), { weekStartsOn: 2 }),
   weekHours: [],
   changes: [],
+  showWarningDialog: false,
+  previousSwitchState: null,
   otOptions: [],
   existingOTs: [],
   dialogOpen: false,
@@ -42,7 +45,7 @@ const initialState = {
     domingo: 0,
     lunes: 0
   },
-  toggleValue: 'misDatos',
+  toggleValue: false,
   selectedUser: null,
   userList: []
 }
@@ -96,6 +99,10 @@ function reducer(state, action) {
       return { ...state, selectedUser: action.payload }
     case 'SET_USER_LIST':
       return { ...state, userList: action.payload }
+    case 'TOGGLE_WARNING_DIALOG':
+      return { ...state, showWarningDialog: action.payload }
+    case 'SET_PREVIOUS_SWITCH_STATE':
+      return { ...state, previousSwitchState: action.payload }
     default:
       return state
   }
@@ -140,7 +147,7 @@ const DataGridCargaDeHoras = () => {
       }
       dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: resetDailyTotals })
 
-      const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+      const userId = state.toggleValue === false ? authUser.uid : state.selectedUser.id
       const data = await fetchWeekHoursByType(userId, state.currentWeekStart, state.currentWeekEnd)
       if (!data.error) {
         const preparedData = prepareWeekHoursData(data).sort(sortByRowId)
@@ -150,10 +157,7 @@ const DataGridCargaDeHoras = () => {
         dispatch({ type: 'SET_WEEK_HOURS', payload: [] })
       }
     }
-    if (
-      authUser &&
-      (state.toggleValue === 'misDatos' || (state.toggleValue === 'cambiarUsuario' && state.selectedUser))
-    ) {
+    if (authUser && (state.toggleValue === false || (state.toggleValue === true && state.selectedUser))) {
       loadWeekData()
     }
   }, [state.currentWeekStart, authUser, state.toggleValue, state.selectedUser, fetchWeekHoursByType])
@@ -170,7 +174,7 @@ const DataGridCargaDeHoras = () => {
   }, [authUser, fetchUserList])
 
   useEffect(() => {
-    if (state.toggleValue === 'misDatos') {
+    if (state.toggleValue === false) {
       dispatch({ type: 'SET_SELECTED_USER', payload: null })
     }
   }, [state.toggleValue])
@@ -213,7 +217,7 @@ const DataGridCargaDeHoras = () => {
           .filter(key => key.endsWith('DocId'))
           .map(key => rowToDelete[key])
 
-        const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+        const userId = state.toggleValue === false ? authUser.uid : state.selectedUser.id
         const result = await deleteWeekHoursByType(userId, dayDocIds)
         if (result.success) {
           // Recargar los datos de la tabla después de la eliminación exitosa
@@ -322,7 +326,7 @@ const DataGridCargaDeHoras = () => {
       }
       dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: resetDailyTotals })
 
-      const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+      const userId = state.toggleValue === false ? authUser.uid : state.selectedUser.id
       const data = await fetchWeekHoursByType(userId, state.currentWeekStart, state.currentWeekEnd)
       if (!data.error) {
         const preparedData = prepareWeekHoursData(data)
@@ -334,18 +338,39 @@ const DataGridCargaDeHoras = () => {
     }
 
     if (creations.length > 0) {
-      const user = state.toggleValue === 'misDatos' ? authUser : state.selectedUser
+      const user = state.toggleValue === false ? authUser : state.selectedUser
       const creationResult = await createWeekHoursByType(user, creations)
       console.log('Creation result:', creationResult)
     }
     if (updates.length > 0) {
-      const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+      const userId = state.toggleValue === false ? authUser.uid : state.selectedUser.id
       const updatesResult = await updateWeekHoursByType(userId, updates)
       console.log('Updates result: ', updatesResult)
     }
 
     dispatch({ type: 'CLEAR_CHANGES' })
     loadWeekData() // Re-fetch the data
+  }
+
+  const handleSwitchToggle = (newSwitchState, switchType) => {
+    if (state.changes.length > 0) {
+      dispatch({ type: 'TOGGLE_WARNING_DIALOG', payload: true })
+      dispatch({ type: 'SET_PREVIOUS_SWITCH_STATE', payload: { newSwitchState, switchType } })
+    } else {
+      dispatch({ type: 'SET_TOGGLE_VALUE', payload: newSwitchState })
+    }
+  }
+
+  // resetea state.changes al cambiar el switch
+  const handleConfirmWarningDialog = () => {
+    dispatch({ type: 'TOGGLE_WARNING_DIALOG', payload: false })
+    dispatch({ type: 'CLEAR_CHANGES' })
+    dispatch({ type: 'SET_TOGGLE_VALUE', payload: !state.toggleValue })
+  }
+
+  // Restaura el valor del switch al estado anterior basado en `state.previousSwitchState`
+  const handleCloseWarningDialog = () => {
+    dispatch({ type: 'TOGGLE_WARNING_DIALOG', payload: false })
   }
 
   // Función para inicializar los días de la semana para un nuevo registro
@@ -461,13 +486,11 @@ const DataGridCargaDeHoras = () => {
       {isUserChangeAllowed && (
         <Box>
           <Switch
-            checked={state.toggleValue === 'cambiarUsuario'}
-            onChange={e =>
-              dispatch({ type: 'SET_TOGGLE_VALUE', payload: e.target.checked ? 'cambiarUsuario' : 'misDatos' })
-            }
+            checked={state.toggleValue === true}
+            onChange={() => handleSwitchToggle(!state.toggleValue, 'switchType')}
           />{' '}
           <span>Seleccionar otro usuario</span>
-          {state.toggleValue === 'cambiarUsuario' && (
+          {state.toggleValue === true && (
             <FormControl fullWidth margin='normal'>
               <Autocomplete
                 id='user-select-autocomplete'
@@ -520,6 +543,11 @@ const DataGridCargaDeHoras = () => {
         open={confirmDeleteOpen}
         onClose={handleCloseConfirmDelete}
         onConfirm={handleConfirmDelete}
+      />
+      <WarningDialog
+        open={state.showWarningDialog}
+        onClose={handleCloseWarningDialog}
+        onConfirm={handleConfirmWarningDialog}
       />
     </Box>
   )
