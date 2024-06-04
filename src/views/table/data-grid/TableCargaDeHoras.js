@@ -69,7 +69,6 @@ const TableCargaDeHoras = ({
     return (
       <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
         <NumberInputBasic
-          // type='number'
           value={safeValue}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -189,7 +188,6 @@ const TableCargaDeHoras = ({
         valueFormatter: ({ value }) => value || 0,
         headerAlign: 'left',
         getCellClassName: params => (params.row.isTotalRow ? 'MuiDataGrid-cell--textLeft' : ''),
-        type: 'number',
         align: 'left',
         renderCell: params =>
           params.row.isTotalRow ? (
