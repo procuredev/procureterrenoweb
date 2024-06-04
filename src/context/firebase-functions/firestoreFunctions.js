@@ -1167,7 +1167,7 @@ const finishPetition = async (currentPetition, authUser) => {
 
 const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
   try {
-    const userDocRef = doc(db, 'usersTest', userId)
+    const userDocRef = doc(db, 'users', userId)
     const weekHoursRef = collection(userDocRef, 'workedHours')
 
     const q = query(
@@ -1197,7 +1197,7 @@ const createWeekHoursByType = async (userParams, creations) => {
   const batch = writeBatch(db)
   const userRef = userParams.uid || userParams.id
   try {
-    const userDocRef = doc(db, 'usersTest', userRef)
+    const userDocRef = doc(db, 'users', userRef)
     const weekHoursRef = collection(userDocRef, 'workedHours')
 
     creations.forEach(change => {
@@ -1257,7 +1257,7 @@ const updateWeekHoursByType = async (userId, updates) => {
 
   try {
     updates.forEach(update => {
-      const docRef = doc(db, 'usersTest', userId, 'workedHours', update.dayDocId)
+      const docRef = doc(db, 'users', userId, 'workedHours', update.dayDocId)
       batch.update(docRef, { hours: update.newValue })
     })
 
@@ -1277,7 +1277,7 @@ const deleteWeekHoursByType = async (userId, dayDocIds) => {
 
   try {
     dayDocIds.forEach(docId => {
-      const docRef = doc(db, 'usersTest', userId, 'workedHours', docId)
+      const docRef = doc(db, 'users', userId, 'workedHours', docId)
       batch.update(docRef, { deleted: true })
     })
 
@@ -1325,12 +1325,7 @@ const fetchSolicitudes = async authUser => {
 
 const fetchUserList = async () => {
   try {
-    const userQuery = query(
-      collection(db, 'usersTest'),
-      where('role', '>=', 5),
-      where('role', '<=', 12),
-      orderBy('name')
-    )
+    const userQuery = query(collection(db, 'users'), where('role', '>=', 5), where('role', '<=', 12), orderBy('name'))
     const userListSnapshot = await getDocs(userQuery)
 
     return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
@@ -1345,7 +1340,7 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
   const batch = writeBatch(db)
 
   dayDocIds.forEach(docId => {
-    const docRef = doc(db, 'usersTest', userId, 'workedHours', docId)
+    const docRef = doc(db, 'users', userId, 'workedHours', docId)
     batch.update(docRef, { plant, costCenter })
   })
 
