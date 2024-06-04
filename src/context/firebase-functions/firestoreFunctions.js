@@ -1298,7 +1298,12 @@ const fetchSolicitudes = async authUser => {
 
   if (authUser.role === 7 || authUser.role === 8) {
     // Filtrar por shift si el usuario tiene uno o dos turnos.
-    queryRef = query(solicitudesRef, where('state', '>=', 6), where('supervisorShift', '==', authUser.shift[0]))
+    queryRef = query(
+      solicitudesRef,
+      where('state', '>=', 6),
+      where('supervisorShift', '==', authUser.shift[0]),
+      orderBy('ot')
+    )
   } else if (authUser.role >= 5 && authUser.role <= 12) {
     // Usuarios con roles específicos pueden ver todas las solicitudes mayores al estado 6.
     queryRef = query(solicitudesRef, where('state', '>=', 6))
