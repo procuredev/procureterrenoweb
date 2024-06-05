@@ -107,10 +107,23 @@ const TableEditUsers = ({ rows, role, roleData }) => {
       }
     },
     {
+      field: 'rut',
+      headerName: 'RUT',
+      //width: userLocalWidth ? userLocalWidth : 190,
+      minWidth: 110,
+      maxWidth: 150,
+      renderCell: params => {
+        const { row } = params
+        // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.rut ? row.rut : ''}</div>
+      }
+    },
+    {
       field: 'email',
       headerName: 'e-mail',
       //width: userLocalWidth ? userLocalWidth : 190,
-      minWidth: 300,
+      minWidth: 250,
       maxWidth: 350,
       renderCell: params => {
         const { row } = params
@@ -156,6 +169,19 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{roles[row.role-1].name}</div>
+      }
+    },
+    {
+      field: 'shift',
+      headerName: 'Turno',
+      //width: userLocalWidth ? userLocalWidth : 190,
+      minWidth: 50,
+      maxWidth: 70,
+      renderCell: params => {
+        const { row } = params
+        // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.shift ? row.shift.join(', ') : ''}</div>
       }
     },
     {
