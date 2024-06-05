@@ -131,7 +131,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
     },
     {
       field: 'phone',
-      headerName: 'Teléofono',
+      headerName: 'Teléfono',
       //width: userLocalWidth ? userLocalWidth : 190,
       minWidth: 100,
       maxWidth: 250,
