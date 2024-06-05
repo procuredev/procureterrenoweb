@@ -235,7 +235,6 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                   <IconButton
                     onClick={() => {
                       handleClose()
-                      setEditable(false)
                     }}
                     color='primary'
                     aria-label='close'
