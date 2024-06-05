@@ -1,7 +1,5 @@
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import moment from 'moment-timezone'
 import 'moment/locale/es'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import {
   Autocomplete,
@@ -24,7 +22,6 @@ import {
 import InputAdornment from '@mui/material/InputAdornment'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 
 import {
   Timeline,
@@ -33,99 +30,11 @@ import {
 
 import { Close } from '@mui/icons-material'
 //* import DialogErrorOt from 'src/@core/components/dialog-error-ot'
-import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
-
-const StyledFormControl = props => (
-  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
-)
-
-function CustomListItem({
-  editable,
-  label,
-  id,
-  value,
-  onChange,
-  multiple,
-  disabled = false,
-  required = true,
-  multiline = false,
-  selectable = false,
-  options = [],
-  initialValue,
-  inputProps
-}) {
-  return (
-    <>
-      {editable ? (
-        <ListItem id={`list-${label}`} divider={!editable}>
-          <StyledFormControl>
-            {selectable ? (
-              <>
-                {/* <InputLabel variant='standard'>
-                  {label} {required && <span>*</span>}
-                </InputLabel> */}
-                <Select
-                  id={`${id}-input`}
-                  defaultValue={initialValue}
-                  multiple={multiple}
-                  disabled={disabled}
-                  required={required}
-                  value={value}
-                  size='small'
-                  variant='standard'
-                  fullWidth={true}
-                  onChange={onChange}
-                >
-                  {options &&
-                    options.map(option => {
-                      return (
-                        <MenuItem key={option.name || option} value={option.name || option}>
-                          {option.name || option}
-                        </MenuItem>
-                      )
-                    })}
-                </Select>
-              </>
-            ) : (
-              <TextField
-                onChange={onChange}
-                label={label}
-                id={`${id}-input`}
-                defaultValue={initialValue}
-                disabled={disabled}
-                required={required}
-                value={value}
-                size='small'
-                variant='standard'
-                fullWidth={true}
-                multiline={multiline}
-                inputProps={inputProps}
-              />
-            )}
-          </StyledFormControl>
-        </ListItem>
-      ) : (
-        initialValue && (
-          <ListItem id={`list-${label}`} divider={!editable}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '40%' }}>
-                {label}
-              </Typography>
-              <Typography component='div' sx={{ width: '60%' }}>
-                {initialValue}
-              </Typography>
-            </Box>
-          </ListItem>
-        )
-      )}
-    </>
-  )
-}
 
 function CustomAutocompleteItem({
   selectable,
@@ -191,61 +100,6 @@ function CustomAutocompleteItem({
         </Box>
       </FormControl>
     </Grid>
-  )
-}
-
-function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
-  return (
-    <>
-      {editable ? (
-        <ListItem id={`list-${label}`} divider={!editable}>
-          <StyledFormControl>
-            <LocalizationProvider
-              dateAdapter={AdapterMoment}
-              adapterLocale='es'
-              localeText={{
-                okButtonLabel: 'Aceptar',
-                cancelButtonLabel: 'Cancelar',
-                datePickerToolbarTitle: 'Selecciona Fecha'
-              }}
-            >
-              <MobileDatePicker
-                dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                minDate={customMinDate || moment().subtract(1, 'year')}
-                maxDate={moment().add(1, 'year')}
-                label={label}
-                value={value}
-                onChange={onChange}
-                inputFormat='dd/MM/yyyy' // Formato de fecha que no puede ser introducido manualmente
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    required: true,
-                    variant: 'standard',
-                    fullWidth: true
-                  },
-                  toolbar: { hidden: false }
-                }}
-              />
-            </LocalizationProvider>
-          </StyledFormControl>
-        </ListItem>
-      ) : (
-        initialValue &&
-        initialValue.seconds && (
-          <ListItem id={`list-${label}`} divider={!editable}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-              <Typography component='div' sx={{ width: '40%' }}>
-                {label}
-              </Typography>
-              <Typography component='div' sx={{ width: '60%' }}>
-                {initialValue && unixToDate(initialValue.seconds)[0]}
-              </Typography>
-            </Box>
-          </ListItem>
-        )
-      )}
-    </>
   )
 }
 
@@ -372,6 +226,37 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     }
   }
 
+  // useEffect para formatear los campos Rut y teléfono en caso de que ya exista el dato.
+  useEffect(() => {
+
+    // Caso para el RUT
+    if (values.rut) {
+      // Eliminar cualquier caracter que no sea un número o letra k
+      let cv = values.rut.replace(/[^0-9kK]/g, '')
+
+      // Formatea RUT
+      let newValue
+      newValue = `${cv.length > 7 ? cv.slice(-9, -7) + '.' : ''}${cv.length > 4 ? cv.slice(-7, -4) + '.' : ''}${cv.length >= 2 ? cv.slice(-4, -1) + '-' : ''}${cv[cv.length - 1] || ''}`
+      newValue = newValue.trim()
+
+      setValues(prevValues => ({ ...prevValues, ['rut']: newValue }))
+
+    }
+
+    // Caso para el Teléfono
+    if (values.phone) {
+
+      let newValue
+      newValue = values.phone.replace(/[^0-9]/g, '')
+      newValue = `${newValue[0] || ''} ${newValue.slice(1, 5) || ''} ${newValue.slice(5, 10) || ''}`
+      newValue = newValue.trim()
+
+      setValues(prevValues => ({ ...prevValues, ['phone']: newValue }))
+
+    }
+
+  }, [])
+
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
     email: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i,
@@ -492,7 +377,6 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                   </FormControl>
                 </Grid>
 
-                {console.log(values.company)}
                 {/* Turno */}
                 <Grid item xs={12}>
                   <FormControl fullWidth>
