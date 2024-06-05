@@ -16,7 +16,8 @@ import {
   signAdminFailure,
   signGoogle,
   signInWithEmailAndPassword,
-  updatePassword
+  updatePassword,
+  updateUserInDatabase
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
@@ -159,7 +160,8 @@ const FirebaseContextProvider = props => {
     subscribeToPetition,
     consultOT,
     subscribeToUserProfileChanges,
-    subscribeToBlockDayChanges
+    subscribeToBlockDayChanges,
+    updateUserInDatabase
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

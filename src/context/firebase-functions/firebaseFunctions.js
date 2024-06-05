@@ -1,6 +1,6 @@
 // ** Firebase Imports
-import { GoogleAuthProvider, deleteUser, getAuth, signInWithPopup, updateProfile } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
+import { GoogleAuthProvider, deleteUser, getAuth, signInWithPopup } from 'firebase/auth'
+import { doc, setDoc, updateDoc } from 'firebase/firestore'
 import { Firebase, db } from 'src/configs/firebase'
 
 // ** Trae funcion que valida los campos del registro
@@ -184,6 +184,24 @@ const createUserInDatabase = (values, uid) => {
   })
 }
 
+// * Actualizar información del usuario:
+const updateUserInDatabase = async (values, uid) => {
+
+  // Actualizar email en Firestore
+  await updateDoc(doc(db, 'users', uid), {
+    name: values.name,
+    rut: values.rut,
+    phone: values.phone,
+    plant: values.plant,
+    role: values.role,
+    enabled: values.enabled,
+    company: values.company,
+    shift: values.shift
+  })
+
+
+}
+
 // ** Permite que el admin entre de vuelta y escribe en db
 const signAdminBack = async (values, password, oldEmail, uid, saveUID) => {
   try {
@@ -263,5 +281,6 @@ export {
   signAdminBack,
   signAdminFailure,
   signGoogle,
-  deleteCurrentUser
+  deleteCurrentUser,
+  updateUserInDatabase
 }

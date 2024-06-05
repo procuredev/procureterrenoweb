@@ -5,19 +5,17 @@ import {
   Autocomplete,
   Box,
   Button,
-  Chip,
+  CircularProgress,
   Dialog,
   FormControl,
   Grid,
   IconButton,
   InputLabel,
-  ListItem,
   MenuItem,
   Paper,
   Select,
   Slide,
-  TextField,
-  Typography
+  TextField
 } from '@mui/material'
 import InputAdornment from '@mui/material/InputAdornment'
 import { useTheme } from '@mui/material/styles'
@@ -36,78 +34,10 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
-function CustomAutocompleteItem({
-  selectable,
-  options,
-  editable,
-  label,
-  value,
-  onChange,
-  error,
-  required,
-  multiple
-}) {
-  return (
-    <Grid item xs={12}>
-      <FormControl fullWidth>
-        <Box display='flex' alignItems='center'>
-          {editable && selectable ? (
-            <Autocomplete
-              multiple={multiple}
-              fullWidth
-              options={options}
-              value={value}
-              getOptionLabel={(option) => option}
-              isOptionEqualToValue={(option, value) => option === value}
-              onChange={(_, newValue) => onChange({ target: { value: newValue } })}
-              renderTags={(tagValue, getTagProps) =>
-                tagValue.map((option, index) => (
-                  <Chip
-                    key={index}
-                    label={option}
-                    {...getTagProps({ index })}
-                    disabled={!editable}
-                    clickable={editable}
-                    onDelete={() => {
-                      const newValue = value.filter((v, i) => i !== index)
-                      onChange({ target: { value: newValue } })
-                    }}
-                  />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={label}
-                  InputLabelProps={{ required: required }}
-                  error={error ? true : false}
-                  helperText={error}
-                />
-              )}
-            />
-          ) : (
-            <ListItem id={`list-${label}`} divider={!editable}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                <Typography component='div' sx={{ width: '40%' }}>
-                  {label}
-                </Typography>
-                <Typography component='div' sx={{ width: '60%' }}>
-                  {value.join(', ')}
-                </Typography>
-              </Box>
-            </ListItem>
-          )}
-        </Box>
-      </FormControl>
-    </Grid>
-  )
-}
-
-
-
 export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false, plantNames, allowableDomains, userRoles }) => {
 
   const initialValues = {
+    id: doc.id || '',
     name: doc.name || '',
     rut: doc.rut || '',
     email: doc.email || '',
@@ -121,7 +51,10 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
 
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loadingDialogOpen, setLoadingDialogOpen] = useState(false)
   const [hasChanges, setHasChanges] = useState({
+    id: false,
     name: false,
     rut: false,
     email: false,
@@ -140,15 +73,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
   const lg = useMediaQuery(theme.breakpoints.up('lg')) //1280-1920
   const xl = useMediaQuery(theme.breakpoints.up('xl')) //1920+
 
-  const {
-    updateDocs,
-    useEvents,
-    authUser,
-    getUserData,
-    getDomainData,
-    domainDictionary,
-    consultBlockDayInDB
-  } = useFirebase()
+  const { updateUserInDatabase } = useFirebase()
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -246,6 +171,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     // Caso para el Teléfono
     if (values.phone) {
 
+      // Formatea Teléfono
       let newValue
       newValue = values.phone.replace(/[^0-9]/g, '')
       newValue = `${newValue[0] || ''} ${newValue.slice(1, 5) || ''} ${newValue.slice(5, 10) || ''}`
@@ -267,6 +193,31 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     {id: true, name: 'Si'},
     {id: false, name: 'No'}
   ]
+
+  const onSubmit = async event => {
+
+    event.preventDefault()
+    setIsSubmitting(true)
+    setLoadingDialogOpen(true)
+
+    // Primero que todo, se deberán formatear los campos rut y phone para guardarlos correctamten
+    if (values.rut) {
+      let formattedRut = values.rut.replace(/[.]/g, '')
+      values.rut = formattedRut
+      //console.log(formattedRut)
+    }
+
+    if (values.phone) {
+      let formattedPhone = values.phone.replace(/[' ']/g, '')
+      values.phone = formattedPhone
+    }
+
+    await updateUserInDatabase(values, values.id)
+
+    setLoadingDialogOpen(false)
+    setIsSubmitting(false)
+    window.location.reload()
+  }
 
   return (
     <Dialog
@@ -331,6 +282,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
+                    disabled={true}
                     label='e-mail'
                     type='text'
                     placeholder='e-mail'
@@ -363,6 +315,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                   <FormControl fullWidth>
                     <InputLabel>Rol</InputLabel>
                     <Select
+                      disabled={true}
                       label='Rol'
                       value={values.role}
                       onChange={handleChange('role')}
@@ -445,16 +398,23 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                 <Button
                   sx={{ mt: 3, mb: 5 }}
                   // disabled={!Object.values(hasChanges).some(hasChange => hasChange) && !doc.end}
-                  // onClick={() => handleOpenAlert()}
+                  disabled={isSubmitting}
+                  onClick={onSubmit}
                   variant='contained'
                 >
                   {'Guardar'}
                 </Button>
-
-
             </Timeline>
           </Box>
       </Paper>
+
+      {/* Dialog de carga */}
+      <Dialog open={loadingDialogOpen}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+          <CircularProgress />
+        </Box>
+      </Dialog>
+
     </Dialog>
   )
 }

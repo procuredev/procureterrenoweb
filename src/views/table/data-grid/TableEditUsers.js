@@ -56,11 +56,8 @@ const TableEditUsers = ({ rows, role, roleData }) => {
 
   const handleEditClick = (user) => {
 
-    console.log('Editando al usuario: ' + user.name)
     setEditingUser(user)
     setDialogEditUserOpen(true)
-
-    console.log('Plantas del usuario: ' + user.plant)
 
   }
 
@@ -181,7 +178,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.shift ? row.shift.join(', ') : ''}</div>
+        return <div>{row.shift && row.shift.length > 0 ? row.shift.join(', ') : ['N/A']}</div>
       }
     },
     {
@@ -193,7 +190,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
       renderCell: params => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
-        const plantDescriptions = row.plant ? row.plant.map(plantKey => plantsObject[plantKey] || plantKey) : ['']
+        const plantDescriptions = row.plant && row.plant.length > 0 ? row.plant.map(plantKey => plantsObject[plantKey]) : ['N/A']
         return <div>{plantDescriptions.join(', ')}</div>
       }
     },
