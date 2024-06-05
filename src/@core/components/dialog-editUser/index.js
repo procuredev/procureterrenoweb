@@ -6,11 +6,13 @@ import React, { useState } from 'react'
 import {
   Autocomplete,
   Box,
+  Button,
   Chip,
   Dialog,
   FormControl,
   Grid,
   IconButton,
+  InputLabel,
   ListItem,
   MenuItem,
   Paper,
@@ -253,21 +255,28 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
 
   const initialValues = {
     name: doc.name || '',
+    rut: doc.rut || '',
     email: doc.email || '',
     phone: doc.phone || '',
     plant: doc.plant || [],
     role: doc.role || '',
-    enabled: doc.enabled || ''
+    enabled: doc.enabled || '',
+    company: doc.company || '',
+    shift: doc.shift || []
   }
 
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [hasChanges, setHasChanges] = useState({
     name: false,
+    rut: false,
     email: false,
     phone: false,
     plant: false,
+    role: false,
     enabled: false,
+    company: false,
+    shift: false
   })
 
   const theme = useTheme()
@@ -286,24 +295,6 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     domainDictionary,
     consultBlockDayInDB
   } = useFirebase()
-
-
-  // Actualiza el estado al cambiar de documento, sólo valores obligatorios
-  // useEffect(() => {
-  //   setValues(initialValues)
-  // }, [doc])
-
-
-  // // Función onchange utilizando currying
-  // const handleInputChange = field => event => {
-  //   let fieldValue = event.target.value
-
-  //   fieldValue = validationRegex[field] ? fieldValue.replace(validationRegex[field], '') : fieldValue
-
-  //   setValues({ ...values, [field]: fieldValue })
-  //   setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] })
-  // }
-
 
   const handleChange = prop => (event, data) => {
     let newValue
@@ -344,7 +335,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
         if (!Array.isArray(values.plant)) {
           plantArray = values.plant.split(',')
         }
-        getOptions(plantArray, newValue)
+        // getOptions(plantArray, newValue)
         break
 
       case 'role':
@@ -420,6 +411,8 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
               </Box>
 
               <Grid container spacing={5}>
+
+                {/* Nombre */}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -433,6 +426,23 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                     inputProps={{ maxLength: 45 }}
                   />
                 </Grid>
+
+                {/* RUT */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    type='tel'
+                    label='RUT'
+                    placeholder='RUT'
+                    onChange={handleChange('rut')}
+                    value={values.rut}
+                    // error={errors.rut ? true : false}
+                    // helperText={errors.rut}
+                    inputProps={{ maxLength: 12 }}
+                  />
+                </Grid>
+
+                {/* e-mail */}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -446,6 +456,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                     // sinputProps={{ maxLength: 45 }}
                   />
                 </Grid>
+
                 {/* Teléfono */}
                 <Grid item xs={12}>
                   <TextField
@@ -461,47 +472,15 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                     InputProps={{ startAdornment: <InputAdornment position='start'>(+56)</InputAdornment> }}
                   />
                 </Grid>
-                {/* <Grid item xs={12}>
-                  <CustomAutocompleteItem
-                    multiple={true}
-                    selectable={true}
-                    options={plantNames}
-                    editable={true}
-                    label='Plantas'
-                    id='plants'
-                    initialValue={values.plant}
-                    value={values.plant}
-                    onChange={handleChange('plant')}
-                  />
-                </Grid> */}
-                <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    multiple={true}
-                    fullWidth
-                    options={plantNames}
-                    value={values.plant}
-                    onChange={handleChange('plant')}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        label='Planta'
-                        InputLabelProps={{ required: false }}
-                        error={errors.plant ? true : false}
-                        helperText={errors.plant}
-                      />
-                    )}
-                  />
-                </FormControl>
-              </Grid>
+
                 {/* Rol */}
-                {/* <Grid item xs={12}>
+                <Grid item xs={12}>
                   <FormControl fullWidth>
                     <InputLabel>Rol</InputLabel>
                     <Select
                       label='Rol'
                       value={values.role}
-                      onChange={handleInputChange('role')}
+                      onChange={handleChange('role')}
                       // error={errors.role ? true : false}
                     >
                       {userRoles.map(role => (
@@ -511,15 +490,62 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                       ))}
                     </Select>
                   </FormControl>
-                </Grid> */}
-                {/* Rol */}
-                {/* <Grid item xs={12}>
+                </Grid>
+
+                {console.log(values.company)}
+                {/* Turno */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Turno</InputLabel>
+                    <Select
+                      label='Turno'
+                      value={values.shift}
+                      onChange={(event) => {
+                        const selectedShifts = event.target.value
+                        handleChange('shift')(selectedShifts)
+                      }}
+                      multiple
+                      error={errors.shift ? true : false}
+                    >
+                      {values.company === 'MEL' && <MenuItem value={'P'}>P</MenuItem>}
+                      {values.company === 'MEL' && <MenuItem value={'Q'}>Q</MenuItem>}
+                      {values.company === 'Procure' && <MenuItem value={'A'}>A</MenuItem>}
+                      {values.company === 'Procure' && <MenuItem value={'B'}>B</MenuItem>}
+                    </Select>
+                    {/* {errors.shift && <FormHelperText error>{errors.shift}</FormHelperText>} */}
+                  </FormControl>
+                </Grid>
+
+                {/* Planta */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      multiple={true}
+                      fullWidth
+                      options={plantNames}
+                      value={values.plant}
+                      onChange={handleChange('plant')}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Planta'
+                          InputLabelProps={{ required: false }}
+                          error={errors.plant ? true : false}
+                          helperText={errors.plant}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+
+                {/* Habilitado */}
+                <Grid item xs={12}>
                   <FormControl fullWidth>
                     <InputLabel>Habilitado</InputLabel>
                     <Select
                       label='Habilitado'
                       value={values.enabled}
-                      onChange={handleInputChange('enabled')}
+                      onChange={handleChange('enabled')}
                       // error={errors.role ? true : false}
                     >
                       {enabledArray.map(element => (
@@ -529,19 +555,18 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                       ))}
                     </Select>
                   </FormControl>
-                </Grid> */}
+                </Grid>
               </Grid>
 
-              {/* {editable ? (
                 <Button
                   sx={{ mt: 3, mb: 5 }}
-                  disabled={!Object.values(hasChanges).some(hasChange => hasChange) && !doc.end}
-                  onClick={() => handleOpenAlert()}
+                  // disabled={!Object.values(hasChanges).some(hasChange => hasChange) && !doc.end}
+                  // onClick={() => handleOpenAlert()}
                   variant='contained'
                 >
-                  {isPlanner && state <= 4 ? 'Aprobar y guardar' : 'Guardar'}
+                  {'Guardar'}
                 </Button>
-              ) : null} */}
+
 
             </Timeline>
           </Box>
