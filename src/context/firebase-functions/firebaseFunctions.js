@@ -193,6 +193,9 @@ const updateUserInDatabase = async (values, uid) => {
   // Actualizar email en Firestore
   await updateDoc(doc(db, 'users', uid), {
     name: values.name,
+    firstName: values.firstName,
+    fatherLastName: values.fatherLastName,
+    motherLastName: values.motherLastName,
     rut: values.rut,
     phone: values.phone,
     plant: values.plant,

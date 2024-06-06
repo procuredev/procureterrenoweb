@@ -41,6 +41,9 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
   const initialValues = {
     id: doc.id || '',
     name: doc.name || '',
+    firstName: doc.firstName || '',
+    fatherLastName: doc.fatherLastName || '',
+    motherLastName: doc.motherLastName || '',
     rut: doc.rut || '',
     email: doc.email || '',
     phone: doc.phone || '',
@@ -59,6 +62,9 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
   const [hasChanges, setHasChanges] = useState({
     id: false,
     name: false,
+    firstName: false,
+    fatherLastName: false,
+    motherLastName: false,
     rut: false,
     email: false,
     phone: false,
@@ -94,6 +100,22 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
         // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
         newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
         break
+
+      case 'firstName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+
+      case 'fatherLastName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+
+      case 'motherLastName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+
       case 'rut':
         // Eliminar cualquier caracter que no sea un número o letra k
         let cv = event.target.value.replace(/[^0-9kK]/g, '')
@@ -221,6 +243,11 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
       values.phone = formattedPhone
     }
 
+    if (values.name) {
+      let formattedName = values.firstName + ' ' + values.fatherLastName + ' ' + values.motherLastName
+      values.name = formattedName
+    }
+
     await updateUserInDatabase(values, values.id)
 
     setLoadingDialogOpen(false)
@@ -256,15 +283,45 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
 
               <Grid container spacing={5}>
 
-                {/* Nombre */}
+                {/* Primer Nombre */}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label='Nombre'
+                    label='Primer Nombre'
                     type='text'
-                    placeholder='Nombre'
-                    onChange={handleChange('name')}
-                    value={values.name}
+                    placeholder='Primer Nombre'
+                    onChange={handleChange('firstName')}
+                    value={values.firstName}
+                    // error={errors.name ? true : false}
+                    // helperText={errors.name}
+                    // inputProps={{ maxLength: 45 }}
+                  />
+                </Grid>
+
+                {/* Apellido Paterno */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label='Apellido Paterno'
+                    type='text'
+                    placeholder='Apellido Paterno'
+                    onChange={handleChange('fatherLastName')}
+                    value={values.fatherLastName}
+                    // error={errors.name ? true : false}
+                    // helperText={errors.name}
+                    // inputProps={{ maxLength: 45 }}
+                  />
+                </Grid>
+
+                {/* Apellido Materno */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label='Apellido Materno'
+                    type='text'
+                    placeholder='Apellido Materno'
+                    onChange={handleChange('motherLastName')}
+                    value={values.motherLastName}
                     // error={errors.name ? true : false}
                     // helperText={errors.name}
                     // inputProps={{ maxLength: 45 }}
