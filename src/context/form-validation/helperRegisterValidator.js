@@ -30,9 +30,21 @@ export function registerValidator(values) {
   ]
 
   const validations = {
-    name: {
+    // name: {
+    //   validate: value => valName.test(value),
+    //   message: 'El nombre debe contener solo letras y espacios en blanco.'
+    // },
+    firstName: {
       validate: value => valName.test(value),
       message: 'El nombre debe contener solo letras y espacios en blanco.'
+    },
+    fatherLastName: {
+      validate: value => valName.test(value),
+      message: 'El apellido paterno debe contener solo letras y espacios en blanco.'
+    },
+    motherLastName: {
+      validate: value => valName.test(value),
+      message: 'El apellido materno debe contener solo letras y espacios en blanco.'
     },
     email: {
       validate: value => valEmail.test(value),
@@ -120,7 +132,7 @@ export function registerValidator(values) {
     if (typeof values[key] === 'string') {
       if (
         (key === 'shift' && hasShift && !values[key]) ||
-        (!['shift', 'opshift', 'plant', 'engineering', 'rut', 'phone'].includes(key) && values[key].trim() === '')
+        (!['motherLastName', 'shift', 'opshift', 'plant', 'engineering', 'rut', 'phone'].includes(key) && values[key].trim() === '')
       ) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
@@ -128,7 +140,7 @@ export function registerValidator(values) {
     if (!['role', 'plant', 'engineering', 'shift'].includes(key) && typeof values[key] !== 'string') {
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
-    if (validations.hasOwnProperty(key) && !['rut', 'phone'].includes(key)) {
+    if (validations.hasOwnProperty(key) && !['rut', 'phone', 'motherLastName'].includes(key)) {
       const { validate, message } = validations[key]
       if (!validate(values[key])) {
         throw new Error(message)

@@ -29,6 +29,9 @@ import { formatRut, isRutLike, validateRut } from '@fdograph/rut-utilities'
 const FormLayoutsBasic = () => {
   let initialValues = {
     name: '',
+    firstName: '',
+    fatherLastName: '',
+    motherLastName: '',
     rut: '',
     phone: '',
     email: '',
@@ -108,6 +111,18 @@ const FormLayoutsBasic = () => {
         // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
         newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
         break
+      case 'firstName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+      case 'fatherLastName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+      case 'motherLastName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
       case 'rut':
         // Eliminar cualquier caracter que no sea un número o letra k
         let cv = event.target.value.replace(/[^0-9kK]/g, '')
@@ -169,15 +184,13 @@ const FormLayoutsBasic = () => {
     }
   }
 
-
-
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
     email: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i,
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
-  const basicKeys = ['name', 'email', 'company', 'role']
+  const basicKeys = ['firstName', 'fatherLastName', 'email', 'company', 'role']
   let requiredKeys = [...basicKeys] // Utilizamos spread operator para crear una copia de basicKeys
 
   const validateForm = values => {
@@ -289,6 +302,8 @@ const FormLayoutsBasic = () => {
       let plant
       Array.isArray(values.plant) ? (plant = values.plant) : (plant = values.plant.split(','))
 
+      values.name = values.firstName + ' ' + values.fatherLastName + ' ' + values.motherLastName
+
       try {
         await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)
         // Inicia el estado de creación de perfil
@@ -384,20 +399,66 @@ const FormLayoutsBasic = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-            {/* Nombre */}
-            <Grid item xs={12}>
+            {/* Nombre Completo */}
+            {/* <Grid item xs={12}>
               <TextField
                 fullWidth
-                label='Nombre'
+                label='Nombre Completo'
                 type='text'
-                placeholder='Nombres'
+                placeholder='Nombre Completo'
                 onChange={handleChange('name')}
                 value={values.name}
                 error={errors.name ? true : false}
                 helperText={errors.name}
                 inputProps={{ maxLength: 45 }}
               />
+            </Grid> */}
+
+            {/* Primer Nombre */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label='Nombre'
+                type='text'
+                placeholder='Nombre'
+                onChange={handleChange('firstName')}
+                value={values.firstName}
+                error={errors.firstName ? true : false}
+                helperText={errors.firstName}
+                inputProps={{ maxLength: 25 }}
+              />
             </Grid>
+
+            {/* Apellido Parterno */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label='Apellido Paterno'
+                type='text'
+                placeholder='Apellido Paterno'
+                onChange={handleChange('fatherLastName')}
+                value={values.fatherLastName}
+                error={errors.fatherLastName ? true : false}
+                helperText={errors.fatherLastName}
+                inputProps={{ maxLength: 25 }}
+              />
+            </Grid>
+
+            {/* Apellido Materno */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label='Apellido Materno'
+                type='text'
+                placeholder='Apellido Materno'
+                onChange={handleChange('motherLastName')}
+                value={values.motherLastName}
+                error={errors.motherLastName ? true : false}
+                helperText={errors.motherLastName}
+                inputProps={{ maxLength: 25 }}
+              />
+            </Grid>
+
 
             {/* RUT */}
             <Grid item xs={12}>

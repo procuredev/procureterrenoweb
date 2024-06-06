@@ -614,19 +614,16 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
   // Específicamente en users/{usersid}/enabled
   // Si hay cambios de true a false -> se deshabilita un usuario
   // Lo que gatillará esta función
-  exports.onUserStatusChange = functions.firestore
-  .document('users/{userId}')
-  .onUpdate(async (change, context) => {
+  exports.onUserStatusChange = functions.firestore.document('users/{userId}').onUpdate(async (change, context) => {
 
     const before = change.before.data()
     const after = change.after.data()
+    const userId = context.params.userId
 
+    // Verificar si el campo 'enabled' ha cambiado
     if (before.enabled !== after.enabled) {
 
-      const userId = context.params.userId
-
       try {
-
         if (after.enabled === false) {
           await admin.auth().updateUser(userId, { disabled: true })
           console.log(`Usuario ${userId} deshabilitado.`)
@@ -634,11 +631,22 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
           await admin.auth().updateUser(userId, { disabled: false })
           console.log(`Usuario ${userId} habilitado.`)
         }
-
       } catch (error) {
-
         console.error(`Error actualizando el estado del usuario ${userId}:`, error)
-
       }
     }
+
+    // Verificar si el campo 'name' ha cambiado.
+    // Este se usará principalmente para la creación del usuario.
+    if (before.name !== after.name) {
+
+      try {
+        await admin.auth().updateUser(userId, { displayName: after.name })
+        console.log(`Nombre del usuario ${userId} actualizado a ${after.name}.`)
+      } catch (error) {
+        console.error(`Error actualizando el nombre del usuario ${userId}:`, error)
+      }
+
+    }
+
   })

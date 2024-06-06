@@ -121,16 +121,16 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
     saveUID(Firebase.auth().currentUser.uid)
 
     // Actualiza usuario
-    try {
-      await updateProfile(Firebase.auth().currentUser, {
-        displayName: name,
-        photoURL: ''
-      })
-      console.log(Firebase.auth().currentUser)
-    } catch (updateError) {
-      console.log('Error al actualizar el perfil:', updateError)
-      throw updateError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
-    }
+    // try {
+    //   await updateProfile(Firebase.auth().currentUser, {
+    //     displayName: name,
+    //     photoURL: ''
+    //   })
+    //   console.log(Firebase.auth().currentUser)
+    // } catch (updateError) {
+    //   console.log('Error al actualizar el perfil:', updateError)
+    //   throw updateError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
+    // }
   } catch (error) {
     if (error.message === 'Firebase: Error (auth/email-already-in-use).') {
       throw new Error('El usuario ya se encuentra registrado.')
@@ -142,7 +142,7 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
 }
 
 const createUserInDatabase = (values, uid) => {
-  const { name, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
+  const { name, firstName, fatherLastName, motherLastName, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
 
   // Lógica para calcular completedProfile
   let completedProfile = false
@@ -164,6 +164,9 @@ const createUserInDatabase = (values, uid) => {
     try {
       await setDoc(doc(db, 'users', uid), {
         name: name,
+        firstName: firstName,
+        fatherLastName: fatherLastName,
+        motherLastName: motherLastName,
         email: email,
         rut: rut,
         phone: phone.replace(/\s/g, ''),
