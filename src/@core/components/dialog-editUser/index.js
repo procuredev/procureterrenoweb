@@ -34,7 +34,9 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
 })
 
-export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false, plantNames, allowableDomains, userRoles }) => {
+export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false, plantNames, allowableDomains, userRoles, userTypes }) => {
+
+  console.log(doc)
 
   const initialValues = {
     id: doc.id || '',
@@ -44,9 +46,10 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     phone: doc.phone || '',
     plant: doc.plant || [],
     role: doc.role || '',
-    enabled: doc.enabled || '',
+    enabled: doc.enabled || false,
     company: doc.company || '',
-    shift: doc.shift || []
+    shift: doc.shift || [],
+    subtype: doc.subtype || ''
   }
 
   const [values, setValues] = useState(initialValues)
@@ -63,7 +66,8 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     role: false,
     enabled: false,
     company: false,
-    shift: false
+    shift: false,
+    subtype: false
   })
 
   const theme = useTheme()
@@ -121,8 +125,13 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
         newValue = event.target.value
         values.plant = []
         values.shift = []
-        values.opshift = ''
+        // values.opshift = ''
         break
+
+      case 'subtype':
+        newValue = event.target.value
+        break
+
       case 'company':
         newValue = event.target.value
         values.role = ''
@@ -258,7 +267,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                     value={values.name}
                     // error={errors.name ? true : false}
                     // helperText={errors.name}
-                    inputProps={{ maxLength: 45 }}
+                    // inputProps={{ maxLength: 45 }}
                   />
                 </Grid>
 
@@ -328,6 +337,28 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                     </Select>
                   </FormControl>
                 </Grid>
+
+                {/* Subtipo */}
+                {values.company === 'Proure' && (
+                  <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Subtipo</InputLabel>
+                    <Select
+                      disabled={values.company !== 'Procure'}
+                      label='Subtipo'
+                      value={values.subtype}
+                      onChange={handleChange('subtype')}
+                      // error={errors.role ? true : false}
+                    >
+                      {userTypes.map(element => (
+                        <MenuItem value={element} key={element}>
+                          {element}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                )}
 
                 {/* Turno */}
                 <Grid item xs={12}>

@@ -21,6 +21,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
   const [plantNames, setPlantNames] = useState([])
   const [allowableEmails, setAllowableEmails] = useState([])
   const [roles, setRoles] = useState([])
+  const [userTypes, setUserTypes] = useState([])
 
   const { updateDocs, authUser, domainDictionary, getDomainData } = useFirebase()
 
@@ -46,12 +47,19 @@ const TableEditUsers = ({ rows, role, roleData }) => {
     setRoles(rolesArray)
   }
 
+  const getUserTypes = async () => {
+    const types = await getDomainData('userType')
+    const typesArray = Object.keys(types)
+    setUserTypes(typesArray)
+  }
+
 
   // Obtener los nombres de las plantas cuando el componente se monta
   useEffect(() => {
     getPlantNames()
     getAllowableEmailDomains()
     getRolesDomains()
+    getUserTypes()
   }, [])
 
   const handleEditClick = (user) => {
@@ -169,6 +177,19 @@ const TableEditUsers = ({ rows, role, roleData }) => {
       }
     },
     {
+      field: 'subtype',
+      headerName: 'Subtipo',
+      //width: userLocalWidth ? userLocalWidth : 190,
+      minWidth: 50,
+      maxWidth: 100,
+      renderCell: params => {
+        const { row } = params
+        // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.subtype || 'N/A'}</div>
+      }
+    },
+    {
       field: 'shift',
       headerName: 'Turno',
       //width: userLocalWidth ? userLocalWidth : 190,
@@ -198,8 +219,8 @@ const TableEditUsers = ({ rows, role, roleData }) => {
       field: 'completedProfile',
       headerName: 'Perfil Completado',
       //width: userLocalWidth ? userLocalWidth : 190,
-      minWidth: 150,
-      maxWidth: 200,
+      minWidth: 100,
+      maxWidth: 150,
       renderCell: params => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
@@ -211,8 +232,8 @@ const TableEditUsers = ({ rows, role, roleData }) => {
       field: 'enabled',
       headerName: 'Habilitado',
       //width: userLocalWidth ? userLocalWidth : 190,
-      minWidth: 150,
-      maxWidth: 200,
+      minWidth: 100,
+      maxWidth: 150,
       renderCell: params => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
@@ -260,6 +281,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
             plantNames={plantNames}
             allowableDomains={allowableEmails}
             userRoles={roles}
+            userTypes={userTypes}
           />
         )}
       </Box>

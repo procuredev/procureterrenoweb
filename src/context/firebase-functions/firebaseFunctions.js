@@ -196,7 +196,8 @@ const updateUserInDatabase = async (values, uid) => {
     role: values.role,
     enabled: values.enabled,
     company: values.company,
-    shift: values.shift
+    shift: values.shift,
+    subtype: values.subtype
   })
 
 

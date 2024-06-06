@@ -607,3 +607,38 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
         console.error('Error al actualizar documentos:', error)
       })
   })
+
+
+
+  // Firebase Function que está viendo cambios en el campo enabled de Firebase Firestore.
+  // Específicamente en users/{usersid}/enabled
+  // Si hay cambios de true a false -> se deshabilita un usuario
+  // Lo que gatillará esta función
+  exports.onUserStatusChange = functions.firestore
+  .document('users/{userId}')
+  .onUpdate(async (change, context) => {
+
+    const before = change.before.data()
+    const after = change.after.data()
+
+    if (before.enabled !== after.enabled) {
+
+      const userId = context.params.userId
+
+      try {
+
+        if (after.enabled === false) {
+          await admin.auth().updateUser(userId, { disabled: true })
+          console.log(`Usuario ${userId} deshabilitado.`)
+        } else {
+          await admin.auth().updateUser(userId, { disabled: false })
+          console.log(`Usuario ${userId} habilitado.`)
+        }
+
+      } catch (error) {
+
+        console.error(`Error actualizando el estado del usuario ${userId}:`, error)
+
+      }
+    }
+  })
