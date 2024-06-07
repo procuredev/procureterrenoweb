@@ -7,6 +7,8 @@ import {
   Button,
   CircularProgress,
   Dialog,
+  DialogContent,
+  DialogTitle,
   FormControl,
   Grid,
   IconButton,
@@ -58,7 +60,8 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [loadingDialogOpen, setLoadingDialogOpen] = useState(false)
+  const [loadingDialogOpen, setLoadingDialogOpen] = useState(false) // Estado mientras se actualiza el usuario
+  const [loading, setLoading] = useState(false) // Estado para abrir o cerrar el Dialog luego de que se actualiza el usuario
   const [hasChanges, setHasChanges] = useState({
     id: false,
     name: false,
@@ -225,10 +228,16 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     {id: false, name: 'No'}
   ]
 
+  const handleAccept = async () => {
+    setLoading(false)
+    window.location.reload() // Recarga la página
+  }
+
   const onSubmit = async event => {
 
     event.preventDefault()
     setIsSubmitting(true)
+    setLoading(true)
     setLoadingDialogOpen(true)
 
     // Primero que todo, se deberán formatear los campos rut y phone para guardarlos correctamten
@@ -251,8 +260,9 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     await updateUserInDatabase(values, values.id)
 
     setLoadingDialogOpen(false)
+    setLoading(true)
     setIsSubmitting(false)
-    window.location.reload()
+
   }
 
   return (
@@ -282,23 +292,6 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
               </Box>
 
               <Grid container spacing={5}>
-
-                {/* Nombre Completo */}
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    //required={true}
-                    disabled={true}
-                    label='Nombre Completo'
-                    type='text'
-                    placeholder='Nombre Completo'
-                    onChange={handleChange('name')}
-                    value={values.name}
-                    // error={errors.name ? true : false}
-                    // helperText={errors.name}
-                    // inputProps={{ maxLength: 45 }}
-                  />
-                </Grid>
 
                 {/* Primer Nombre */}
                 <Grid item xs={12}>
@@ -515,10 +508,26 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
       </Paper>
 
       {/* Dialog de carga */}
-      <Dialog open={loadingDialogOpen}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-          <CircularProgress />
-        </Box>
+      <Dialog
+        sx={{ '.MuiDialog-paper': { minWidth: '20%' } }}
+        open={loading}
+        //closeAfterTransition={true}
+        maxWidth={false}
+      >
+        <DialogTitle sx={{ mt: 2, textAlign: 'center' }} id='spinner-dialog-title'>
+          { loadingDialogOpen ? 'Actualizando Usuario' : 'Usuario actualizado con éxito'}
+        </DialogTitle>
+
+        <DialogContent sx={{ textAlign: 'center' }}>
+          { loadingDialogOpen ? (
+            <CircularProgress size={40} />
+          ) : (
+            <Button variant="contained" color="primary" onClick={handleAccept}>
+              Aceptar
+            </Button>
+          )}
+        </DialogContent>
+
       </Dialog>
 
     </Dialog>
