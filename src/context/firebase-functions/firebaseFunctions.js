@@ -1,6 +1,6 @@
 // ** Firebase Imports
-import { GoogleAuthProvider, deleteUser, getAuth, signInWithPopup, updateProfile } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
+import { GoogleAuthProvider, deleteUser, getAuth, signInWithPopup } from 'firebase/auth'
+import { doc, setDoc, updateDoc } from 'firebase/firestore'
 import { Firebase, db } from 'src/configs/firebase'
 
 // ** Trae funcion que valida los campos del registro
@@ -121,16 +121,16 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
     saveUID(Firebase.auth().currentUser.uid)
 
     // Actualiza usuario
-    try {
-      await updateProfile(Firebase.auth().currentUser, {
-        displayName: name,
-        photoURL: ''
-      })
-      console.log(Firebase.auth().currentUser)
-    } catch (updateError) {
-      console.log('Error al actualizar el perfil:', updateError)
-      throw updateError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
-    }
+    // try {
+    //   await updateProfile(Firebase.auth().currentUser, {
+    //     displayName: name,
+    //     photoURL: ''
+    //   })
+    //   console.log(Firebase.auth().currentUser)
+    // } catch (updateError) {
+    //   console.log('Error al actualizar el perfil:', updateError)
+    //   throw updateError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
+    // }
   } catch (error) {
     if (error.message === 'Firebase: Error (auth/email-already-in-use).') {
       throw new Error('El usuario ya se encuentra registrado.')
@@ -142,7 +142,7 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
 }
 
 const createUserInDatabase = (values, uid) => {
-  const { name, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
+  const { name, firstName, fatherLastName, motherLastName, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
 
   // Lógica para calcular completedProfile
   let completedProfile = false
@@ -164,6 +164,9 @@ const createUserInDatabase = (values, uid) => {
     try {
       await setDoc(doc(db, 'users', uid), {
         name: name,
+        firstName: firstName,
+        fatherLastName: fatherLastName,
+        motherLastName: motherLastName,
         email: email,
         rut: rut,
         phone: phone.replace(/\s/g, ''),
@@ -182,6 +185,28 @@ const createUserInDatabase = (values, uid) => {
       reject(new Error('Error al crear el usuario en la base de datos: ' + error))
     }
   })
+}
+
+// * Actualizar información del usuario:
+const updateUserInDatabase = async (values, uid) => {
+
+  // Actualizar email en Firestore
+  await updateDoc(doc(db, 'users', uid), {
+    name: values.name,
+    firstName: values.firstName,
+    fatherLastName: values.fatherLastName,
+    motherLastName: values.motherLastName,
+    rut: values.rut,
+    phone: values.phone,
+    plant: values.plant,
+    role: values.role,
+    enabled: values.enabled,
+    company: values.company,
+    shift: values.shift,
+    subtype: values.subtype
+  })
+
+
 }
 
 // ** Permite que el admin entre de vuelta y escribe en db
@@ -263,5 +288,6 @@ export {
   signAdminBack,
   signAdminFailure,
   signGoogle,
-  deleteCurrentUser
+  deleteCurrentUser,
+  updateUserInDatabase
 }
