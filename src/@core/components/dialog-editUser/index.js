@@ -409,7 +409,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                 </Grid>
 
                 {/* Subtipo */}
-                {values.company === 'Proure' && (
+                {values.company === 'Procure' && (
                   <Grid item xs={12}>
                   <FormControl fullWidth>
                     <InputLabel>Subtipo</InputLabel>
