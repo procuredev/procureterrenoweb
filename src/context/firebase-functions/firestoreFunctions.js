@@ -19,7 +19,7 @@ import { db } from 'src/configs/firebase'
 
 // ** Imports Propios
 import { addDays, getUnixTime } from 'date-fns'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 
@@ -110,10 +110,13 @@ const newDoc = async (values, userParam) => {
 
     console.log('Nueva solicitud creada con éxito.')
 
-    return docRef
+    return {id: docRef.id, ot: ot}
+
   } catch (error) {
+
     console.error('Error al crear la nueva solicitud:', error)
     throw new Error('Error al crear la nueva solicitud')
+
   }
 }
 
