@@ -244,7 +244,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     }
 
     if (values.name) {
-      let formattedName = values.firstName + ' ' + values.fatherLastName + ' ' + values.motherLastName
+      let formattedName = values.firstName + values.fatherLastName ? ' ' : '' + values.fatherLastName + ' ' + + values.motherLastName ? ' ' : '' + values.motherLastName
       values.name = formattedName
     }
 
