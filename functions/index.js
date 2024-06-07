@@ -640,11 +640,36 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
     // Este se usará principalmente para la creación del usuario.
     if (before.name !== after.name) {
 
+
+      // try-chatch para cambiar el nombre del usuario en Firebase Auth
       try {
         await admin.auth().updateUser(userId, { displayName: after.name })
         console.log(`Nombre del usuario ${userId} actualizado a ${after.name}.`)
       } catch (error) {
         console.error(`Error actualizando el nombre del usuario ${userId}:`, error)
+      }
+
+
+      // try-catch para cambiar el 'user' en cada una de las solicitudes solicitudes/{solicitudId}
+      try {
+        // Actualizar email en Firestore
+        const solicitudesRef = admin.firestore().collection("solicitudes")
+
+        // Obtener documentos que coinciden con el userId
+        const querySnapshot = await solicitudesRef.where("uid", "==", userId).get()
+
+        // Actualizar el campo "user" (nombre de quien ingresó la Solicitud) en los documentos encontrados
+        const batch = admin.firestore().batch()
+        querySnapshot.forEach((doc) => {
+            batch.update(doc.ref, { user: after.name })
+        })
+
+        // Ejecutar la actualización en lote
+        await batch.commit()
+
+        console.log("Email actualizado exitosamente en Solicitudes.")
+      } catch (error) {
+        console.error("Error al actualizar el email en Solicitudes:", error)
       }
 
     }
