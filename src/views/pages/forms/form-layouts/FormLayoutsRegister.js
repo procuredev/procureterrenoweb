@@ -302,7 +302,7 @@ const FormLayoutsBasic = () => {
       let plant
       Array.isArray(values.plant) ? (plant = values.plant) : (plant = values.plant.split(','))
 
-      values.name = values.firstName + values.fatherLastName ? ' ' : '' + values.fatherLastName + ' ' + + values.motherLastName ? ' ' : '' + values.motherLastName
+      values.name = values.firstName + (values.fatherLastName.length > 0 ? ' ' : '') + values.fatherLastName + (values.motherLastName.length > 0 ? ' ' : '') + values.motherLastName
 
       try {
         await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)

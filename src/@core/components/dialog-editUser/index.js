@@ -244,7 +244,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
     }
 
     if (values.name) {
-      let formattedName = values.firstName + values.fatherLastName ? ' ' : '' + values.fatherLastName + ' ' + + values.motherLastName ? ' ' : '' + values.motherLastName
+      let formattedName = values.firstName + (values.fatherLastName.length > 0 ? ' ' : '') + values.fatherLastName + (values.motherLastName.length > 0 ? ' ' : '') + values.motherLastName
       values.name = formattedName
     }
 
@@ -283,10 +283,28 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
 
               <Grid container spacing={5}>
 
+                {/* Nombre Completo */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    //required={true}
+                    disabled={true}
+                    label='Nombre Completo'
+                    type='text'
+                    placeholder='Nombre Completo'
+                    onChange={handleChange('name')}
+                    value={values.name}
+                    // error={errors.name ? true : false}
+                    // helperText={errors.name}
+                    // inputProps={{ maxLength: 45 }}
+                  />
+                </Grid>
+
                 {/* Primer Nombre */}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
+                    required={true}
                     label='Primer Nombre'
                     type='text'
                     placeholder='Primer Nombre'
@@ -302,6 +320,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
+                    required={true}
                     label='Apellido Paterno'
                     type='text'
                     placeholder='Apellido Paterno'
