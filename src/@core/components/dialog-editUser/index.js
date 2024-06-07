@@ -62,6 +62,7 @@ export const EditUserDialog = ({ open, handleClose, doc, roleData, editButtonVis
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loadingDialogOpen, setLoadingDialogOpen] = useState(false) // Estado mientras se actualiza el usuario
   const [loading, setLoading] = useState(false) // Estado para abrir o cerrar el Dialog luego de que se actualiza el usuario
+
   const [hasChanges, setHasChanges] = useState({
     id: false,
     name: false,

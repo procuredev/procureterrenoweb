@@ -109,6 +109,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.name ? row.name : ''}</div>
+
       }
     },
     {
@@ -122,6 +123,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.rut ? row.rut : ''}</div>
+
       }
     },
     {
@@ -135,6 +137,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.email}</div>
+
       }
     },
     {
@@ -148,6 +151,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.phone ? row.phone : ''}</div>
+
       }
     },
     {
@@ -161,6 +165,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.company ? row.company : ''}</div>
+
       }
     },
     {
@@ -174,6 +179,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{roles[row.role-1].name}</div>
+
       }
     },
     {
@@ -187,6 +193,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.subtype || 'N/A'}</div>
+
       }
     },
     {
@@ -200,6 +207,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.shift && row.shift.length > 0 ? row.shift.join(', ') : ['N/A']}</div>
+
       }
     },
     {
@@ -212,7 +220,9 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
         const plantDescriptions = row.plant && row.plant.length > 0 ? row.plant.map(plantKey => plantsObject[plantKey]) : ['N/A']
+
         return <div>{plantDescriptions.join(', ')}</div>
+
       }
     },
     {
@@ -226,6 +236,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.completedProfile ? 'Si' : 'No'}</div>
+
       }
     },
     {
@@ -239,6 +250,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{row.enabled ? 'Si' : 'No'}</div>
+
       }
     },
     {
@@ -254,6 +266,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
             <EditIcon />
           </IconButton>
         )
+
       }
     }
   ]
