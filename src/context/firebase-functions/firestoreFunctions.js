@@ -1212,8 +1212,10 @@ const createWeekHoursByType = async (userParams, creations) => {
         deleted: false,
         hours: change.newValue,
         hoursSubType:
-          change.hoursType !== 'OT'
+          change.hoursType === 'ISC'
             ? change.hoursType
+            : change.hoursType === 'Vacaciones'
+            ? 'VAC'
             : userParams.role === 6 || userParams.role === 7 || userParams.role === 8 || userParams.role === 11
             ? 'OPP'
             : 'OPE',

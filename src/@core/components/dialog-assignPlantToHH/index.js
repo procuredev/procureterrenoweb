@@ -9,7 +9,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  TextField
+  TextField,
+  OutlinedInput
 } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
 
@@ -30,6 +31,7 @@ const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign }) => {
           plantOptions.push({ id: key, name: key })
         }
       })
+      plantOptions.sort((a, b) => a.name.localeCompare(b.name))
       setPlants(plantOptions)
     }
 
@@ -53,7 +55,12 @@ const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign }) => {
       <DialogContent>
         <FormControl fullWidth margin='normal'>
           <InputLabel id='plant-select-label'>Planta</InputLabel>
-          <Select labelId='plant-select-label' value={plant} onChange={e => setPlant(e.target.value)}>
+          <Select
+            labelId='plant-select-label'
+            value={plant}
+            onChange={e => setPlant(e.target.value)}
+            input={<OutlinedInput label={'Planta'} />}
+          >
             {plants.map(option => (
               <MenuItem key={option.id} value={option.id}>
                 {option.name}

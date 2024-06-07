@@ -11,6 +11,7 @@ import { Box, Button, Typography, FormControl } from '@mui/material'
 import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
 import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
+import { max, min } from 'lodash'
 
 const TableCargaDeHoras = ({
   rows,
@@ -135,41 +136,62 @@ const TableCargaDeHoras = ({
     }
   }
 
+  const otNumberLocalWidth = Number(localStorage.getItem('otNumberCargaDeHorasWidthColumn'))
+  const otTypeLocalWidth = Number(localStorage.getItem('otTypeCargaDeHorasWidthColumn'))
+  const plantLocalWidth = Number(localStorage.getItem('plantCargaDeHorasWidthColumn'))
+  const costCenterLocalWidth = Number(localStorage.getItem('costCenterCargaDeHorasWidthColumn'))
+  const totalRowHoursLocalWidth = Number(localStorage.getItem('totalRowHoursCargaDeHorasWidthColumn'))
+
   const columns = [
     {
       field: 'otNumber',
       headerName: 'OT',
       sortable: false,
-      width: 130,
-      renderCell: params => (params.row.hoursType === 'OT' ? params.row.otNumber : params.row.hoursType)
+      width: otNumberLocalWidth ? otNumberLocalWidth : 130,
+      renderCell: params => {
+        localStorage.setItem('otNumberCargaDeHorasWidthColumn', params.colDef.computedWidth)
+
+        return params.row.hoursType === 'OT' ? params.row.otNumber : params.row.hoursType
+      }
     },
     {
       field: 'otType',
       headerName: 'Tipo',
       sortable: false,
-      width: 130,
-      renderCell: params => (params.row.hoursType === 'OT' ? params.row.otType : params.row.hoursType)
+      width: otTypeLocalWidth ? otTypeLocalWidth : 130,
+      renderCell: params => {
+        localStorage.setItem('otTypeCargaDeHorasWidthColumn', params.colDef.computedWidth)
+
+        return params.row.hoursType === 'OT' ? params.row.otType : params.row.hoursType
+      }
     },
     {
       field: 'plant',
       headerName: 'Planta',
       sortable: false,
-      width: 320,
-      renderCell: params =>
-        params.row.plant ? (
+      width: plantLocalWidth ? plantLocalWidth : 320,
+      renderCell: params => {
+        localStorage.setItem('plantCargaDeHorasWidthColumn', params.colDef.computedWidth)
+
+        return params.row.plant ? (
           params.row.plant
         ) : (authUser.role === 5 || authUser.role === 10) && !params.row.isTotalRow ? (
           <Button onClick={() => handleAssignPlantClick(params.row)}>Asignar</Button>
         ) : (
           ''
         )
+      }
     },
     {
       field: 'costCenter',
       headerName: 'Centro de Costo',
       sortable: false,
-      width: 180,
-      renderCell: params => params.row.costCenter
+      width: costCenterLocalWidth ? costCenterLocalWidth : 180,
+      renderCell: params => {
+        localStorage.setItem('costCenterCargaDeHorasWidthColumn', params.colDef.computedWidth)
+
+        return params.row.costCenter
+      }
     },
     ...Array.from({ length: 7 }).map((_, index) => {
       const day = addDays(state.currentWeekStart, index)
@@ -179,7 +201,9 @@ const TableCargaDeHoras = ({
       return {
         field: dayKey,
         headerName: `${format(day, 'eee', { locale: es })} ${format(day, 'd')}`,
+        minWidth: 130,
         width: 130,
+        maxWidth: 130,
         sortable: false,
         renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
         editable: isEditable(dayTimestamp),
@@ -208,17 +232,22 @@ const TableCargaDeHoras = ({
     {
       field: 'totalRowHours',
       headerName: 'Total Horas',
-      width: 130,
+      sortable: false,
+      width: totalRowHoursLocalWidth ? totalRowHoursLocalWidth : 130,
       renderFooter: () => (
         <Box textAlign='center'>{rows.reduce((acc, row) => acc + (row.totalRowHours || 0), 0)} hrs</Box>
       ),
-      renderCell: params => <span>{params.row.totalRowHours || 0}</span>
+      renderCell: params => {
+        localStorage.setItem('totalRowHoursCargaDeHorasWidthColumn', params.colDef.computedWidth)
+
+        return <span>{params.row.totalRowHours || 0}</span>
+      }
     }
   ]
 
   const initialAggregationModel = columns.reduce((acc, col) => {
     if (col.aggregable) {
-      //*acc[col.field] = 'sum'
+      acc[col.field] = 'sum'
       // Forzar el valor inicial de dailyTotals en el modelo de agregación
       state.dailyTotals[col.field] = state.dailyTotals[col.field] || 0
     }
@@ -232,6 +261,8 @@ const TableCargaDeHoras = ({
     setAggregationModel({ ...initialAggregationModel })
   }, [rows])
 
+  const rowsWithStringId = rows.map(row => ({ ...row, rowId: String(row.rowId) }))
+
   const aggregatedRow = {
     rowId: 'totalRow',
     otNumber: 'Total',
@@ -239,8 +270,21 @@ const TableCargaDeHoras = ({
     plant: '',
     isTotalRow: true,
     totalRowHours: rows.reduce((acc, row) => acc + (row.totalRowHours || 0), 0),
-    ...state.dailyTotals
+    ...Object.keys(state.dailyTotals).reduce((acc, key) => {
+      acc[key] = state.dailyTotals[key] || 0
+
+      return acc
+    }, {})
   }
+
+  const fusionRows = [...rowsWithStringId, aggregatedRow]
+
+  const validatedRows = fusionRows.map(row => ({
+    ...row,
+    rowId: row.rowId || 'invalid-row-id',
+    totalRowHours: row.totalRowHours || 0,
+    hoursType: row.hoursType || ''
+  }))
 
   const getRowClassName = params => (params.row.isTotalRow ? 'total-row' : '')
   const isRowSelectable = params => !params.row.isTotalRow
@@ -255,7 +299,7 @@ const TableCargaDeHoras = ({
             align: 'left'
           }
         }}
-        rows={[...rows, aggregatedRow]}
+        rows={validatedRows}
         columns={columns}
         columnVisibilityModel={{
           costCenter: authUser.role === 5 || authUser.role === 10
@@ -276,6 +320,8 @@ const TableCargaDeHoras = ({
         onAggregationModelChange={newModel => setAggregationModel(newModel)}
         getRowClassName={getRowClassName}
         isRowSelectable={isRowSelectable}
+        disableColumnMenu={true}
+        hideFooter={true}
       />
       <AssignPlantDialog
         open={assignDialogOpen}

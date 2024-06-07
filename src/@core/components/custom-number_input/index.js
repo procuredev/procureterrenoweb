@@ -3,7 +3,7 @@ import { Unstable_NumberInput as BaseNumberInput, numberInputClasses } from '@mu
 import { styled } from '@mui/system'
 
 const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
-  const { onChange, onBlur, ...other } = props
+  const { onChange, onBlur, disabled, ...other } = props
 
   const handleChange = (e, value) => {
     console.log('value from CustomNumberInput: ', value)
@@ -42,6 +42,7 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
       onChange={handleChange}
       onBlur={handleBlur}
       ref={ref}
+      disabled={disabled}
       onKeyDown={(e, value) => {
         // Permitir solo teclas numéricas y algunas teclas especiales
         const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End']

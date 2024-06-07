@@ -10,14 +10,16 @@ import {
   Box,
   Button,
   Typography,
-  Switch,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Autocomplete,
-  TextField
+  TextField,
+  CircularProgress
 } from '@mui/material'
+import { Switch } from '@mui/base/Switch'
+
 // ** Custom Components Imports
 import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
@@ -111,6 +113,7 @@ function reducer(state, action) {
 const DataGridCargaDeHoras = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const {
     fetchWeekHoursByType,
@@ -136,15 +139,6 @@ const DataGridCargaDeHoras = () => {
 
   useEffect(() => {
     const loadWeekData = async () => {
-      const resetDailyTotals = {
-        martes: 0,
-        miércoles: 0,
-        jueves: 0,
-        viernes: 0,
-        sábado: 0,
-        domingo: 0,
-        lunes: 0
-      }
       dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: resetDailyTotals })
 
       const userId = state.toggleValue === false ? authUser.uid : state.selectedUser.id
@@ -179,6 +173,16 @@ const DataGridCargaDeHoras = () => {
     }
   }, [state.toggleValue])
 
+  const resetDailyTotals = {
+    martes: 0,
+    miércoles: 0,
+    jueves: 0,
+    viernes: 0,
+    sábado: 0,
+    domingo: 0,
+    lunes: 0
+  }
+
   const handleOpenConfirmDelete = () => {
     setConfirmDeleteOpen(true)
   }
@@ -188,8 +192,8 @@ const DataGridCargaDeHoras = () => {
   }
 
   const handleConfirmDelete = async () => {
-    await handleDeleteRow()
     setConfirmDeleteOpen(false)
+    await handleDeleteRow()
   }
 
   // Funciones para manejar los botones de cambio de semana
@@ -211,29 +215,40 @@ const DataGridCargaDeHoras = () => {
 
   const handleDeleteRow = async () => {
     if (state.selectedRow) {
-      const rowToDelete = state.weekHours.find(row => row.rowId === state.selectedRow)
+      setLoading(true)
+      const rowId = String(state.selectedRow)
+      const rowToDelete = state.weekHours.find(row => row.rowId === rowId)
       if (rowToDelete) {
         const dayDocIds = Object.keys(rowToDelete)
           .filter(key => key.endsWith('DocId'))
           .map(key => rowToDelete[key])
-
+        console.log('state.selectedUser:', state.selectedUser)
         const userId = state.toggleValue === false ? authUser.uid : state.selectedUser.id
         const result = await deleteWeekHoursByType(userId, dayDocIds)
         if (result.success) {
-          // Recargar los datos de la tabla después de la eliminación exitosa
-          const data = await fetchWeekHoursByType(userId, state.currentWeekStart, state.currentWeekEnd)
-          if (!data.error) {
-            const preparedData = prepareWeekHoursData(data)
-            dispatch({ type: 'SET_WEEK_HOURS', payload: preparedData })
-          } else {
-            console.error(data.error)
-            dispatch({ type: 'SET_WEEK_HOURS', payload: [] })
-          }
+          // Filtrar weekHours para eliminar la fila seleccionada
+          const newWeekHours = state.weekHours.filter(row => row.rowId !== rowId)
+          dispatch({ type: 'SET_WEEK_HOURS', payload: newWeekHours })
+
+          // Actualizar los totales diarios
+          let newDailyTotals = { ...state.dailyTotals }
+          Object.keys(rowToDelete).forEach(key => {
+            if (key.endsWith('DocId')) return
+            newDailyTotals[key] -= rowToDelete[key] || 0
+          })
+          dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: newDailyTotals })
+
+          // Elimina cualquier cambio asociado con la fila seleccionada
+          const newChanges = state.changes.filter(change => change.rowId !== rowId)
+          dispatch({ type: 'SET_CHANGES', payload: newChanges })
+
+          // Resetea la selección
           dispatch({ type: 'SET_SELECTED_ROW', payload: null })
         } else {
           console.error(result.error)
         }
       }
+      setLoading(false)
     }
   }
 
@@ -311,6 +326,7 @@ const DataGridCargaDeHoras = () => {
   }
 
   const handleUpdateTable = async () => {
+    setLoading(true)
     const creations = state.changes.filter(change => change.isNew && !change.dayDocId)
     const updates = state.changes.filter(change => !change.isNew && change.dayDocId)
 
@@ -350,6 +366,7 @@ const DataGridCargaDeHoras = () => {
 
     dispatch({ type: 'CLEAR_CHANGES' })
     loadWeekData() // Re-fetch the data
+    setLoading(false)
   }
 
   const handleSwitchToggle = newSwitchState => {
@@ -504,16 +521,34 @@ const DataGridCargaDeHoras = () => {
         </Box>
       )}
       <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={isButtonDisabled}>
-        Crear Fila
+        Nuevo Ingreso
       </Button>
       <Button variant='contained' color='primary' onClick={handleUpdateTable} disabled={state.changes.length === 0}>
-        Actualizar Tabla
+        Guardar Datos
       </Button>
       <Button onClick={handleOpenConfirmDelete} disabled={!state.selectedRow} variant='contained' color='error'>
         Eliminar Fila
       </Button>
       <Button onClick={handlePreviousWeek}>Semana Anterior</Button>
       <Button onClick={handleNextWeek}>Semana Siguiente</Button>
+      {loading && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            zIndex: 10
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      )}
       <TableCargaDeHoras
         rows={state.weekHours}
         handleCellEditCommit={handleCellEditCommit}

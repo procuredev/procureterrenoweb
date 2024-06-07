@@ -10,7 +10,8 @@ import {
   InputLabel,
   FormControl,
   Box,
-  OutlinedInput
+  OutlinedInput,
+  Typography
 } from '@mui/material'
 import { format, getISOWeek } from 'date-fns'
 import { CustomSelectOptions } from 'src/@core/components/custom-form/index'
@@ -21,6 +22,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
   const [otNumber, setOtNumber] = useState('')
   const [selectedOT, setSelectedOT] = useState({})
   const [filteredOtOptions, setFilteredOtOptions] = useState([])
+  const [errorMessage, setErrorMessage] = useState('')
 
   // Obtiene los tipos de horas existentes en las filas
   const existingHoursTypes = rows.map(row => row.hoursType.toUpperCase())
@@ -55,8 +57,9 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
         })
       })
       onClose()
+      setErrorMessage('')
     } else {
-      alert('Por favor, complete todos los campos requeridos.')
+      setErrorMessage('Por favor, complete todos los campos requeridos.')
     }
   }
 
@@ -121,6 +124,11 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
               </Box>
             </FormControl>
           </Box>
+        )}
+        {errorMessage && (
+          <Typography color='error' sx={{ mt: 2 }}>
+            {errorMessage}
+          </Typography>
         )}
       </DialogContent>
       <DialogActions>
