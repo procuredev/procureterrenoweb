@@ -14,9 +14,9 @@ import {
 } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
 
-const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign }) => {
-  const [plant, setPlant] = useState('')
-  const [costCenter, setCostCenter] = useState('')
+const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign, row }) => {
+  const [plant, setPlant] = useState(row.plant || '')
+  const [costCenter, setCostCenter] = useState(row.costCenter || '')
   const [plants, setPlants] = useState([])
   const { getDomainData } = useFirebase()
 
@@ -43,10 +43,18 @@ const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign }) => {
   const handleAssign = () => {
     if (plant && costCenter.length >= 6) {
       onAssign(plant, costCenter)
+      setPlant('')
+      setCostCenter('')
       onClose()
     } else {
       alert('Por favor, complete ambos campos con información válida.')
     }
+  }
+
+  const handleCostCenterChange = e => {
+    const { value } = e.target
+    const numericValue = value.replace(/[^0-9]/g, '') // Remueve todos los caracteres no numéricos
+    setCostCenter(numericValue)
   }
 
   return (
@@ -73,11 +81,19 @@ const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign }) => {
           margin='normal'
           label='Centro de Costos'
           value={costCenter}
-          onChange={e => setCostCenter(e.target.value)}
+          onChange={handleCostCenterChange}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button
+          onClick={() => {
+            setPlant('')
+            setCostCenter('')
+            onClose()
+          }}
+        >
+          Cancelar
+        </Button>
         <Button onClick={handleAssign} disabled={!plant || costCenter.length < 6}>
           Asignar
         </Button>

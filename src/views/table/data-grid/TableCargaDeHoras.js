@@ -28,6 +28,7 @@ const TableCargaDeHoras = ({
 }) => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedDayDocIds, setSelectedDayDocIds] = useState([])
+  const [currentRow, setCurrentRow] = useState({})
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
   const apiRef = useGridApiRef()
 
@@ -126,7 +127,13 @@ const TableCargaDeHoras = ({
         .map(dayKey => row[dayKey])
         .filter(docId => docId)
     )
+    setCurrentRow(row)
     setAssignDialogOpen(true)
+  }
+
+  const handleCloseAssignPlantDialog = () => {
+    setAssignDialogOpen(false)
+    setCurrentRow({})
   }
 
   const handleAssignPlant = async (plant, costCenter) => {
@@ -178,13 +185,21 @@ const TableCargaDeHoras = ({
       renderCell: params => {
         localStorage.setItem('plantCargaDeHorasWidthColumn', params.colDef.computedWidth)
 
-        return params.row.plant ? (
-          params.row.plant
-        ) : (authUser.role === 5 || authUser.role === 10) && !params.row.isTotalRow ? (
-          <Button onClick={() => handleAssignPlantClick(params.row)}>Asignar</Button>
-        ) : (
-          ''
-        )
+        if (
+          (authUser.role === 5 || authUser.role === 10) &&
+          (params.row.hoursType === 'Vacaciones' || params.row.hoursType === 'ISC')
+        ) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {params.row.plant || ''}
+              <Button onClick={() => handleAssignPlantClick(params.row)}>
+                {params.row.plant ? 'Editar' : 'Asignar'}
+              </Button>
+            </div>
+          )
+        } else {
+          return params.row.plant || ''
+        }
       }
     },
     {
@@ -330,10 +345,11 @@ const TableCargaDeHoras = ({
       />
       <AssignPlantDialog
         open={assignDialogOpen}
-        onClose={() => setAssignDialogOpen(false)}
+        onClose={handleCloseAssignPlantDialog}
         userId={authUser.uid}
         dayDocIds={selectedDayDocIds}
         onAssign={handleAssignPlant}
+        row={currentRow}
       />
       <style>
         {`
