@@ -142,7 +142,7 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
 }
 
 const createUserInDatabase = (values, uid) => {
-  const { name, firstName, fatherLastName, motherLastName, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
+  const { name, firstName, fatherLastName, motherLastName, rut, phone, email, plant, engineering, shift, company, role, opshift, subtype } = values
 
   // Lógica para calcular completedProfile
   let completedProfile = false
@@ -176,7 +176,9 @@ const createUserInDatabase = (values, uid) => {
         ...(engineering && { engineering }),
         ...(shift && { shift }),
         ...(opshift && { opshift }),
-        completedProfile: completedProfile
+        completedProfile: completedProfile,
+        subtype: subtype,
+        enabled: true
       })
 
       resolve('Usuario creado exitosamente en la base de datos')

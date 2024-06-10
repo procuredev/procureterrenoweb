@@ -58,6 +58,7 @@ const FormLayoutsBasic = () => {
   const [allowableEmails, setAllowableEmails] = useState([])
   const [procureRoles, setProcureRoles] = useState([])
   const [melRoles, setMelRoles] = useState([])
+  const [userTypes, setUserTypes] = useState([])
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
@@ -89,11 +90,18 @@ const FormLayoutsBasic = () => {
     setMelRoles(rolesMelArray)
   };
 
+  const getUserTypes = async () => {
+    const types = await getDomainData('userType')
+    const array = Object.keys(types)
+    setUserTypes(array)
+  }
+
   // Obtener los nombres de las plantas cuando el componente se monta
   useEffect(() => {
     getPlantNames()
     getAllowableEmailDomains()
     getRolesDomains()
+    getUserTypes()
   }, [])
 
   const handleChange = prop => (event, data) => {
@@ -543,6 +551,28 @@ const FormLayoutsBasic = () => {
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            {/* Subtipo */}
+            {values.company === 'Procure' && (
+                  <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Subtipo</InputLabel>
+                    <Select
+                      disabled={values.company !== 'Procure'}
+                      label='Subtipo'
+                      value={values.subtype}
+                      onChange={handleChange('subtype')}
+                      error={errors.subtype ? true : false}
+                    >
+                      {userTypes.map(element => (
+                        <MenuItem value={element} key={element}>
+                          {element}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                )}
 
             {/* Planta */}
             {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
