@@ -176,7 +176,8 @@ const createUserInDatabase = (values, uid) => {
         ...(engineering && { engineering }),
         ...(shift && { shift }),
         ...(opshift && { opshift }),
-        completedProfile: completedProfile
+        completedProfile: completedProfile,
+        enabled: true
       })
 
       resolve('Usuario creado exitosamente en la base de datos')
