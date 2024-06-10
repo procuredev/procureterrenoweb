@@ -75,26 +75,31 @@ const TableCargaDeHoras = ({
           onBlur={handleBlur}
           min={0}
           max={maxInput}
-          disabled={!isEditable(dayTimestamp)}
+          disabled={!isEditable(dayTimestamp, rowData)}
         />
       </FormControl>
     )
   }
 
-  const isEditable = dayTimestamp => {
+  const isEditable = (dayTimestamp, rowData) => {
     const today = new Date()
     const yesterday = subDays(today, 1)
     const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 2 })
     const endOfCurrentWeek = addDays(startOfCurrentWeek, 6)
     const weekOfDay = startOfWeek(dayTimestamp, { weekStartsOn: 2 })
-    //const isCurrentWeek = isSameWeek(today, weekOfDay, { weekStartsOn: 2 })
-
     const isCurrentWeek = dayTimestamp >= startOfCurrentWeek && dayTimestamp <= endOfCurrentWeek
 
     if (authUser.role === 5 || authUser.role === 10) {
       // Usuarios con roles 5 o 10 pueden editar días actuales y pasados, pero no futuros
       return dayTimestamp <= today
     } else {
+      // Usuarios con otros roles pueden editar días posteriores al actual solo si son vacaciones
+      if (rowData.hoursType === 'Vacaciones' && dayTimestamp > today) {
+        return true
+      }
+
+      // Usuarios con otros roles solo pueden editar día actual o previo en la semana actual
+
       return isCurrentWeek && (isToday(dayTimestamp) || isSameDay(dayTimestamp, yesterday))
     }
   }
@@ -206,7 +211,7 @@ const TableCargaDeHoras = ({
         maxWidth: 130,
         sortable: false,
         renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
-        editable: isEditable(dayTimestamp),
+        editable: params => isEditable(dayTimestamp, params.row),
         aggregable: true,
         aggregationFunction: 'sumAggregation',
         valueFormatter: ({ value }) => value || 0,

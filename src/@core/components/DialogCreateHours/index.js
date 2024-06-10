@@ -13,10 +13,10 @@ import {
   OutlinedInput,
   Typography
 } from '@mui/material'
-import { format, getISOWeek } from 'date-fns'
+import { format, getISOWeek, isFuture } from 'date-fns'
 import { CustomSelectOptions } from 'src/@core/components/custom-form/index'
 
-const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows }) => {
+const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows, weekStart }) => {
   const [hoursType, setHoursType] = useState('')
   const [otType, setOtType] = useState('')
   const [otNumber, setOtNumber] = useState('')
@@ -30,6 +30,10 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows 
   // Filtra las opciones basadas en los tipos de horas existentes
   const getFilteredHoursTypeOptions = () => {
     const options = ['ISC', 'Vacaciones', 'OT']
+
+    if (authUser.role !== 5 && authUser.role !== 10 && isFuture(weekStart)) {
+      return ['Vacaciones']
+    }
 
     return options.filter(option => option === 'OT' || !existingHoursTypes.includes(option.toUpperCase()))
   }

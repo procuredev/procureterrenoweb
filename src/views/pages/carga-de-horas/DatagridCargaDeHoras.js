@@ -477,8 +477,13 @@ const DataGridCargaDeHoras = () => {
 
     return isSameWeek(startOfWeek(now, { weekStartsOn: 2 }), startOfWeek(dateToCheck))
   }
-  const now = new Date()
-  const isButtonDisabled = !isUserChangeAllowed && !checkIfSameWeek(state.currentWeekStart)
+
+  const checkIfVacationExists = weekHours => {
+    return weekHours.some(row => row.hoursType === 'Vacaciones')
+  }
+
+  const isButtonDisabled =
+    !isUserChangeAllowed && !checkIfSameWeek(state.currentWeekStart) && checkIfVacationExists(state.weekHours)
 
   const sortByRowId = (a, b) => {
     if (a.rowId < b.rowId) return -1
@@ -569,6 +574,7 @@ const DataGridCargaDeHoras = () => {
           authUser={authUser}
           otOptions={state.otOptions}
           rows={state.weekHours}
+          weekStart={state.currentWeekStart}
         />
       )}
       <ConfirmDeleteDialog
