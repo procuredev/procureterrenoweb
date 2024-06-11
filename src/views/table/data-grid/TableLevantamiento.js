@@ -1,39 +1,33 @@
-import * as React from 'react'
-import { useState, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { useFirebase } from 'src/context/useFirebase'
+import { useEffect, useState } from 'react'
 import { unixToDate } from 'src/@core/components/unixToDate'
+import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import Select from '@mui/material/Select'
-import CustomChip from 'src/@core/components/mui/chip'
-import { Typography, IconButton, Dialog, CircularProgress, DialogContent } from '@mui/material'
-import { Button } from '@mui/material'
+import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
+import { Button, CircularProgress, Dialog, DialogContent, IconButton, Typography } from '@mui/material'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
+import Select from '@mui/material/Select'
 import Tooltip from '@mui/material/Tooltip'
-import { DataGrid, esES } from '@mui/x-data-grid'
-import {
-  DataGridPremium,
-  GridToolbarContainer,
-  GridToolbarExport,
-  GridColDef,
-  GridRowsProp
-} from '@mui/x-data-grid-premium'
-import OpenInNewOutlined from '@mui/icons-material/OpenInNewOutlined'
 import { Container } from '@mui/system'
-import AlertDialog from 'src/@core/components/dialog-warning'
-import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
+import { esES } from '@mui/x-data-grid'
+import {
+  DataGridPremium
+} from '@mui/x-data-grid-premium'
 import { DialogDoneProject } from 'src/@core/components/dialog-doneProject'
+import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
+import AlertDialog from 'src/@core/components/dialog-warning'
+import CustomChip from 'src/@core/components/mui/chip'
 
 import { DialogAssignProject } from 'src/@core/components/dialog-assignProject'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 
-import EngineeringIcon from '@mui/icons-material/Engineering'
 import { Pause } from '@mui/icons-material'
+import EngineeringIcon from '@mui/icons-material/Engineering'
 
 const TableLevantamiento = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
@@ -125,7 +119,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   useEffect(() => {
     const fetchProyectistas = async () => {
       const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
-      setProyectistas(resProyectistas)
+      const filteredProyectistas = resProyectistas.filter((user) => user.enabled === true && user.shift.includes(authUser.shift[0]))
+      setProyectistas(filteredProyectistas)
       setLoadingProyectistas(false)
     }
 
