@@ -1,17 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { Box, Button, FormControl, Typography } from '@mui/material'
 import {
   DataGridPremium,
-  useGridApiRef,
   GRID_AGGREGATION_FUNCTIONS,
-  GridAggregationFunction
+  useGridApiRef
 } from '@mui/x-data-grid-premium'
-import { startOfWeek, addDays, format, isToday, isPast, subDays, isSameWeek, isSameDay, isFuture } from 'date-fns'
+import { addDays, format, isSameDay, isToday, startOfWeek, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Box, Button, Typography, FormControl } from '@mui/material'
-import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
+import { useEffect, useRef, useState } from 'react'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
-import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
-import { max, min } from 'lodash'
+import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
+// import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
 
 const TableCargaDeHoras = ({
   rows,
