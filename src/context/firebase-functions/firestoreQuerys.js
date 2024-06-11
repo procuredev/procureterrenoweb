@@ -301,11 +301,15 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
             ? {
                 userId: doc.id,
                 name: doc.data().name,
-                avatar: doc.data().urlFoto
+                avatar: doc.data().urlFoto,
+                enabled: doc.data().enabled,
+                shift: doc.data().shift
               }
             : {
                 userId: doc.id,
-                name: doc.data().name
+                name: doc.data().name,
+                enabled: doc.data().enabled,
+                shift: doc.data().shift
               }
           : type === 'getReceiverUsers'
           ? {
