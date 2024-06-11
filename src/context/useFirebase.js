@@ -34,7 +34,14 @@ import {
   updateSelectedDocuments,
   updateUserData,
   updateUserPhone,
-  useBlueprints
+  useBlueprints,
+  fetchWeekHoursByType,
+  createWeekHoursByType,
+  updateWeekHoursByType,
+  deleteWeekHoursByType,
+  fetchSolicitudes,
+  fetchUserList,
+  updateWeekHoursWithPlant
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -71,7 +78,6 @@ const FirebaseContextProvider = props => {
 
       return storedUser ? JSON.parse(storedUser) : null
     } else {
-
       return null
     }
   })
@@ -161,7 +167,14 @@ const FirebaseContextProvider = props => {
     consultOT,
     subscribeToUserProfileChanges,
     subscribeToBlockDayChanges,
-    updateUserInDatabase
+    updateUserInDatabase,
+    fetchWeekHoursByType,
+    createWeekHoursByType,
+    updateWeekHoursByType,
+    deleteWeekHoursByType,
+    fetchSolicitudes,
+    fetchUserList,
+    updateWeekHoursWithPlant
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

@@ -58,3 +58,7 @@ code[class*='language-'] {
 .no-checkbox .MuiCheckbox-root {
   display: none;
 }
+
+.MuiDataGrid-cell--textRight {
+  text-align: left;
+}
