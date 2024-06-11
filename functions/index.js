@@ -607,3 +607,58 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
         console.error('Error al actualizar documentos:', error)
       })
   })
+
+  // Firebase Function que está viendo cambios en el campo Centro de Costos (costCenter) de Solicitudes
+  // Específicamente en solicitudes/{solicitudid}/costCenter
+  // Si hay cambios -> cambiará el valor de costCenter en todo los carguíos de horas
+  // Los carguíos de horas están en users/{userId}/workedHours/{workedHoursId}/costCenter
+  exports.onSolicitudChange = functions.firestore.document('solicitudes/{solicitudId}').onUpdate(async (change, context) => {
+
+    const before = change.before.data()
+    const after = change.after.data()
+    const solicitudId = context.params.solicitudId
+
+    // Verificar si el campo 'costCenter' ha cambiado.
+    // Este se usará principalmente para la creación del usuario.
+    if (before.costCenter !== after.costCenter) {
+
+      // try-catch para cambiar el 'costCenter' en cada una de los carguios de horas users/{userId}/workedHours/{workedHoursId}/costCenter
+      try {
+
+        // snapShot de lo usuarios
+        const usersRef = admin.firestore().collection('users')
+        const usersSnapshot = await usersRef.get()
+
+        // Inicalización de batch para actualizar por lote
+        const batch = admin.firestore().batch()
+
+        // Iterar sobre todos los usuarios
+        for (const userDoc of usersSnapshot.docs) {
+          const userId = userDoc.id
+
+          // Obtener referencia a la subcolección 'workedHours' de cada usuario
+          const workedHoursRef = usersRef.doc(userId).collection('workedHours')
+          const workedHoursSnapshot = await workedHoursRef.get()
+
+          // Iterar sobre todos los documentos de 'workedHours' y verificar el campo 'ot.id'
+          workedHoursSnapshot.forEach((workedHoursDoc) => {
+              const workedHoursData = workedHoursDoc.data()
+
+              if (workedHoursData.ot && workedHoursData.ot.id === solicitudId) {
+                  const workedHoursDocRef = workedHoursRef.doc(workedHoursDoc.id)
+                  batch.update(workedHoursDocRef, { costCenter: after.costCenter })
+              }
+          });
+        }
+
+        // Ejecutar la actualización en lote
+        await batch.commit()
+
+        console.log("CostCenter actualizado exitosamente en workedHours.")
+      } catch (error) {
+        console.error("Error al actualizar el costCenter en workedHours: ", error)
+      }
+
+    }
+
+  })
