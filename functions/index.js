@@ -608,6 +608,73 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
       })
   })
 
+  // Firebase Function que está viendo cambios en el campo enabled de Firebase Firestore.
+  // Específicamente en users/{usersid}/enabled
+  // Si hay cambios de true a false -> se deshabilita un usuario
+  // Lo que gatillará esta función
+  exports.onUserStatusChange = functions.firestore.document('users/{userId}').onUpdate(async (change, context) => {
+
+    const before = change.before.data()
+    const after = change.after.data()
+    const userId = context.params.userId
+
+    // Verificar si el campo 'enabled' ha cambiado
+    if (before.enabled !== after.enabled) {
+
+      try {
+        if (after.enabled === false) {
+          await admin.auth().updateUser(userId, { disabled: true })
+          console.log(`Usuario ${userId} deshabilitado.`)
+        } else {
+          await admin.auth().updateUser(userId, { disabled: false })
+          console.log(`Usuario ${userId} habilitado.`)
+        }
+      } catch (error) {
+        console.error(`Error actualizando el estado del usuario ${userId}:`, error)
+      }
+    }
+
+    // Verificar si el campo 'name' ha cambiado.
+    // Este se usará principalmente para la creación del usuario.
+    if (before.name !== after.name) {
+
+
+      // try-chatch para cambiar el nombre del usuario en Firebase Auth
+      try {
+        await admin.auth().updateUser(userId, { displayName: after.name })
+        console.log(`Nombre del usuario ${userId} actualizado a ${after.name}.`)
+      } catch (error) {
+        console.error(`Error actualizando el nombre del usuario ${userId}:`, error)
+      }
+
+
+      // try-catch para cambiar el 'user' en cada una de las solicitudes solicitudes/{solicitudId}
+      try {
+        // Actualizar email en Firestore
+        const solicitudesRef = admin.firestore().collection("solicitudes")
+
+        // Obtener documentos que coinciden con el userId
+        const querySnapshot = await solicitudesRef.where("uid", "==", userId).get()
+
+        // Actualizar el campo "user" (nombre de quien ingresó la Solicitud) en los documentos encontrados
+        const batch = admin.firestore().batch()
+        querySnapshot.forEach((doc) => {
+            batch.update(doc.ref, { user: after.name })
+        })
+
+        // Ejecutar la actualización en lote
+        await batch.commit()
+
+        console.log("Email actualizado exitosamente en Solicitudes.")
+      } catch (error) {
+        console.error("Error al actualizar el email en Solicitudes:", error)
+      }
+
+    }
+
+  })
+
+
   // Firebase Function que está viendo cambios en el campo Centro de Costos (costCenter) de Solicitudes
   // Específicamente en solicitudes/{solicitudid}/costCenter
   // Si hay cambios -> cambiará el valor de costCenter en todo los carguíos de horas

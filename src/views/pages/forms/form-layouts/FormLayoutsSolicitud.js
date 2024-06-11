@@ -85,6 +85,7 @@ const FormLayoutsSolicitud = () => {
   const [petitioners, setPetitioners] = useState([])
   const [alertMessage, setAlertMessage] = useState('')
   const [errors, setErrors] = useState({})
+  const [formChanged, setFormChanged] = useState(false) // Estado para controlar si se han realizado cambios en el formulario. Se usará para resetear el formulario luego de 8 Horas.
 
   const [values, setValues] = useState(() => {
     const savedFormData = localStorage.getItem('formData')
@@ -150,6 +151,10 @@ const FormLayoutsSolicitud = () => {
   }
 
   const handleChange = prop => async (event, data) => {
+
+    // Se actualiza el estado de formChanged, para que que como true dado que el usuario hizo un cambio.
+    setFormChanged(true)
+
     const strFields = [
       'title',
       'description',
@@ -901,6 +906,7 @@ const FormLayoutsSolicitud = () => {
     }
   }, [values.start, values.end, errors.end])
 
+  // useEffect para guardar en localStorage la información del formulario cada vez que el usuario actualiza los valores.
   useEffect(() => {
     const formDataToSave = { ...values }
     if (formDataToSave.start) {
@@ -911,50 +917,47 @@ const FormLayoutsSolicitud = () => {
     }
 
     // Guardar los datos del formulario junto con la marca de tiempo actual
-    const dataToStore = {
-      ...formDataToSave,
-      timestamp: new Date().getTime() // Marca de tiempo en milisegundos
+    if (formChanged) {
+      const dataToStore = {
+        ...formDataToSave,
+        timestamp: new Date().getTime() // Marca de tiempo en milisegundos
+      }
+
+      localStorage.setItem('formData', JSON.stringify(dataToStore))
+      setFormChanged(false) // Reiniciar el estado de formChanged después de guardar en localStorage.
+
     }
-    localStorage.setItem('formData', JSON.stringify(dataToStore))
+
   }, [values])
 
+  // useEffect para resetear el formulario en caso de que hayan pasado más de 8 horas desde el último momento en que se editó.
+  // Observará los cambios del estado formChanged, el cual se actualizará cuando el usuario haga algún cambio.
   useEffect(() => {
-    const savedFormData = localStorage.getItem('formData')
-    if (savedFormData) {
-      /* const { formData, timestamp } = JSON.parse(savedFormData)
-      const currentTime = new Date().getTime()
 
-      // Verificar si han pasado 24 horas (24 * 60 * 60 * 1000 milisegundos)
-      if (currentTime - timestamp < 24 * 60 * 60 * 1000) {
-        if (formData.start) {
-          formData.start = moment(formData.start)
-        }
-        if (formData.end) {
-          formData.end = moment(formData.end)
-        }
-        setValues(formData)
-      } else {
-        // Limpiar localStorage si han pasado 24 horas
-        localStorage.removeItem('formData')
-      } */
-      const parsedData = JSON.parse(savedFormData)
-      const currentTime = new Date().getTime()
+    // Si formChanged es false
+    if(!formChanged){
 
-      if (currentTime - parsedData.timestamp < 8 * 60 * 60 * 1000) {
-        if (parsedData.start) {
-          parsedData.start = moment(parsedData.start)
+      // Se almacena en una constante los datos del localStorage
+      const savedFormData = localStorage.getItem('formData')
+
+      if (savedFormData) {
+
+        const parsedData = JSON.parse(savedFormData)
+        const currentTime = new Date().getTime()
+        const hoursSinceLastEdition = (currentTime - parsedData.timestamp)/(60 * 60 * 1000)
+
+        // console.log('tiempo desde última edición (Horas): ' + hoursSinceLastEdition)
+
+        // Limpiar localStorage y actualizar la página si han pasado más 8 horas.
+        if (hoursSinceLastEdition >= 8) {
+          localStorage.removeItem('formData')
+          window.location.reload()
         }
-        if (parsedData.end) {
-          parsedData.end = moment(parsedData.end)
-        }
-        // Establecemos los valores directamente sin incluir una propiedad formData.
-        setValues(parsedData)
-      } else {
-        // Limpiar localStorage si han pasado 24 horas
-        localStorage.removeItem('formData')
       }
+
     }
-  }, [])
+
+  }, [formChanged])
 
   // useEffect para definir automáticamente el campo 'Solicitante' cuando el usuario conectado tiene rol 2 (Solicitante).
   // En caso de que no tenga rol 2 (Solicitante), deberá seleccionarlo desde la lista desplegable.

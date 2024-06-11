@@ -16,7 +16,8 @@ import {
   signAdminFailure,
   signGoogle,
   signInWithEmailAndPassword,
-  updatePassword
+  updatePassword,
+  updateUserInDatabase
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
@@ -55,6 +56,7 @@ import {
   fetchMelDisciplines,
   fetchPetitionById,
   fetchPlaneProperties,
+  getAllUsersData,
   getData,
   getDomainData,
   getUserData,
@@ -135,6 +137,7 @@ const FirebaseContextProvider = props => {
     getDomainData,
     getData,
     getUserData,
+    getAllUsersData,
     uploadFilesToFirebaseStorage,
     blockDayInDatabase,
     consultBlockDayInDB,
@@ -164,6 +167,7 @@ const FirebaseContextProvider = props => {
     consultOT,
     subscribeToUserProfileChanges,
     subscribeToBlockDayChanges,
+    updateUserInDatabase,
     fetchWeekHoursByType,
     createWeekHoursByType,
     updateWeekHoursByType,

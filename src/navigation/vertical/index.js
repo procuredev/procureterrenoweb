@@ -88,6 +88,11 @@ const Navigation = () => {
           title: 'Nuevo Usuario',
           path: '/nuevo-usuario',
           subject: 'nuevo-usuario'
+        },
+        {
+          title: 'Editar Usuarios',
+          path: '/editar-usuarios',
+          subject: 'editar-usuarios'
         }
       ],
       authorizedRoles: [1]

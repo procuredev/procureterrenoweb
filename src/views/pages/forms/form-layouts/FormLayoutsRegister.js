@@ -1,42 +1,37 @@
 // ** React Imports
-import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** Hooks Imports
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
 import Autocomplete from '@mui/material/Autocomplete'
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
 import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import CardHeader from '@mui/material/CardHeader'
-import InputLabel from '@mui/material/InputLabel'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
+import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import InputAdornment from '@mui/material/InputAdornment'
-import FormHelperText from '@mui/material/FormHelperText'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
-import DialogActions from '@mui/material/DialogActions'
+import FormControl from '@mui/material/FormControl'
+import FormHelperText from '@mui/material/FormHelperText'
+import Grid from '@mui/material/Grid'
+import InputAdornment from '@mui/material/InputAdornment'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
 
 // **Validar RUT
-import { validateRut, isRutLike, formatRut } from '@fdograph/rut-utilities'
-import { number } from 'yup'
+import { formatRut, isRutLike, validateRut } from '@fdograph/rut-utilities'
 
 const FormLayoutsBasic = () => {
   let initialValues = {
     name: '',
+    firstName: '',
+    fatherLastName: '',
+    motherLastName: '',
     rut: '',
     phone: '',
     email: '',
@@ -63,6 +58,7 @@ const FormLayoutsBasic = () => {
   const [allowableEmails, setAllowableEmails] = useState([])
   const [procureRoles, setProcureRoles] = useState([])
   const [melRoles, setMelRoles] = useState([])
+  const [userTypes, setUserTypes] = useState([])
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
@@ -94,11 +90,18 @@ const FormLayoutsBasic = () => {
     setMelRoles(rolesMelArray)
   };
 
+  const getUserTypes = async () => {
+    const types = await getDomainData('userType')
+    const array = Object.keys(types)
+    setUserTypes(array)
+  }
+
   // Obtener los nombres de las plantas cuando el componente se monta
   useEffect(() => {
     getPlantNames()
     getAllowableEmailDomains()
     getRolesDomains()
+    getUserTypes()
   }, [])
 
   const handleChange = prop => (event, data) => {
@@ -113,6 +116,18 @@ const FormLayoutsBasic = () => {
         newValue = event.target.value.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
         break
       case 'name':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+      case 'firstName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+      case 'fatherLastName':
+        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
+        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
+        break
+      case 'motherLastName':
         // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
         newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
         break
@@ -177,15 +192,13 @@ const FormLayoutsBasic = () => {
     }
   }
 
-
-
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
     email: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i,
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
-  const basicKeys = ['name', 'email', 'company', 'role']
+  const basicKeys = ['firstName', 'fatherLastName', 'email', 'company', 'role']
   let requiredKeys = [...basicKeys] // Utilizamos spread operator para crear una copia de basicKeys
 
   const validateForm = values => {
@@ -297,6 +310,8 @@ const FormLayoutsBasic = () => {
       let plant
       Array.isArray(values.plant) ? (plant = values.plant) : (plant = values.plant.split(','))
 
+      values.name = values.firstName + (values.fatherLastName.length > 0 ? ' ' : '') + values.fatherLastName + (values.motherLastName.length > 0 ? ' ' : '') + values.motherLastName
+
       try {
         await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)
         // Inicia el estado de creación de perfil
@@ -392,20 +407,66 @@ const FormLayoutsBasic = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-            {/* Nombre */}
-            <Grid item xs={12}>
+            {/* Nombre Completo */}
+            {/* <Grid item xs={12}>
               <TextField
                 fullWidth
-                label='Nombre'
+                label='Nombre Completo'
                 type='text'
-                placeholder='Nombres'
+                placeholder='Nombre Completo'
                 onChange={handleChange('name')}
                 value={values.name}
                 error={errors.name ? true : false}
                 helperText={errors.name}
                 inputProps={{ maxLength: 45 }}
               />
+            </Grid> */}
+
+            {/* Primer Nombre */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label='Nombre'
+                type='text'
+                placeholder='Nombre'
+                onChange={handleChange('firstName')}
+                value={values.firstName}
+                error={errors.firstName ? true : false}
+                helperText={errors.firstName}
+                inputProps={{ maxLength: 25 }}
+              />
             </Grid>
+
+            {/* Apellido Parterno */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label='Apellido Paterno'
+                type='text'
+                placeholder='Apellido Paterno'
+                onChange={handleChange('fatherLastName')}
+                value={values.fatherLastName}
+                error={errors.fatherLastName ? true : false}
+                helperText={errors.fatherLastName}
+                inputProps={{ maxLength: 25 }}
+              />
+            </Grid>
+
+            {/* Apellido Materno */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label='Apellido Materno'
+                type='text'
+                placeholder='Apellido Materno'
+                onChange={handleChange('motherLastName')}
+                value={values.motherLastName}
+                error={errors.motherLastName ? true : false}
+                helperText={errors.motherLastName}
+                inputProps={{ maxLength: 25 }}
+              />
+            </Grid>
+
 
             {/* RUT */}
             <Grid item xs={12}>
@@ -490,6 +551,28 @@ const FormLayoutsBasic = () => {
                 {errors.role && <FormHelperText error>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
+
+            {/* Subtipo */}
+            {values.company === 'Procure' && (
+                  <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Subtipo</InputLabel>
+                    <Select
+                      disabled={values.company !== 'Procure'}
+                      label='Subtipo'
+                      value={values.subtype}
+                      onChange={handleChange('subtype')}
+                      error={errors.subtype ? true : false}
+                    >
+                      {userTypes.map(element => (
+                        <MenuItem value={element} key={element}>
+                          {element}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                )}
 
             {/* Planta */}
             {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
