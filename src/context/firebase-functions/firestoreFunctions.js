@@ -13,7 +13,9 @@ import {
   query,
   runTransaction,
   setDoc,
-  updateDoc
+  updateDoc,
+  writeBatch,
+  where
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
@@ -110,13 +112,10 @@ const newDoc = async (values, userParam) => {
 
     console.log('Nueva solicitud creada con éxito.')
 
-    return {id: docRef.id, ot: ot}
-
+    return { id: docRef.id, ot: ot }
   } catch (error) {
-
     console.error('Error al crear la nueva solicitud:', error)
     throw new Error('Error al crear la nueva solicitud')
-
   }
 }
 
@@ -1166,6 +1165,203 @@ const finishPetition = async (currentPetition, authUser) => {
   }
 }
 
+const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
+  try {
+    const userDocRef = doc(db, 'users', userId)
+    const weekHoursRef = collection(userDocRef, 'workedHours')
+
+    const q = query(
+      weekHoursRef,
+      where('day', '>=', weekStart),
+      where('day', '<=', weekEnd),
+      where('deleted', '==', false)
+    )
+    const querySnapshot = await getDocs(q)
+    if (querySnapshot.empty) {
+      return { error: 'No records found for this week.' }
+    }
+    const weekHours = []
+    querySnapshot.forEach(doc => {
+      weekHours.push({ id: doc.id, ...doc.data() })
+    })
+
+    return weekHours
+  } catch (error) {
+    console.error('Error fetching week hours:', error)
+
+    return { error: 'Failed to fetch week hours.' }
+  }
+}
+
+const createWeekHoursByType = async (userParams, creations) => {
+  const batch = writeBatch(db)
+  const userRef = userParams.uid || userParams.id
+  try {
+    const userDocRef = doc(db, 'users', userRef)
+    const weekHoursRef = collection(userDocRef, 'workedHours')
+
+    creations.forEach(change => {
+      console.log('change: ', change)
+      const newDocRef = doc(weekHoursRef)
+      const dayDate = new Date(change.day)
+      dayDate.setHours(0, 0, 0, 0)
+
+      const docData = {
+        created: Timestamp.fromDate(new Date()),
+        day: Timestamp.fromDate(dayDate),
+        deleted: false,
+        hours: change.newValue,
+        hoursSubType:
+          change.hoursType === 'ISC'
+            ? change.hoursType
+            : change.hoursType === 'Vacaciones'
+            ? 'VAC'
+            : userParams.role === 6 || userParams.role === 7 || userParams.role === 8 || userParams.role === 11
+            ? 'OPP'
+            : 'OPE',
+        hoursType: change.hoursType,
+        physicalLocation: '5.1 MEL - NPI&CHO-PRODUCTION CHO',
+        user: {
+          role: change.userRole,
+          shift: change.userShift
+        },
+        rowId: change.rowId,
+        column: change.field,
+        ...(change.hoursType === 'OT'
+          ? {
+              ot: {
+                id: change.otID,
+                number: change.otNumber,
+                type: change.otType
+              }
+            }
+          : {}),
+        ...(change.plant && { plant: change.plant }),
+        ...(change.costCenter && { costCenter: change.costCenter })
+      }
+
+      batch.set(newDocRef, docData) // Añade la operación de creación al batch
+    })
+
+    await batch.commit() // Ejecuta todas las operaciones en el batch
+    console.log('All documents successfully created')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error creating week hours with batch:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const updateWeekHoursByType = async (userId, updates) => {
+  const batch = writeBatch(db)
+
+  try {
+    updates.forEach(update => {
+      const docRef = doc(db, 'users', userId, 'workedHours', update.dayDocId)
+      batch.update(docRef, { hours: update.newValue })
+    })
+
+    await batch.commit()
+    console.log('All updates successfully committed')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating week hours:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const deleteWeekHoursByType = async (userId, dayDocIds) => {
+  const batch = writeBatch(db)
+
+  try {
+    dayDocIds.forEach(docId => {
+      const docRef = doc(db, 'users', userId, 'workedHours', docId)
+      batch.update(docRef, { deleted: true })
+    })
+
+    await batch.commit()
+    console.log('All documents successfully marked as deleted')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting week hours:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const fetchSolicitudes = async authUser => {
+  const solicitudesRef = collection(db, 'solicitudes')
+  let queryRef
+
+  if (authUser.role === 7 || authUser.role === 8) {
+    // Filtrar por shift si el usuario tiene uno o dos turnos.
+    queryRef = query(
+      solicitudesRef,
+      where('state', '>=', 6),
+      where('supervisorShift', '==', authUser.shift[0]),
+      orderBy('ot')
+    )
+  } else if (authUser.role === 1 || (authUser.role >= 5 && authUser.role <= 12)) {
+    // Usuarios con roles específicos pueden ver todas las solicitudes mayores al estado 6.
+    queryRef = query(solicitudesRef, where('state', '>=', 6), orderBy('ot'))
+  }
+
+  try {
+    const querySnapshot = await getDocs(queryRef)
+
+    const solicitudes = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ot: doc.data().ot,
+      plant: doc.data().plant,
+      area: doc.data().area,
+      costCenter: doc.data().costCenter,
+      supervisorShift: doc.data().supervisorShift || []
+    }))
+
+    return solicitudes
+  } catch (error) {
+    console.error('Error fetching solicitudes: ', error)
+    throw new Error('Failed to fetch solicitudes.')
+  }
+}
+
+const fetchUserList = async () => {
+  try {
+    const userQuery = query(collection(db, 'users'), where('role', '>=', 5), where('role', '<=', 12), orderBy('name'))
+    const userListSnapshot = await getDocs(userQuery)
+
+    return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error('Error fetching user list:', error)
+
+    return { error: 'Failed to fetch user list.' }
+  }
+}
+
+const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) => {
+  const batch = writeBatch(db)
+
+  dayDocIds.forEach(docId => {
+    const docRef = doc(db, 'users', userId, 'workedHours', docId)
+    batch.update(docRef, { plant, costCenter })
+  })
+
+  try {
+    await batch.commit()
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating week hours with plant and cost center:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1180,5 +1376,12 @@ export {
   updateSelectedDocuments,
   addComment,
   updateUserData,
-  finishPetition
+  finishPetition,
+  fetchWeekHoursByType,
+  createWeekHoursByType,
+  updateWeekHoursByType,
+  deleteWeekHoursByType,
+  fetchSolicitudes,
+  fetchUserList,
+  updateWeekHoursWithPlant
 }
