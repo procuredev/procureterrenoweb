@@ -1,9 +1,5 @@
 import { Box, Button, FormControl, Typography } from '@mui/material'
-import {
-  DataGridPremium,
-  GRID_AGGREGATION_FUNCTIONS,
-  useGridApiRef
-} from '@mui/x-data-grid-premium'
+import { DataGridPremium, GRID_AGGREGATION_FUNCTIONS, useGridApiRef } from '@mui/x-data-grid-premium'
 import { addDays, format, isSameDay, isToday, startOfWeek, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useEffect, useRef, useState } from 'react'
@@ -135,7 +131,7 @@ const TableCargaDeHoras = ({
   }
 
   const handleAssignPlant = async (plant, costCenter) => {
-    const userId = state.toggleValue === 'misDatos' ? authUser.uid : state.selectedUser.id
+    const userId = state.toggleValue === false ? authUser.uid : state.selectedUser.id
 
     const result = await updateWeekHoursWithPlant(userId, selectedDayDocIds, plant, costCenter)
     if (result.success) {
