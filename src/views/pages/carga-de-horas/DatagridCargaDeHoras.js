@@ -492,7 +492,8 @@ const DataGridCargaDeHoras = () => {
     return 0
   }
 
-  console.log('state: ', state)
+  //console.log('state.changes: ', state.changes)
+  //console.log('state.weekHours: ', state.weekHours)
   console.log('state.dailyTotals: ', state.dailyTotals)
 
   return (
