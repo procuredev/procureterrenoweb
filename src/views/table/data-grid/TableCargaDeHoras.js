@@ -66,8 +66,8 @@ const TableCargaDeHoras = ({
       <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
         <NumberInputBasic
           value={safeValue}
-          onChange={handleChange}
-          onBlur={handleBlur}
+          handleChange={handleChange}
+          handleBlur={handleBlur}
           min={0}
           max={maxInput}
           disabled={!isEditable(dayTimestamp, rowData)}
