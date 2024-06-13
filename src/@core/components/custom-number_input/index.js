@@ -6,7 +6,7 @@ import { StyledInputRoot, StyledInputElement, StyledStepperButton } from './Numb
 const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) {
   const { value, handleChange, handleBlur, min, max, disabled } = props
   const [tempValue, setTempValue] = React.useState(value)
-  console.log('tempValue: ', tempValue)
+  //console.log('tempValue: ', tempValue)
   React.useEffect(() => {
     setTempValue(value)
   }, [value])

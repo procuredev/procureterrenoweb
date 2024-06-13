@@ -133,6 +133,7 @@ const DataGridCargaDeHoras = () => {
       dispatch({ type: 'SET_OT_OPTIONS', payload: otData })
     }
     if (authUser) {
+      dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de usuario
       fetchOtOptions()
     }
   }, [authUser])
@@ -492,7 +493,7 @@ const DataGridCargaDeHoras = () => {
     return 0
   }
 
-  //console.log('state.changes: ', state.changes)
+  console.log('state.changes: ', state.changes)
   //console.log('state.weekHours: ', state.weekHours)
   console.log('state.dailyTotals: ', state.dailyTotals)
 
