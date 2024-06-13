@@ -162,7 +162,7 @@ const DataGridCargaDeHoras = () => {
       dispatch({ type: 'SET_USER_LIST', payload: userList })
     }
 
-    if (authUser && (authUser.role === 5 || authUser.role === 10)) {
+    if (authUser && (authUser.role === 1 || authUser.role === 5 || authUser.role === 10)) {
       loadUserList()
     }
   }, [authUser, fetchUserList])
@@ -470,7 +470,7 @@ const DataGridCargaDeHoras = () => {
     return Object.values(rowsById)
   }
 
-  const isUserChangeAllowed = authUser.role === 5 || authUser.role === 10
+  const isUserChangeAllowed = authUser.role === 1 || authUser.role === 5 || authUser.role === 10
 
   function checkIfSameWeek(dateToCheck) {
     const now = new Date()

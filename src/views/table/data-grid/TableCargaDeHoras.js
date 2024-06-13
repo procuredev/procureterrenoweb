@@ -84,9 +84,9 @@ const TableCargaDeHoras = ({
     const weekOfDay = startOfWeek(dayTimestamp, { weekStartsOn: 2 })
     const isCurrentWeek = dayTimestamp >= startOfCurrentWeek && dayTimestamp <= endOfCurrentWeek
 
-    if (authUser.role === 5 || authUser.role === 10) {
-      // Usuarios con roles 5 o 10 pueden editar días actuales y pasados, pero no futuros
-      return dayTimestamp <= today
+    if (authUser.role === 1 || authUser.role === 5 || authUser.role === 10) {
+      // Usuarios con roles 1, 5 o 10 pueden editar cualquier día, sin restricción
+      return true
     } else {
       // Usuarios con otros roles pueden editar días posteriores al actual solo si son vacaciones
       if (rowData.hoursType === 'Vacaciones' && dayTimestamp > today) {
@@ -180,7 +180,7 @@ const TableCargaDeHoras = ({
         localStorage.setItem('plantCargaDeHorasWidthColumn', params.colDef.computedWidth)
 
         if (
-          (authUser.role === 5 || authUser.role === 10) &&
+          (authUser.role === 1 || authUser.role === 5 || authUser.role === 10) &&
           (params.row.hoursType === 'Vacaciones' || params.row.hoursType === 'ISC')
         ) {
           return (
@@ -300,6 +300,13 @@ const TableCargaDeHoras = ({
     hoursType: row.hoursType || ''
   }))
 
+  const sortByRowId = (a, b) => {
+    if (a.rowId < b.rowId) return -1
+    if (a.rowId > b.rowId) return 1
+
+    return 0
+  }
+
   const getRowClassName = params => (params.row.isTotalRow ? 'total-row' : '')
   const isRowSelectable = params => !params.row.isTotalRow
 
@@ -313,10 +320,10 @@ const TableCargaDeHoras = ({
             align: 'left'
           }
         }}
-        rows={validatedRows}
+        rows={validatedRows.sort(sortByRowId)}
         columns={columns}
         columnVisibilityModel={{
-          costCenter: authUser.role === 5 || authUser.role === 10
+          costCenter: authUser.role === 1 || authUser.role === 5 || authUser.role === 10
         }}
         pageSize={5}
         checkboxSelection

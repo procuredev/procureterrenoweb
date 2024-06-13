@@ -5,12 +5,18 @@ import { StyledInputRoot, StyledInputElement, StyledStepperButton } from './Numb
 
 const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) {
   const { value, handleChange, handleBlur, min, max, disabled } = props
+  const [tempValue, setTempValue] = React.useState(value)
+  console.log('tempValue: ', tempValue)
+  React.useEffect(() => {
+    setTempValue(value)
+  }, [value])
 
   const handleInputChange = event => {
     const newValue = event.target.value
-    if (/^\d*$/.test(newValue) && (newValue === '' || newValue.charAt(0) !== '0')) {
+    if (/^\d*$/.test(newValue)) {
       console.log('newValue: ', newValue)
-      handleChange(newValue)
+      //handleChange(newValue)
+      setTempValue(newValue)
     }
   }
 
@@ -29,9 +35,10 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
       // Verifica que el valor ingresado sea numérico
       const newValue = e.key
       console.log('newValue1: ', newValue)
-      if (/^\d*$/.test(newValue) && (newValue === '' || newValue.charAt(0) !== '0')) {
+      if (/^\d*$/.test(newValue)) {
         console.log('newValue2: ', newValue)
-        handleChange(Number(newValue))
+        //handleChange(Number(newValue))
+        setTempValue(newValue)
       } else {
         console.log('Entrada no permitida: ', newValue)
         e.preventDefault()
@@ -42,21 +49,35 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
     }
   }
 
+  const handleBlurInternal = e => {
+    console.log('handleBlurInternal: ', e.target.value)
+    if (handleBlur) {
+      handleBlur(e)
+    }
+    handleChange(tempValue)
+  }
+
+  const handleButtonChange = newValue => {
+    handleChange(newValue)
+  }
+
   const { getRootProps, getInputProps, getIncrementButtonProps, getDecrementButtonProps, focused } = useNumberInput({
     value,
     disabled,
     min,
     max,
-    onInputChange: handleInputChange,
+    //onInputChange: handleInputChange, //
     onChange: (_, newValue) => {
-      handleChange(newValue)
-    },
-    onBlur: handleBlur
+      //handleChange(newValue)
+      handleButtonChange(newValue)
+    }
+    //onBlur: handleBlur //
   })
 
   const inputProps = getInputProps()
   inputProps.ref = useForkRef(inputProps.ref, ref)
   inputProps.onKeyDown = handleKeyDown
+  inputProps.onBlur = handleBlurInternal
 
   return (
     <StyledInputRoot {...getRootProps()} className={focused ? 'focused' : null}>
@@ -66,7 +87,7 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
       <StyledStepperButton {...getDecrementButtonProps()} className='decrement' disabled={disabled}>
         ▾
       </StyledStepperButton>
-      <StyledInputElement {...inputProps} onBlur={handleBlur} />
+      <StyledInputElement {...inputProps} /* onBlur={handleBlur} */ value={tempValue} onChange={handleInputChange} />
     </StyledInputRoot>
   )
 })

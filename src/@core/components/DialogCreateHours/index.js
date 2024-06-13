@@ -11,7 +11,9 @@ import {
   FormControl,
   Box,
   OutlinedInput,
-  Typography
+  Typography,
+  Autocomplete,
+  TextField
 } from '@mui/material'
 import { format, getISOWeek, isFuture } from 'date-fns'
 import { CustomSelectOptions } from 'src/@core/components/custom-form/index'
@@ -31,7 +33,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
   const getFilteredHoursTypeOptions = () => {
     const options = ['ISC', 'Vacaciones', 'OT']
 
-    if (authUser.role !== 5 && authUser.role !== 10 && isFuture(weekStart)) {
+    if (authUser.role !== 1 && authUser.role !== 5 && authUser.role !== 10 && isFuture(weekStart)) {
       return ['Vacaciones']
     }
 
@@ -67,11 +69,10 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
     }
   }
 
-  const handleOTNumberChange = event => {
-    const otNumber = event.target.value
-    const otDetails = otOptions.find(option => option.ot === otNumber)
+  const handleOTNumberChange = (event, newValue) => {
+    const otDetails = otOptions.find(option => option.ot === newValue)
     setSelectedOT(otDetails || {})
-    setOtNumber(otNumber)
+    setOtNumber(newValue)
   }
 
   // Filtrar las opciones de otNumber basadas en la selección de otType
@@ -110,21 +111,14 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
             />
 
             <FormControl fullWidth margin='normal' sx={{ '& .MuiInputBase-root ': { width: '100%' } }}>
-              <InputLabel id='otNumber-label'>Número OT</InputLabel>
               <Box width={'100%'}>
-                <Select
-                  labelId='otNumber-label'
-                  id='otNumber-select'
+                <Autocomplete
+                  id='otNumber-autocomplete'
+                  options={filteredOtOptions.map(option => option.ot)}
                   value={otNumber}
                   onChange={handleOTNumberChange}
-                  input={<OutlinedInput label={'Número OT'} />}
-                >
-                  {filteredOtOptions.map(option => (
-                    <MenuItem key={`otNumber-${option.ot}`} value={option.ot}>
-                      {option.ot}
-                    </MenuItem>
-                  ))}
-                </Select>
+                  renderInput={params => <TextField {...params} label='Número OT' variant='outlined' />}
+                />
               </Box>
             </FormControl>
           </Box>
