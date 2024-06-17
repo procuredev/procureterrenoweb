@@ -177,7 +177,7 @@ const createUserInDatabase = (values, uid) => {
         ...(shift && { shift }),
         ...(opshift && { opshift }),
         completedProfile: completedProfile,
-        subtype: subtype,
+        ...(subtype && {subtype}),
         enabled: true
       })
 
