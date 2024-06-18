@@ -1,5 +1,5 @@
 import { Box, Button, FormControl, Typography } from '@mui/material'
-import { DataGridPremium, GRID_AGGREGATION_FUNCTIONS, useGridApiRef } from '@mui/x-data-grid-premium'
+import { DataGridPremium, useGridApiRef } from '@mui/x-data-grid-premium'
 import { addDays, format, isSameDay, isToday, startOfWeek, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useEffect, useRef, useState } from 'react'
@@ -26,14 +26,12 @@ const TableCargaDeHoras = ({
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
   const apiRef = useGridApiRef()
 
-  const validationRegex = /^[0-9]*$/
-
   const NumericInputCell = ({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) => {
     const [inputValue, setInputValue] = useState(value || 0)
     const inputRef = useRef(inputValue)
 
     const maxInput = 12 - (dailyTotals[field] - (value || 0))
-    const safeValue = value !== undefined && !isNaN(value) ? value : 0
+    const safeValue = value !== undefined && !isNaN(value) ? parseFloat(value) : 0
 
     useEffect(() => {
       inputRef.current = inputValue
@@ -52,14 +50,22 @@ const TableCargaDeHoras = ({
       }
     }
 
-    const handleBlur = () => {
-      const newValue = Math.min(inputRef.current, maxInput)
-      console.log('handleBlur inputValue (from ref):', inputRef.current)
-      const args = [rowId, field, newValue, rowData, dayTimestamp]
-      if (dayDocId) {
-        args.push(dayDocId)
+    const handleBlur = event => {
+      console.log('handleBlur inputValue (from event):', event)
+      const newVal = parseFloat(event.target.value)
+      if (!isNaN(newVal)) {
+        const newValue = Math.min(newVal, maxInput)
+        const args = [rowId, field, newValue, rowData, dayTimestamp]
+        if (dayDocId) {
+          args.push(dayDocId)
+        } else {
+          console.log('Sin dayDocId')
+        }
+
+        onCommit(...args)
+      } else {
+        console.log('NoNoNo')
       }
-      onCommit(...args)
     }
 
     return (
@@ -67,7 +73,7 @@ const TableCargaDeHoras = ({
         <NumberInputBasic
           value={safeValue}
           handleChange={handleChange}
-          handleBlur={handleBlur}
+          onBlur={handleBlur}
           min={0}
           max={maxInput}
           disabled={!isEditable(dayTimestamp, rowData)}
@@ -99,22 +105,6 @@ const TableCargaDeHoras = ({
     }
   }
 
-  const sumAggregation = {
-    apply: ({ values, column }) => {
-      console.log(`Applying aggregation for column: ${column.field}`)
-      if (column.field in state.dailyTotals) {
-        console.log(`Using dailyTotals for ${column.field}: ${state.dailyTotals[column.field]}`)
-
-        return state.dailyTotals[column.field]
-      }
-      console.log(`Calculating sum for ${column.field}`)
-
-      return values.reduce((sum, value) => sum + (value || 0), 0)
-    },
-    columnTypes: ['number'],
-    label: 'Sum'
-  }
-
   const handleAssignPlantClick = row => {
     setSelectedDayDocIds(
       ['lunesDocId', 'martesDocId', 'miércolesDocId', 'juevesDocId', 'viernesDocId', 'sábadoDocId', 'domingoDocId']
@@ -135,10 +125,10 @@ const TableCargaDeHoras = ({
 
     const result = await updateWeekHoursWithPlant(userId, selectedDayDocIds, plant, costCenter)
     if (result.success) {
-      console.log('Plant and cost center assigned successfully')
+      console.log('Planta y centro de costos asignados exitosamente')
       reloadTable()
     } else {
-      console.error('Error assigning plant and cost center:', result.error)
+      console.error('Error al asignar planta y centro de costos:', result.error)
     }
   }
 
@@ -219,10 +209,8 @@ const TableCargaDeHoras = ({
         width: 130,
         maxWidth: 130,
         sortable: false,
-        renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
         editable: params => isEditable(dayTimestamp, params.row),
         aggregable: true,
-        aggregationFunction: 'sumAggregation',
         valueFormatter: ({ value }) => value || 0,
         headerAlign: 'left',
         getCellClassName: params => (params.row.isTotalRow ? 'MuiDataGrid-cell--textLeft' : ''),
@@ -258,22 +246,6 @@ const TableCargaDeHoras = ({
       }
     }
   ]
-
-  const initialAggregationModel = columns.reduce((acc, col) => {
-    if (col.aggregable) {
-      acc[col.field] = 'sum'
-      // Forzar el valor inicial de dailyTotals en el modelo de agregación
-      state.dailyTotals[col.field] = state.dailyTotals[col.field] || 0
-    }
-
-    return acc
-  }, {})
-
-  const [aggregationModel, setAggregationModel] = useState(initialAggregationModel)
-
-  useEffect(() => {
-    setAggregationModel({ ...initialAggregationModel })
-  }, [rows])
 
   const rowsWithStringId = rows.map(row => ({ ...row, rowId: String(row.rowId) }))
 
@@ -333,12 +305,6 @@ const TableCargaDeHoras = ({
         disableRowSelectionOnClick
         onCellEditCommit={handleCellEditCommit}
         getRowId={row => row.rowId}
-        aggregationFunctions={{
-          ...GRID_AGGREGATION_FUNCTIONS,
-          sumAggregation
-        }}
-        aggregationModel={aggregationModel}
-        onAggregationModelChange={newModel => setAggregationModel(newModel)}
         getRowClassName={getRowClassName}
         isRowSelectable={isRowSelectable}
         disableColumnMenu={true}

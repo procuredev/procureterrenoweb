@@ -1,23 +1,12 @@
 // ** React Imports
-import React, { useReducer, useEffect, useState, useCallback } from 'react'
+import React, { useReducer, useEffect, useState } from 'react'
 import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays, isSameWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import {
-  Box,
-  Button,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
-  TextField,
-  CircularProgress
-} from '@mui/material'
+import { Box, Button, Typography, FormControl, Autocomplete, TextField, CircularProgress } from '@mui/material'
 import { Switch } from '@mui/base/Switch'
 
 // ** Custom Components Imports
@@ -25,6 +14,7 @@ import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
 import ConfirmDeleteDialog from 'src/@core/components/dialog-confirmDeleteRowHH/index.js'
 import WarningDialog from 'src/@core/components/dialog-warningSaveChanges/index.js'
+import MaxHoursDialog from 'src/@core/components/dialog-excessDailyHours/index.js'
 
 const initialState = {
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 2 }),
@@ -33,6 +23,7 @@ const initialState = {
   weekHours: [],
   changes: [],
   showWarningDialog: false,
+  showMaxHoursDialog: false,
   previousSwitchState: null,
   otOptions: [],
   existingOTs: [],
@@ -103,6 +94,8 @@ function reducer(state, action) {
       return { ...state, userList: action.payload }
     case 'TOGGLE_WARNING_DIALOG':
       return { ...state, showWarningDialog: action.payload }
+    case 'TOGGLE_MAXHOURS_DIALOG':
+      return { ...state, showMaxHoursDialog: action.payload }
     case 'SET_PREVIOUS_SWITCH_STATE':
       return { ...state, previousSwitchState: action.payload }
     default:
@@ -120,7 +113,6 @@ const DataGridCargaDeHoras = () => {
     createWeekHoursByType,
     updateWeekHoursByType,
     fetchSolicitudes,
-    loadWeekData,
     authUser,
     fetchUserList,
     updateWeekHoursWithPlant,
@@ -263,11 +255,11 @@ const DataGridCargaDeHoras = () => {
     if (rowIndex === -1) return
 
     const oldRowValue = state.weekHours[rowIndex][field] || 0
-    const newRowValue = newValue
+    let newRowValue = newValue
     const newTotalDayHours = state.dailyTotals[field] - oldRowValue + newRowValue
 
     if (newTotalDayHours > 12) {
-      alert('No se pueden exceder 12 horas por día.')
+      dispatch({ type: 'TOGGLE_MAXHOURS_DIALOG', payload: true })
 
       return
     }
@@ -391,6 +383,10 @@ const DataGridCargaDeHoras = () => {
     dispatch({ type: 'TOGGLE_WARNING_DIALOG', payload: false })
   }
 
+  const handleCloseMaxHoursDialog = () => {
+    dispatch({ type: 'TOGGLE_MAXHOURS_DIALOG', payload: false })
+  }
+
   // Función para inicializar los días de la semana para un nuevo registro
   const initializeWeekDays = newRow => {
     const days = {}
@@ -494,8 +490,6 @@ const DataGridCargaDeHoras = () => {
   }
 
   console.log('state.changes: ', state.changes)
-  //console.log('state.weekHours: ', state.weekHours)
-  console.log('state.dailyTotals: ', state.dailyTotals)
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -589,6 +583,7 @@ const DataGridCargaDeHoras = () => {
         onClose={handleCloseWarningDialog}
         onConfirm={handleConfirmWarningDialog}
       />
+      <MaxHoursDialog open={state.showMaxHoursDialog} onClose={handleCloseMaxHoursDialog} />
     </Box>
   )
 }

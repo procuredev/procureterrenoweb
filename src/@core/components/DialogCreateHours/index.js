@@ -5,17 +5,13 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Select,
-  MenuItem,
-  InputLabel,
   FormControl,
   Box,
-  OutlinedInput,
   Typography,
   Autocomplete,
   TextField
 } from '@mui/material'
-import { format, getISOWeek, isFuture } from 'date-fns'
+import { getISOWeek, isFuture } from 'date-fns'
 import { CustomSelectOptions } from 'src/@core/components/custom-form/index'
 
 const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows, weekStart }) => {
