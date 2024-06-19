@@ -52,19 +52,13 @@ const TableCargaDeHoras = ({
 
     const handleBlur = event => {
       console.log('handleBlur inputValue (from event):', event)
-      const newVal = parseFloat(event.target.value)
-      if (!isNaN(newVal)) {
-        const newValue = Math.min(newVal, maxInput)
+      if (!isNaN(event)) {
+        const newValue = event !== 0 ? Math.min(event, maxInput) : event
         const args = [rowId, field, newValue, rowData, dayTimestamp]
         if (dayDocId) {
           args.push(dayDocId)
-        } else {
-          console.log('Sin dayDocId')
         }
-
         onCommit(...args)
-      } else {
-        console.log('NoNoNo')
       }
     }
 

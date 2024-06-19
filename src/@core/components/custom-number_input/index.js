@@ -8,17 +8,6 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
   const enteredValue = !isNaN(value) ? parseFloat(value) : 0
   const [tempValue, setTempValue] = React.useState(enteredValue)
 
-  const handleInputChange = event => {
-    const newValue1 = event.target.value
-    const newValue = !isNaN(newValue1) ? parseFloat(newValue1) : 0
-    console.log('7newValue: ', newValue)
-    if (/^\d*$/.test(newValue)) {
-      console.log('8newValue: ', newValue)
-      //handleChange(newValue)
-      setTempValue(newValue)
-    }
-  }
-
   const handleKeyDown = e => {
     // Permitir solo teclas numéricas y algunas teclas especiales
     const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End']
@@ -37,7 +26,6 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
       console.log('newValue1: ', newValue)
       if (/^\d*$/.test(newValue)) {
         console.log('newValue2: ', newValue)
-        //handleChange(Number(newValue))
         setTempValue(newValue)
         handleChange(newValue)
       } else {
@@ -50,15 +38,13 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
     }
   }
 
-  const handleBlurInternal = e => {
-    console.log('handleBlurInternal: ', e)
+  const handleBlurInternal = event => {
+    const newValue1 = event.target.value
+    const newValue = !isNaN(newValue1) ? parseFloat(newValue1) : 0
+    console.log('handleBlurInternal: ', newValue)
     if (onBlur) {
-      onBlur(e)
-    } else {
-      console.log('No onBlur')
+      onBlur(newValue)
     }
-
-    handleChange(tempValue)
   }
 
   const handleButtonChange = newValue => {
@@ -71,9 +57,7 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
     disabled,
     min,
     max,
-    //onInputChange: handleInputChange, //
     onChange: (_, newValue) => {
-      //handleChange(newValue)
       handleButtonChange(newValue)
     },
     onBlur: e => {
@@ -94,7 +78,7 @@ const NumberInputBasic = React.forwardRef(function NumberInputBasic(props, ref) 
       <StyledStepperButton {...getDecrementButtonProps()} className='decrement' disabled={disabled}>
         ▾
       </StyledStepperButton>
-      <StyledInputElement {...inputProps} value={tempValue} onChange={handleInputChange} />
+      <StyledInputElement {...inputProps} value={tempValue} />
     </StyledInputRoot>
   )
 })
