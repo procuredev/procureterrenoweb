@@ -133,6 +133,7 @@ const DataGridCargaDeHoras = () => {
       dispatch({ type: 'SET_OT_OPTIONS', payload: otData })
     }
     if (authUser) {
+      dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de usuario
       fetchOtOptions()
     }
   }, [authUser])
