@@ -490,6 +490,7 @@ const DataGridCargaDeHoras = () => {
   }
 
   console.log('state.changes: ', state.changes)
+  console.log('state: ', state)
 
   return (
     <Box sx={{ width: '100%' }}>
