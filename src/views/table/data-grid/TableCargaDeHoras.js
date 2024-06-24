@@ -60,7 +60,7 @@ const TableCargaDeHoras = ({
     const weekOfDay = startOfWeek(dayTimestamp, { weekStartsOn: 2 })
     const isCurrentWeek = dayTimestamp >= startOfCurrentWeek && dayTimestamp <= endOfCurrentWeek
 
-    if ([1, 5, 10].includes(authUser.role)) {
+    if (authUser.role === 1 || authUser.role === 5 || authUser.role === 10) {
       // Usuarios con roles 1, 5 o 10 pueden editar cualquier día, sin restricción
       return true
     } else {
@@ -319,7 +319,9 @@ const TableCargaDeHoras = ({
             // Actualizar newRow con el nuevo totalRowHours
             newRow.totalRowHours = updatedTotalRowHours
 
-            handleCellEditCommit(newRow.rowId, field, newValue, newRow, dayTimestamp, newRow[field + 'DocId'])
+            if (!isNaN(newValue) && newValue >= 0 && newValue <= 12) {
+              handleCellEditCommit(newRow.rowId, field, newValue, newRow, dayTimestamp, newRow[field + 'DocId'])
+            }
 
             return newRow
           } catch (error) {
@@ -376,6 +378,9 @@ const TableCargaDeHoras = ({
           }
           .MuiDataGrid-aggregationColumnHeaderLabel {
             display: none;
+          }
+          .MuiDataGrid-editInputCell {
+            visibility: visible !important;
           }
         `}
       </style>
