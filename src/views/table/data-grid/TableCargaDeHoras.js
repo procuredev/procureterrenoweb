@@ -8,6 +8,7 @@ import {
 import { addDays, format, isSameDay, isToday, startOfWeek, subDays, startOfDay, endOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useEffect, useRef, useState } from 'react'
+import { useTheme } from '@mui/material/styles'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
 import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
 // import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
@@ -34,6 +35,8 @@ const TableCargaDeHoras = ({
   const apiRef = useGridApiRef()
 
   const validationRegex = /^[0-9]*$/
+
+  const theme = useTheme()
 
   const handleBlur = event => {
     const newValue = parseFloat(event.target.value)
@@ -186,21 +189,35 @@ const TableCargaDeHoras = ({
         headerAlign: 'left',
         align: 'left',
         type: 'number',
-        aggregationFunction: 'sumAggregation'
+        aggregationFunction: 'sumAggregation',
+        cellClassName: params => {
+          const day = addDays(state.currentWeekStart, index)
+          const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
+
+          if (params.rowNode.type === 'aggregation') {
+            return ''
+          }
+
+          return isEditable(dayTimestamp, params.row) ? 'editable-cellModification' : ''
+        }
       }
     }),
     {
       field: 'totalRowHours',
       headerName: 'Total Horas',
       sortable: false,
+      align: 'left',
       width: totalRowHoursLocalWidth ? totalRowHoursLocalWidth : 130,
       aggregable: true,
+      type: 'number',
       aggregationFunction: 'sumAggregation',
-      renderCell: params => {
+      value: params => params.row.totalRowHours
+
+      /* renderCell: params => {
         localStorage.setItem('totalRowHoursCargaDeHorasWidthColumn', params.colDef.computedWidth)
 
         return <span>{params.row.totalRowHours}</span>
-      }
+      } */
     }
   ]
 
@@ -382,6 +399,7 @@ const TableCargaDeHoras = ({
           .MuiDataGrid-editInputCell {
             visibility: visible !important;
           }
+
         `}
       </style>
     </Box>

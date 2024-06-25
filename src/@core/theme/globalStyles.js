@@ -14,7 +14,32 @@ const GlobalStyles = theme => {
     }
   }
 
+  const totalRow = () => {
+    if (mode === 'light') {
+      return 'gray !important'
+    } else {
+      return 'white !important'
+    }
+  }
+
+  const cellModification = () => {
+    if (mode === 'light') {
+      return '#e2e2e7 !important'
+    } else {
+      return '#393d44 !important'
+    }
+  }
+
   return {
+    '.MuiDataGrid-pinnedRowsRenderZone ': {
+      backgroundColor: cellModification()
+    },
+    '.editable-cellModification ': {
+      backgroundColor: cellModification()
+    },
+    '.MuiDataGrid-footerCell ': {
+      color: totalRow()
+    },
     '.demo-space-x > *': {
       marginTop: '1rem !important',
       marginRight: '1rem !important',

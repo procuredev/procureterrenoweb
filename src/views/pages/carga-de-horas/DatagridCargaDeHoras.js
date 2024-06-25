@@ -522,17 +522,33 @@ const DataGridCargaDeHoras = () => {
           )}
         </Box>
       )}
-      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={isButtonDisabled}>
+      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={isButtonDisabled} sx={{ mr: 2 }}>
         Nuevo Ingreso
       </Button>
-      <Button variant='contained' color='primary' onClick={handleUpdateTable} disabled={state.changes.length === 0}>
+      <Button
+        variant='contained'
+        color='primary'
+        onClick={handleUpdateTable}
+        disabled={state.changes.length === 0}
+        sx={{ mr: 2 }}
+      >
         Guardar Datos
       </Button>
-      <Button onClick={handleOpenConfirmDelete} disabled={!state.selectedRow} variant='contained' color='error'>
+      <Button
+        onClick={handleOpenConfirmDelete}
+        disabled={!state.selectedRow}
+        variant='contained'
+        color='error'
+        sx={{ mr: 2 }}
+      >
         Eliminar Fila
       </Button>
-      <Button onClick={handlePreviousWeek}>Semana Anterior</Button>
-      <Button onClick={handleNextWeek}>Semana Siguiente</Button>
+      <Button onClick={handlePreviousWeek} sx={{ mr: 2 }}>
+        Semana Anterior
+      </Button>
+      <Button onClick={handleNextWeek} sx={{ mr: 2 }}>
+        Semana Siguiente
+      </Button>
       {loading && (
         <Box
           sx={{
