@@ -5,7 +5,7 @@ import {
   GridAggregationFunction,
   useGridApiRef
 } from '@mui/x-data-grid-premium'
-import { addDays, format, isSameDay, isToday, startOfWeek, subDays } from 'date-fns'
+import { addDays, format, isSameDay, isToday, startOfWeek, subDays, startOfDay, endOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useEffect, useRef, useState } from 'react'
 import NumberInputBasic from 'src/@core/components/custom-number_input/index'
@@ -53,19 +53,18 @@ const TableCargaDeHoras = ({
   }
 
   const isEditable = (dayTimestamp, rowData) => {
-    const today = new Date()
-    const yesterday = subDays(today, 1)
+    const today = startOfDay(new Date())
+    const yesterday = startOfDay(subDays(today, 1))
     const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 2 })
-    const endOfCurrentWeek = addDays(startOfCurrentWeek, 6)
-    const weekOfDay = startOfWeek(dayTimestamp, { weekStartsOn: 2 })
-    const isCurrentWeek = dayTimestamp >= startOfCurrentWeek && dayTimestamp <= endOfCurrentWeek
+    const endOfCurrentWeek = endOfDay(addDays(startOfCurrentWeek, 6))
+    const isCurrentWeek = dayTimestamp >= startOfCurrentWeek.getTime() && dayTimestamp <= endOfCurrentWeek.getTime()
 
     if (authUser.role === 1 || authUser.role === 5 || authUser.role === 10) {
       // Usuarios con roles 1, 5 o 10 pueden editar cualquier día, sin restricción
       return true
     } else {
       // Usuarios con otros roles pueden editar días posteriores al actual solo si son vacaciones
-      if (rowData.hoursType === 'Vacaciones' && dayTimestamp > today) {
+      if (rowData.hoursType === 'Vacaciones' && dayTimestamp > today.getTime()) {
         return true
       }
 
@@ -179,7 +178,7 @@ const TableCargaDeHoras = ({
         width: 130,
         maxWidth: 130,
         sortable: false,
-        editable: params => isEditable(dayTimestamp, params.row),
+        editable: true,
         aggregable: true,
         valueFormatter: ({ value }) => {
           return !isNaN(value) && value !== null ? value : ''
@@ -257,11 +256,6 @@ const TableCargaDeHoras = ({
 
   const sortedRows = rowsWithStringId.sort(sortByRowId)
 
-  useEffect(() => {
-    console.log('Updated rows:', sortedRows)
-    console.log('Aggregation model:', aggregationModel)
-  }, [sortedRows, aggregationModel])
-
   return (
     <Box style={{ height: 400, width: '100%' }}>
       <DataGridPremium
@@ -289,6 +283,14 @@ const TableCargaDeHoras = ({
         }}
         processRowUpdate={(newRow, oldRow) => {
           console.log('Row update:', newRow, oldRow)
+          const field = Object.keys(newRow).find(key => newRow[key] !== oldRow[key])
+          const dayIndex = ['martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo', 'lunes'].indexOf(field)
+          const day = addDays(state.currentWeekStart, dayIndex)
+          const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
+          if (!isEditable(dayTimestamp, newRow)) {
+            return oldRow
+          }
+
           try {
             const field = Object.keys(newRow).find(key => newRow[key] !== oldRow[key])
             const newValue = parseFloat(newRow[field])
@@ -296,16 +298,13 @@ const TableCargaDeHoras = ({
             if (newValue > 12 || newValue < 0) {
               setWarningMessage('El valor debe estar entre 0 y 12.')
               setWarningDialogOpen(true)
+
+              return oldRow
             }
 
             if (isNaN(newValue)) {
               event.preventDefault()
             }
-
-            // Calcular dayTimestamp basado en el campo
-            const dayIndex = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'].indexOf(field)
-            const day = addDays(state.currentWeekStart, dayIndex)
-            const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
 
             // Recalcular totalRowHours
             const updatedTotalRowHours = Object.keys(newRow).reduce((acc, key) => {
@@ -326,7 +325,8 @@ const TableCargaDeHoras = ({
             return newRow
           } catch (error) {
             console.error('Error during row update:', error)
-            throw error
+
+            return oldRow
           }
         }}
         onProcessRowUpdateError={error => {
