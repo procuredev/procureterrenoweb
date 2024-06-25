@@ -1,15 +1,8 @@
-import { Box, Button, FormControl, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
-import {
-  DataGridPremium,
-  GRID_AGGREGATION_FUNCTIONS,
-  GridAggregationFunction,
-  useGridApiRef
-} from '@mui/x-data-grid-premium'
+import { Box, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
+import { DataGridPremium, GRID_AGGREGATION_FUNCTIONS, useGridApiRef } from '@mui/x-data-grid-premium'
 import { addDays, format, isSameDay, isToday, startOfWeek, subDays, startOfDay, endOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useEffect, useRef, useState } from 'react'
-import { useTheme } from '@mui/material/styles'
-import NumberInputBasic from 'src/@core/components/custom-number_input/index'
+import { useEffect, useState } from 'react'
 import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
 // import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
 
@@ -31,25 +24,7 @@ const TableCargaDeHoras = ({
   const [currentRow, setCurrentRow] = useState({})
   const [warningDialogOpen, setWarningDialogOpen] = useState(false)
   const [warningMessage, setWarningMessage] = useState('')
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
   const apiRef = useGridApiRef()
-
-  const validationRegex = /^[0-9]*$/
-
-  const theme = useTheme()
-
-  const handleBlur = event => {
-    const newValue = parseFloat(event.target.value)
-    if (!isNaN(newValue)) {
-      handleCellEditCommit(
-        event.target.dataset.rowid,
-        event.target.dataset.field,
-        newValue,
-        event.target.dataset.rowdata,
-        event.target.dataset.daytimestamp
-      )
-    }
-  }
 
   const handleWarningDialogClose = () => {
     setWarningDialogOpen(false)
@@ -172,7 +147,6 @@ const TableCargaDeHoras = ({
     ...Array.from({ length: 7 }).map((_, index) => {
       const day = addDays(state.currentWeekStart, index)
       const dayKey = format(day, 'eeee', { locale: es }).toLowerCase()
-      const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
 
       return {
         field: dayKey,
@@ -193,12 +167,9 @@ const TableCargaDeHoras = ({
         cellClassName: params => {
           const day = addDays(state.currentWeekStart, index)
           const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
-
-          if (params.rowNode.type === 'aggregation') {
-            return ''
+          if (params.rowNode.id !== 'auto-generated-group-footer-root') {
+            return isEditable(dayTimestamp, params.row) ? 'editable-cellModification' : ''
           }
-
-          return isEditable(dayTimestamp, params.row) ? 'editable-cellModification' : ''
         }
       }
     }),
@@ -212,12 +183,6 @@ const TableCargaDeHoras = ({
       type: 'number',
       aggregationFunction: 'sumAggregation',
       value: params => params.row.totalRowHours
-
-      /* renderCell: params => {
-        localStorage.setItem('totalRowHoursCargaDeHorasWidthColumn', params.colDef.computedWidth)
-
-        return <span>{params.row.totalRowHours}</span>
-      } */
     }
   ]
 
@@ -358,12 +323,15 @@ const TableCargaDeHoras = ({
         }}
         aggregationModel={aggregationModel}
         onCellClick={(params, event) => {
-          const cellMode = apiRef.current.getCellMode(params.id, params.field)
-          if (cellMode === 'view') {
-            apiRef.current.startCellEditMode({
-              id: params.id,
-              field: params.field
-            })
+          const nonEditableFields = ['__check__', 'otNumber', 'otType', 'plant', 'costCenter', 'totalRowHours']
+          if (params.rowNode.id !== 'auto-generated-group-footer-root' && !nonEditableFields.includes(params.field)) {
+            const cellMode = apiRef.current.getCellMode(params.id, params.field)
+            if (cellMode === 'view') {
+              apiRef.current.startCellEditMode({
+                id: params.id,
+                field: params.field
+              })
+            }
           }
         }}
         onAggregationModelChange={newModel => setAggregationModel(newModel)}
@@ -396,19 +364,12 @@ const TableCargaDeHoras = ({
       </Dialog>
       <style>
         {`
-          .total-row .MuiDataGrid-checkboxInput {
-            display: none;
-          }
-          .MuiDataGrid-cell--textLeft {
-            text-align: left !important;
-          }
           .MuiDataGrid-aggregationColumnHeaderLabel {
             display: none;
           }
-          .MuiDataGrid-editInputCell {
-            visibility: visible !important;
+          .MuiDataGrid-columnHeaderCheckbox {
+            visibility: hidden;
           }
-
         `}
       </style>
     </Box>

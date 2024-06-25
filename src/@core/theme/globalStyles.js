@@ -31,9 +31,6 @@ const GlobalStyles = theme => {
   }
 
   return {
-    '.MuiDataGrid-pinnedRowsRenderZone ': {
-      backgroundColor: cellModification()
-    },
     '.editable-cellModification ': {
       backgroundColor: cellModification()
     },
