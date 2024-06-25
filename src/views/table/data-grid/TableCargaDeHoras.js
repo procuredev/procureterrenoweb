@@ -278,7 +278,7 @@ const TableCargaDeHoras = ({
       <DataGridPremium
         apiRef={apiRef}
         sx={{
-          height: 400,
+          height: 600,
           '& .MuiDataGrid-cell--textLeft': {
             align: 'left'
           }
@@ -357,6 +357,15 @@ const TableCargaDeHoras = ({
           sumAggregation
         }}
         aggregationModel={aggregationModel}
+        onCellClick={(params, event) => {
+          const cellMode = apiRef.current.getCellMode(params.id, params.field)
+          if (cellMode === 'view') {
+            apiRef.current.startCellEditMode({
+              id: params.id,
+              field: params.field
+            })
+          }
+        }}
         onAggregationModelChange={newModel => setAggregationModel(newModel)}
         sortModel={[
           {
