@@ -284,6 +284,10 @@ const DataGridCargaDeHoras = () => {
     dispatch({ type: 'SET_WEEK_HOURS', payload: updatedWeekHours })
     dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: updatedDailyTotals })
 
+    // Determina si la semana es par o impar desde el comienzo del año
+    const weekNumber = getWeek(state.currentWeekStart, { weekStartsOn: 2 })
+    const shift = weekNumber % 2 === 0 ? 'B' : 'A'
+
     // Prepara el cambio con datos adicionales dependiendo si isNew es true
     const change = {
       rowId,
@@ -293,6 +297,7 @@ const DataGridCargaDeHoras = () => {
       day: dayTimestamp,
       userRole: authUser.role,
       userShift: authUser.shift,
+      shift: shift,
       hoursType: rowData.hoursType,
       ...(dayDocId && { dayDocId }),
       ...(rowData.plant && { plant: rowData.plant }),
