@@ -1221,7 +1221,10 @@ const createWeekHoursByType = async (userParams, creations) => {
             : 'OPE',
         hoursType: change.hoursType,
         physicalLocation: '5.1 MEL - NPI&CHO-PRODUCTION CHO',
-        userRole: change.userRole,
+        user: {
+          role: change.userRole,
+          shift: change.userShift
+        },
         shift: change.shift,
         rowId: change.rowId,
         column: change.field,

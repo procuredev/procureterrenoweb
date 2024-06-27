@@ -192,10 +192,12 @@ const DataGridCargaDeHoras = () => {
   // Funciones para manejar los botones de cambio de semana
   const handlePreviousWeek = () => {
     dispatch({ type: 'CHANGE_WEEK', payload: -1 })
+    dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de semana
   }
 
   const handleNextWeek = () => {
     dispatch({ type: 'CHANGE_WEEK', payload: 1 })
+    dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de semana
   }
 
   const handleSelectionChange = selectionModel => {
