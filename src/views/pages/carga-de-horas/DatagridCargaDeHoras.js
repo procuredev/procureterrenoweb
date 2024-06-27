@@ -18,30 +18,47 @@ import MaxHoursDialog from 'src/@core/components/dialog-excessDailyHours/index.j
 
 // Función para calcular el número de semana ajustado con el inicio de semana en martes
 const currentWeekNumber = date => {
+  // Crea una fecha para el 1 de enero del año actual
   const startOfYear = new Date(date.getFullYear(), 0, 1)
+
+  // Encuentra el primer martes del año
   let firstTuesdayOfYear = startOfWeek(startOfYear, { weekStartsOn: 2 })
 
-  // Ajustar si el primer martes cae antes del 1 de enero
+  // Ajusta si el primer martes cae antes del 1 de enero
+  // Si el primer martes del año es antes del 1 de enero, se mueve una semana adelante
   if (firstTuesdayOfYear < startOfYear) {
     firstTuesdayOfYear = addWeeks(firstTuesdayOfYear, 1)
   }
 
+  // Calcula el número de días desde el primer martes del año hasta la fecha proporcionada
   const dayOfYear = Math.floor((date - firstTuesdayOfYear) / (24 * 60 * 60 * 1000))
+
+  // Calcula el número de la semana como el entero siguiente al cociente de los días dividido por 7
   let weekNumber = Math.ceil((dayOfYear + 1) / 7)
 
-  // Ajustar para la semana 53 al final del año
+  // Ajusta para la semana 53 al final del año
+  // Crea una fecha para el 31 de diciembre del año actual
   const lastDayOfYear = new Date(date.getFullYear(), 11, 31)
+
+  // Encuentra el último martes del año
   const lastTuesdayOfYear = startOfWeek(lastDayOfYear, { weekStartsOn: 2 })
+
+  // Calcula el número de días en la última semana del año
   const daysInLastWeek = Math.floor((lastDayOfYear - lastTuesdayOfYear) / (24 * 60 * 60 * 1000)) + 1
 
+  // Ajusta el número de semana si estamos en la primera semana del año
+  // y la última semana del año anterior fue la semana 52
   if (weekNumber === 1 && getWeek(subDays(date, 1), { weekStartsOn: 2 }) === 52) {
     weekNumber = 53
   }
 
+  // Si hay menos de 4 días en la última semana del año,
+  // ajusta el número de la semana a 1 si estamos en la primera semana del nuevo año
   if (daysInLastWeek < 4 && weekNumber === getWeek(date, { weekStartsOn: 2 }) && date.getMonth() === 0) {
     weekNumber = 1
   }
 
+  // Retorna el número de la semana
   return weekNumber
 }
 
