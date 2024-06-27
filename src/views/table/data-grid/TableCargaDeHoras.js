@@ -42,8 +42,8 @@ const TableCargaDeHoras = ({
       return true
     } else {
       // Usuarios con otros roles pueden editar días posteriores al actual solo si son vacaciones
-      if (rowData.hoursType === 'Vacaciones' && dayTimestamp > today.getTime()) {
-        return true
+      if (rowData.hoursType === 'Vacaciones') {
+        return isCurrentWeek || dayTimestamp > endOfCurrentWeek.getTime()
       }
 
       // Usuarios con otros roles solo pueden editar día actual o previo en la semana actual
