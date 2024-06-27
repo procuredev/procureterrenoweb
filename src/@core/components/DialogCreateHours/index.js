@@ -9,18 +9,42 @@ import {
   Box,
   Typography,
   Autocomplete,
-  TextField
+  TextField,
+  CircularProgress
 } from '@mui/material'
+import { useFirebase } from 'src/context/useFirebase'
 import { getISOWeek, isFuture } from 'date-fns'
 import { CustomSelectOptions } from 'src/@core/components/custom-form/index'
 
-const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows, weekStart }) => {
+const DialogCreateHours = ({ open, onClose, onSubmit, authUser, rows, weekStart }) => {
   const [hoursType, setHoursType] = useState('')
   const [otType, setOtType] = useState('')
   const [otNumber, setOtNumber] = useState('')
   const [selectedOT, setSelectedOT] = useState({})
   const [filteredOtOptions, setFilteredOtOptions] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
+  const [otOptions, setOtOptions] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const { fetchSolicitudes } = useFirebase()
+
+  useEffect(() => {
+    if (otType && authUser) {
+      const fetchOptions = async () => {
+        try {
+          setLoading(true)
+          const options = await fetchSolicitudes(authUser, otType)
+          setOtOptions(options)
+        } catch (error) {
+          console.error('Error fetching solicitudes: ', error)
+          setOtOptions([])
+        } finally {
+          setLoading(false)
+        }
+      }
+      fetchOptions()
+    }
+  }, [otType, authUser, fetchSolicitudes])
 
   // Obtiene los tipos de horas existentes en las filas
   const existingHoursTypes = rows.map(row => row.hoursType.toUpperCase())
@@ -38,6 +62,11 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
 
   const generateRowId = (uid, weekNumber, index) => {
     return `${uid}_${weekNumber}_${new Date().getTime()}`
+  }
+
+  const handleOtTypeChange = event => {
+    setOtType(event.target.value)
+    setOtNumber('')
   }
 
   const handleFormSubmit = () => {
@@ -103,20 +132,25 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
               options={['Gabinete', 'Levantamiento']}
               label='Tipo OT'
               value={otType}
-              onChange={e => setOtType(e.target.value)}
+              onChange={handleOtTypeChange}
             />
 
-            <FormControl fullWidth margin='normal' sx={{ '& .MuiInputBase-root ': { width: '100%' } }}>
-              <Box width={'100%'}>
-                <Autocomplete
-                  id='otNumber-autocomplete'
-                  options={filteredOtOptions.map(option => option.ot)}
-                  value={otNumber}
-                  onChange={handleOTNumberChange}
-                  renderInput={params => <TextField {...params} label='Número OT' variant='outlined' />}
-                />
-              </Box>
-            </FormControl>
+            {loading ? (
+              <CircularProgress />
+            ) : (
+              <FormControl fullWidth margin='normal' sx={{ '& .MuiInputBase-root ': { width: '100%' } }}>
+                <Box width={'100%'}>
+                  <Autocomplete
+                    id='otNumber-autocomplete'
+                    options={filteredOtOptions.map(option => option.ot)}
+                    value={otNumber}
+                    onChange={handleOTNumberChange}
+                    getOptionLabel={option => option.toString()}
+                    renderInput={params => <TextField {...params} label='Número OT' variant='outlined' />}
+                  />
+                </Box>
+              </FormControl>
+            )}
           </Box>
         )}
         {errorMessage && (

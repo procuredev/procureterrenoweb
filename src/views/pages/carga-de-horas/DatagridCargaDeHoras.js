@@ -1,6 +1,6 @@
 // ** React Imports
 import React, { useReducer, useEffect, useState } from 'react'
-import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays, isSameWeek } from 'date-fns'
+import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays, isSameWeek, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
@@ -16,16 +16,44 @@ import ConfirmDeleteDialog from 'src/@core/components/dialog-confirmDeleteRowHH/
 import WarningDialog from 'src/@core/components/dialog-warningSaveChanges/index.js'
 import MaxHoursDialog from 'src/@core/components/dialog-excessDailyHours/index.js'
 
+// Función para calcular el número de semana ajustado con el inicio de semana en martes
+const currentWeekNumber = date => {
+  const startOfYear = new Date(date.getFullYear(), 0, 1)
+  let firstTuesdayOfYear = startOfWeek(startOfYear, { weekStartsOn: 2 })
+
+  // Ajustar si el primer martes cae antes del 1 de enero
+  if (firstTuesdayOfYear < startOfYear) {
+    firstTuesdayOfYear = addWeeks(firstTuesdayOfYear, 1)
+  }
+
+  const dayOfYear = Math.floor((date - firstTuesdayOfYear) / (24 * 60 * 60 * 1000))
+  let weekNumber = Math.ceil((dayOfYear + 1) / 7)
+
+  // Ajustar para la semana 53 al final del año
+  const lastDayOfYear = new Date(date.getFullYear(), 11, 31)
+  const lastTuesdayOfYear = startOfWeek(lastDayOfYear, { weekStartsOn: 2 })
+  const daysInLastWeek = Math.floor((lastDayOfYear - lastTuesdayOfYear) / (24 * 60 * 60 * 1000)) + 1
+
+  if (weekNumber === 1 && getWeek(subDays(date, 1), { weekStartsOn: 2 }) === 52) {
+    weekNumber = 53
+  }
+
+  if (daysInLastWeek < 4 && weekNumber === getWeek(date, { weekStartsOn: 2 }) && date.getMonth() === 0) {
+    weekNumber = 1
+  }
+
+  return weekNumber
+}
+
 const initialState = {
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 2 }),
   currentWeekEnd: endOfWeek(new Date(), { weekStartsOn: 2 }),
-  currentWeekNumber: getWeek(new Date(), { weekStartsOn: 2 }),
+  currentWeekNumber: currentWeekNumber(new Date()),
   weekHours: [],
   changes: [],
   showWarningDialog: false,
   showMaxHoursDialog: false,
   previousSwitchState: null,
-  otOptions: [],
   existingOTs: [],
   dialogOpen: false,
   selectedRow: null,
@@ -64,7 +92,7 @@ function reducer(state, action) {
         ...state,
         currentWeekStart: newStart,
         currentWeekEnd: endOfWeek(newStart, { weekStartsOn: 2 }),
-        currentWeekNumber: getWeek(newStart, { weekStartsOn: 2 }),
+        currentWeekNumber: currentWeekNumber(newStart),
         dailyTotals: resetDailyTotals
       }
     case 'UPDATE_DAILY_TOTALS':
@@ -82,8 +110,6 @@ function reducer(state, action) {
       return { ...state, changes: [] }
     case 'TOGGLE_DIALOG':
       return { ...state, dialogOpen: !state.dialogOpen }
-    case 'SET_OT_OPTIONS':
-      return { ...state, otOptions: action.payload }
     case 'CHANGE_WEEK':
       return { ...state, currentWeekStart: addWeeks(state.currentWeekStart, action.payload) }
     case 'SET_TOGGLE_VALUE':
@@ -112,7 +138,6 @@ const DataGridCargaDeHoras = () => {
     fetchWeekHoursByType,
     createWeekHoursByType,
     updateWeekHoursByType,
-    fetchSolicitudes,
     authUser,
     fetchUserList,
     updateWeekHoursWithPlant,
@@ -120,13 +145,8 @@ const DataGridCargaDeHoras = () => {
   } = useFirebase()
 
   useEffect(() => {
-    const fetchOtOptions = async () => {
-      const otData = await fetchSolicitudes(authUser)
-      dispatch({ type: 'SET_OT_OPTIONS', payload: otData })
-    }
     if (authUser) {
       dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de usuario
-      fetchOtOptions()
     }
   }, [authUser])
 
@@ -592,7 +612,6 @@ const DataGridCargaDeHoras = () => {
           onClose={() => dispatch({ type: 'TOGGLE_DIALOG' })}
           onSubmit={handleCreateNewRow}
           authUser={authUser}
-          otOptions={state.otOptions}
           rows={state.weekHours}
           weekStart={state.currentWeekStart}
         />
