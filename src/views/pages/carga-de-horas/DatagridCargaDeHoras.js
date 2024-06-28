@@ -17,7 +17,7 @@ import WarningDialog from 'src/@core/components/dialog-warningSaveChanges/index.
 import MaxHoursDialog from 'src/@core/components/dialog-excessDailyHours/index.js'
 
 // Función para calcular el número de semana ajustado con el inicio de semana en martes
-const currentWeekNumber = date => {
+/* const currentWeekNumber = date => {
   // Crea una fecha para el 1 de enero del año actual
   const startOfYear = new Date(date.getFullYear(), 0, 1)
 
@@ -60,12 +60,14 @@ const currentWeekNumber = date => {
 
   // Retorna el número de la semana
   return weekNumber
-}
+} */
+
+const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
 
 const initialState = {
-  currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 2 }),
+  currentWeekStart: currentWeekStart,
   currentWeekEnd: endOfWeek(new Date(), { weekStartsOn: 2 }),
-  currentWeekNumber: currentWeekNumber(new Date()),
+  currentWeekNumber: getWeek(currentWeekStart),
   weekHours: [],
   changes: [],
   showWarningDialog: false,
@@ -105,11 +107,13 @@ function reducer(state, action) {
         lunes: 0
       }
 
+      const currentWeekStart = newStart
+
       return {
         ...state,
-        currentWeekStart: newStart,
+        currentWeekStart: currentWeekStart,
         currentWeekEnd: endOfWeek(newStart, { weekStartsOn: 2 }),
-        currentWeekNumber: currentWeekNumber(newStart),
+        currentWeekNumber: getWeek(currentWeekStart),
         dailyTotals: resetDailyTotals
       }
     case 'UPDATE_DAILY_TOTALS':
