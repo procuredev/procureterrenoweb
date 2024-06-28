@@ -43,25 +43,25 @@ const generateFilterConfig = authUser => {
     },
     inReviewByMEL: {
       label: 'En revisión por MEL',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'Estado',
       filterFunction: doc => doc.state === 2
     },
     inReviewByProcure: {
       label: 'En revisión por Procure',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'Estado',
       filterFunction: doc => doc.state === 5
     },
     approvedByMEL: {
       label: 'Aprobadas por MEL',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'Estado',
       filterFunction: doc => doc.state === 5
     },
     approvedByProcure: {
       label: 'Aprobadas por Procure',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'Estado',
       filterFunction: doc => doc.state >= 6 && doc.state < 10
     },
@@ -73,25 +73,25 @@ const generateFilterConfig = authUser => {
     },
     withOT: {
       label: 'Tiene OT',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'OT',
       filterFunction: doc => doc.hasOwnProperty('ot')
     },
     withoutOT: {
       label: 'Sin OT',
-      canSee: [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'OT',
       filterFunction: doc => !doc.hasOwnProperty('ot')
     },
     shiftA: {
       label: [5, 6, 7, 8, 9, 10].includes(authUser.role) ? 'Turno A' : 'Turno P',
-      canSee: [1, 2, 3, 4, 5, 6, 9, 10, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'Turno',
       filterFunction: doc => otherWeek(doc.start.seconds)
     },
     shiftB: {
       label: [5, 6, 7, 8, 9, 10].includes(authUser.role) ? 'Turno B' : 'Turno Q',
-      canSee: [1, 2, 3, 4, 5, 6, 9, 10, 11],
+      canSee: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       type: 'Turno',
       filterFunction: doc => !otherWeek(doc.start.seconds)
     },
