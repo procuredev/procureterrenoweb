@@ -5,24 +5,46 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Select,
-  MenuItem,
-  InputLabel,
   FormControl,
   Box,
-  OutlinedInput,
-  Typography
+  Typography,
+  Autocomplete,
+  TextField,
+  CircularProgress
 } from '@mui/material'
-import { format, getISOWeek, isFuture } from 'date-fns'
+import { useFirebase } from 'src/context/useFirebase'
+import { getISOWeek, isFuture } from 'date-fns'
 import { CustomSelectOptions } from 'src/@core/components/custom-form/index'
 
-const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows, weekStart }) => {
+const DialogCreateHours = ({ open, onClose, onSubmit, authUser, rows, weekStart }) => {
   const [hoursType, setHoursType] = useState('')
   const [otType, setOtType] = useState('')
   const [otNumber, setOtNumber] = useState('')
   const [selectedOT, setSelectedOT] = useState({})
   const [filteredOtOptions, setFilteredOtOptions] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
+  const [otOptions, setOtOptions] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const { fetchSolicitudes } = useFirebase()
+
+  useEffect(() => {
+    if (otType && authUser) {
+      const fetchOptions = async () => {
+        try {
+          setLoading(true)
+          const options = await fetchSolicitudes(authUser, otType)
+          setOtOptions(options)
+        } catch (error) {
+          console.error('Error fetching solicitudes: ', error)
+          setOtOptions([])
+        } finally {
+          setLoading(false)
+        }
+      }
+      fetchOptions()
+    }
+  }, [otType, authUser, fetchSolicitudes])
 
   // Obtiene los tipos de horas existentes en las filas
   const existingHoursTypes = rows.map(row => row.hoursType.toUpperCase())
@@ -31,7 +53,7 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
   const getFilteredHoursTypeOptions = () => {
     const options = ['ISC', 'Vacaciones', 'OT']
 
-    if (authUser.role !== 5 && authUser.role !== 10 && isFuture(weekStart)) {
+    if (authUser.role !== 1 && authUser.role !== 5 && authUser.role !== 10 && isFuture(weekStart)) {
       return ['Vacaciones']
     }
 
@@ -40,6 +62,11 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
 
   const generateRowId = (uid, weekNumber, index) => {
     return `${uid}_${weekNumber}_${new Date().getTime()}`
+  }
+
+  const handleOtTypeChange = event => {
+    setOtType(event.target.value)
+    setOtNumber('')
   }
 
   const handleFormSubmit = () => {
@@ -67,11 +94,10 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
     }
   }
 
-  const handleOTNumberChange = event => {
-    const otNumber = event.target.value
-    const otDetails = otOptions.find(option => option.ot === otNumber)
+  const handleOTNumberChange = (event, newValue) => {
+    const otDetails = otOptions.find(option => option.ot === newValue)
     setSelectedOT(otDetails || {})
-    setOtNumber(otNumber)
+    setOtNumber(newValue)
   }
 
   // Filtrar las opciones de otNumber basadas en la selección de otType
@@ -106,27 +132,25 @@ const DialogCreateHours = ({ open, onClose, onSubmit, authUser, otOptions, rows,
               options={['Gabinete', 'Levantamiento']}
               label='Tipo OT'
               value={otType}
-              onChange={e => setOtType(e.target.value)}
+              onChange={handleOtTypeChange}
             />
 
-            <FormControl fullWidth margin='normal' sx={{ '& .MuiInputBase-root ': { width: '100%' } }}>
-              <InputLabel id='otNumber-label'>Número OT</InputLabel>
-              <Box width={'100%'}>
-                <Select
-                  labelId='otNumber-label'
-                  id='otNumber-select'
-                  value={otNumber}
-                  onChange={handleOTNumberChange}
-                  input={<OutlinedInput label={'Número OT'} />}
-                >
-                  {filteredOtOptions.map(option => (
-                    <MenuItem key={`otNumber-${option.ot}`} value={option.ot}>
-                      {option.ot}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
-            </FormControl>
+            {loading ? (
+              <CircularProgress />
+            ) : (
+              <FormControl fullWidth margin='normal' sx={{ '& .MuiInputBase-root ': { width: '100%' } }}>
+                <Box width={'100%'}>
+                  <Autocomplete
+                    id='otNumber-autocomplete'
+                    options={filteredOtOptions.map(option => option.ot)}
+                    value={otNumber}
+                    onChange={handleOTNumberChange}
+                    getOptionLabel={option => option.toString()}
+                    renderInput={params => <TextField {...params} label='Número OT' variant='outlined' />}
+                  />
+                </Box>
+              </FormControl>
+            )}
           </Box>
         )}
         {errorMessage && (

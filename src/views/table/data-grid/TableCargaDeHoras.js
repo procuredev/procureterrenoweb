@@ -1,9 +1,8 @@
-import { Box, Button, FormControl, Typography } from '@mui/material'
+import { Box, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
 import { DataGridPremium, GRID_AGGREGATION_FUNCTIONS, useGridApiRef } from '@mui/x-data-grid-premium'
-import { addDays, format, isSameDay, isToday, startOfWeek, subDays } from 'date-fns'
+import { addDays, format, isSameDay, isToday, startOfWeek, subDays, startOfDay, endOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useEffect, useRef, useState } from 'react'
-import NumberInputBasic from 'src/@core/components/custom-number_input/index'
+import { useEffect, useState } from 'react'
 import AssignPlantDialog from 'src/@core/components/dialog-assignPlantToHH/index.js'
 // import { Unstable_NumberInput as NumberInput } from '@mui/base/Unstable_NumberInput'
 
@@ -23,96 +22,34 @@ const TableCargaDeHoras = ({
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedDayDocIds, setSelectedDayDocIds] = useState([])
   const [currentRow, setCurrentRow] = useState({})
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
+  const [warningDialogOpen, setWarningDialogOpen] = useState(false)
+  const [warningMessage, setWarningMessage] = useState('')
   const apiRef = useGridApiRef()
 
-  const validationRegex = /^[0-9]*$/
-
-  const NumericInputCell = ({ value, onCommit, rowId, field, dayDocId, rowData, dayTimestamp }) => {
-    const [inputValue, setInputValue] = useState(value || 0)
-    const inputRef = useRef(inputValue)
-
-    const maxInput = 12 - (dailyTotals[field] - (value || 0))
-    const safeValue = value !== undefined && !isNaN(value) ? value : 0
-
-    useEffect(() => {
-      inputRef.current = inputValue
-    }, [inputValue])
-
-    const handleChange = val => {
-      // Verificar que val sea un número
-      const numericValue = parseFloat(val)
-      if (!isNaN(numericValue)) {
-        const newVal = Math.min(numericValue, maxInput)
-        const args = [rowId, field, newVal, rowData, dayTimestamp]
-        if (dayDocId) {
-          args.push(dayDocId)
-        }
-        onCommit(...args)
-      }
-    }
-
-    const handleBlur = () => {
-      const newValue = Math.min(inputRef.current, maxInput)
-      console.log('handleBlur inputValue (from ref):', inputRef.current)
-      const args = [rowId, field, newValue, rowData, dayTimestamp]
-      if (dayDocId) {
-        args.push(dayDocId)
-      }
-      onCommit(...args)
-    }
-
-    return (
-      <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-        <NumberInputBasic
-          value={safeValue}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          min={0}
-          max={maxInput}
-          disabled={!isEditable(dayTimestamp, rowData)}
-        />
-      </FormControl>
-    )
+  const handleWarningDialogClose = () => {
+    setWarningDialogOpen(false)
   }
 
   const isEditable = (dayTimestamp, rowData) => {
-    const today = new Date()
-    const yesterday = subDays(today, 1)
+    const today = startOfDay(new Date())
+    const yesterday = startOfDay(subDays(today, 1))
     const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 2 })
-    const endOfCurrentWeek = addDays(startOfCurrentWeek, 6)
-    const weekOfDay = startOfWeek(dayTimestamp, { weekStartsOn: 2 })
-    const isCurrentWeek = dayTimestamp >= startOfCurrentWeek && dayTimestamp <= endOfCurrentWeek
+    const endOfCurrentWeek = endOfDay(addDays(startOfCurrentWeek, 6))
+    const isCurrentWeek = dayTimestamp >= startOfCurrentWeek.getTime() && dayTimestamp <= endOfCurrentWeek.getTime()
 
-    if (authUser.role === 5 || authUser.role === 10) {
-      // Usuarios con roles 5 o 10 pueden editar días actuales y pasados, pero no futuros
-      return dayTimestamp <= today
+    if (authUser.role === 1 || authUser.role === 5 || authUser.role === 10) {
+      // Usuarios con roles 1, 5 o 10 pueden editar cualquier día, sin restricción
+      return true
     } else {
       // Usuarios con otros roles pueden editar días posteriores al actual solo si son vacaciones
-      if (rowData.hoursType === 'Vacaciones' && dayTimestamp > today) {
-        return true
+      if (rowData.hoursType === 'Vacaciones') {
+        return isCurrentWeek || dayTimestamp > endOfCurrentWeek.getTime()
       }
 
       // Usuarios con otros roles solo pueden editar día actual o previo en la semana actual
 
       return isCurrentWeek && (isToday(dayTimestamp) || isSameDay(dayTimestamp, yesterday))
     }
-  }
-
-  const sumAggregation = {
-    apply: ({ values, column }) => {
-      console.log(`Applying aggregation for column: ${column.field}`)
-      if (column.field in state.dailyTotals) {
-        console.log(`Using dailyTotals for ${column.field}: ${state.dailyTotals[column.field]}`)
-
-        return state.dailyTotals[column.field]
-      }
-      console.log(`Calculating sum for ${column.field}`)
-
-      return values.reduce((sum, value) => sum + (value || 0), 0)
-    },
-    columnTypes: ['number'],
-    label: 'Sum'
   }
 
   const handleAssignPlantClick = row => {
@@ -135,10 +72,10 @@ const TableCargaDeHoras = ({
 
     const result = await updateWeekHoursWithPlant(userId, selectedDayDocIds, plant, costCenter)
     if (result.success) {
-      console.log('Plant and cost center assigned successfully')
+      console.log('Planta y centro de costos asignados exitosamente')
       reloadTable()
     } else {
-      console.error('Error assigning plant and cost center:', result.error)
+      console.error('Error al asignar planta y centro de costos:', result.error)
     }
   }
 
@@ -180,7 +117,7 @@ const TableCargaDeHoras = ({
         localStorage.setItem('plantCargaDeHorasWidthColumn', params.colDef.computedWidth)
 
         if (
-          (authUser.role === 5 || authUser.role === 10) &&
+          (authUser.role === 1 || authUser.role === 5 || authUser.role === 10) &&
           (params.row.hoursType === 'Vacaciones' || params.row.hoursType === 'ISC')
         ) {
           return (
@@ -210,7 +147,6 @@ const TableCargaDeHoras = ({
     ...Array.from({ length: 7 }).map((_, index) => {
       const day = addDays(state.currentWeekStart, index)
       const dayKey = format(day, 'eeee', { locale: es }).toLowerCase()
-      const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
 
       return {
         field: dayKey,
@@ -219,51 +155,58 @@ const TableCargaDeHoras = ({
         width: 130,
         maxWidth: 130,
         sortable: false,
-        renderFooter: () => <Box textAlign='center'>{state.dailyTotals[dayKey]} hrs</Box>,
-        editable: params => isEditable(dayTimestamp, params.row),
+        editable: true,
         aggregable: true,
-        aggregationFunction: 'sumAggregation',
-        valueFormatter: ({ value }) => value || 0,
+        valueFormatter: ({ value }) => {
+          return !isNaN(value) && value !== null ? value : ''
+        },
         headerAlign: 'left',
-        getCellClassName: params => (params.row.isTotalRow ? 'MuiDataGrid-cell--textLeft' : ''),
         align: 'left',
-        renderCell: params =>
-          params.row.isTotalRow ? (
-            <Typography ml={4}>{params.row[dayKey]}</Typography>
-          ) : (
-            <NumericInputCell
-              value={params.row[dayKey] !== undefined ? params.row[dayKey] : 0}
-              onCommit={handleCellEditCommit}
-              rowId={params.row.rowId}
-              field={dayKey}
-              dayDocId={params.row[`${dayKey}DocId`]}
-              rowData={params.row}
-              dayTimestamp={dayTimestamp}
-            />
-          )
+        type: 'number',
+        aggregationFunction: 'sumAggregation',
+        cellClassName: params => {
+          const day = addDays(state.currentWeekStart, index)
+          const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
+          if (params.rowNode.id !== 'auto-generated-group-footer-root') {
+            return isEditable(dayTimestamp, params.row) ? 'editable-cellModification' : ''
+          }
+        }
       }
     }),
     {
       field: 'totalRowHours',
       headerName: 'Total Horas',
       sortable: false,
+      align: 'left',
       width: totalRowHoursLocalWidth ? totalRowHoursLocalWidth : 130,
-      renderFooter: () => (
-        <Box textAlign='center'>{rows.reduce((acc, row) => acc + (row.totalRowHours || 0), 0)} hrs</Box>
-      ),
-      renderCell: params => {
-        localStorage.setItem('totalRowHoursCargaDeHorasWidthColumn', params.colDef.computedWidth)
-
-        return <span>{params.row.totalRowHours || 0}</span>
-      }
+      aggregable: true,
+      type: 'number',
+      aggregationFunction: 'sumAggregation',
+      value: params => params.row.totalRowHours
     }
   ]
+
+  const handleKeyDown = event => {
+    const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete']
+    const input = event.target
+
+    if (allowedKeys.includes(event.key) || (event.key >= '0' && event.key <= '9')) {
+      if (input && input.value?.length >= 2 && !allowedKeys.includes(event.key)) {
+        event.preventDefault()
+        setWarningMessage('El valor no puede tener más de 2 dígitos.')
+        setWarningDialogOpen(true)
+      }
+
+      return
+    }
+    event.preventDefault()
+    setWarningMessage('El valor debe ser un número.')
+    setWarningDialogOpen(true)
+  }
 
   const initialAggregationModel = columns.reduce((acc, col) => {
     if (col.aggregable) {
       acc[col.field] = 'sum'
-      // Forzar el valor inicial de dailyTotals en el modelo de agregación
-      state.dailyTotals[col.field] = state.dailyTotals[col.field] || 0
     }
 
     return acc
@@ -275,33 +218,25 @@ const TableCargaDeHoras = ({
     setAggregationModel({ ...initialAggregationModel })
   }, [rows])
 
-  const rowsWithStringId = rows.map(row => ({ ...row, rowId: String(row.rowId) }))
-
-  const aggregatedRow = {
-    rowId: 'totalRow',
-    otNumber: 'Total',
-    otType: '',
-    plant: '',
-    isTotalRow: true,
-    totalRowHours: rows.reduce((acc, row) => acc + (row.totalRowHours || 0), 0),
-    ...Object.keys(state.dailyTotals).reduce((acc, key) => {
-      acc[key] = state.dailyTotals[key] || 0
-
-      return acc
-    }, {})
+  const sumAggregation = {
+    apply: ({ values }) => {
+      return values.reduce((sum, value) => sum + (value ?? 0), 0)
+    },
+    columnTypes: ['number'],
+    label: 'Sum'
   }
 
-  const fusionRows = [...rowsWithStringId, aggregatedRow]
+  // Ordenar las filas por rowId
+  const rowsWithStringId = rows.map(row => ({ ...row, rowId: String(row.rowId) }))
 
-  const validatedRows = fusionRows.map(row => ({
-    ...row,
-    rowId: row.rowId || 'invalid-row-id',
-    totalRowHours: row.totalRowHours || 0,
-    hoursType: row.hoursType || ''
-  }))
+  const sortByRowId = (a, b) => {
+    if (a.rowId < b.rowId) return -1
+    if (a.rowId > b.rowId) return 1
 
-  const getRowClassName = params => (params.row.isTotalRow ? 'total-row' : '')
-  const isRowSelectable = params => !params.row.isTotalRow
+    return 0
+  }
+
+  const sortedRows = rowsWithStringId.sort(sortByRowId)
 
   return (
     <Box style={{ height: 400, width: '100%' }}>
@@ -313,10 +248,10 @@ const TableCargaDeHoras = ({
             align: 'left'
           }
         }}
-        rows={validatedRows}
+        rows={sortedRows}
         columns={columns}
         columnVisibilityModel={{
-          costCenter: authUser.role === 5 || authUser.role === 10
+          costCenter: authUser.role === 1 || authUser.role === 5 || authUser.role === 10
         }}
         pageSize={5}
         checkboxSelection
@@ -325,17 +260,92 @@ const TableCargaDeHoras = ({
         disableMultipleRowSelection
         disableRowSelectionOnClick
         onCellEditCommit={handleCellEditCommit}
+        onCellEditStop={(params, event) => {
+          console.log('Cell edit stopped: ', params)
+        }}
+        processRowUpdate={(newRow, oldRow) => {
+          console.log('Row update:', newRow, oldRow)
+          const field = Object.keys(newRow).find(key => newRow[key] !== oldRow[key])
+          const dayIndex = ['martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo', 'lunes'].indexOf(field)
+          const day = addDays(state.currentWeekStart, dayIndex)
+          const dayTimestamp = new Date(day).setHours(0, 0, 0, 0)
+          if (!isEditable(dayTimestamp, newRow)) {
+            return oldRow
+          }
+
+          try {
+            const field = Object.keys(newRow).find(key => newRow[key] !== oldRow[key])
+            const newValue = parseFloat(newRow[field])
+
+            if (newValue > 12 || newValue < 0) {
+              setWarningMessage('El valor debe estar entre 0 y 12.')
+              setWarningDialogOpen(true)
+
+              return oldRow
+            }
+
+            if (isNaN(newValue)) {
+              event.preventDefault()
+            }
+
+            // Recalcular totalRowHours
+            const updatedTotalRowHours = Object.keys(newRow).reduce((acc, key) => {
+              if (['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'].includes(key)) {
+                return acc + (parseFloat(newRow[key]) || 0)
+              }
+
+              return acc
+            }, 0)
+
+            // Actualizar newRow con el nuevo totalRowHours
+            newRow.totalRowHours = updatedTotalRowHours
+
+            if (!isNaN(newValue) && newValue >= 0 && newValue <= 12) {
+              handleCellEditCommit(newRow.rowId, field, newValue, newRow, dayTimestamp, newRow[field + 'DocId'])
+            }
+
+            return newRow
+          } catch (error) {
+            console.error('Error during row update:', error)
+
+            return oldRow
+          }
+        }}
+        onProcessRowUpdateError={error => {
+          console.error('Error in processRowUpdate:', error)
+        }}
         getRowId={row => row.rowId}
+        disableColumnMenu={true}
+        hideFooter={true}
         aggregationFunctions={{
           ...GRID_AGGREGATION_FUNCTIONS,
           sumAggregation
         }}
         aggregationModel={aggregationModel}
+        onCellClick={(params, event) => {
+          const nonEditableFields = ['__check__', 'otNumber', 'otType', 'plant', 'costCenter', 'totalRowHours']
+          if (params.rowNode.id !== 'auto-generated-group-footer-root' && !nonEditableFields.includes(params.field)) {
+            const cellMode = apiRef.current.getCellMode(params.id, params.field)
+            if (cellMode === 'view') {
+              apiRef.current.startCellEditMode({
+                id: params.id,
+                field: params.field
+              })
+            }
+          }
+        }}
         onAggregationModelChange={newModel => setAggregationModel(newModel)}
-        getRowClassName={getRowClassName}
-        isRowSelectable={isRowSelectable}
-        disableColumnMenu={true}
-        hideFooter={true}
+        sortModel={[
+          {
+            field: 'rowId',
+            sort: 'asc'
+          }
+        ]}
+        componentsProps={{
+          cell: {
+            onKeyDown: handleKeyDown
+          }
+        }}
       />
       <AssignPlantDialog
         open={assignDialogOpen}
@@ -345,13 +355,20 @@ const TableCargaDeHoras = ({
         onAssign={handleAssignPlant}
         row={currentRow}
       />
+      <Dialog open={warningDialogOpen} onClose={handleWarningDialogClose}>
+        <DialogTitle>Advertencia</DialogTitle>
+        <DialogContent>{warningMessage}</DialogContent>
+        <DialogActions>
+          <Button onClick={handleWarningDialogClose}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
       <style>
         {`
-          .total-row .MuiDataGrid-checkboxInput {
+          .MuiDataGrid-aggregationColumnHeaderLabel {
             display: none;
           }
-          .MuiDataGrid-cell--textLeft {
-            text-align: left !important;
+          .MuiDataGrid-columnHeaderCheckbox {
+            visibility: hidden;
           }
         `}
       </style>

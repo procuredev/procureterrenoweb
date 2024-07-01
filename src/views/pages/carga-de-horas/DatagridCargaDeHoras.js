@@ -1,23 +1,12 @@
 // ** React Imports
-import React, { useReducer, useEffect, useState, useCallback } from 'react'
-import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays, isSameWeek } from 'date-fns'
+import React, { useReducer, useEffect, useState } from 'react'
+import { getWeek, startOfWeek, endOfWeek, addWeeks, format, addDays, isSameWeek, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports
-import {
-  Box,
-  Button,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
-  TextField,
-  CircularProgress
-} from '@mui/material'
+import { Box, Button, Typography, FormControl, Autocomplete, TextField, CircularProgress } from '@mui/material'
 import { Switch } from '@mui/base/Switch'
 
 // ** Custom Components Imports
@@ -25,16 +14,19 @@ import TableCargaDeHoras from 'src/views/table/data-grid/TableCargaDeHoras.js'
 import DialogCreateHours from 'src/@core/components/DialogCreateHours/index.js'
 import ConfirmDeleteDialog from 'src/@core/components/dialog-confirmDeleteRowHH/index.js'
 import WarningDialog from 'src/@core/components/dialog-warningSaveChanges/index.js'
+import MaxHoursDialog from 'src/@core/components/dialog-excessDailyHours/index.js'
+
+const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 2 })
 
 const initialState = {
-  currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 2 }),
+  currentWeekStart: currentWeekStart,
   currentWeekEnd: endOfWeek(new Date(), { weekStartsOn: 2 }),
-  currentWeekNumber: getWeek(new Date(), { weekStartsOn: 2 }),
+  currentWeekNumber: getWeek(currentWeekStart),
   weekHours: [],
   changes: [],
   showWarningDialog: false,
+  showMaxHoursDialog: false,
   previousSwitchState: null,
-  otOptions: [],
   existingOTs: [],
   dialogOpen: false,
   selectedRow: null,
@@ -69,11 +61,13 @@ function reducer(state, action) {
         lunes: 0
       }
 
+      const currentWeekStart = newStart
+
       return {
         ...state,
-        currentWeekStart: newStart,
+        currentWeekStart: currentWeekStart,
         currentWeekEnd: endOfWeek(newStart, { weekStartsOn: 2 }),
-        currentWeekNumber: getWeek(newStart, { weekStartsOn: 2 }),
+        currentWeekNumber: getWeek(currentWeekStart),
         dailyTotals: resetDailyTotals
       }
     case 'UPDATE_DAILY_TOTALS':
@@ -91,8 +85,6 @@ function reducer(state, action) {
       return { ...state, changes: [] }
     case 'TOGGLE_DIALOG':
       return { ...state, dialogOpen: !state.dialogOpen }
-    case 'SET_OT_OPTIONS':
-      return { ...state, otOptions: action.payload }
     case 'CHANGE_WEEK':
       return { ...state, currentWeekStart: addWeeks(state.currentWeekStart, action.payload) }
     case 'SET_TOGGLE_VALUE':
@@ -103,6 +95,8 @@ function reducer(state, action) {
       return { ...state, userList: action.payload }
     case 'TOGGLE_WARNING_DIALOG':
       return { ...state, showWarningDialog: action.payload }
+    case 'TOGGLE_MAXHOURS_DIALOG':
+      return { ...state, showMaxHoursDialog: action.payload }
     case 'SET_PREVIOUS_SWITCH_STATE':
       return { ...state, previousSwitchState: action.payload }
     default:
@@ -119,8 +113,6 @@ const DataGridCargaDeHoras = () => {
     fetchWeekHoursByType,
     createWeekHoursByType,
     updateWeekHoursByType,
-    fetchSolicitudes,
-    loadWeekData,
     authUser,
     fetchUserList,
     updateWeekHoursWithPlant,
@@ -128,13 +120,8 @@ const DataGridCargaDeHoras = () => {
   } = useFirebase()
 
   useEffect(() => {
-    const fetchOtOptions = async () => {
-      const otData = await fetchSolicitudes(authUser)
-      dispatch({ type: 'SET_OT_OPTIONS', payload: otData })
-    }
     if (authUser) {
       dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de usuario
-      fetchOtOptions()
     }
   }, [authUser])
 
@@ -163,7 +150,7 @@ const DataGridCargaDeHoras = () => {
       dispatch({ type: 'SET_USER_LIST', payload: userList })
     }
 
-    if (authUser && (authUser.role === 5 || authUser.role === 10)) {
+    if (authUser && (authUser.role === 1 || authUser.role === 5 || authUser.role === 10)) {
       loadUserList()
     }
   }, [authUser, fetchUserList])
@@ -200,10 +187,12 @@ const DataGridCargaDeHoras = () => {
   // Funciones para manejar los botones de cambio de semana
   const handlePreviousWeek = () => {
     dispatch({ type: 'CHANGE_WEEK', payload: -1 })
+    dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de semana
   }
 
   const handleNextWeek = () => {
     dispatch({ type: 'CHANGE_WEEK', payload: 1 })
+    dispatch({ type: 'CLEAR_CHANGES' }) // Limpia los cambios al cambiar de semana
   }
 
   const handleSelectionChange = selectionModel => {
@@ -263,11 +252,11 @@ const DataGridCargaDeHoras = () => {
     if (rowIndex === -1) return
 
     const oldRowValue = state.weekHours[rowIndex][field] || 0
-    const newRowValue = newValue
+    let newRowValue = newValue
     const newTotalDayHours = state.dailyTotals[field] - oldRowValue + newRowValue
 
     if (newTotalDayHours > 12) {
-      alert('No se pueden exceder 12 horas por día.')
+      dispatch({ type: 'TOGGLE_MAXHOURS_DIALOG', payload: true })
 
       return
     }
@@ -292,6 +281,10 @@ const DataGridCargaDeHoras = () => {
     dispatch({ type: 'SET_WEEK_HOURS', payload: updatedWeekHours })
     dispatch({ type: 'UPDATE_DAILY_TOTALS', payload: updatedDailyTotals })
 
+    // Determina si la semana es par o impar desde el comienzo del año
+    const weekNumber = getWeek(state.currentWeekStart, { weekStartsOn: 2 })
+    const shift = weekNumber % 2 === 0 ? 'B' : 'A'
+
     // Prepara el cambio con datos adicionales dependiendo si isNew es true
     const change = {
       rowId,
@@ -301,6 +294,7 @@ const DataGridCargaDeHoras = () => {
       day: dayTimestamp,
       userRole: authUser.role,
       userShift: authUser.shift,
+      shift: shift,
       hoursType: rowData.hoursType,
       ...(dayDocId && { dayDocId }),
       ...(rowData.plant && { plant: rowData.plant }),
@@ -391,6 +385,10 @@ const DataGridCargaDeHoras = () => {
     dispatch({ type: 'TOGGLE_WARNING_DIALOG', payload: false })
   }
 
+  const handleCloseMaxHoursDialog = () => {
+    dispatch({ type: 'TOGGLE_MAXHOURS_DIALOG', payload: false })
+  }
+
   // Función para inicializar los días de la semana para un nuevo registro
   const initializeWeekDays = newRow => {
     const days = {}
@@ -471,7 +469,7 @@ const DataGridCargaDeHoras = () => {
     return Object.values(rowsById)
   }
 
-  const isUserChangeAllowed = authUser.role === 5 || authUser.role === 10
+  const isUserChangeAllowed = authUser.role === 1 || authUser.role === 5 || authUser.role === 10
 
   function checkIfSameWeek(dateToCheck) {
     const now = new Date()
@@ -493,8 +491,8 @@ const DataGridCargaDeHoras = () => {
     return 0
   }
 
+  console.log('state.changes: ', state.changes)
   console.log('state: ', state)
-  console.log('state.dailyTotals: ', state.dailyTotals)
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -526,17 +524,33 @@ const DataGridCargaDeHoras = () => {
           )}
         </Box>
       )}
-      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={isButtonDisabled}>
+      <Button onClick={() => dispatch({ type: 'TOGGLE_DIALOG' })} disabled={isButtonDisabled} sx={{ mr: 2 }}>
         Nuevo Ingreso
       </Button>
-      <Button variant='contained' color='primary' onClick={handleUpdateTable} disabled={state.changes.length === 0}>
+      <Button
+        variant='contained'
+        color='primary'
+        onClick={handleUpdateTable}
+        disabled={state.changes.length === 0}
+        sx={{ mr: 2 }}
+      >
         Guardar Datos
       </Button>
-      <Button onClick={handleOpenConfirmDelete} disabled={!state.selectedRow} variant='contained' color='error'>
+      <Button
+        onClick={handleOpenConfirmDelete}
+        disabled={!state.selectedRow}
+        variant='contained'
+        color='error'
+        sx={{ mr: 2 }}
+      >
         Eliminar Fila
       </Button>
-      <Button onClick={handlePreviousWeek}>Semana Anterior</Button>
-      <Button onClick={handleNextWeek}>Semana Siguiente</Button>
+      <Button onClick={handlePreviousWeek} sx={{ mr: 2 }}>
+        Semana Anterior
+      </Button>
+      <Button onClick={handleNextWeek} sx={{ mr: 2 }}>
+        Semana Siguiente
+      </Button>
       {loading && (
         <Box
           sx={{
@@ -573,7 +587,6 @@ const DataGridCargaDeHoras = () => {
           onClose={() => dispatch({ type: 'TOGGLE_DIALOG' })}
           onSubmit={handleCreateNewRow}
           authUser={authUser}
-          otOptions={state.otOptions}
           rows={state.weekHours}
           weekStart={state.currentWeekStart}
         />
@@ -588,6 +601,7 @@ const DataGridCargaDeHoras = () => {
         onClose={handleCloseWarningDialog}
         onConfirm={handleConfirmWarningDialog}
       />
+      <MaxHoursDialog open={state.showMaxHoursDialog} onClose={handleCloseMaxHoursDialog} />
     </Box>
   )
 }
