@@ -14,8 +14,8 @@ import {
   runTransaction,
   setDoc,
   updateDoc,
-  writeBatch,
-  where
+  where,
+  writeBatch
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
@@ -1225,7 +1225,7 @@ const createWeekHoursByType = async (userParams, creations) => {
           role: change.userRole,
           shift: change.userShift
         },
-        shift: change.shift,
+        //shift: change.shift,
         rowId: change.rowId,
         column: change.field,
         ...(change.hoursType === 'OT'
