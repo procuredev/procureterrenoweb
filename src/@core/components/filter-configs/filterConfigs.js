@@ -65,6 +65,24 @@ const generateFilterConfig = authUser => {
       type: 'Estado',
       filterFunction: doc => doc.state >= 6 && doc.state < 10
     },
+    scheduled: {
+      label: 'Agendadas',
+      canSee: [1, 5, 6, 7, 8, 9, 10, 11, 12],
+      type: 'Estado',
+      filterFunction: doc => doc.state === 6
+    },
+    countryWorkInProcess: {
+      label: 'En Levantamiento',
+      canSee: [1, 5, 6, 7, 8, 9, 10, 11, 12],
+      type: 'Estado',
+      filterFunction: doc => doc.state === 7
+    },
+    drawInProcess: {
+      label: 'En Confección de Entregables',
+      canSee: [1, 5, 6, 7, 8, 9, 10, 11, 12],
+      type: 'Estado',
+      filterFunction: doc => doc.state === 8
+    },
     myRequests: {
       label: 'Mis solicitudes',
       canSee: [1, 2, 3],
