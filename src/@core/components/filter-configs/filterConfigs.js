@@ -78,7 +78,7 @@ const generateFilterConfig = authUser => {
       filterFunction: doc => doc.state === 7
     },
     drawInProcess: {
-      label: 'En Confección de Entregables',
+      label: 'Levantamiento Finalizado',
       canSee: [1, 5, 6, 7, 8, 9, 10, 11, 12],
       type: 'Estado',
       filterFunction: doc => doc.state === 8
