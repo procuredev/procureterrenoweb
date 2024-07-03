@@ -561,6 +561,7 @@ const calculateDaysToDeadline = deadlineTimestamp => {
   return diffDays
 }
 
+// Función que actualiza para c/u de las solicitudes los días faltantes para la fecha límite (entrega de Gabinete)
 exports.updateDaysToDeadlineOnSchedule = functions.pubsub
   .schedule('every day 00:00')
   .timeZone('Chile/Continental')
@@ -577,25 +578,29 @@ exports.updateDaysToDeadlineOnSchedule = functions.pubsub
 
       if (data.deadline) {
         deadlineTimestamp = data.deadline.seconds
-      } else {
-        // Si 'deadline' no existe, se establece a 21 días después de 'start'
-        // Convierte la marca de tiempo Unix 'data.start.seconds' a un objeto 'Date' de JavaScript
-        const startDate = new Date(data.start.seconds * 1000)
-        const deadlineDate = new Date(startDate)
-        deadlineDate.setDate(startDate.getDate() + 21)
-        // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
-        deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
-        // Preparar para actualizar el documento con el nuevo 'deadline'
-        updatePromises.push(
-          docSnapshot.ref.update({
-            deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
-          })
-        )
+        const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
+        // Preparar para actualizar el documento con los días hasta la fecha límite
+        updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
       }
 
-      const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
-      // Preparar para actualizar el documento con los días hasta la fecha límite
-      updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
+      // } else {
+      //   // Si 'deadline' no existe, se establece a 21 días después de 'start'
+      //   // Convierte la marca de tiempo Unix 'data.start.seconds' a un objeto 'Date' de JavaScript
+      //   const startDate = new Date(data.start.seconds * 1000)
+      //   const deadlineDate = new Date(startDate)
+      //   deadlineDate.setDate(startDate.getDate() + 21)
+      //   // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
+      //   deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
+      //   // Preparar para actualizar el documento con el nuevo 'deadline'
+      //   updatePromises.push(
+      //     docSnapshot.ref.update({
+      //       deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
+      //     })
+      //   )
+      // }
+
+
+
     })
 
     // Espera a que todas las operaciones de actualización se completen
