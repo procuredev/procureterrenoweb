@@ -1,5 +1,5 @@
 // ** React Imports
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useState } from 'react'
 
 // ** MUI Imports
 import EngineeringIcon from '@mui/icons-material/Engineering'
@@ -8,13 +8,9 @@ import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import Fade from '@mui/material/Fade'
-import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker'
 
 // ** Date Library
 //import moment from 'moment'
@@ -39,8 +35,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   const [loading, setLoading] = useState(false)
 
   const [uprisingTimeSelected, setUprisingTimeSelected] = useState({
-    start: null,
-    end: null,
+    // start: null,
+    // end: null,
     hours: 0,
     minutes: 0
   })
@@ -61,12 +57,23 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     setDraftmen(updatedDraftmen)
   }
 
+  const handleKeyDown = (event) => {
+    if (event.key === '.' || event.key === ',' || event.key === '-' || event.key === '+') {
+      event.preventDefault()
+    }
+  }
+
+  const handlePaste = (event) => {
+    event.preventDefault()
+    setError('No se permite pegar valores en este campo.')
+  }
+
   const handleInputChange = e => {
-    const inputValue = e.target.value
+    let inputValue = e.target.value
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
-    if (!isNaN(inputValue) && Number(inputValue) > 0) {
-      setUprisingTimeSelected(inputValue)
+    if (!isNaN(inputValue) && Number(inputValue) > 0 && !inputValue.startsWith('0')) {
+      setUprisingTimeSelected({hours: Number(inputValue), minutes: 0})
       setError('') // Limpia el mensaje de error si existe
     } else {
       setUprisingTimeSelected('')
@@ -75,9 +82,9 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   }
 
   const onSubmit = id => {
-    if (uprisingTimeSelected.uprisingInvestedHours.hours > 0) {
+    if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
-      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected.uprisingInvestedHours }, authUser)
+      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
@@ -116,74 +123,74 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     handleDateChange(date)
   }
 
-  useEffect(() => {
-    if (uprisingTimeSelected.start && uprisingTimeSelected.end) {
-      const workStartHour = 8 // Hora de inicio de la jornada laboral
-      const workEndHour = 20 // Hora de finalización de la jornada laboral
-      const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
+  // useEffect(() => {
+  //   if (uprisingTimeSelected.start && uprisingTimeSelected.end) {
+  //     const workStartHour = 8 // Hora de inicio de la jornada laboral
+  //     const workEndHour = 20 // Hora de finalización de la jornada laboral
+  //     const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
 
-      let startDate = uprisingTimeSelected.start.clone()
-      let endDate = uprisingTimeSelected.end.clone()
+  //     let startDate = uprisingTimeSelected.start.clone()
+  //     let endDate = uprisingTimeSelected.end.clone()
 
-      // Asegurarse de que las fechas estén dentro de las horas de trabajo
-      if (startDate.hour() < workStartHour) {
-        startDate.hour(workStartHour).minute(0).second(0).millisecond(0)
-      }
-      if (endDate.hour() > workEndHour) {
-        endDate.hour(workEndHour).minute(0).second(0).millisecond(0)
-      } else if (endDate.hour() < workStartHour) {
-        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0)
-      }
+  //     // Asegurarse de que las fechas estén dentro de las horas de trabajo
+  //     if (startDate.hour() < workStartHour) {
+  //       startDate.hour(workStartHour).minute(0).second(0).millisecond(0)
+  //     }
+  //     if (endDate.hour() > workEndHour) {
+  //       endDate.hour(workEndHour).minute(0).second(0).millisecond(0)
+  //     } else if (endDate.hour() < workStartHour) {
+  //       endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0)
+  //     }
 
-      let totalHoursWithinWorkingDays = 0
-      let totalMinutes = 0
+  //     let totalHoursWithinWorkingDays = 0
+  //     let totalMinutes = 0
 
-      while (startDate.isBefore(endDate)) {
-        const currentDayEnd = startDate.clone().hour(workEndHour)
+  //     while (startDate.isBefore(endDate)) {
+  //       const currentDayEnd = startDate.clone().hour(workEndHour)
 
-        if (currentDayEnd.isAfter(endDate)) {
-          const durationMillis = endDate.diff(startDate)
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000))
-        } else {
-          const durationMillis = currentDayEnd.diff(startDate)
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-        }
+  //       if (currentDayEnd.isAfter(endDate)) {
+  //         const durationMillis = endDate.diff(startDate)
+  //         totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
+  //         totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000))
+  //       } else {
+  //         const durationMillis = currentDayEnd.diff(startDate)
+  //         totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
+  //       }
 
-        startDate.add(1, 'day').hour(workStartHour)
-      }
+  //       startDate.add(1, 'day').hour(workStartHour)
+  //     }
 
-      if (totalMinutes >= 60) {
-        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60)
-        totalMinutes %= 60
-      }
+  //     if (totalMinutes >= 60) {
+  //       totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60)
+  //       totalMinutes %= 60
+  //     }
 
-      //console.log(totalHoursWithinWorkingDays, totalMinutes, 'RES')
+  //     //console.log(totalHoursWithinWorkingDays, totalMinutes, 'RES')
 
-      if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
-        setError('La hora de término debe ser superior a la hora de inicio.')
-        setIsSubmitDisabled(true)
+  //     if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
+  //       setError('La hora de término debe ser superior a la hora de inicio.')
+  //       setIsSubmitDisabled(true)
 
-        return
-      } else {
-        setError(null) // Para limpiar cualquier error previo.
-        setIsSubmitDisabled(false)
-      }
+  //       return
+  //     } else {
+  //       setError(null) // Para limpiar cualquier error previo.
+  //       setIsSubmitDisabled(false)
+  //     }
 
-      const startDateAsDate = uprisingTimeSelected.start.toDate()
-      const endDateAsDate = uprisingTimeSelected.end.toDate()
+  //     const startDateAsDate = uprisingTimeSelected.start.toDate()
+  //     const endDateAsDate = uprisingTimeSelected.end.toDate()
 
-      setUprisingTimeSelected(prevHours => ({
-        ...prevHours,
-        uprisingInvestedHours: {
-          hours: totalHoursWithinWorkingDays,
-          minutes: totalMinutes,
-          selectedStartDate: startDateAsDate,
-          selectedEndDate: endDateAsDate
-        }
-      }))
-    }
-  }, [uprisingTimeSelected.start, uprisingTimeSelected.end])
+  //     setUprisingTimeSelected(prevHours => ({
+  //       ...prevHours,
+  //       uprisingInvestedHours: {
+  //         hours: totalHoursWithinWorkingDays,
+  //         minutes: totalMinutes,
+  //         selectedStartDate: startDateAsDate,
+  //         selectedEndDate: endDateAsDate
+  //       }
+  //     }))
+  //   }
+  // }, [uprisingTimeSelected.start, uprisingTimeSelected.end])
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
@@ -215,7 +222,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           <CircularProgress />
         ) : (
           <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                 <LocalizationProvider
                   dateAdapter={AdapterMoment}
@@ -241,8 +248,8 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                   </Box>
                 </LocalizationProvider>
               </FormControl>
-            </Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+            </Box> */}
+            {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
               <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
                 <LocalizationProvider
                   dateAdapter={AdapterMoment}
@@ -268,28 +275,19 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                   </Box>
                 </LocalizationProvider>
               </FormControl>
-            </Box>
+            </Box> */}
             <TextField
               //id='outlined-basic'
               //label='Horas del Levantamiento'
-              disabled={true}
+              //disabled={true}
+              type='number'
               justifyContent='center'
-              value={
-                uprisingTimeSelected.start === null ||
-                uprisingTimeSelected.end === null ||
-                uprisingTimeSelected.start > uprisingTimeSelected.end
-                  ? '0 horas'
-                  : uprisingTimeSelected.uprisingInvestedHours && uprisingTimeSelected.uprisingInvestedHours.hours === 1
-                  ? `${
-                      uprisingTimeSelected.uprisingInvestedHours && uprisingTimeSelected.uprisingInvestedHours.hours
-                    } hora`
-                  : `${
-                      uprisingTimeSelected.uprisingInvestedHours && uprisingTimeSelected.uprisingInvestedHours.hours
-                    } horas`
-              }
-              //onChange={handleInputChange}
+              value={uprisingTimeSelected.hours}
               error={error !== ''}
               helperText={error}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
             />
           </Box>
         )}
@@ -297,7 +295,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
-            disabled={isSubmitDisabled}
+            disabled={isSubmitDisabled || error || uprisingTimeSelected.hours <= 0}
             onClick={() => onSubmit(doc.id)}
           >
             <EngineeringIcon sx={{ fontSize: 18 }} />
