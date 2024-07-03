@@ -1186,8 +1186,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
 
                 {/* Fecha Límite para entrega de Gabinete*/}
+                {}
                 <DateListItem
-                  editable={editable && roleData && roleData.canEditDeadline}
+                  editable={editable && roleData && roleData.canEditDeadline && state === 8}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Fecha Límite'
                   id='deadline'
