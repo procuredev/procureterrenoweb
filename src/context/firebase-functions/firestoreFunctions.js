@@ -20,7 +20,7 @@ import {
 import { db } from 'src/configs/firebase'
 
 // ** Imports Propios
-import { addDays, getUnixTime } from 'date-fns'
+import { getUnixTime } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
@@ -58,10 +58,12 @@ const newDoc = async (values, userParam) => {
     solicitudValidator(values, userParam.role)
     // Incrementamos el valor del contador 'otCounter' en la base de datos Firestore y devuelve el nuevo valor.
     const ot = await increaseAndGetNewOTValue()
+
     // Calculamos el valor de 'deadline' sumando 21 días a 'start'.
-    const deadline = addDays(new Date(start), 21)
+    // const deadline = addDays(new Date(start), 21)
+
     // Teniendo como referencia la fecha 'deadline' calculamos el valor de cuantos días faltan (ó han pasado).
-    const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
+    // const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
       title,
@@ -82,8 +84,8 @@ const newDoc = async (values, userParam) => {
       user,
       userEmail,
       userRole,
-      deadline,
-      daysToDeadline,
+      // deadline,
+      // daysToDeadline,
       costCenter,
       date: Timestamp.fromDate(new Date()),
       engineering,
@@ -193,30 +195,30 @@ const processFieldChanges = (incomingFields, currentDoc) => {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
 
-    if (key === 'start' || key === 'end') {
+    if (key === 'start' || key === 'end' || key === 'deadline') {
       value = moment(value.toDate()).toDate().getTime()
       currentFieldValue = currentFieldValue && currentFieldValue.toDate().getTime()
     }
 
     if (!currentFieldValue || value !== currentFieldValue) {
       // Verifica si el valor ha cambiado o es nuevo y lo guarda
-      if (key === 'start' || key === 'end') {
+      if (key === 'start' || key === 'end' || key === 'deadline') {
         value = value && Timestamp.fromDate(moment(value).toDate())
         currentFieldValue = currentFieldValue && Timestamp.fromDate(moment(currentFieldValue).toDate())
 
         // Verificar si se actualizó 'start' para actualizar 'deadline'
-        if (key === 'start') {
-          const newDeadline = new Date(addDays(value.toDate(), 21))
+        // if (key === 'start') {
+        //   const newDeadline = new Date(addDays(value.toDate(), 21))
 
-          changedFields.deadline = newDeadline
+        //   changedFields.deadline = newDeadline
 
-          const today = new Date()
-          const millisecondsInDay = 1000 * 60 * 60 * 24
+        //   const today = new Date()
+        //   const millisecondsInDay = 1000 * 60 * 60 * 24
 
-          const daysToDeadline = Math.round((newDeadline - today) / millisecondsInDay)
+        //   const daysToDeadline = Math.round((newDeadline - today) / millisecondsInDay)
 
-          changedFields.daysToDeadline = daysToDeadline
-        }
+        //   changedFields.daysToDeadline = daysToDeadline
+        // }
       }
       changedFields[key] = value
       incomingFields[key] = currentFieldValue || 'none'

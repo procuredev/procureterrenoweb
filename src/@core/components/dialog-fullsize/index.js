@@ -198,6 +198,7 @@ function CustomAutocompleteItem({ selectable, options, editable, label, value, o
 }
 
 function DateListItem({ editable, label, value, onChange, initialValue, customMinDate = null }) {
+
   return (
     <>
       {editable ? (
@@ -234,19 +235,16 @@ function DateListItem({ editable, label, value, onChange, initialValue, customMi
           </StyledFormControl>
         </ListItem>
       ) : (
-        initialValue &&
-        initialValue.seconds && (
           <ListItem id={`list-${label}`} divider={!editable}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
               <Typography component='div' sx={{ width: '40%' }}>
                 {label}
               </Typography>
               <Typography component='div' sx={{ width: '60%' }}>
-                {initialValue && unixToDate(initialValue.seconds)[0]}
+                {(initialValue && initialValue.seconds && unixToDate(initialValue.seconds)[0]) || 'Por definir'}
               </Typography>
             </Box>
           </ListItem>
-        )
       )}
     </>
   )
@@ -415,6 +413,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     area: false,
     start: false,
     end: false,
+    deadline: false,
     //* ot: false,
     supervisorShift: false,
     description: false,
@@ -511,6 +510,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         sap: doc.sap ? doc.sap : '',
         //* ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
+        ...(doc.deadline && { deadline: moment(doc.deadline.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
         ...(doc.fotos && { fotos: doc.fotos }),
         ...(doc.draftmen && { draftmen: doc.draftmen })
@@ -600,9 +600,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     setEventData(data)
   }, [eventArray])
 
-  // Handlea dialog
+
 
   const handleOpenAlert = async () => {
+
     const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
 
     //* Primero, verifica si OT ha cambiado
@@ -959,6 +960,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     ot,
     sap,
     end,
+    deadline,
     supervisorShift,
     userRole,
     petitioner,
@@ -1058,6 +1060,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
               </Box>
 
               <List>
+
+                {/* Título del Levantamiento */}
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
                   label='Título'
@@ -1068,6 +1072,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   required={true}
                   multiline={true}
                 />
+
+                {/* Descripción del Levantamiento */}
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
                   label='Descripción'
@@ -1077,6 +1083,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('description')}
                   multiline={true}
                 />
+
+                {/* Objetivo del Levantamiento */}
                 <CustomListItem
                   selectable={true}
                   options={objectivesArray}
@@ -1087,6 +1095,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.objective}
                   onChange={handleInputChange('objective')}
                 />
+
+                {/* Planta */}
                 <CustomListItem
                   selectable={true}
                   options={plantsNames}
@@ -1097,6 +1107,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.plant}
                   onChange={handleInputChange('plant')}
                 />
+
+                {/* Área */}
                 <CustomListItem
                   selectable={true}
                   options={areasArray}
@@ -1107,6 +1119,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.area}
                   onChange={handleInputChange('area')}
                 />
+
+                {/* Centro de Costos */}
                 <CustomListItem
                   editable={editable && roleData && roleData.canEditValues}
                   label='Centro de Costos'
@@ -1116,6 +1130,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleInputChange('costCenter')}
                   disabled={!isPlanner}
                 />
+
+                {/* Contract Operator */}
                 <CustomListItem
                   editable={false}
                   label='Contract Operator'
@@ -1125,6 +1141,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   required={true}
                   multiline={true}
                 />
+
+                {/* Estado Operacional de la Planta */}
                 <CustomListItem
                   editable={false}
                   label='Estado Operacional'
@@ -1135,12 +1153,16 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   required={true}
                   multiline={true}
                 />
+
+                {/* Solicitante */}
                 <CustomListItem
                   editable={false}
                   label='Solicitante'
                   id='petitioner'
                   initialValue={<PetitionerContactComponent />}
                 />
+
+                {/* Fecha de Inicio del Levantamiento */}
                 <DateListItem
                   editable={editable && roleData && roleData.canEditStart && state <= 6}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
@@ -1150,6 +1172,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   onChange={handleDateChange('start')}
                   initialValue={start}
                 />
+
+                {/* Fecha de Término del Levantamiento */}
                 <DateListItem
                   editable={editable && roleData && roleData.canEditEnd && state <= 6}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
@@ -1158,6 +1182,18 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   value={values.end}
                   onChange={handleDateChange('end')}
                   initialValue={end}
+                  customMinDate={values.start}
+                />
+
+                {/* Fecha Límite para entrega de Gabinete*/}
+                <DateListItem
+                  editable={editable && roleData && roleData.canEditDeadline}
+                  disableKeyboard={true} // Deshabilitar la entrada del teclado
+                  label='Fecha Límite'
+                  id='deadline'
+                  value={values.deadline}
+                  onChange={handleDateChange('deadline')}
+                  initialValue={deadline}
                   customMinDate={values.start}
                 />
 
@@ -1185,6 +1221,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
 
                 {additionalInfoVisible && (
                   <>
+                    {/* Contraturno del Solicitante */}
                     {petitionerContact.opshift && petitionerContact.opshift[0].name && (
                       <CustomListItem
                         editable={false}
@@ -1193,6 +1230,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                         initialValue={<PetitionerOpshiftContactComponent />}
                       />
                     )}
+
+                    {/* Maquina Detenida */}
                     <CustomListItem
                       editable={false}
                       label='¿Máquina detenida?'
@@ -1203,6 +1242,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       required={true}
                       multiline={true}
                     />
+
+                    {/* Número SAP */}
                     <CustomListItem
                       editable={authUser.role === 5}
                       label='Número SAP'
@@ -1212,12 +1253,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       onChange={handleInputChange('sap')}
                       required={true}
                     />
-                    {/* <CustomListItem
-                      editable={false}
-                      label='Entregables'
-                      id='deliverable'
-                      initialValue={<DeliverableComponent/>}
-                    /> */}
+
+                    {/* Tipo de Entregables esperados */}
                     <CustomAutocompleteItem
                       selectable={true}
                       options={deliverablesArray}
@@ -1231,6 +1268,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   </>
                 )}
 
+                {/* Documentos adjuntos */}
                 {values.fotos ? (
                   <ListItem>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
