@@ -1186,8 +1186,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 />
 
                 {/* Fecha Límite para entrega de Gabinete*/}
-                {}
-                <DateListItem
+                {authUser.company === 'Procure' && (
+                  <DateListItem
                   editable={editable && roleData && roleData.canEditDeadline && state === 8}
                   disableKeyboard={true} // Deshabilitar la entrada del teclado
                   label='Fecha Límite'
@@ -1197,6 +1197,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                   initialValue={deadline}
                   customMinDate={values.start}
                 />
+                )}
 
                 {
                   <CustomListItem
