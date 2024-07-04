@@ -110,6 +110,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     }
   }
 
+  // useEffect que definirá si el botón "Guardar" estará habilitado o no.
   useEffect(() => {
 
     const initialUprisingTime = {
@@ -123,7 +124,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     const dateChanged = !initialDeadlineDate.isSame(deadlineDate, 'day');
     const draftmenChanged = initialDraftmen.length !== draftmen.length || initialDraftmen.some((draftman, index) => draftman.name !== draftmen[index]?.name);
 
-    if (timeChanged && dateChanged && draftmenChanged) {
+    if (timeChanged && dateChanged && draftmenChanged && !error && uprisingTimeSelected.hours > 0) {
       setIsSubmitDisabled(false)
     } else {
       setIsSubmitDisabled(true)
@@ -326,7 +327,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
-            disabled={isSubmitDisabled || error || uprisingTimeSelected.hours <= 0}
+            disabled={isSubmitDisabled}
             onClick={() => onSubmit(doc.id)}
           >
             <EngineeringIcon sx={{ fontSize: 18 }} />
