@@ -130,7 +130,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       setIsSubmitDisabled(true)
     }
 
-  },[uprisingTimeSelected, deadlineDate, draftmen])
+  },[uprisingTimeSelected, deadlineDate, draftmen, error])
 
 
   // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
