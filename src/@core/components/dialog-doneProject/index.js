@@ -89,7 +89,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   }
 
   const handleDateChange = dateField => async date => {
-    const fieldValue = moment(date.toDate())
+    const fieldValue = moment(date.toDate()).startOf('day')
     setDeadlineDate(fieldValue)
   }
 

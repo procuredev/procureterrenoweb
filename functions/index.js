@@ -550,68 +550,68 @@ exports.scheduledFirestoreExport = functions.pubsub
 
 // Función para calcular la diferencia en días entre dos fechas
 
-const calculateDaysToDeadline = deadlineTimestamp => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
-  const deadlineDate = new Date(deadlineTimestamp * 1000)
-  const diffTime = deadlineDate - today
-  //math.round() redondea hacia arriba el valor a un número entero
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+// const calculateDaysToDeadline = deadlineTimestamp => {
+//   const today = new Date()
+//   today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
+//   const deadlineDate = new Date(deadlineTimestamp * 1000)
+//   const diffTime = deadlineDate - today
+//   //math.round() redondea hacia arriba el valor a un número entero
+//   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
 
-  return diffDays
-}
+//   return diffDays
+// }
 
 // Función que actualiza para c/u de las solicitudes los días faltantes para la fecha límite (entrega de Gabinete)
-exports.updateDaysToDeadlineOnSchedule = functions.pubsub
-  .schedule('every day 00:00')
-  .timeZone('Chile/Continental')
-  .onRun(async context => {
-    const db = admin.firestore()
-    const solicitudesRef = db.collection('solicitudes')
+// exports.updateDaysToDeadlineOnSchedule = functions.pubsub
+//   .schedule('every day 00:00')
+//   .timeZone('Chile/Continental')
+//   .onRun(async context => {
+//     const db = admin.firestore()
+//     const solicitudesRef = db.collection('solicitudes')
 
-    const snapshot = await solicitudesRef.get()
-    const updatePromises = []
+//     const snapshot = await solicitudesRef.get()
+//     const updatePromises = []
 
-    snapshot.forEach(docSnapshot => {
-      const data = docSnapshot.data()
-      let deadlineTimestamp
+//     snapshot.forEach(docSnapshot => {
+//       const data = docSnapshot.data()
+//       let deadlineTimestamp
 
-      if (data.deadline) {
-        deadlineTimestamp = data.deadline.seconds
-        const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
-        // Preparar para actualizar el documento con los días hasta la fecha límite
-        updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
-      }
+//       if (data.deadline) {
+//         deadlineTimestamp = data.deadline.seconds
+//         const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
+//         // Preparar para actualizar el documento con los días hasta la fecha límite
+//         updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
+//       }
 
-      // } else {
-      //   // Si 'deadline' no existe, se establece a 21 días después de 'start'
-      //   // Convierte la marca de tiempo Unix 'data.start.seconds' a un objeto 'Date' de JavaScript
-      //   const startDate = new Date(data.start.seconds * 1000)
-      //   const deadlineDate = new Date(startDate)
-      //   deadlineDate.setDate(startDate.getDate() + 21)
-      //   // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
-      //   deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
-      //   // Preparar para actualizar el documento con el nuevo 'deadline'
-      //   updatePromises.push(
-      //     docSnapshot.ref.update({
-      //       deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
-      //     })
-      //   )
-      // }
+//       // } else {
+//       //   // Si 'deadline' no existe, se establece a 21 días después de 'start'
+//       //   // Convierte la marca de tiempo Unix 'data.start.seconds' a un objeto 'Date' de JavaScript
+//       //   const startDate = new Date(data.start.seconds * 1000)
+//       //   const deadlineDate = new Date(startDate)
+//       //   deadlineDate.setDate(startDate.getDate() + 21)
+//       //   // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
+//       //   deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
+//       //   // Preparar para actualizar el documento con el nuevo 'deadline'
+//       //   updatePromises.push(
+//       //     docSnapshot.ref.update({
+//       //       deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
+//       //     })
+//       //   )
+//       // }
 
 
 
-    })
+//     })
 
-    // Espera a que todas las operaciones de actualización se completen
-    await Promise.all(updatePromises)
-      .then(() => {
-        console.log('Todos los documentos han sido actualizados con éxito.')
-      })
-      .catch(error => {
-        console.error('Error al actualizar documentos:', error)
-      })
-  })
+//     // Espera a que todas las operaciones de actualización se completen
+//     await Promise.all(updatePromises)
+//       .then(() => {
+//         console.log('Todos los documentos han sido actualizados con éxito.')
+//       })
+//       .catch(error => {
+//         console.error('Error al actualizar documentos:', error)
+//       })
+//   })
 
   // Firebase Function que está viendo cambios en el campo enabled de Firebase Firestore.
   // Específicamente en users/{usersid}/enabled
