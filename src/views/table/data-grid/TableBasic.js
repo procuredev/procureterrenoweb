@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { Timestamp } from 'firebase/firestore'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 // import useColumnResizer from 'src/@core/hooks/useColumnResizer'
@@ -23,12 +24,17 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import CustomChip from 'src/@core/components/mui/chip'
 
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
+
 const TableBasic = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
 
   const { updateDocs, authUser, domainDictionary } = useFirebase()
 
@@ -357,12 +363,12 @@ const TableBasic = ({ rows, role, roleData }) => {
       width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
       minWidth: 90,
       maxWidth: 180,
-      valueGetter: params => params.row.daysToDeadline,
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
       renderCell: params => {
         const { row } = params
         localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.daysToDeadline || 'Pendiente'}</div>
+        return <div>{(row.deadline && Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60))) || 'Pendiente'}</div>
       }
     },
     {
@@ -566,7 +572,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         type: row.type,
         detention: row.detention,
         objective: row.objective,
-        deliverable: row.deliverable.join(', '),
+        deliverable: row.deliverable ? row.deliverable.join(', ') : '',
         contop: row.contop
       })
     })
