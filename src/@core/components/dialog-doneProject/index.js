@@ -1,5 +1,5 @@
 // ** React Imports
-import { forwardRef, useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import EngineeringIcon from '@mui/icons-material/Engineering'
@@ -109,6 +109,28 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
+
+  useEffect(() => {
+
+    const initialUprisingTime = {
+      hours: 0,
+      minutes: 0
+    }
+    const initialDeadlineDate = moment()
+    const initialDraftmen = []
+
+    const timeChanged = initialUprisingTime.hours !== uprisingTimeSelected.hours || initialUprisingTime.minutes !== uprisingTimeSelected.minutes;
+    const dateChanged = !initialDeadlineDate.isSame(deadlineDate, 'day');
+    const draftmenChanged = initialDraftmen.length !== draftmen.length || initialDraftmen.some((draftman, index) => draftman.name !== draftmen[index]?.name);
+
+    if (timeChanged && dateChanged && draftmenChanged) {
+      setIsSubmitDisabled(false)
+    } else {
+      setIsSubmitDisabled(true)
+    }
+
+  },[uprisingTimeSelected, deadlineDate, draftmen])
+
 
   // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
   const onSubmit = id => {
