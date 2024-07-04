@@ -11,6 +11,8 @@ import Fade from '@mui/material/Fade'
 import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
 // ** Date Library
 //import moment from 'moment'
@@ -21,12 +23,16 @@ import 'moment/locale/es'
 import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
-import { CircularProgress } from '@mui/material'
+import { CircularProgress, FormControl } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
+
+const StyledFormControl = props => (
+  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
+)
 
 export const DialogDoneProject = ({ open, doc, handleClose }) => {
   // ** States
@@ -42,6 +48,7 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
   })
   const [error, setError] = useState('')
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false)
+  const [deadlineDate, setDeadlineDate] = useState(moment())
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
@@ -81,10 +88,15 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     }
   }
 
+  const handleDateChange = dateField => async date => {
+    const fieldValue = moment(date.toDate())
+    setDeadlineDate(fieldValue)
+  }
+
   const onSubmit = id => {
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
-      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected }, authUser)
+      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
@@ -222,73 +234,44 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
           <CircularProgress />
         ) : (
           <Box sx={{ mb: 4, textAlign: 'center' }}>
-            {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-              <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                <LocalizationProvider
-                  dateAdapter={AdapterMoment}
-                  adapterLocale='es'
-                  localeText={{
-                    okButtonLabel: 'Aceptar',
-                    cancelButtonLabel: 'Cancelar',
-                    dateTimePickerToolbarTitle: 'Selecciona Fecha y Hora'
-                  }}
-                >
-                  <Box display='flex' alignItems='center'>
-                    <MobileDateTimePicker
-                      dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                      minDate={moment().subtract(1, 'year')}
-                      maxDate={moment().add(1, 'year')}
-                      label='Fecha de inicio'
-                      value={uprisingTimeSelected.start}
-                      onChange={handleDateChangeWrapper('start')}
-                      InputLabelProps={{ shrink: true, required: true }}
-                      viewRenderers={{ minutes: null }}
-                      slotProps={{ toolbar: { hidden: false } }}
-                    />
-                  </Box>
-                </LocalizationProvider>
-              </FormControl>
-            </Box> */}
-            {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-              <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-                <LocalizationProvider
-                  dateAdapter={AdapterMoment}
-                  adapterLocale='es'
-                  localeText={{
-                    okButtonLabel: 'Aceptar',
-                    cancelButtonLabel: 'Cancelar',
-                    dateTimePickerToolbarTitle: 'Selecciona Fecha y Hora'
-                  }}
-                >
-                  <Box display='flex' alignItems='center'>
-                    <MobileDateTimePicker
-                      dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
-                      minDate={moment().subtract(1, 'year')}
-                      maxDate={moment().add(1, 'year')}
-                      label='Fecha de término'
-                      value={uprisingTimeSelected.end}
-                      onChange={handleDateChangeWrapper('end')}
-                      InputLabelProps={{ shrink: true, required: true }}
-                      viewRenderers={{ minutes: null }}
-                      slotProps={{ toolbar: { hidden: false } }}
-                    />
-                  </Box>
-                </LocalizationProvider>
-              </FormControl>
-            </Box> */}
+            {/* Horas invertidas en Levantamiento */}
             <TextField
-              //id='outlined-basic'
-              //label='Horas del Levantamiento'
-              //disabled={true}
               type='number'
-              justifyContent='center'
               value={uprisingTimeSelected.hours}
+              label='Horas de trabajo del Levantamiento'
               error={error !== ''}
               helperText={error}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
+              fullWidth
+              sx={{ mb: 6 }} // Ajusta el espacio entre los dos campos
             />
+
+            {/* Fecha Límite */}
+            <FormControl fullWidth>
+              <LocalizationProvider
+                dateAdapter={AdapterMoment}
+                adapterLocale='es'
+                localeText={{
+                  okButtonLabel: 'Aceptar',
+                  cancelButtonLabel: 'Cancelar',
+                  datePickerToolbarTitle: 'Selecciona Fecha'
+                }}
+              >
+                <MobileDatePicker
+                  dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
+                  minDate={moment().subtract(1, 'year')}
+                  maxDate={moment().add(1, 'year')}
+                  label='Fecha Límite (Entrega de Gabinete)'
+                  value={deadlineDate && moment.isMoment(deadlineDate) ? deadlineDate : moment(deadlineDate)}
+                  onChange={handleDateChange(deadlineDate)}
+                  InputLabelProps={{ shrink: true, required: true }}
+                  viewRenderers={{ minutes: null }}
+                  slotProps={{ toolbar: { hidden: false } }}
+                />
+              </LocalizationProvider>
+            </FormControl>
           </Box>
         )}
 
