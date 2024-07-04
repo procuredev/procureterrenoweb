@@ -37,17 +37,12 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const StyledFormControl = props => (
-  <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
-)
-
 export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   // ** States
 
   const [draftmen, setDraftmen] = useState([])
   const [loading, setLoading] = useState(false)
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
-
   const [uprisingTimeSelected, setUprisingTimeSelected] = useState({
     // start: null,
     // end: null,
@@ -60,9 +55,6 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
-
-  const workDayStart = new Date(0, 0, 0, 8, 0) // Hora de inicio de la jornada laboral (08:00 AM)
-  const workDayEnd = new Date(0, 0, 0, 20, 0) // Hora de finalización de la jornada laboral (08:00 PM)
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -118,6 +110,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     }
   }
 
+  // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
   const onSubmit = id => {
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
@@ -136,98 +129,6 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       setError('Por favor, indique fecha de inicio y fecha de término.')
     }
   }
-
-  const handleDateChangeWrapper = dateField => date => {
-    if (!date) {
-      console.error('La fecha proporcionada es nula')
-
-      return
-    }
-
-    const handleDateChange = date => {
-      const fieldValue = moment(date.toDate())
-      const updatedHours = { ...uprisingTimeSelected }
-
-      if (dateField === 'start') {
-        updatedHours.start = fieldValue
-      } else {
-        updatedHours.end = fieldValue
-      }
-
-      setUprisingTimeSelected(updatedHours)
-    }
-
-    handleDateChange(date)
-  }
-
-  // useEffect(() => {
-  //   if (uprisingTimeSelected.start && uprisingTimeSelected.end) {
-  //     const workStartHour = 8 // Hora de inicio de la jornada laboral
-  //     const workEndHour = 20 // Hora de finalización de la jornada laboral
-  //     const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
-
-  //     let startDate = uprisingTimeSelected.start.clone()
-  //     let endDate = uprisingTimeSelected.end.clone()
-
-  //     // Asegurarse de que las fechas estén dentro de las horas de trabajo
-  //     if (startDate.hour() < workStartHour) {
-  //       startDate.hour(workStartHour).minute(0).second(0).millisecond(0)
-  //     }
-  //     if (endDate.hour() > workEndHour) {
-  //       endDate.hour(workEndHour).minute(0).second(0).millisecond(0)
-  //     } else if (endDate.hour() < workStartHour) {
-  //       endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0)
-  //     }
-
-  //     let totalHoursWithinWorkingDays = 0
-  //     let totalMinutes = 0
-
-  //     while (startDate.isBefore(endDate)) {
-  //       const currentDayEnd = startDate.clone().hour(workEndHour)
-
-  //       if (currentDayEnd.isAfter(endDate)) {
-  //         const durationMillis = endDate.diff(startDate)
-  //         totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-  //         totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000))
-  //       } else {
-  //         const durationMillis = currentDayEnd.diff(startDate)
-  //         totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-  //       }
-
-  //       startDate.add(1, 'day').hour(workStartHour)
-  //     }
-
-  //     if (totalMinutes >= 60) {
-  //       totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60)
-  //       totalMinutes %= 60
-  //     }
-
-  //     //console.log(totalHoursWithinWorkingDays, totalMinutes, 'RES')
-
-  //     if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
-  //       setError('La hora de término debe ser superior a la hora de inicio.')
-  //       setIsSubmitDisabled(true)
-
-  //       return
-  //     } else {
-  //       setError(null) // Para limpiar cualquier error previo.
-  //       setIsSubmitDisabled(false)
-  //     }
-
-  //     const startDateAsDate = uprisingTimeSelected.start.toDate()
-  //     const endDateAsDate = uprisingTimeSelected.end.toDate()
-
-  //     setUprisingTimeSelected(prevHours => ({
-  //       ...prevHours,
-  //       uprisingInvestedHours: {
-  //         hours: totalHoursWithinWorkingDays,
-  //         minutes: totalMinutes,
-  //         selectedStartDate: startDateAsDate,
-  //         selectedEndDate: endDateAsDate
-  //       }
-  //     }))
-  //   }
-  // }, [uprisingTimeSelected.start, uprisingTimeSelected.end])
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
