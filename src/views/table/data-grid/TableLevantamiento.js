@@ -486,7 +486,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             canComment={authUser.role === 7}
           />
         )}
-        {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} />}
+        {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} proyectistas={proyectistas} />}
       </Box>
     </Card>
   )

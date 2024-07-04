@@ -3,16 +3,23 @@ import { forwardRef, useState } from 'react'
 
 // ** MUI Imports
 import EngineeringIcon from '@mui/icons-material/Engineering'
+import Autocomplete from '@mui/material/Autocomplete'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import Fade from '@mui/material/Fade'
 import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemAvatar from '@mui/material/ListItemAvatar'
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
+import ListItemText from '@mui/material/ListItemText'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Date Library
 //import moment from 'moment'
@@ -34,11 +41,12 @@ const StyledFormControl = props => (
   <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }} {...props} />
 )
 
-export const DialogDoneProject = ({ open, doc, handleClose }) => {
+export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   // ** States
 
   const [draftmen, setDraftmen] = useState([])
   const [loading, setLoading] = useState(false)
+  const [filteredOptions, setFilteredOptions] = useState(proyectistas)
 
   const [uprisingTimeSelected, setUprisingTimeSelected] = useState({
     // start: null,
@@ -93,10 +101,27 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
     setDeadlineDate(fieldValue)
   }
 
+  const filterOptions = options => {
+    // Convierte las opciones seleccionadas en un array de nombres
+    const selectedNames = draftmen.map(draftman => draftman.name)
+
+    // Filtra las opciones y devuelve solo las que no están en el array de nombres seleccionados
+    return options.filter(option => !selectedNames.includes(option.name))
+  }
+
+  const handleListItemClick = option => {
+    // Verificamos si el option ya existe en el array draftmen
+    if (!draftmen.some(draftman => draftman.name === option.name)) {
+      // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
+      setDraftmen(prevDraftmen => [...prevDraftmen, {name: option.name, userId: option.userId}])
+      document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
+    }
+  }
+
   const onSubmit = id => {
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
-      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate }, authUser)
+      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDrafment: draftmen }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
@@ -269,9 +294,109 @@ export const DialogDoneProject = ({ open, doc, handleClose }) => {
                   InputLabelProps={{ shrink: true, required: true }}
                   viewRenderers={{ minutes: null }}
                   slotProps={{ toolbar: { hidden: false } }}
+                  sx={{ mb: 6 }} // Ajusta el espacio entre los dos campos
                 />
               </LocalizationProvider>
             </FormControl>
+
+            {/* Proyectista de Gabinete */}
+            <Box>
+              <Autocomplete
+                autoHighlight
+                sx={{ mb: 8 }}
+                id='add-members'
+                options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
+                ListboxComponent={List}
+                getOptionLabel={option => option.name}
+                renderInput={params => <TextField {...params} size='small' label='Seleccionar Proyectistas'/>}
+                filterOptions={filterOptions} // Agrega este prop
+                renderOption={(props, option) => (
+                  <ListItem {...props} onClick={() => handleListItemClick(option)}>
+                    <ListItemAvatar>
+                      {option.avatar ? (
+                        <Avatar
+                          src={`/images/avatars/${option.avatar}`}
+                          alt={option.name}
+                          sx={{ height: 28, width: 28 }}
+                        />
+                      ) : (
+                        <CustomAvatar
+                          skin='light'
+                          sx={{
+                            mr: 3,
+                            width: 28,
+                            height: 28,
+                            objectFit: 'contain',
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            fontSize: '.8rem'
+                          }}
+                        >
+                          {getInitials(option.name ? option.name : 'John Doe')}
+                        </CustomAvatar>
+                      )}
+                    </ListItemAvatar>
+                    <ListItemText primary={option.name} />
+                  </ListItem>
+                )}
+              />
+              <Typography variant='h6'>{`${draftmen.length} Proyectista${draftmen.length === 1 ? '' : 's'} seleccionado${draftmen.length === 1 ? '' : 's'}`}</Typography>
+              <List dense sx={{ py: 4 }}>
+                {draftmen.map(draftman => {
+                  return (
+                    <ListItem
+                      key={draftman.name}
+                      sx={{
+                        p: 0,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        '.MuiListItem-container:not(:last-child) &': { mb: 4 }
+                      }}
+                    >
+                      <ListItemAvatar>
+                        {draftman.avatar ? (
+                          <Avatar src={`/images/avatars/${draftman.avatar}`} alt={draftman.name} />
+                        ) : (
+                          <CustomAvatar
+                            skin='light'
+                            sx={{
+                              mr: 3,
+                              width: 34,
+                              height: 34,
+                              objectFit: 'contain',
+                              bgcolor: 'primary.main',
+                              color: 'white',
+                              fontSize: '.8rem'
+                            }}
+                          >
+                            {getInitials(draftman.name ? draftman.name : 'John Doe')}
+                          </CustomAvatar>
+                        )}
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={draftman.name}
+                        secondary={draftman.email}
+                        sx={{
+                          m: 0,
+                          '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' }
+                        }}
+                      />
+                      <ListItemSecondaryAction sx={{ right: 0 }}>
+                        <IconButton
+                          size='small'
+                          aria-haspopup='true'
+                          onClick={() => handleClickDelete(draftman.name)}
+                          aria-controls='modal-share-examples'
+                        >
+                          <Icon icon='mdi:delete-forever' fontSize={20} color='#f44336' />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  )
+                })}
+              </List>
+            </Box>
+
           </Box>
         )}
 
