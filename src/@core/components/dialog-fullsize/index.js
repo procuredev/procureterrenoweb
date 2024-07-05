@@ -508,6 +508,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         deliverable: doc.deliverable,
         objective: doc.objective,
         sap: doc.sap ? doc.sap : '',
+        user: doc.user,
+        userRole: doc.userRole,
         //* ...(doc.ot && { ot: doc.ot }),
         ...(doc.end && { end: moment(doc.end.toDate()) }),
         ...(doc.deadline && { deadline: moment(doc.deadline.toDate()) }),
@@ -972,6 +974,34 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   // Verifica estado
   state = typeof state === 'number' ? state : 100
 
+  const newDictionary = (newState, reqAuthorRole) => {
+
+    if (newState === 5  && reqAuthorRole === 2){
+
+      return 'En espera de revision por Planificador'
+
+    } else {
+
+      return domainDictionary[newState].details
+
+    }
+
+  }
+
+  const newChipDictionary = (newState, reqAuthorRole, connectedUserRole) => {
+
+    if (newState === 5  && reqAuthorRole === 2 && (connectedUserRole === 2 || connectedUserRole === 3 || connectedUserRole === 4)){
+
+      return 'En espera de revision por Planificador'
+
+    } else {
+
+      return domainDictionary[newState].details
+
+    }
+
+  }
+
   return (
     <Dialog
       sx={{ '& .MuiPaper-root': { maxWidth: '800px', width: '100%' } }}
@@ -1022,7 +1052,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
             <Timeline sx={{ [`& .${timelineOppositeContentClasses.root}`]: { flex: 0.2 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                 <Chip
-                  label={state || state === 0 ? domainDictionary[state].details : 'Cargando...'}
+                  label={state || state === 0 ? newChipDictionary(state, values.userRole, authUser.role) : 'Cargando...'}
                   color={state || state === 0 ? domainDictionary[state].color : 'primary'}
                   sx={{ my: 1, width: 'auto' }}
                 />
@@ -1358,6 +1388,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       const emergencyApprovedByContop = element.prevDoc && element.prevDoc.emergencyApprovedByContop
                       const hasPreviousDoc = element.prevDoc
                       const isModifiedStart = hasPreviousDoc && element.prevDoc.start
+                      const requestMadeByMelPetitionerAndApprobedByContractAdmin = values.userRole === 2 && element.prevState === 2 && element.newState === 5
 
                       const isInputsModified =
                         hasPreviousDoc &&
@@ -1373,6 +1404,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       if (isHoursEstablished) return 'En confección de entregables'
                       if (hasPreviousDoc) return 'Modificación aceptada'
                       if (emergencyApprovedByContop) return 'Emergencia aprobada'
+                      if (requestMadeByMelPetitionerAndApprobedByContractAdmin) return 'Solicitud aprobada'
 
                       return 'Aprobado'
                     }
@@ -1380,7 +1412,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                     const status = element.newState === 0 ? 'Rechazado' : determineModificationType(element)
 
                     const result =
-                      element.newState === 5 ? (
+                      (element.newState === 5 && element.prevState !== 2) ? (
                         ''
                       ) : (
                         <div key={element.date}>
@@ -1396,9 +1428,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                 {[0, 1, 6, 10].includes(element.newState) && element.prevState === 5
                                   ? 'Procure'
                                   : element.userName}
+                                {(element.newState === 5 && element.prevState === 2 && values.userRole === 2) && ` en nombre de ${values.contop}`}
                               </Typography>
                               <Typography variant='body2'>
-                                {domainDictionary[element.newState]?.details || element.comment}
+                                {newDictionary(state, values.userRole)  || element.comment}
                               </Typography>
                             </TimelineContent>
                           </TimelineItem>
@@ -1453,7 +1486,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                           </TimelineSeparator>
                           <TimelineContent>
                             <Typography variant='body1'>
-                              {status} por {element.userName}{' '}
+                              {status} por {element.userName} {(element.newState === 5 && element.prevState === 2 && values.userRole === 2) && `en nombre de ${values.contop}`} {' '}
                               {status === 'Proyectistas asignados' && element.draftmen
                                 ? `: ${element.draftmen.map(x => x.name).join(', ')}`
                                 : status === 'Proyectistas asignados'
@@ -1461,7 +1494,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                 : ''}
                             </Typography>
                             <Typography variant='body2'>
-                              {domainDictionary[element.newState]?.details || element.comment}
+                              {newDictionary(state, values.userRole) || element.comment}
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>

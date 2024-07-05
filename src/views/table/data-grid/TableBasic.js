@@ -123,6 +123,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     const createdByPlanner = row.userRole === 5
     const createdBySupervisor = row.userRole === 7
     const hasOTEnd = row.ot && row.end
+    const isPetitionMadeByMelPetitioner = row.state === 2 && row.userRole === 2
 
     const isPetitionMakeByPlaner =
       role === 3 &&
@@ -176,9 +177,9 @@ const TableBasic = ({ rows, role, roleData }) => {
             (createdByContOp && [3, 4].includes(row.state)))
       },
       6: {
-        approve: hasPrevState && !createdBySupervisor,
-        edit: hasPrevState && !createdBySupervisor,
-        reject: [5, 6].includes(row.state) && !createdBySupervisor
+        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner,
+        edit: !createdBySupervisor && isPetitionMadeByMelPetitioner,
+        reject: !createdBySupervisor && isPetitionMadeByMelPetitioner
       },
       7: {
         approve: false,

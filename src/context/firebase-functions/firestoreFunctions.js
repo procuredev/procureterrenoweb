@@ -293,6 +293,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const changingStartDate = typeof approves === 'object' && 'start' in approves
   const modifiedBySameRole = userRole === role
   const requestMadeByPlanner = userRole === 5
+  const requestMadeByMelPetitioner = userRole === 2 && (!latestEvent || (latestEvent && latestEvent.newState === 2))
 
   const rules = new Map([
     [
@@ -428,23 +429,30 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Planificador modifica, Adm Contrato no modifica
         {
-          condition: approves && !approveWithChanges && dateHasChanged,
+          condition: approves && !approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
           newState: state.returned,
           log: 'Aprobada con cambio de fecha'
         },
 
         // Planificador no modifica, Adm Contrato sí
         {
-          condition: approves && approveWithChanges && !dateHasChanged,
+          condition: approves && approveWithChanges && !dateHasChanged && !requestMadeByMelPetitioner,
           newState: state.returned,
           log: 'Modificado por adm contrato'
         },
 
         // Planificador modifica, Adm Contrato sí modifica
         {
-          condition: approves && approveWithChanges && dateHasChanged,
+          condition: approves && approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
           newState: state.returned,
           log: 'Modificado por adm contrato y planificador'
+        },
+
+        // Solicitud fue ingresada por un Solicitante de MEL
+        {
+          condition: approves && requestMadeByMelPetitioner,
+          newState: state.planner,
+          log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
         }
       ]
     ],
