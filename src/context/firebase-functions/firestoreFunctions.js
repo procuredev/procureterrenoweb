@@ -407,24 +407,31 @@ function getNextState(role, approves, latestEvent, userRole) {
       6,
       [
         // Planificador modifica, Adm Contrato no modifica
-        {
-          condition: approves && !approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
-          newState: state.returned,
-          log: 'Aprobada con cambio de fecha'
-        },
+        // {
+        //   condition: approves && !approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
+        //   newState: state.returned,
+        //   log: 'Aprobada con cambio de fecha'
+        // },
 
         // Planificador no modifica, Adm Contrato sí
-        {
-          condition: approves && approveWithChanges && !dateHasChanged && !requestMadeByMelPetitioner,
-          newState: state.returned,
-          log: 'Modificado por adm contrato'
-        },
+        // {
+        //   condition: approves && approveWithChanges && !dateHasChanged && !requestMadeByMelPetitioner,
+        //   newState: state.returned,
+        //   log: 'Modificado por adm contrato'
+        // },
 
         // Planificador modifica, Adm Contrato sí modifica
+        // {
+        //   condition: approves && approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
+        //   newState: state.returned,
+        //   log: 'Modificado por adm contrato y planificador'
+        // },
+
+        // Solicitud Modificada por Administrador de Contrato
         {
-          condition: approves && approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
-          newState: state.returned,
-          log: 'Modificado por adm contrato y planificador'
+          condition: approves && !requestMadeByMelPetitioner,
+          newState: latestEvent.newState,
+          log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
         },
 
         // Solicitud fue ingresada por un Solicitante de MEL

@@ -177,7 +177,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             (createdByContOp && [3, 4].includes(row.state)))
       },
       6: {
-        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner,
+        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state !== 3 && row.state !== 6,
         edit: !createdBySupervisor && isPetitionMadeByMelPetitioner,
         reject: [2, 3, 4, 5, 6].includes(row.state) && !createdBySupervisor
       },
