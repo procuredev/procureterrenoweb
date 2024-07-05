@@ -304,16 +304,24 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 1 --> 6)
         // No se usó dateHasChanged porque el cambio podría haber pasado en el penúltimo evento
-        {
-          condition: approves && approvedByPlanner && returned && !approveWithChanges,
-          newState: state.contAdmin,
-          log: 'Devuelto por Adm Contrato Procure'
-        },
+        // {
+        //   condition: approves && approvedByPlanner && returned && !approveWithChanges,
+        //   newState: state.contAdmin,
+        //   log: 'Devuelto por Adm Contrato Procure'
+        // },
 
-        // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 1 --> 3)
+        // // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 1 --> 3)
+        // {
+        //   condition: approves && dateHasChanged && returned && !approveWithChanges,
+        //   newState: state.contOperator,
+        //   log: 'Devuelto por Cont Operator/Cont Owner MEL'
+        // }
+
+        // Para cualquier caso en que Solicitante apruebe o modifique, quedará en state === 2
+        // Por lo tanto si la solicitud estaba en state===6, deberá volver a ser aprobada por el Administrador de Contrato.
         {
-          condition: approves && dateHasChanged && returned && !approveWithChanges,
-          newState: state.contOperator,
+          condition: approves,
+          newState: state.petitioner,
           log: 'Devuelto por Cont Operator/Cont Owner MEL'
         }
       ]
@@ -343,29 +351,43 @@ function getNextState(role, approves, latestEvent, userRole) {
         // },
 
         // Si aprueba y viene con estado 5 lo pasa a 6 (5 --> 1 --> 6)
+        // {
+        //   condition: approves && approvedByPlanner && returned && !approveWithChanges,
+        //   newState: state.contAdmin,
+        //   log: 'Devuelto por Adm Contrato Procure'
+        // },
+
+        // // Si vuelve a modificar una devolución, pasa al planificador (revisada por contract owner) (3 --> 1 --> 3)
+        // {
+        //   condition: approves && !approvedByPlanner && returned,
+        //   newState: state.contOperator,
+        //   log: 'Devuelto por Cont Owner MEL'
+        // }
+
+        // Si modifica algo que estaba en state === 2, deberá pasar a state === 3
         {
-          condition: approves && approvedByPlanner && returned && !approveWithChanges,
-          newState: state.contAdmin,
-          log: 'Devuelto por Adm Contrato Procure'
+          condition: approves && state === 2 && state < 7,
+          newState: state.contOperator,
+          log: 'Modificado por Contract Operator'
         },
 
-        // Si vuelve a modificar una devolución, pasa al planificador (revisada por contract owner) (3 --> 1 --> 3)
+        // Si modifica algo que no estaba en state === 2, deberá pasar a state === 3
         {
-          condition: approves && !approvedByPlanner && returned,
+          condition: approves && !state === 2 && state < 7,
           newState: state.contOperator,
-          log: 'Devuelto por Cont Owner MEL'
-        }
+          log: 'Modificado por Contract Operator'
+        },
       ]
     ],
     [
       4,
       [
         // Si modifica, se le devuelve al autor (3 --> 1)
-        {
-          condition: approveWithChanges ,
-          newState: state.returned,
-          log: 'Aprobado por Planificador'
-        }
+        // {
+        //   condition: approveWithChanges ,
+        //   newState: state.returned,
+        //   log: 'Aprobado por Planificador'
+        // }
       ]
     ],
     [
