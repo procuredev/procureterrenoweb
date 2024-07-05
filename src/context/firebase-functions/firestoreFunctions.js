@@ -231,13 +231,14 @@ const processFieldChanges = (incomingFields, currentDoc) => {
 // La función 'updateDocumentAndAddEvent' Actualiza un documento con los campos cambiados y agrega un registro en la subcolección de eventos.
 const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc, requesterId, id, prevState) => {
   if (Object.keys(changedFields).length > 0) {
-    const { email, displayName } = userParam
+    const { email, displayName, role } = userParam
 
     let newEvent = {
       prevState,
       newState: changedFields.state,
       user: email,
       userName: displayName,
+      userRole: role,
       date: Timestamp.fromDate(new Date()),
       ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {}),
       ...(changedFields.uprisingInvestedHours && { uprisingInvestedHours: changedFields.uprisingInvestedHours }),
@@ -258,6 +259,7 @@ const addComment = async (id, comment, userParam) => {
   let newEvent = {
     user: userParam.email,
     userName: userParam.displayName,
+    userRole: userParam.role,
     date: Timestamp.fromDate(new Date()),
     comment
   }
@@ -294,6 +296,7 @@ function getNextState(role, approves, latestEvent, userRole) {
   const modifiedBySameRole = userRole === role
   const requestMadeByPlanner = userRole === 5
   const requestMadeByMelPetitioner = userRole === 2 && (!latestEvent || (latestEvent && latestEvent.newState === 2))
+  const requestMadeByMelPetitionerAndApprovedByContractAdmin = userRole === 2 && latestEvent.newState === 3 && latestEvent.userRole === 6
 
   const rules = new Map([
     [
@@ -359,7 +362,7 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Si modifica, se le devuelve al autor (3 --> 1)
         {
-          condition: approveWithChanges,
+          condition: approveWithChanges ,
           newState: state.returned,
           log: 'Aprobado por Planificador'
         }
@@ -374,39 +377,8 @@ function getNextState(role, approves, latestEvent, userRole) {
           newState: state.contAdmin,
           log: 'Modificado por planificador'
         },
-        // Si es devuelta al Contract Operator por el solicitante(planificador) (1 --> 2)
         {
-          condition: approves && dateHasChanged && returned && approveWithChanges && requestMadeByPlanner,
-          newState: state.petitioner,
-          log: 'Devuelto por planificador hacia Contract Operator'
-        },
-        // Planificador modifica sin cambios de fecha (any --> planner)
-        {
-          condition:
-            approves &&
-            !changingStartDate &&
-            !dateHasChanged &&
-            !emergencyBySupervisor &&
-            latestEvent.newState >= state.contOperator &&
-            latestEvent.newState < state.planner,
-          newState: state.planner,
-          log: 'Modificado sin cambio de fecha por Planificador'
-        },
-        // Planificador modifica sin cambios de fecha (any --> planner)
-        {
-          condition:
-            approves &&
-            !changingStartDate &&
-            !dateHasChanged &&
-            !emergencyBySupervisor &&
-            latestEvent.newState >= state.planner &&
-            latestEvent.newState < state.supervisor,
-          newState: latestEvent.newState,
-          log: 'Modificado sin cambio de fecha por Planificador2'
-        },
-        // Planificador modifica sin cambios de fecha (any --> planner)
-        {
-          condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.supervisor,
+          condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.contAdmin,
           newState: latestEvent.newState,
           log: 'Modificado sin cambio de fecha por Planificador1'
         },
@@ -421,7 +393,14 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && emergencyBySupervisor,
           newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
           log: 'Modificado sin cambiar de estado por Planificador'
-        }
+        },
+        // Planificador acepta Solicitud previamente aceptada por Administrador de Contrato en nombre del Contract Operator
+        // (3 --> 6)
+        {
+          condition: approves && approveWithChanges && requestMadeByMelPetitionerAndApprovedByContractAdmin,
+          newState: state.contAdmin,
+          log: 'Aprobado por Planificación: Solicitud Ingresada por MEL y aprobada por Administrador de Contrato en nombre de Contract Operator'
+        },
       ]
     ],
     [
@@ -451,7 +430,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         // Solicitud fue ingresada por un Solicitante de MEL
         {
           condition: approves && requestMadeByMelPetitioner,
-          newState: state.planner,
+          newState: state.contOperator,
           log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
         }
       ]
