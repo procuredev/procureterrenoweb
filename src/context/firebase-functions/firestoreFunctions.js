@@ -430,7 +430,7 @@ function getNextState(role, approves, latestEvent, userRole) {
         // Solicitud Modificada por Administrador de Contrato
         {
           condition: approves && !requestMadeByMelPetitioner,
-          newState: latestEvent.newState,
+          newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
           log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
         },
 
