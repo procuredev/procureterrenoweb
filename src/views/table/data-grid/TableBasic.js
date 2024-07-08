@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { Timestamp } from 'firebase/firestore'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 // import useColumnResizer from 'src/@core/hooks/useColumnResizer'
@@ -23,12 +24,17 @@ import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import CustomChip from 'src/@core/components/mui/chip'
 
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
+
 const TableBasic = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
 
   const { updateDocs, authUser, domainDictionary } = useFirebase()
 
@@ -117,6 +123,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     const createdByPlanner = row.userRole === 5
     const createdBySupervisor = row.userRole === 7
     const hasOTEnd = row.ot && row.end
+    const isPetitionMadeByMelPetitioner = row.userRole === 2
 
     const isPetitionMakeByPlaner =
       role === 3 &&
@@ -152,9 +159,9 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: row.state <= 6 && !createdBySupervisor && !createdByPlanner
       },
       4: {
-        approve: hasPrevState && !createdBySupervisor,
-        edit: [3, 6].includes(row.state) && !createdBySupervisor,
-        reject: row.state <= 6 && !createdBySupervisor
+        approve: false, // hasPrevState && !createdBySupervisor,
+        edit: false, // [3, 6].includes(row.state) && !createdBySupervisor,
+        reject: false // row.state <= 6 && !createdBySupervisor
       },
       5: {
         approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor,
@@ -170,9 +177,9 @@ const TableBasic = ({ rows, role, roleData }) => {
             (createdByContOp && [3, 4].includes(row.state)))
       },
       6: {
-        approve: hasPrevState && !createdBySupervisor,
-        edit: hasPrevState && !createdBySupervisor,
-        reject: [5, 6].includes(row.state) && !createdBySupervisor
+        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state !== 3 && row.state !== 6,
+        edit: !createdBySupervisor && isPetitionMadeByMelPetitioner,
+        reject: [2, 3, 4, 5, 6].includes(row.state) && !createdBySupervisor
       },
       7: {
         approve: false,
@@ -357,12 +364,12 @@ const TableBasic = ({ rows, role, roleData }) => {
       width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
       minWidth: 90,
       maxWidth: 180,
-      valueGetter: params => params.row.daysToDeadline,
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
       renderCell: params => {
         const { row } = params
         localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.daysToDeadline || 'Pendiente'}</div>
+        return <div>{(row.deadline && Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60))) || 'Pendiente'}</div>
       }
     },
     {
@@ -566,7 +573,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         type: row.type,
         detention: row.detention,
         objective: row.objective,
-        deliverable: row.deliverable.join(', '),
+        deliverable: row.deliverable ? row.deliverable.join(', ') : '',
         contop: row.contop
       })
     })

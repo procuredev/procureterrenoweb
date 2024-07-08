@@ -1,5 +1,6 @@
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import { Timestamp } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
@@ -29,6 +30,10 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { Pause } from '@mui/icons-material'
 import EngineeringIcon from '@mui/icons-material/Engineering'
 
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
+
 const TableLevantamiento = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
   const [openEvents, setOpenEvents] = useState(false)
@@ -40,6 +45,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const { updateDocs, authUser, getUserData, domainDictionary } = useFirebase()
   const [isLoading, setIsLoading] = useState(false)
+  const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -287,12 +293,12 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
       minWidth: 90,
       maxWidth: 180,
-      valueGetter: params => params.row.daysToDeadline,
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
       renderCell: params => {
         const { row } = params
         localStorage.setItem('daysToDeadLineLevantamientosWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.daysToDeadline || 'Pendiente'}</div>
+        return <div>{row.deadline && Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60)) || 'Pendiente'}</div>
       }
     },
     {
@@ -486,7 +492,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             canComment={authUser.role === 7}
           />
         )}
-        {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} />}
+        {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} proyectistas={proyectistas} />}
       </Box>
     </Card>
   )
