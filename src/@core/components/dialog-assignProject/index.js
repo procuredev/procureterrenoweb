@@ -1,31 +1,31 @@
 // ** React Imports
-import { useState, forwardRef } from 'react'
+import { forwardRef, useState } from 'react'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import List from '@mui/material/List'
-import Avatar from '@mui/material/Avatar'
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import Dialog from '@mui/material/Dialog'
-import Button from '@mui/material/Button'
-import ListItem from '@mui/material/ListItem'
-import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Fade from '@mui/material/Fade'
-import ListItemText from '@mui/material/ListItemText'
+import EngineeringIcon from '@mui/icons-material/Engineering'
 import Autocomplete from '@mui/material/Autocomplete'
+import Avatar from '@mui/material/Avatar'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
+import Fade from '@mui/material/Fade'
+import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
-import EngineeringIcon from '@mui/icons-material/Engineering'
+import ListItemText from '@mui/material/ListItemText'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
-import { useFirebase } from 'src/context/useFirebase'
 import { CircularProgress } from '@mui/material'
+import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -58,7 +58,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     // Verificamos si el option ya existe en el array draftmen
     if (!draftmen.some(draftman => draftman.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen(prevDraftmen => [...prevDraftmen, option])
+      setDraftmen(prevDraftmen => [...prevDraftmen, {name: option.name, userId: option.userId}])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
