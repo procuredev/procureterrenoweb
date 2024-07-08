@@ -159,9 +159,9 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: row.state <= 6 && !createdBySupervisor && !createdByPlanner
       },
       4: {
-        approve: hasPrevState && !createdBySupervisor,
-        edit: [3, 6].includes(row.state) && !createdBySupervisor,
-        reject: row.state <= 6 && !createdBySupervisor
+        approve: false, // hasPrevState && !createdBySupervisor,
+        edit: false, // [3, 6].includes(row.state) && !createdBySupervisor,
+        reject: false // row.state <= 6 && !createdBySupervisor
       },
       5: {
         approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor,
