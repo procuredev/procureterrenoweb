@@ -43,12 +43,12 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   const [draftmen, setDraftmen] = useState([])
   const [loading, setLoading] = useState(false)
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
+
   const [uprisingTimeSelected, setUprisingTimeSelected] = useState({
-    // start: null,
-    // end: null,
     hours: 0,
     minutes: 0
   })
+
   const [error, setError] = useState('')
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false)
   const [deadlineDate, setDeadlineDate] = useState(moment())

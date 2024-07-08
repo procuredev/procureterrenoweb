@@ -310,6 +310,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       renderCell: params => {
         const { row } = params
         localStorage.setItem('assignLevantamientosWidthColumn', params.colDef.computedWidth)
+
         return (
           <>
             {md ? (
