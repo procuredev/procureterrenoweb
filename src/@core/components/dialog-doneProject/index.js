@@ -232,7 +232,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                 options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
                 ListboxComponent={List}
                 getOptionLabel={option => option.name}
-                renderInput={params => <TextField {...params} size='small' label='Seleccionar Proyectistas'/>}
+                renderInput={params => <TextField {...params} size='small' label='Seleccionar Proyectistas de Gabinete'/>}
                 filterOptions={filterOptions} // Agrega este prop
                 renderOption={(props, option) => (
                   <ListItem {...props} onClick={() => handleListItemClick(option)}>
@@ -264,7 +264,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                   </ListItem>
                 )}
               />
-              <Typography variant='h6'>{`${draftmen.length} Proyectista${draftmen.length === 1 ? '' : 's'} seleccionado${draftmen.length === 1 ? '' : 's'}`}</Typography>
+              <Typography variant='h6'>{`${draftmen.length} Proyectista${draftmen.length === 1 ? '' : 's'} de Gabinete seleccionado${draftmen.length === 1 ? '' : 's'}`}</Typography>
               <List dense sx={{ py: 4 }}>
                 {draftmen.map(draftman => {
                   return (
