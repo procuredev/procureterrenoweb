@@ -4,6 +4,7 @@ import { forwardRef, useEffect, useState } from 'react'
 // ** MUI Imports
 import EngineeringIcon from '@mui/icons-material/Engineering'
 import Autocomplete from '@mui/material/Autocomplete'
+import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
