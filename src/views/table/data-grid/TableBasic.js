@@ -364,12 +364,12 @@ const TableBasic = ({ rows, role, roleData }) => {
       width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
       minWidth: 90,
       maxWidth: 180,
-      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0], //Hola
       renderCell: params => {
         const { row } = params
         localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{(row.deadline && Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60))) || 'Pendiente'}</div>
+        return <div>{row.deadline ? Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60)) : 'Pendiente'}</div>
       }
     },
     {
