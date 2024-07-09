@@ -369,7 +369,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         const { row } = params
         localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{(row.deadline && Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60))) || 'Pendiente'}</div>
+        return <div>{row.deadline ? Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60)) : 'Pendiente'}</div>
       }
     },
     {
