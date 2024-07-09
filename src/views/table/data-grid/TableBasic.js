@@ -364,7 +364,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
       minWidth: 90,
       maxWidth: 180,
-      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0], //Hola
       renderCell: params => {
         const { row } = params
         localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
