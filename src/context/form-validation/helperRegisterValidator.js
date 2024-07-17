@@ -5,7 +5,7 @@ export function registerValidator(values) {
   const valEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const valPhone = /^[0-9+]{8,12}$/
   const valRoleMel = [2, 3, 4]
-  const valRoleProcure = [1, 5, 6, 7, 8, 9, 10, 11]
+  const valRoleProcure = [1, 5, 6, 7, 8, 9, 10, 11, 12]
   const valShiftMel = ['P', 'Q']
   const valShiftProcure = ['A', 'B']
 
@@ -98,7 +98,7 @@ export function registerValidator(values) {
 
           return true
 
-        } else if (values.company === 'Procure' && (values.role === 1 || values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10 || values.role === 11)) {
+        } else if (values.company === 'Procure' && (values.role === 1 || values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10 || values.role === 11 || values.role === 12)) {
 
           return true
 
