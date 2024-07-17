@@ -9,25 +9,25 @@ export function registerValidator(values) {
   const valShiftMel = ['P', 'Q']
   const valShiftProcure = ['A', 'B']
 
-  const valPlant = [
-    'Planta Concentradora Los Colorados',
-    'Planta Concentradora Laguna Seca | Línea 1',
-    'Planta Concentradora Laguna Seca | Línea 2',
-    'Chancado y Correas',
-    'Puerto Coloso',
-    'Instalaciones Cátodo',
-    'Sucursal Santiago',
-    'Instalaciones Mina',
-    'Instalaciones Lixiviación Sulfuros',
-    'Instalaciones Escondida Water Supply',
-    'Instalaciones Concentraducto',
-    'Instalaciones Monturaqui',
-    'Instalaciones Auxiliares',
-    'Subestaciones Eléctricas',
-    'Tranque y Relaves',
-    'Campamento Villa San Lorenzo',
-    'Campamento Villa Cerro Alegre'
-  ]
+  // const valPlant = [
+  //   'Planta Concentradora Los Colorados',
+  //   'Planta Concentradora Laguna Seca | Línea 1',
+  //   'Planta Concentradora Laguna Seca | Línea 2',
+  //   'Chancado y Correas',
+  //   'Puerto Coloso',
+  //   'Instalaciones Cátodo',
+  //   'Sucursal Santiago',
+  //   'Instalaciones Mina',
+  //   'Instalaciones Lixiviación Sulfuros',
+  //   'Instalaciones Escondida Water Supply',
+  //   'Instalaciones Concentraducto',
+  //   'Instalaciones Monturaqui',
+  //   'Instalaciones Auxiliares',
+  //   'Subestaciones Eléctricas',
+  //   'Tranque y Relaves',
+  //   'Campamento Villa San Lorenzo',
+  //   'Campamento Villa Cerro Alegre'
+  // ]
 
   const validations = {
     // name: {
@@ -74,24 +74,24 @@ export function registerValidator(values) {
       },
       message: 'El Rol seleccionado no se encuentra entre los sugeridos para la empresa seleccionada.'
     },
-    plant: {
-      validate: value => {
-        if (values.company === 'Procure' || values.role === 4) {
-          return true // No se valida la planta si la empresa es "Procure"
-        }
+    // plant: {
+    //   validate: value => {
+    //     if (values.company === 'Procure' || values.role === 4) {
+    //       return true // No se valida la planta si la empresa es "Procure"
+    //     }
 
-        if (Array.isArray(value)) {
-          if (values.role === 2) {
-            return value.length > 0 && value.every(item => valPlant.includes(item)) // value.length === 1 && value.every(item => valPlant.includes(item))
-          } else {
-            return value.length > 0 && value.every(item => valPlant.includes(item))
-          }
-        }
+    //     if (Array.isArray(value)) {
+    //       if (values.role === 2) {
+    //         return value.length > 0 && value.every(item => valPlant.includes(item)) // value.length === 1 && value.every(item => valPlant.includes(item))
+    //       } else {
+    //         return value.length > 0 && value.every(item => valPlant.includes(item))
+    //       }
+    //     }
 
-        return false
-      },
-      message: 'La Planta seleccionada no coincide con ninguna de las sugeridas.'
-    },
+    //     return false
+    //   },
+    //   message: 'La Planta seleccionada no coincide con ninguna de las sugeridas.'
+    // },
     shift: {
       validate: value => {
         if (values.company === 'MEL' && (values.role === 3 || values.role === 4)) {
