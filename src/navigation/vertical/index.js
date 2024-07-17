@@ -15,7 +15,7 @@ const Navigation = () => {
       path: '/home',
       icon: 'mdi:home-outline',
       subject: 'home',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Nueva Solicitud',
@@ -36,7 +36,7 @@ const Navigation = () => {
       path: '/calendario',
       icon: 'mdi:calendar-month-outline',
       subject: 'calendario',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Levantamientos',
@@ -50,7 +50,7 @@ const Navigation = () => {
       path: '/carga-de-horas',
       icon: 'mdi:hours-12',
       subject: 'carga-de-horas',
-      authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     // {
     //   title: 'Gabinete',
@@ -71,14 +71,14 @@ const Navigation = () => {
       path: '/mapa',
       icon: 'mdi:map-outline',
       subject: 'mapa',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Nuestro Equipo',
       path: '/nuestro-equipo',
       icon: 'mdi:account-group',
       subject: 'nuestro-equipo',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Administración',
