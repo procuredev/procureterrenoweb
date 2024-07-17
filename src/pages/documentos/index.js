@@ -114,7 +114,7 @@ const Documentos = () => {
       response_type: 'token'
     }
 
-    // Crear un elemento de formulario para abrir el endpoint de OAuth 2.0 en new window.
+    // Crea un elemento de formulario para abrir el endpoint de OAuth 2.0 en new window.
     const form = document.createElement('form')
     form.setAttribute('method', 'GET') // Envia solicitud GET
     form.setAttribute('action', oauth2Endpoint) // Configura el formulario para que apunte al endpoint de OAuth 2.0.
@@ -137,7 +137,7 @@ const Documentos = () => {
    * Función para refrescar el token de acceso utilizando el token de refresco.
    */
   const refreshAccessToken = async refreshToken => {
-    // Crear un objeto URLSearchParams para construir los parámetros de la solicitud POST.
+    // Crea un objeto URLSearchParams para construir los parámetros de la solicitud POST.
     const params = new URLSearchParams()
     params.append('client_id', CLIENT_ID)
     params.append('client_secret', CLIENT_SECRET)
@@ -154,7 +154,7 @@ const Documentos = () => {
         body: params.toString()
       })
 
-      // Verificar si la solicitud fue exitosa.
+      // Verifica si la solicitud fue exitosa.
       if (!response.ok) {
         throw new Error('Failed to refresh access token')
       }
