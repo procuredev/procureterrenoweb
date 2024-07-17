@@ -138,7 +138,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   const onSubmit = id => {
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
-      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftment: draftmen }, authUser)
+      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: draftmen }, authUser)
         .then(() => {
           setLoading(false)
           handleClose()
