@@ -223,12 +223,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       row.sentByDesigner &&
       row.approvedByDocumentaryControl &&
       (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48),
-    'Reanudado, send next': row => row.resumeBlueprint && !row.approvedByClient && !row.sentByDesigner,
-    Aprobado: row => (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
-    'Aprobado con comentarios': row => row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
+    Reanudado: row => row.resumeBlueprint && !row.approvedByClient && !row.sentByDesigner,
+    'Aprobado por Cliente con comentarios': row =>
+      row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
+    'Aprobado por Cliente sin comentarios': row =>
+      (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
     'Rechazado con Observaciones': row =>
       !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
-    'Aprobado, send Next': row => row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
+    'Aprobado por Control Documental': row =>
+      row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
     Iniciado: row => !row.sentTime,
     Rechazado: row =>
       (!row.sentByDesigner &&
@@ -936,23 +939,34 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Typography>
                 )}
 
-                <IconButton
-                  sx={{
-                    my: 'auto',
-                    ml: 2,
-                    p: 0,
-                    color: canUploadHlc(row),
-                    opacity: 0.7
-                  }}
-                  color='success'
-                  onClick={
-                    authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
-                      ? () => handleOpenUploadDialog(row)
-                      : null
-                  }
-                >
-                  {row.storageHlcDocuments ? null : <Upload />}
-                </IconButton>
+                {(authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner) ||
+                (authUser.role === 9 && row.approvedByDocumentaryControl && row.sentBySupervisor) ? (
+                  <IconButton
+                    sx={{
+                      my: 'auto',
+                      ml: 2,
+                      p: 0,
+                      color: canUploadHlc(row),
+                      opacity: 0.7
+                    }}
+                    color='success'
+                    onClick={
+                      authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner
+                        ? () => handleOpenUploadDialog(row)
+                        : null
+                    }
+                  >
+                    {row.storageHlcDocuments ? null : (
+                      <Upload
+                        sx={{
+                          fontSize: xlDown ? '1rem' : '1.2rem'
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                ) : (
+                  ''
+                )}
               </Box>
             </Box>
           )
