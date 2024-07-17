@@ -1,7 +1,7 @@
 // ** Firebase Imports
+import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore'
+import { getDownloadURL, getStorage, ref, uploadBytes, uploadString } from 'firebase/storage'
 import { db } from 'src/configs/firebase'
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore'
-import { ref, getDownloadURL, uploadBytes, getStorage, uploadString } from 'firebase/storage'
 
 const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 'solicitud', petitionId = null) => {
   const storage = getStorage()
@@ -73,6 +73,9 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 's
           await updateDoc(solicitudRef, { storageHlcDocuments: arrayActual })
         }
         console.log('URL de la foto actualizada exitosamente')
+
+        return fotos
+
       } else {
         console.error('El documento de la solicitud no existe')
       }

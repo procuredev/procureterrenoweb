@@ -1,67 +1,86 @@
-import React, { createContext, useState, useEffect, useContext } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 // ** Firebase Imports
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { app } from 'src/configs/firebase'
-import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'
 
 // ** Crea contexto
 export const FirebaseContext = createContext()
 
 import {
+  createUser,
+  deleteCurrentUser,
   formatAuthUser,
   resetPassword,
-  updatePassword,
-  signInWithEmailAndPassword,
-  createUser,
   signAdminBack,
   signAdminFailure,
   signGoogle,
-  deleteCurrentUser
+  signInWithEmailAndPassword,
+  updatePassword,
+  updateUserInDatabase
 } from 'src/context/firebase-functions/firebaseFunctions'
 
 import {
-  newDoc,
-  updateDocs,
-  updateUserPhone,
-  blockDayInDatabase,
-  generateBlueprint,
-  useBlueprints,
-  updateBlueprint,
+  addComment,
   addDescription,
+  blockDayInDatabase,
+  finishPetition,
+  generateBlueprint,
   generateBlueprintCodeClient,
   generateTransmittalCounter,
+  newDoc,
+  updateBlueprint,
+  updateDocs,
   updateSelectedDocuments,
-  addComment,
   updateUserData,
-  finishPetition
+  updateUserPhone,
+  useBlueprints,
+  fetchWeekHoursByType,
+  createWeekHoursByType,
+  updateWeekHoursByType,
+  deleteWeekHoursByType,
+  fetchSolicitudes,
+  fetchUserList,
+  updateWeekHoursWithPlant
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
-  useEvents,
-  useSnapshot,
+  consultBlockDayInDB,
+  consultBluePrints,
+  consultDocs,
+  consultOT,
+  consultObjetives,
+  consultSAP,
+  consultUserEmailInDB,
+  fetchMelDeliverableType,
+  fetchMelDisciplines,
+  fetchPetitionById,
+  fetchPlaneProperties,
+  getAllUsersData,
   getData,
   getDomainData,
   getUserData,
-  consultBlockDayInDB,
-  consultSAP,
-  consultUserEmailInDB,
-  consultDocs,
-  consultObjetives,
   getUsersWithSolicitudes,
-  fetchPetitionById,
-  fetchPlaneProperties,
-  fetchMelDisciplines,
-  fetchMelDeliverableType,
-  consultBluePrints,
+  subscribeToBlockDayChanges,
   subscribeToPetition,
-  consultOT
+  subscribeToUserProfileChanges,
+  useEvents,
+  useSnapshot
 } from 'src/context/firebase-functions/firestoreQuerys'
 
-import { uploadFilesToFirebaseStorage, updateUserProfile } from 'src/context/firebase-functions/storageFunctions'
+import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
-  const [authUser, setAuthUser] = useState(null)
+  const [authUser, setAuthUser] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      const storedUser = localStorage.getItem('user')
+
+      return storedUser ? JSON.parse(storedUser) : null
+    } else {
+      return null
+    }
+  })
   const [loading, setLoading] = useState(true)
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [domainDictionary, setDomainDictionary] = useState({})
@@ -70,6 +89,7 @@ const FirebaseContextProvider = props => {
   // ** Variables
   const auth = getAuth(app)
 
+  // Este useEffect manejará los datos del usuario conectado
   useEffect(() => {
     const auth = getAuth(app)
 
@@ -77,17 +97,16 @@ const FirebaseContextProvider = props => {
       if (!authState) {
         setAuthUser(null)
         setLoading(false)
-        setDomainDictionary(null)
-        setDomainRoles(null)
       } else {
         setLoading(true)
-        const formattedUser = await formatAuthUser(authState)
-        setAuthUser(formattedUser)
-        setLoading(false)
+        const databaseUserData = await formatAuthUser(authState)
+        setAuthUser(databaseUserData)
+        localStorage.setItem('user', JSON.stringify(databaseUserData))
         const dictionary = await getDomainData('dictionary')
         setDomainDictionary(dictionary)
         const roles = await getDomainData('roles')
         setDomainRoles(roles)
+        setLoading(false)
       }
     })
 
@@ -118,6 +137,7 @@ const FirebaseContextProvider = props => {
     getDomainData,
     getData,
     getUserData,
+    getAllUsersData,
     uploadFilesToFirebaseStorage,
     blockDayInDatabase,
     consultBlockDayInDB,
@@ -144,7 +164,17 @@ const FirebaseContextProvider = props => {
     updateUserData,
     finishPetition,
     subscribeToPetition,
-    consultOT
+    consultOT,
+    subscribeToUserProfileChanges,
+    subscribeToBlockDayChanges,
+    updateUserInDatabase,
+    fetchWeekHoursByType,
+    createWeekHoursByType,
+    updateWeekHoursByType,
+    deleteWeekHoursByType,
+    fetchSolicitudes,
+    fetchUserList,
+    updateWeekHoursWithPlant
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

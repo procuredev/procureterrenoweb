@@ -71,7 +71,9 @@ const CustomSelect = props => {
   return (
     <Grid item xs={12}>
       <FormControl fullWidth sx={{ '& .MuiInputBase-root ': { width: '100%' } }} disabled={disabled} error={!!error}>
-        <InputLabel>{label} {required && <span>*</span>}</InputLabel>
+        <InputLabel>
+          {label} {required && <span>*</span>}
+        </InputLabel>
         <Box display='flex' alignItems='center'>
           <Select input={<OutlinedInput label={label} />} {...selectProps}>
             {options &&
@@ -90,6 +92,28 @@ const CustomSelect = props => {
         {error && <FormHelperText>{error}</FormHelperText>}
       </FormControl>
     </Grid>
+  )
+}
+
+const CustomSelectOptions = props => {
+  const { options, label, onChange, ...selectProps } = props
+
+  return (
+    <FormControl fullWidth sx={{ '& .MuiInputBase-root ': { width: '100%' } }}>
+      <InputLabel>{label}</InputLabel>
+      <Box display='flex' alignItems='center'>
+        <Select input={<OutlinedInput label={label} onChange={onChange} />} {...selectProps}>
+          {options &&
+            options.map(option => {
+              return (
+                <MenuItem key={option.name || option} value={option.name || option}>
+                  {option.name || option}
+                </MenuItem>
+              )
+            })}
+        </Select>
+      </Box>
+    </FormControl>
   )
 }
 
@@ -182,5 +206,13 @@ const FileList = props => {
   )
 }
 
-export { HeadingTypography, CustomTextField, CustomSelect, CustomAutocomplete, StyledTooltip, StyledInfoIcon, FileList }
-
+export {
+  HeadingTypography,
+  CustomTextField,
+  CustomSelect,
+  CustomAutocomplete,
+  StyledTooltip,
+  StyledInfoIcon,
+  FileList,
+  CustomSelectOptions
+}

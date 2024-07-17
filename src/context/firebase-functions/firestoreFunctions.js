@@ -1,64 +1,31 @@
 // ** Firebase Imports
-import { Firebase, db } from 'src/configs/firebase'
 import {
+  Timestamp,
+  addDoc,
   collection,
   doc,
-  addDoc,
-  setDoc,
-  Timestamp,
-  query,
   getDoc,
   getDocs,
+  increment,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  runTransaction,
+  setDoc,
   updateDoc,
   where,
-  orderBy,
-  limit,
-  runTransaction,
-  onSnapshot,
-  increment
+  writeBatch
 } from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
 
 // ** Imports Propios
+import { getUnixTime } from 'date-fns'
+import { useEffect, useState } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
-import { sendEmailNewPetition } from './mailing/sendEmailNewPetition'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
-import { getUnixTime, setDayOfYear } from 'date-fns'
-import { addDays } from 'date-fns'
-import { async } from '@firebase/util'
-import { timestamp } from '@antfu/utils'
-import { blue } from '@mui/material/colors'
-import { useEffect } from 'react'
-
-import { useState } from 'react'
 
 const moment = require('moment')
-
-const requestCounter = async () => {
-  const counterRef = doc(db, 'counters', 'requestCounter')
-
-  try {
-    const requestNumber = await runTransaction(db, async transaction => {
-      const counterSnapshot = await transaction.get(counterRef)
-
-      let newCounter
-
-      if (!counterSnapshot.exists) {
-        newCounter = 1
-      } else {
-        newCounter = counterSnapshot.data().counter + 1
-      }
-
-      transaction.set(counterRef, { counter: newCounter })
-
-      return newCounter
-    })
-
-    return requestNumber
-  } catch (error) {
-    console.error('Error al obtener el número de solicitud:', error)
-    throw new Error('Error al obtener el número de solicitud')
-  }
-}
 
 const newDoc = async (values, userParam) => {
   const {
@@ -76,22 +43,27 @@ const newDoc = async (values, userParam) => {
     deliverable,
     receiver,
     description,
-    ot,
+    //* ot,
     end,
     urgency,
     mcDescription,
-    costCenter
+    costCenter,
+    files
   } = values
-
-  // Calcula el valor de 'deadline' sumando 21 días a 'start'.
-  const deadline = addDays(new Date(start), 21)
-  const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
 
   const { uid, displayName: user, email: userEmail, role: userRole, engineering } = userParam
 
   try {
-    solicitudValidator(values)
-    const requestNumber = await requestCounter()
+    // 'SolicitudValidator' valida que los datos vienen en "values" cumplan con los campos requeridos.
+    solicitudValidator(values, userParam.role)
+    // Incrementamos el valor del contador 'otCounter' en la base de datos Firestore y devuelve el nuevo valor.
+    const ot = await increaseAndGetNewOTValue()
+
+    // Calculamos el valor de 'deadline' sumando 21 días a 'start'.
+    // const deadline = addDays(new Date(start), 21)
+
+    // Teniendo como referencia la fecha 'deadline' calculamos el valor de cuantos días faltan (ó han pasado).
+    // const daysToDeadline = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
 
     const docRef = await addDoc(collection(db, 'solicitudes'), {
       title,
@@ -112,11 +84,10 @@ const newDoc = async (values, userParam) => {
       user,
       userEmail,
       userRole,
-      deadline,
-      daysToDeadline,
+      // deadline,
+      // daysToDeadline,
       costCenter,
       date: Timestamp.fromDate(new Date()),
-      n_request: requestNumber,
       engineering,
       ...(urgency && { urgency }),
       ...(ot && { ot }),
@@ -124,29 +95,33 @@ const newDoc = async (values, userParam) => {
       ...(mcDescription && { mcDescription })
     })
 
+    // Modificamos el inicio de semana a partir del dia martes y finaliza los días lunes.
     const adjustedDate = moment(values.start).subtract(1, 'day')
+    // Utilizamos la función isoWeek() para obtener el número de la semana, puede variar de 1 a 53 en un año determinado.
     const week = moment(adjustedDate.toDate()).isoWeek()
 
-    // Establecemos los campos adicionales de la solicitud
+    // Establecemos los campos adicionales de la solicitud.
     await updateDoc(docRef, {
       ...newDoc,
-      // Si el usuario que está haciendo la solicitud es Supervisor se genera con estado inicial 6
-      state: userParam.role === 7 ? 6 : userParam.role === 5 ? 2 : userParam.role,
-      supervisorShift: userParam.role === 7 ? (week % 2 === 0 ? 'A' : 'B') : null
+      // Si el usuario que hace la solicitud es Supervisor ó Planificador se genera con estado inicial 6, en caso contrario state se crea con el valor del role del usuario.
+      state: userParam.role === 7 || userParam.role === 5 ? 6 : userParam.role,
+      // Establecemos el turno del supervisor de acuerdo a la fecha de inicio y se intercalan entre semana considerando que el valor de 'week' sea un valor par o impar.
+      supervisorShift: week % 2 === 0 ? 'A' : 'B'
     })
 
     // Se envía email a quienes corresponda
-    await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
+    // await sendEmailNewPetition(userParam, values, docRef.id, requestNumber)
 
     console.log('Nueva solicitud creada con éxito.')
 
-    return docRef
+    return { id: docRef.id, ot: ot }
   } catch (error) {
     console.error('Error al crear la nueva solicitud:', error)
     throw new Error('Error al crear la nueva solicitud')
   }
 }
 
+// Obtenemos un documento de la colección 'solicitudes' y el usuario asociado, con el rol previo del usuario decrementado en 1.
 const getDocumentAndUser = async id => {
   const ref = doc(db, 'solicitudes', id)
   const querySnapshot = await getDoc(ref)
@@ -158,6 +133,7 @@ const getDocumentAndUser = async id => {
   return { ref, docSnapshot, previousRole }
 }
 
+// Obtienemos el evento más reciente asociado a una solicitud específica.
 const getLatestEvent = async id => {
   const eventQuery = query(collection(db, `solicitudes/${id}/events`), orderBy('date', 'desc'), limit(1))
   const eventQuerySnapshot = await getDocs(eventQuery)
@@ -166,18 +142,21 @@ const getLatestEvent = async id => {
   return latestEvent
 }
 
+// Establecemos el turno del supervisor para una fecha dada, comenzando la semana en martes.
 const setSupervisorShift = async date => {
-  const adjustedDate = moment(date.toDate()).subtract(1, 'day') // Restar un día para iniciar la semana en martes
+  const adjustedDate = moment(date.toDate()).subtract(1, 'day') // Restar un día para iniciar la semana en martes.
   const week = moment(adjustedDate.toDate()).isoWeek()
   const supervisorShift = week % 2 === 0 ? 'A' : 'B'
 
   return supervisorShift
 }
 
+//  Incrementamos el valor del contador 'otCounter' en la base de datos Firestore y devuelve el nuevo valor.
 async function increaseAndGetNewOTValue() {
   const counterRef = doc(db, 'counters', 'otCounter')
 
   try {
+    // Utilizamos una transacción para garantizar la consistencia de los datos.
     const newOTValue = await runTransaction(db, async transaction => {
       const counterSnapshot = await transaction.get(counterRef)
 
@@ -195,6 +174,10 @@ async function increaseAndGetNewOTValue() {
   }
 }
 
+/**
+ * Procesa los cambios en los campos de un documento comparándolos con los campos actuales.
+ * Si un campo ha cambiado o es nuevo, lo guarda y realiza ajustes adicionales si es necesario.
+ */
 const processFieldChanges = (incomingFields, currentDoc) => {
   const changedFields = {}
 
@@ -212,34 +195,30 @@ const processFieldChanges = (incomingFields, currentDoc) => {
     let value = incomingFields[key]
     let currentFieldValue = currentDoc[key]
 
-    //console.log('value: ', value)
-    //console.log('currentFieldValue: ', currentFieldValue)
-
-    if (key === 'start' || key === 'end') {
+    if (key === 'start' || key === 'end' || key === 'deadline') {
       value = moment(value.toDate()).toDate().getTime()
       currentFieldValue = currentFieldValue && currentFieldValue.toDate().getTime()
     }
 
     if (!currentFieldValue || value !== currentFieldValue) {
       // Verifica si el valor ha cambiado o es nuevo y lo guarda
-      if (key === 'start' || key === 'end') {
+      if (key === 'start' || key === 'end' || key === 'deadline') {
         value = value && Timestamp.fromDate(moment(value).toDate())
         currentFieldValue = currentFieldValue && Timestamp.fromDate(moment(currentFieldValue).toDate())
 
         // Verificar si se actualizó 'start' para actualizar 'deadline'
-        if (key === 'start') {
-          const newDeadline = new Date(addDays(value.toDate(), 21))
+        // if (key === 'start') {
+        //   const newDeadline = new Date(addDays(value.toDate(), 21))
 
-          console.log('newDeadline: ', newDeadline)
-          changedFields.deadline = newDeadline
+        //   changedFields.deadline = newDeadline
 
-          const today = new Date()
-          const millisecondsInDay = 1000 * 60 * 60 * 24
+        //   const today = new Date()
+        //   const millisecondsInDay = 1000 * 60 * 60 * 24
 
-          const daysToDeadline = Math.round((newDeadline - today) / millisecondsInDay)
+        //   const daysToDeadline = Math.round((newDeadline - today) / millisecondsInDay)
 
-          changedFields.daysToDeadline = daysToDeadline
-        }
+        //   changedFields.daysToDeadline = daysToDeadline
+        // }
       }
       changedFields[key] = value
       incomingFields[key] = currentFieldValue || 'none'
@@ -249,23 +228,27 @@ const processFieldChanges = (incomingFields, currentDoc) => {
   return { changedFields, incomingFields }
 }
 
+// La función 'updateDocumentAndAddEvent' Actualiza un documento con los campos cambiados y agrega un registro en la subcolección de eventos.
 const updateDocumentAndAddEvent = async (ref, changedFields, userParam, prevDoc, requesterId, id, prevState) => {
   if (Object.keys(changedFields).length > 0) {
-    const { email, displayName } = userParam
+    const { email, displayName, role } = userParam
 
     let newEvent = {
       prevState,
       newState: changedFields.state,
       user: email,
       userName: displayName,
+      userRole: role,
       date: Timestamp.fromDate(new Date()),
       ...(prevDoc && Object.keys(prevDoc).length !== 0 ? { prevDoc } : {}),
       ...(changedFields.uprisingInvestedHours && { uprisingInvestedHours: changedFields.uprisingInvestedHours }),
       ...(changedFields.draftmen && { draftmen: changedFields.draftmen })
     }
-    //console.log('changedFields: ', changedFields)
-    await updateDoc(ref, changedFields)
-    await addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+
+    await updateDoc(ref, changedFields).then(() => {
+      addDoc(collection(db, 'solicitudes', id, 'events'), newEvent)
+    })
+
     await sendEmailWhenReviewDocs(userParam, newEvent.prevState, newEvent.newState, requesterId, id)
   } else {
     console.log('No se escribió ningún documento')
@@ -276,6 +259,7 @@ const addComment = async (id, comment, userParam) => {
   let newEvent = {
     user: userParam.email,
     userName: userParam.displayName,
+    userRole: userParam.role,
     date: Timestamp.fromDate(new Date()),
     comment
   }
@@ -291,6 +275,7 @@ const addComment = async (id, comment, userParam) => {
 function getNextState(role, approves, latestEvent, userRole) {
   const state = {
     returned: 1,
+    petitioner: 2,
     contOperator: 3,
     contOwner: 4,
     planner: 5,
@@ -309,6 +294,9 @@ function getNextState(role, approves, latestEvent, userRole) {
   const returned = latestEvent.newState === state.returned
   const changingStartDate = typeof approves === 'object' && 'start' in approves
   const modifiedBySameRole = userRole === role
+  const requestMadeByPlanner = userRole === 5
+  const requestMadeByMelPetitioner = userRole === 2 && (!latestEvent || (latestEvent && latestEvent.newState === 2))
+  const requestMadeByMelPetitionerAndApprovedByContractAdmin = userRole === 2 && latestEvent.newState === 3 && latestEvent.userRole === 6
 
   const rules = new Map([
     [
@@ -316,16 +304,24 @@ function getNextState(role, approves, latestEvent, userRole) {
       [
         // Si es devuelta x Procure al solicitante y éste acepta, pasa a supervisor (revisada por admin contrato 5 --> 1 --> 6)
         // No se usó dateHasChanged porque el cambio podría haber pasado en el penúltimo evento
-        {
-          condition: approves && approvedByPlanner && returned && !approveWithChanges,
-          newState: state.contAdmin,
-          log: 'Devuelto por Adm Contrato Procure'
-        },
+        // {
+        //   condition: approves && approvedByPlanner && returned && !approveWithChanges,
+        //   newState: state.contAdmin,
+        //   log: 'Devuelto por Adm Contrato Procure'
+        // },
 
-        // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 1 --> 3)
+        // // Si es devuelta al Solicitante por Contract Operator y Solicitante acepta (2/3 --> 1 --> 3)
+        // {
+        //   condition: approves && dateHasChanged && returned && !approveWithChanges,
+        //   newState: state.contOperator,
+        //   log: 'Devuelto por Cont Operator/Cont Owner MEL'
+        // }
+
+        // Para cualquier caso en que Solicitante apruebe o modifique, quedará en state === 2
+        // Por lo tanto si la solicitud estaba en state===6, deberá volver a ser aprobada por el Administrador de Contrato.
         {
-          condition: approves && dateHasChanged && returned && !approveWithChanges,
-          newState: state.contOperator,
+          condition: approves,
+          newState: state.petitioner,
           log: 'Devuelto por Cont Operator/Cont Owner MEL'
         }
       ]
@@ -333,7 +329,14 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       3,
       [
-        //
+        // Contract Operator aprueba una solicitud hecha por Planificador posterior a cerrar el elvantamiento (8 --> 8)
+        {
+          condition: approves && requestMadeByPlanner,
+          newState: state.draftsman,
+          plannerPetitionApprovedByContop: true,
+          log: 'Emergencia aprobada por Contract Operator'
+        },
+        // Contract Operator aprueba una solicitud de emergencia hecha por Supervisor posterior a cerrar el elvantamiento (8 --> 8)
         {
           condition: approves && emergencyBySupervisor,
           newState: state.draftsman,
@@ -341,89 +344,123 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'Emergencia aprobada por Contract Operator'
         },
         // Si modifica la solicitud hecha por el Solicitante, se devuelve al solicitante (2 --> 1)
-        {
-          condition: approves && approveWithChanges && !returned && !modifiedBySameRole,
-          newState: state.returned,
-          log: 'Devuelto por Contract Operator hacia Solcitante'
-        },
+        // {
+        //   condition: approves && approveWithChanges && !returned && !modifiedBySameRole,
+        //   newState: state.returned,
+        //   log: 'Devuelto por Contract Operator hacia Solcitante'
+        // },
 
         // Si aprueba y viene con estado 5 lo pasa a 6 (5 --> 1 --> 6)
+        // {
+        //   condition: approves && approvedByPlanner && returned && !approveWithChanges,
+        //   newState: state.contAdmin,
+        //   log: 'Devuelto por Adm Contrato Procure'
+        // },
+
+        // // Si vuelve a modificar una devolución, pasa al planificador (revisada por contract owner) (3 --> 1 --> 3)
+        // {
+        //   condition: approves && !approvedByPlanner && returned,
+        //   newState: state.contOperator,
+        //   log: 'Devuelto por Cont Owner MEL'
+        // }
+
+        // Si modifica algo que estaba en state === 2, deberá pasar a state === 3
         {
-          condition: approves && approvedByPlanner && returned && !approveWithChanges,
-          newState: state.contAdmin,
-          log: 'Devuelto por Adm Contrato Procure'
+          condition: approves && state === 2 && state < 7,
+          newState: state.contOperator,
+          log: 'Modificado por Contract Operator'
         },
 
-        // Si vuelve a modificar una devolución, pasa al planificador (revisada por contract owner) (3 --> 1 --> 3)
+        // Si modifica algo que no estaba en state === 2, deberá pasar a state === 3
         {
-          condition: approves && !approvedByPlanner && returned,
+          condition: approves && !state === 2 && state < 7,
           newState: state.contOperator,
-          log: 'Devuelto por Cont Owner MEL'
-        }
+          log: 'Modificado por Contract Operator'
+        },
       ]
     ],
     [
       4,
       [
         // Si modifica, se le devuelve al autor (3 --> 1)
-        {
-          condition: approveWithChanges,
-          newState: state.returned,
-          log: 'Aprobado por Planificador'
-        }
+        // {
+        //   condition: approveWithChanges ,
+        //   newState: state.returned,
+        //   log: 'Aprobado por Planificador'
+        // }
       ]
     ],
     [
       5,
       [
-        // Planificador modifica sin cambios de fecha (any --> planner)
+        // Si el planificador modifica cualquier campo (6 --> 6)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState < state.planner,
-          newState: state.planner,
-          log: 'Modificado sin cambio de fecha por Planificador'
+          condition: approves && approveWithChanges && requestMadeByPlanner,
+          newState: state.contAdmin,
+          log: 'Modificado por planificador'
         },
-        // Planificador modifica sin cambios de fecha (any --> planner)
         {
-          condition: approves && !changingStartDate && !dateHasChanged && !emergencyBySupervisor && latestEvent.newState >= state.planner && latestEvent.newState < state.supervisor,
+          condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.contAdmin,
           newState: latestEvent.newState,
-          log: 'Modificado sin cambio de fecha por Planificador'
+          log: 'Modificado sin cambio de fecha por Planificador1'
         },
-        // Planificador modifica sin cambios de fecha (any --> planner)
+        // Planificador acepta cambios de fecha hecho por contract owner (6 --> 6)
         {
-          condition: approves && !emergencyBySupervisor && latestEvent.newState >= state.supervisor,
-          newState: latestEvent.newState,
-          log: 'Modificado sin cambio de fecha por Planificador'
+          condition: approves && !emergencyBySupervisor && requestMadeByPlanner && modifiedBySameRole,
+          newState: state.contAdmin,
+          log: 'Planificador acepta cambios de fecha aplicado por contract owner'
         },
         // Planificador modifica solicitud hecha por Supervisor (any --> any)
         {
           condition: approves && emergencyBySupervisor,
           newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
           log: 'Modificado sin cambiar de estado por Planificador'
-        }
+        },
+        // Planificador acepta Solicitud previamente aceptada por Administrador de Contrato en nombre del Contract Operator
+        // (3 --> 6)
+        {
+          condition: approves && approveWithChanges && requestMadeByMelPetitionerAndApprovedByContractAdmin,
+          newState: state.contAdmin,
+          log: 'Aprobado por Planificación: Solicitud Ingresada por MEL y aprobada por Administrador de Contrato en nombre de Contract Operator'
+        },
       ]
     ],
     [
       6,
       [
         // Planificador modifica, Adm Contrato no modifica
-        {
-          condition: approves && !approveWithChanges && dateHasChanged,
-          newState: state.returned,
-          log: 'Aprobada con cambio de fecha'
-        },
+        // {
+        //   condition: approves && !approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
+        //   newState: state.returned,
+        //   log: 'Aprobada con cambio de fecha'
+        // },
 
         // Planificador no modifica, Adm Contrato sí
-        {
-          condition: approves && approveWithChanges && !dateHasChanged,
-          newState: state.returned,
-          log: 'Modificado por adm contrato'
-        },
+        // {
+        //   condition: approves && approveWithChanges && !dateHasChanged && !requestMadeByMelPetitioner,
+        //   newState: state.returned,
+        //   log: 'Modificado por adm contrato'
+        // },
 
         // Planificador modifica, Adm Contrato sí modifica
+        // {
+        //   condition: approves && approveWithChanges && dateHasChanged && !requestMadeByMelPetitioner,
+        //   newState: state.returned,
+        //   log: 'Modificado por adm contrato y planificador'
+        // },
+
+        // Solicitud Modificada por Administrador de Contrato
         {
-          condition: approves && approveWithChanges && dateHasChanged,
-          newState: state.returned,
-          log: 'Modificado por adm contrato y planificador'
+          condition: approves && !requestMadeByMelPetitioner,
+          newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
+          log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
+        },
+
+        // Solicitud fue ingresada por un Solicitante de MEL
+        {
+          condition: approves && requestMadeByMelPetitioner,
+          newState: state.contOperator,
+          log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
         }
       ]
     ],
@@ -436,6 +473,11 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && approves.hasOwnProperty('uprisingInvestedHours'),
           newState: state.draftsman,
           log: 'Horas agregadas por Supervisor'
+        },
+        {
+          condition: approves && approves.hasOwnProperty('start'),
+          newState: state.contAdmin,
+          log: 'fecha modificada por Supervisor'
         },
         {
           condition: approves && approves.hasOwnProperty('designerReview'),
@@ -503,6 +545,10 @@ const updateDocs = async (id, approves, userParam) => {
     }
   }
 
+  if (userRole === 5 && newState === 8) {
+    changedFields.plannerPetitionApprovedByContop = prevState === 8 ? true : false
+  }
+
   if (userRole === 7 && newState === 8) {
     changedFields.emergencyApprovedByContop = prevState === 8 ? true : false
   }
@@ -549,6 +595,7 @@ const blockDayInDatabase = async (date, cause = '') => {
   }
 }
 
+// Maneja la obtención de datos de planos asociados a una solicitud y devuelve un array de datos y una función para actualizarlos.
 const useBlueprints = id => {
   const [data, setData] = useState([])
 
@@ -664,13 +711,11 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
       return newCount // Retorna el nuevo contador para usarlo fuera de la transacción
     })
 
-    // Ahora, añade este contador al final de tu newCode
+    // Añade el contador al final de newCode
     const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
 
     const ref = doc(db, 'solicitudes', id, 'blueprints', blueprintId)
     updateDoc(ref, { clientCode: newCode })
-
-    console.log('newCode:', newCode)
   } catch (error) {
     console.error('Error al generar clientCode:', error)
     throw new Error('Error al generar clientCode')
@@ -708,7 +753,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
       return currentCount // Retorna el nuevo contador para usarlo fuera de la transacción
     })
 
-    // Ahora, añade este contador al final de tu newCode
+    // Añade el contador al final de newCode
     const newCode = `${idProject}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
 
     const docRef = doc(collection(db, 'solicitudes', petition.id, 'blueprints'), newCode)
@@ -1105,6 +1150,7 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
   }
 }
 
+// Finaliza una solicitud, actualizando su estado y detalles relacionados con la OT. Se basa en la información de la solicitud actual y el usuario autenticado.
 const finishPetition = async (currentPetition, authUser) => {
   try {
     console.log('currentPetition:', currentPetition)
@@ -1137,6 +1183,218 @@ const finishPetition = async (currentPetition, authUser) => {
   }
 }
 
+const fetchWeekHoursByType = async (userId, weekStart, weekEnd) => {
+  try {
+    const userDocRef = doc(db, 'users', userId)
+    const weekHoursRef = collection(userDocRef, 'workedHours')
+
+    const q = query(
+      weekHoursRef,
+      where('day', '>=', weekStart),
+      where('day', '<=', weekEnd),
+      where('deleted', '==', false)
+    )
+    const querySnapshot = await getDocs(q)
+    if (querySnapshot.empty) {
+      return { error: 'No records found for this week.' }
+    }
+    const weekHours = []
+    querySnapshot.forEach(doc => {
+      weekHours.push({ id: doc.id, ...doc.data() })
+    })
+
+    return weekHours
+  } catch (error) {
+    console.error('Error fetching week hours:', error)
+
+    return { error: 'Failed to fetch week hours.' }
+  }
+}
+
+const createWeekHoursByType = async (userParams, creations) => {
+  const batch = writeBatch(db)
+  const userRef = userParams.uid || userParams.id
+  try {
+    const userDocRef = doc(db, 'users', userRef)
+    const weekHoursRef = collection(userDocRef, 'workedHours')
+
+    creations.forEach(change => {
+      console.log('change: ', change)
+      const newDocRef = doc(weekHoursRef)
+      const dayDate = new Date(change.day)
+      dayDate.setHours(0, 0, 0, 0)
+
+      const docData = {
+        created: Timestamp.fromDate(new Date()),
+        day: Timestamp.fromDate(dayDate),
+        deleted: false,
+        hours: change.newValue,
+        hoursSubType:
+          change.hoursType === 'ISC'
+            ? change.hoursType
+            : change.hoursType === 'Vacaciones'
+            ? 'VAC'
+            : userParams.role === 6 || userParams.role === 7 || userParams.role === 8 || userParams.role === 11
+            ? 'OPP'
+            : 'OPE',
+        hoursType: change.hoursType,
+        physicalLocation: '5.1 MEL - NPI&CHO-PRODUCTION CHO',
+        user: {
+          role: change.userRole,
+          shift: change.shift
+        },
+        //shift: change.shift,
+        rowId: change.rowId,
+        column: change.field,
+        ...(change.hoursType === 'OT'
+          ? {
+              ot: {
+                id: change.otID,
+                number: change.otNumber,
+                type: change.otType
+              }
+            }
+          : {}),
+        ...(change.plant && { plant: change.plant }),
+        ...(change.costCenter && { costCenter: change.costCenter })
+      }
+
+      batch.set(newDocRef, docData) // Añade la operación de creación al batch
+    })
+
+    await batch.commit() // Ejecuta todas las operaciones en el batch
+    console.log('All documents successfully created')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error creating week hours with batch:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const updateWeekHoursByType = async (userId, updates) => {
+  const batch = writeBatch(db)
+
+  try {
+    updates.forEach(update => {
+      const docRef = doc(db, 'users', userId, 'workedHours', update.dayDocId)
+      batch.update(docRef, { hours: update.newValue })
+    })
+
+    await batch.commit()
+    console.log('All updates successfully committed')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating week hours:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const deleteWeekHoursByType = async (userId, dayDocIds) => {
+  const batch = writeBatch(db)
+
+  try {
+    dayDocIds.forEach(docId => {
+      const docRef = doc(db, 'users', userId, 'workedHours', docId)
+      batch.update(docRef, { deleted: true })
+    })
+
+    await batch.commit()
+    console.log('All documents successfully marked as deleted')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting week hours:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const fetchSolicitudes = async (authUser, otType) => {
+  const solicitudesRef = collection(db, 'solicitudes')
+  let queryRef = null
+
+  if (authUser.role === 7 || authUser.role === 8) {
+    // Filtrar por shift si el usuario tiene uno o dos turnos.
+    if (otType === 'Gabinete') {
+      queryRef = query(
+        solicitudesRef,
+        where('state', '==', 8),
+        where('supervisorShift', '==', authUser.shift[0]),
+        orderBy('ot')
+      )
+    } else if (otType === 'Levantamiento') {
+      queryRef = query(
+        solicitudesRef,
+        where('state', '>=', 6),
+        where('state', '<=', 8),
+        where('supervisorShift', '==', authUser.shift[0]),
+        orderBy('ot')
+      )
+    }
+  } else if (authUser.role === 1 || (authUser.role >= 5 && authUser.role <= 12)) {
+    // Usuarios con roles específicos pueden ver todas las solicitudes mayores al estado 6.
+    if (otType === 'Gabinete') {
+      queryRef = query(solicitudesRef, where('state', '==', 8), orderBy('ot'))
+    } else if (otType === 'Levantamiento') {
+      queryRef = query(solicitudesRef, where('state', '>=', 6), where('state', '<=', 8), orderBy('ot'))
+    }
+  }
+
+  try {
+    const querySnapshot = await getDocs(queryRef)
+
+    const solicitudes = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ot: doc.data().ot,
+      plant: doc.data().plant,
+      area: doc.data().area,
+      costCenter: doc.data().costCenter,
+      supervisorShift: doc.data().supervisorShift || []
+    }))
+
+    return solicitudes
+  } catch (error) {
+    console.error('Error fetching solicitudes: ', error)
+    throw new Error('Failed to fetch solicitudes.')
+  }
+}
+
+const fetchUserList = async () => {
+  try {
+    const userQuery = query(collection(db, 'users'), where('role', '>=', 5), where('role', '<=', 12), orderBy('name'))
+    const userListSnapshot = await getDocs(userQuery)
+
+    return userListSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error('Error fetching user list:', error)
+
+    return { error: 'Failed to fetch user list.' }
+  }
+}
+
+const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) => {
+  const batch = writeBatch(db)
+
+  dayDocIds.forEach(docId => {
+    const docRef = doc(db, 'users', userId, 'workedHours', docId)
+    batch.update(docRef, { plant, costCenter })
+  })
+
+  try {
+    await batch.commit()
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating week hours with plant and cost center:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1151,5 +1409,12 @@ export {
   updateSelectedDocuments,
   addComment,
   updateUserData,
-  finishPetition
+  finishPetition,
+  fetchWeekHoursByType,
+  createWeekHoursByType,
+  updateWeekHoursByType,
+  deleteWeekHoursByType,
+  fetchSolicitudes,
+  fetchUserList,
+  updateWeekHoursWithPlant
 }

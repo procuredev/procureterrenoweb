@@ -61,7 +61,16 @@ const AppCalendar = () => {
 
   // ** Vars
   const { skin, direction } = settings
-  const { authUser, useSnapshot, getRoleData, getDomainData, consultBlockDayInDB, blockDayInDatabase } = useFirebase()
+
+  const {
+    authUser,
+    useSnapshot,
+    getRoleData,
+    getDomainData,
+    consultBlockDayInDB,
+    blockDayInDatabase,
+    subscribeToBlockDayChanges
+  } = useFirebase()
 
   // ** Hook para obtener los datos de la base de datos
   const data = useSnapshot(false, authUser)
@@ -78,6 +87,14 @@ const AppCalendar = () => {
   const [blockResult, setBlockResult] = useState([])
   const [consultationResult, setConsultationResult] = useState('')
   const [blockReason, setBlockReason] = useState('')
+
+  useEffect(() => {
+    const unsubscribe = subscribeToBlockDayChanges(setBlockResult)
+
+    return () => {
+      unsubscribe()
+    }
+  }, [])
 
   // ** Función para abrir el modal al hacer click en un evento
   const handleModalToggle = clickedEvent => {
@@ -176,13 +193,12 @@ const AppCalendar = () => {
         break
     }
 
-    if(doc.userRole === 7){
+    if (doc.userRole === 7) {
       color = theme.palette.black.main
     }
 
     return color
   }
-
 
   // ** Función para establecer el título de los eventos
   const eventResume = doc => {
@@ -219,7 +235,7 @@ const AppCalendar = () => {
     events: applyFilters(data, filters).map(a => ({
       title: eventResume(a).title,
       start: a.start.seconds * 1000,
-      ...(a.end && { end: (a.end.seconds + 1*24*60*60) * 1000 }),
+      ...(a.end && { end: (a.end.seconds + 1 * 24 * 60 * 60) * 1000 }),
       allDay: true,
       id: a.id,
       description: a.description,
@@ -363,7 +379,15 @@ const AppCalendar = () => {
           }}
         >
           <FullCalendar {...calendarOptions} />
-          {open && <FullScreenDialog open={open} handleClose={handleClose} doc={doc} roleData={roleData} canComment={authUser.role === 7} />}
+          {open && (
+            <FullScreenDialog
+              open={open}
+              handleClose={handleClose}
+              doc={doc}
+              roleData={roleData}
+              canComment={authUser.role === 7}
+            />
+          )}
           {dayDialogOpen && (
             <Dialog sx={{ '.MuiPaper-root': { minWidth: '30%' } }} open={dayDialogOpen}>
               <DialogTitle id='alert-dialog-title'>Información</DialogTitle>
@@ -404,25 +428,22 @@ const AppCalendar = () => {
         </Box>
       </CalendarWrapper>
       <Box
-          sx={{
-            mt:4,
-            px: 5,
-            py: 4,
-            flexGrow: 1,
-            borderRadius: 1,
-            boxShadow: 'none',
-            backgroundColor: 'background.paper'
-          }}
-        >
-        <Typography variant='h6'>
-          Simbología de colores:
-        </Typography>
-        <Chip label="Shutdown" sx={{mx:1.5, my:3, bgcolor: theme.palette.error.main}} />
-        <Chip label="Outage" sx={{mx:1.5, my:3, bgcolor: theme.palette.warning.main}} />
-        <Chip label="Normal" sx={{mx:1.5, my:3, bgcolor: theme.palette.primary.main}} />
-        <Chip label="Urgencia" sx={{mx:1.5, my:3, bgcolor: theme.palette.black.main}} />
-        <Chip label="No definido" sx={{mx:1.5, my:3, bgcolor: theme.palette.secondary.main}} />
-        </Box>
+        sx={{
+          mt: 4,
+          px: 5,
+          py: 4,
+          flexGrow: 1,
+          borderRadius: 1,
+          boxShadow: 'none',
+          backgroundColor: 'background.paper'
+        }}
+      >
+        <Typography variant='h6'>Simbología de colores:</Typography>
+        <Chip label='Shutdown' sx={{ mx: 1.5, my: 3, bgcolor: theme.palette.error.main }} />
+        <Chip label='Outage' sx={{ mx: 1.5, my: 3, bgcolor: theme.palette.warning.main }} />
+        <Chip label='Normal' sx={{ mx: 1.5, my: 3, bgcolor: theme.palette.primary.main }} />
+        <Chip label='Urgencia' sx={{ mx: 1.5, my: 3, bgcolor: theme.palette.black.main }} />
+      </Box>
     </>
   )
 }

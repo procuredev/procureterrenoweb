@@ -15,7 +15,7 @@ const Navigation = () => {
       path: '/home',
       icon: 'mdi:home-outline',
       subject: 'home',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Nueva Solicitud',
@@ -36,19 +36,21 @@ const Navigation = () => {
       path: '/calendario',
       icon: 'mdi:calendar-month-outline',
       subject: 'calendario',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
-      title: 'Supervisor',
+      title: 'Levantamientos',
+      path: '/levantamientos',
       icon: 'mdi:account-hard-hat',
-      children: [
-        {
-          path: '/levantamientos',
-          title: 'Levantamientos',
-          subject: 'levantamientos'
-        }
-      ],
+      subject: 'levantamientos',
       authorizedRoles: [1, 7, 8]
+    },
+    {
+      title: 'Carga de Horas',
+      path: '/carga-de-horas',
+      icon: 'mdi:hours-12',
+      subject: 'carga-de-horas',
+      authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Gabinete',
@@ -57,26 +59,26 @@ const Navigation = () => {
       subject: 'gabinete',
       authorizedRoles: [1, 4, 5, 6, 7, 8, 9, 10]
     },
-    // {
-    //   title: 'Documentos',
-    //   path: '/documentos',
-    //   icon: 'mdi:file-document-outline',
-    //   subject: 'documentos',
-    //   authorizedRoles: [1]
-    // },
+    {
+      title: 'Documentos',
+      path: '/documentos',
+      icon: 'mdi:file-document-outline',
+      subject: 'documentos',
+      authorizedRoles: [1]
+    },
     {
       title: 'Mapa',
       path: '/mapa',
       icon: 'mdi:map-outline',
       subject: 'mapa',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Nuestro Equipo',
       path: '/nuestro-equipo',
       icon: 'mdi:account-group',
       subject: 'nuestro-equipo',
-      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Administración',
@@ -86,6 +88,11 @@ const Navigation = () => {
           title: 'Nuevo Usuario',
           path: '/nuevo-usuario',
           subject: 'nuevo-usuario'
+        },
+        {
+          title: 'Editar Usuarios',
+          path: '/editar-usuarios',
+          subject: 'editar-usuarios'
         }
       ],
       authorizedRoles: [1]

@@ -209,7 +209,7 @@ exports.checkDatabaseEveryOneHour = functions.pubsub
                   html: emailHtml
                 }
               })
-              console.log('E-mail de actualizacion enviado con éxito.')
+              console.log(`E-mail de actualizacion enviado con éxito.`)
             } catch (error) {
               console.error('Error al enviar email:', error)
               throw error
@@ -238,9 +238,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
     const requestsSnapshot = await requestsRef.where('start', '>=', tomorrow).where('start', '<', afterTomorrow).get() // Busca documentos cuya fecha de inicio sea hoy
 
-    const requestsDocs = requestsSnapshot.docs
-      .filter(doc => 'supervisorShift' in doc.data())
-      .filter(doc => doc.data().state == 6 || doc.data().state == 7) // Se filtra requestDocs para llamar a aquellos documentos que tienen un campo 'supervisorShift' y que su estado sea 6 o 7 (aprobado por Procure, pero sin terminar)
+    const requestsDocs = requestsSnapshot.docs.filter(doc => 'supervisorShift' in doc.data()).filter(doc => doc.data().state >= 1 && doc.data().state <= 7) // Se filtra requestDocs para llamar a aquellos documentos que tienen un campo 'supervisorShift' y que su estado sea 6 o 7 (aprobado por Procure, pero sin terminar)
 
     let supervisorArray = [] // Crea un array vacío para almacenar los supervisores
 
@@ -258,6 +256,7 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
     // Se revisa para cada uno de los supervisores que tienen trabajos hoy (teóricamente solo debería haber 1 supervisor)
     for (let i = 0; i < supervisorArray.length; i++) {
+
       let supervisorTasks = [] // Array vacío que contendrá objetos, donde cada objeto contendrá el nombre del supervisor y las tareas que tiene para hoy
 
       // Se revisa cada uno de los documentos existentes en 'solicitudes'
@@ -292,38 +291,39 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
 
         const usersRef = admin.firestore().collection('users') // Se llama a la referencia de la colección 'users'
 
-        const supervisorSnapshot = await usersRef
-          .where('shift', 'array-contains', supervisorWork.supervisorShift)
-          .where('role', '==', 7)
-          .get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
-
+        const supervisorSnapshot = await usersRef.where('shift', 'array-contains', supervisorWork.supervisorShift).where('role', '==', 7).get() // Se llama sólo al que cumple con la condición de que su name es igual al del supervisor de la solicitud
         const supervisorData = supervisorSnapshot.docs // Se almacena en una constante los datos del Supervisor
-        const supervisorEmail = supervisorData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Supervisor
-        const supervisorName = supervisorData.filter(doc => doc.enabled != false).map(id => id.data().name) // Se almacena el e-mail del Supervisor
+        const supervisorEmail = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Supervisor
+        const supervisorName = supervisorData.filter(doc => doc.data().enabled !== false).map(id => id.data().name).join(', ') // Se almacena el e-mail del Supervisor
 
-        const drawmansSnapshot = await usersRef
-          .where('shift', 'array-contains', supervisorWork.supervisorShift)
-          .where('role', '==', 8)
-          .get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
+        const drawmansSnapshot = await usersRef.where('shift', 'array-contains', supervisorWork.supervisorShift).where('role', '==', 8).get() // Se llama sólo al que cumple con la condición de que su rol es 8 (Proyectistas)
         const drawmansData = drawmansSnapshot.docs // Se almacena en una constante los datos de los Proyectistas
-
-        const drawmansEmail = drawmansData
-          .filter(doc => doc.enabled != false)
-          .map(id => id.data().email)
-          .join(', ') // Se almacenan los emails de los Proyectistas
+        const drawmansEmail = drawmansData.filter(doc => doc.data().enabled !== false).map(id => id.data().email).join(', ') // Se almacenan los emails de los Proyectistas
 
         const plannerSnapshot = await usersRef.where('role', '==', 5).get() // Se llama sólo al que cumple con la condición de que su rol es 5 (Planificador)
         const plannerData = plannerSnapshot.docs // Se almacena en una constante los datos del Planificador
-        const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Planificador
+        const plannerEmail = plannerData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Planificador
 
         const admContratoSnapshot = await usersRef.where('role', '==', 6).get() // Se llama sólo al que cumple con la condición de que su rol es 6 (Administrador de Contrato)
         const admContratoData = admContratoSnapshot.docs // Se almacena en una constante los datos del Administrador de Contrato
-        const admContratoEmail = admContratoData.filter(doc => doc.enabled != false).map(id => id.data().email) // Se almacena el e-mail del Administrador de Contrato
+        const admContratoEmail = admContratoData.filter(doc => doc.data().enabled !== false).map(id => id.data().email) // Se almacena el e-mail del Administrador de Contrato
 
         // Si hay mas de 1 levantamiento se escribirá 'levantamientos agendados'
-        let youHaveTasks = 'levantamiento agendado'
+        let youHaveTasks = 'Levantamiento agendado'
         if (supervisorTasks.length > 1) {
-          youHaveTasks = 'levantamientos agendados'
+          youHaveTasks = 'Levantamientos agendados'
+        }
+
+        const statesDefinition = {
+          0: 'Cancelada',
+          1: 'Reprogramado, en revisión de Autor',
+          2: 'En revisión de Contract Operator',
+          3: 'En revisión de Planificador',
+          4: 'En revisión de Planificador',
+          5: 'En revisión de Administrador de Contrato',
+          6: 'Aprobada para inicio de Levantamiento',
+          7: 'Levantamiento iniciado',
+          8: 'Levantamiento finalizado'
         }
 
         // Se define el mensaje html que contendrá, el cual será una lista con todas los levantamientos que tiene que hacer el actual Supervisor durante hoy
@@ -333,12 +333,13 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
             .map(
               (task, index) => `
         <li>
-          Tarea ${index + 1}:
+          Levantamiento ${index + 1}:
           <ul>
-            <li>OT: ${task.ot}</li>
+            <li>OT: ${task.ot ? task.ot : 'Por definir'}</li>
             <li>Título: ${task.title}</li>
             <li>Planta: ${task.plant}</li>
             <li>Solicitante: ${task.petitioner}</li>
+            <li>Estado: ${statesDefinition[task.state]}</li>
           </ul>
         </li>
       `
@@ -356,14 +357,14 @@ exports.sendInfoToSupervisorAt5PM = functions.pubsub
             subject: `Resumen de mañana ${tomorrow.toLocaleDateString('es-CL')} - ${supervisorName}`,
             html: `
               <h2>Estimad@ ${supervisorName}:</h2>
-              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para mañana. A continuación se presenta el detalle de cada una de ellos:</p>
+              <p>Usted tiene ${supervisorTasks.length} ${youHaveTasks} para comenzar mañana. A continuación se presenta el detalle de cada una de ellos:</p>
                 ${tasksHtml}
               <p>Para mayor información revise la solicitud en nuestra página web</p>
-              <p>Saludos,<br>Prosite</p>
+              <p>Saludos,<br><a href="https://www.prosite.cl/">Prosite</a></p>
               `
           }
         })
-        console.log('E-mail de tareas diarias al Supervisor enviado con éxito.')
+        console.log(`E-mail ${mailId} de tareas diarias al Supervisor enviado con éxito.`)
       } catch (error) {
         console.error('Error al enviar email:', error)
         throw error
@@ -549,60 +550,187 @@ exports.scheduledFirestoreExport = functions.pubsub
 
 // Función para calcular la diferencia en días entre dos fechas
 
-const calculateDaysToDeadline = deadlineTimestamp => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
-  const deadlineDate = new Date(deadlineTimestamp * 1000)
-  const diffTime = deadlineDate - today
-  //math.round() redondea hacia arriba el valor a un número entero
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+// const calculateDaysToDeadline = deadlineTimestamp => {
+//   const today = new Date()
+//   today.setHours(0, 0, 0, 0) // Establecer la hora a las 00:00:00
+//   const deadlineDate = new Date(deadlineTimestamp * 1000)
+//   const diffTime = deadlineDate - today
+//   //math.round() redondea hacia arriba el valor a un número entero
+//   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
 
-  return diffDays
-}
+//   return diffDays
+// }
 
-exports.updateDaysToDeadlineOnSchedule = functions.pubsub
-  .schedule('every day 00:00')
-  .timeZone('Chile/Continental')
-  .onRun(async context => {
-    const db = admin.firestore()
-    const solicitudesRef = db.collection('solicitudes')
+// Función que actualiza para c/u de las solicitudes los días faltantes para la fecha límite (entrega de Gabinete)
+// exports.updateDaysToDeadlineOnSchedule = functions.pubsub
+//   .schedule('every day 00:00')
+//   .timeZone('Chile/Continental')
+//   .onRun(async context => {
+//     const db = admin.firestore()
+//     const solicitudesRef = db.collection('solicitudes')
 
-    const snapshot = await solicitudesRef.get()
-    const updatePromises = []
+//     const snapshot = await solicitudesRef.get()
+//     const updatePromises = []
 
-    snapshot.forEach(docSnapshot => {
-      const data = docSnapshot.data()
-      let deadlineTimestamp
+//     snapshot.forEach(docSnapshot => {
+//       const data = docSnapshot.data()
+//       let deadlineTimestamp
 
-      if (data.deadline) {
-        deadlineTimestamp = data.deadline.seconds
-      } else {
-        // Si 'deadline' no existe, se establece a 21 días después de 'start'
-        // Convierte la marca de tiempo Unix 'data.start.seconds' a un objeto 'Date' de JavaScript
-        const startDate = new Date(data.start.seconds * 1000)
-        const deadlineDate = new Date(startDate)
-        deadlineDate.setDate(startDate.getDate() + 21)
-        // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
-        deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
-        // Preparar para actualizar el documento con el nuevo 'deadline'
-        updatePromises.push(
-          docSnapshot.ref.update({
-            deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
-          })
-        )
+//       if (data.deadline) {
+//         deadlineTimestamp = data.deadline.seconds
+//         const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
+//         // Preparar para actualizar el documento con los días hasta la fecha límite
+//         updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
+//       }
+
+//       // } else {
+//       //   // Si 'deadline' no existe, se establece a 21 días después de 'start'
+//       //   // Convierte la marca de tiempo Unix 'data.start.seconds' a un objeto 'Date' de JavaScript
+//       //   const startDate = new Date(data.start.seconds * 1000)
+//       //   const deadlineDate = new Date(startDate)
+//       //   deadlineDate.setDate(startDate.getDate() + 21)
+//       //   // Convierte el objeto 'deadlineDate' a una marca de tiempo Unix (segundos desde el 1 de enero de 1970). math.floor() trunca el valor a un número entero
+//       //   deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000)
+//       //   // Preparar para actualizar el documento con el nuevo 'deadline'
+//       //   updatePromises.push(
+//       //     docSnapshot.ref.update({
+//       //       deadline: admin.firestore.Timestamp.fromDate(deadlineDate)
+//       //     })
+//       //   )
+//       // }
+
+
+
+//     })
+
+//     // Espera a que todas las operaciones de actualización se completen
+//     await Promise.all(updatePromises)
+//       .then(() => {
+//         console.log('Todos los documentos han sido actualizados con éxito.')
+//       })
+//       .catch(error => {
+//         console.error('Error al actualizar documentos:', error)
+//       })
+//   })
+
+  // Firebase Function que está viendo cambios en el campo enabled de Firebase Firestore.
+  // Específicamente en users/{usersid}/enabled
+  // Si hay cambios de true a false -> se deshabilita un usuario
+  // Lo que gatillará esta función
+  exports.onUserStatusChange = functions.firestore.document('users/{userId}').onUpdate(async (change, context) => {
+
+    const before = change.before.data()
+    const after = change.after.data()
+    const userId = context.params.userId
+
+    // Verificar si el campo 'enabled' ha cambiado
+    if (before.enabled !== after.enabled) {
+
+      try {
+        if (after.enabled === false) {
+          await admin.auth().updateUser(userId, { disabled: true })
+          console.log(`Usuario ${userId} deshabilitado.`)
+        } else {
+          await admin.auth().updateUser(userId, { disabled: false })
+          console.log(`Usuario ${userId} habilitado.`)
+        }
+      } catch (error) {
+        console.error(`Error actualizando el estado del usuario ${userId}:`, error)
+      }
+    }
+
+    // Verificar si el campo 'name' ha cambiado.
+    // Este se usará principalmente para la creación del usuario.
+    if (before.name !== after.name) {
+
+
+      // try-chatch para cambiar el nombre del usuario en Firebase Auth
+      try {
+        await admin.auth().updateUser(userId, { displayName: after.name })
+        console.log(`Nombre del usuario ${userId} actualizado a ${after.name}.`)
+      } catch (error) {
+        console.error(`Error actualizando el nombre del usuario ${userId}:`, error)
       }
 
-      const daysToDeadline = calculateDaysToDeadline(deadlineTimestamp)
-      // Preparar para actualizar el documento con los días hasta la fecha límite
-      updatePromises.push(docSnapshot.ref.update({ daysToDeadline: daysToDeadline }))
-    })
 
-    // Espera a que todas las operaciones de actualización se completen
-    await Promise.all(updatePromises)
-      .then(() => {
-        console.log('Todos los documentos han sido actualizados con éxito.')
-      })
-      .catch(error => {
-        console.error('Error al actualizar documentos:', error)
-      })
+      // try-catch para cambiar el 'user' en cada una de las solicitudes solicitudes/{solicitudId}
+      try {
+        // Actualizar email en Firestore
+        const solicitudesRef = admin.firestore().collection("solicitudes")
+
+        // Obtener documentos que coinciden con el userId
+        const querySnapshot = await solicitudesRef.where("uid", "==", userId).get()
+
+        // Actualizar el campo "user" (nombre de quien ingresó la Solicitud) en los documentos encontrados
+        const batch = admin.firestore().batch()
+        querySnapshot.forEach((doc) => {
+            batch.update(doc.ref, { user: after.name })
+        })
+
+        // Ejecutar la actualización en lote
+        await batch.commit()
+
+        console.log("Email actualizado exitosamente en Solicitudes.")
+      } catch (error) {
+        console.error("Error al actualizar el email en Solicitudes:", error)
+      }
+
+    }
+
+  })
+
+
+  // Firebase Function que está viendo cambios en el campo Centro de Costos (costCenter) de Solicitudes
+  // Específicamente en solicitudes/{solicitudid}/costCenter
+  // Si hay cambios -> cambiará el valor de costCenter en todo los carguíos de horas
+  // Los carguíos de horas están en users/{userId}/workedHours/{workedHoursId}/costCenter
+  exports.onSolicitudChange = functions.firestore.document('solicitudes/{solicitudId}').onUpdate(async (change, context) => {
+
+    const before = change.before.data()
+    const after = change.after.data()
+    const solicitudId = context.params.solicitudId
+
+    // Verificar si el campo 'costCenter' ha cambiado.
+    // Este se usará principalmente para la creación del usuario.
+    if (before.costCenter !== after.costCenter) {
+
+      // try-catch para cambiar el 'costCenter' en cada una de los carguios de horas users/{userId}/workedHours/{workedHoursId}/costCenter
+      try {
+
+        // snapShot de lo usuarios
+        const usersRef = admin.firestore().collection('users')
+        const usersSnapshot = await usersRef.get()
+
+        // Inicalización de batch para actualizar por lote
+        const batch = admin.firestore().batch()
+
+        // Iterar sobre todos los usuarios
+        for (const userDoc of usersSnapshot.docs) {
+          const userId = userDoc.id
+
+          // Obtener referencia a la subcolección 'workedHours' de cada usuario
+          const workedHoursRef = usersRef.doc(userId).collection('workedHours')
+          const workedHoursSnapshot = await workedHoursRef.get()
+
+          // Iterar sobre todos los documentos de 'workedHours' y verificar el campo 'ot.id'
+          workedHoursSnapshot.forEach((workedHoursDoc) => {
+              const workedHoursData = workedHoursDoc.data()
+
+              if (workedHoursData.ot && workedHoursData.ot.id === solicitudId) {
+                  const workedHoursDocRef = workedHoursRef.doc(workedHoursDoc.id)
+                  batch.update(workedHoursDocRef, { costCenter: after.costCenter })
+              }
+          });
+        }
+
+        // Ejecutar la actualización en lote
+        await batch.commit()
+
+        console.log("CostCenter actualizado exitosamente en workedHours.")
+      } catch (error) {
+        console.error("Error al actualizar el costCenter en workedHours: ", error)
+      }
+
+    }
+
   })

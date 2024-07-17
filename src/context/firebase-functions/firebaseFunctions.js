@@ -1,7 +1,7 @@
 // ** Firebase Imports
-import { getAuth, updateProfile, deleteUser, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { GoogleAuthProvider, deleteUser, getAuth, signInWithPopup } from 'firebase/auth'
+import { doc, setDoc, updateDoc } from 'firebase/firestore'
 import { Firebase, db } from 'src/configs/firebase'
-import { doc, setDoc } from 'firebase/firestore'
 
 // ** Trae funcion que valida los campos del registro
 import { registerValidator } from '../form-validation/helperRegisterValidator'
@@ -54,10 +54,16 @@ const updatePassword = async password => {
 }
 
 // ** Inicio de sesión
-const signInWithEmailAndPassword = (email, password) => {
-  return Firebase.auth()
-    .signInWithEmailAndPassword(email, password)
-    .catch(err => {
+const signInWithEmailAndPassword = async (email, password, rememberMe) => {
+  // Primero se crea una función asíncrona para logearse mediante Firebase que en caso de error retornará el error.
+  const signIn = async () => {
+    try {
+      const userCredential = await Firebase.auth().signInWithEmailAndPassword(email, password)
+      const userData = await formatAuthUser(userCredential.user)
+      localStorage.setItem('user', JSON.stringify(userData))
+
+      return userCredential
+    } catch (err) {
       switch (err.code) {
         case 'auth/wrong-password':
           throw new Error('Contraseña incorrecta, intente de nuevo')
@@ -66,7 +72,21 @@ const signInWithEmailAndPassword = (email, password) => {
         default:
           throw new Error('Error al iniciar sesión')
       }
-    })
+    }
+  }
+
+  // Si el usuario seleccinó la casilla "Recordarme" se usa la versión por defecto de Firebase, la cual almacena al usuario.
+  if (rememberMe) {
+
+    return await signIn()
+
+  } else {
+    // En caso contrario, se define Persitencia 'sessión', lo que significa que el usuario permanecerá conectado mientras no cierre la pestaña del navegador
+    await Firebase.auth().setPersistence('session')
+
+    return await signIn()
+
+  }
 }
 
 // ** Registro de usuarios
@@ -101,16 +121,16 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
     saveUID(Firebase.auth().currentUser.uid)
 
     // Actualiza usuario
-    try {
-      await updateProfile(Firebase.auth().currentUser, {
-        displayName: name,
-        photoURL: ''
-      })
-      console.log(Firebase.auth().currentUser)
-    } catch (updateError) {
-      console.log('Error al actualizar el perfil:', updateError)
-      throw updateError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
-    }
+    // try {
+    //   await updateProfile(Firebase.auth().currentUser, {
+    //     displayName: name,
+    //     photoURL: ''
+    //   })
+    //   console.log(Firebase.auth().currentUser)
+    // } catch (updateError) {
+    //   console.log('Error al actualizar el perfil:', updateError)
+    //   throw updateError // Re-lanzar el error para que se pueda capturar en un nivel superior si es necesario
+    // }
   } catch (error) {
     if (error.message === 'Firebase: Error (auth/email-already-in-use).') {
       throw new Error('El usuario ya se encuentra registrado.')
@@ -122,7 +142,7 @@ const createUser = async (values, userParam, saveEmail, saveUID) => {
 }
 
 const createUserInDatabase = (values, uid) => {
-  const { name, rut, phone, email, plant, engineering, shift, company, role, opshift } = values
+  const { name, firstName, fatherLastName, motherLastName, rut, phone, email, plant, engineering, shift, company, role, opshift, subtype } = values
 
   // Lógica para calcular completedProfile
   let completedProfile = false
@@ -130,11 +150,11 @@ const createUserInDatabase = (values, uid) => {
     completedProfile = true
   } else if (company === 'MEL') {
     if (role === 2) {
-      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift
     } else if (role === 3 || role === 4) {
-      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut;
+      completedProfile = !!email && !!name && !!phone && !!plant && !!role && !!rut
     } else {
-      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift;
+      completedProfile = !!email && !!name && !!opshift && !!phone && !!plant && !!role && !!rut && !!shift
     }
   }
 
@@ -144,6 +164,9 @@ const createUserInDatabase = (values, uid) => {
     try {
       await setDoc(doc(db, 'users', uid), {
         name: name,
+        firstName: firstName,
+        fatherLastName: fatherLastName,
+        motherLastName: motherLastName,
         email: email,
         rut: rut,
         phone: phone.replace(/\s/g, ''),
@@ -153,7 +176,9 @@ const createUserInDatabase = (values, uid) => {
         ...(engineering && { engineering }),
         ...(shift && { shift }),
         ...(opshift && { opshift }),
-        completedProfile: completedProfile
+        completedProfile: completedProfile,
+        ...(subtype && {subtype}),
+        enabled: true
       })
 
       resolve('Usuario creado exitosamente en la base de datos')
@@ -162,6 +187,28 @@ const createUserInDatabase = (values, uid) => {
       reject(new Error('Error al crear el usuario en la base de datos: ' + error))
     }
   })
+}
+
+// * Actualizar información del usuario:
+const updateUserInDatabase = async (values, uid) => {
+
+  // Actualizar email en Firestore
+  await updateDoc(doc(db, 'users', uid), {
+    name: values.name,
+    firstName: values.firstName,
+    fatherLastName: values.fatherLastName,
+    motherLastName: values.motherLastName,
+    rut: values.rut,
+    phone: values.phone,
+    plant: values.plant,
+    role: values.role,
+    enabled: values.enabled,
+    company: values.company,
+    shift: values.shift,
+    subtype: values.subtype
+  })
+
+
 }
 
 // ** Permite que el admin entre de vuelta y escribe en db
@@ -243,5 +290,6 @@ export {
   signAdminBack,
   signAdminFailure,
   signGoogle,
-  deleteCurrentUser
+  deleteCurrentUser,
+  updateUserInDatabase
 }

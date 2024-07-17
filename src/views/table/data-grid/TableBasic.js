@@ -1,31 +1,32 @@
-import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
+import { Timestamp } from 'firebase/firestore'
 import { unixToDate } from 'src/@core/components/unixToDate'
 import { useFirebase } from 'src/context/useFirebase'
 // import useColumnResizer from 'src/@core/hooks/useColumnResizer'
 
-import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { DataGridPro, esES } from '@mui/x-data-grid-pro'
-import { DataGrid } from '@mui/x-data-grid'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import {
   DataGridPremium,
-  GridToolbarContainer,
-  GridToolbarExport,
-  GridColDef,
-  GridRowsProp
+  GridToolbarContainer
 } from '@mui/x-data-grid-premium'
+import { esES } from '@mui/x-data-grid-pro'
+import { addDays, differenceInDays, format, getWeek } from 'date-fns'
 import * as ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
-import { getWeek, addDays, format, differenceInDays } from 'date-fns'
 
-import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
 import { Check, Clear, Edit, MoreHoriz as MoreHorizIcon, OpenInNewOutlined } from '@mui/icons-material'
+import { Box, Button, Card, Container, Fade, IconButton, Select, Tooltip, Typography } from '@mui/material'
+import { GridColumnMenu, GridColumnMenuPinningItem, GridSortMenuItem } from '@mui/x-data-grid-pro'
 
-import CustomChip from 'src/@core/components/mui/chip'
-import AlertDialog from 'src/@core/components/dialog-warning'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
+import AlertDialog from 'src/@core/components/dialog-warning'
+import CustomChip from 'src/@core/components/mui/chip'
+
+//import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/es'
 
 const TableBasic = ({ rows, role, roleData }) => {
   const [open, setOpen] = useState(false)
@@ -33,6 +34,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [doc, setDoc] = useState('')
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
 
   const { updateDocs, authUser, domainDictionary } = useFirebase()
 
@@ -40,6 +42,8 @@ const TableBasic = ({ rows, role, roleData }) => {
     // ... otros estados de visibilidad de columnas ...
     end: [1, 5, 6, 7, 8, 9, 10].includes(role),
     supervisorShift: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    deadline: [1, 5, 6, 7, 8, 9, 10].includes(role),
+    daysToDeadline: [1, 5, 6, 7, 8, 9, 10].includes(role),
     actions: roleData.canApprove,
     plant: false,
     area: false
@@ -88,11 +92,45 @@ const TableBasic = ({ rows, role, roleData }) => {
     setOpenAlert(false)
   }
 
+  // Componente personalizado para el menú de columna
+  const CustomColumnMenu = props => {
+    return (
+      <GridColumnMenu
+        {...props}
+        slots={{
+          // opciones que se muestran
+          columnMenuSortingItem: GridSortMenuItem,
+          columnMenuPinningItem: GridColumnMenuPinningItem,
+
+          // Oculta se ocultan
+          columnMenuColumnsItem: null,
+          columnMenuFilterItem: null,
+          columnMenuAggregationItem: null,
+          columnMenuGroupingItem: null
+        }}
+      />
+    )
+  }
+
   const permissions = (row, role) => {
     if (!row) return
 
+    const isMyRequest = authUser.uid === row.uid
+    const isOwnReturned = isMyRequest && row.state === 1
     const hasPrevState = row.state === role - 1
+    const createdByPetitioner = row.userRole === 2
+    const createdByContOp = row.userRole === 3
+    const createdByPlanner = row.userRole === 5
     const createdBySupervisor = row.userRole === 7
+    const hasOTEnd = row.ot && row.end
+    const isPetitionMadeByMelPetitioner = row.userRole === 2
+
+    const isPetitionMakeByPlaner =
+      role === 3 &&
+      row.contop === authUser.displayName &&
+      row.state === 8 &&
+      createdByPlanner &&
+      row.plannerPetitionApprovedByContop === false
 
     const isContopEmergency =
       role === 3 &&
@@ -100,9 +138,6 @@ const TableBasic = ({ rows, role, roleData }) => {
       row.state === 8 &&
       row.emergencyApprovedByContop === false &&
       createdBySupervisor
-    const isMyRequest = authUser.uid === row.uid
-    const isOwnReturned = isMyRequest && row.state === 1
-    const hasOTEnd = row.ot && row.end
 
     const dictionary = {
       1: {
@@ -116,31 +151,40 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: isMyRequest && row.state <= 6
       },
       3: {
-        approve: hasPrevState || isOwnReturned || isContopEmergency,
+        approve: hasPrevState || isOwnReturned || isContopEmergency || isPetitionMakeByPlaner,
         edit:
           (isOwnReturned || hasPrevState || row.state === 6 || (isMyRequest && row.state === 3)) &&
-          !createdBySupervisor,
-        reject: row.state <= 6 && !createdBySupervisor
+          !createdBySupervisor &&
+          !createdByPlanner,
+        reject: row.state <= 6 && !createdBySupervisor && !createdByPlanner
       },
       4: {
-        approve: hasPrevState,
-        edit: [3, 6].includes(row.state),
-        reject: row.state <= 6
+        approve: false, // hasPrevState && !createdBySupervisor,
+        edit: false, // [3, 6].includes(row.state) && !createdBySupervisor,
+        reject: false // row.state <= 6 && !createdBySupervisor
       },
       5: {
-        approve: hasOTEnd && [3, 4].includes(row.state) && !createdBySupervisor,
-        edit: [3, 4, 6].includes(row.state) && !createdBySupervisor,
-        reject: [3, 4, 6].includes(row.state) && !createdBySupervisor
+        approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor,
+        edit:
+          !createdBySupervisor &&
+          (createdByPlanner ||
+            (createdByPetitioner && [3, 4].includes(row.state)) ||
+            (createdByContOp && [3, 4].includes(row.state))),
+        reject:
+          !createdBySupervisor &&
+          (createdByPlanner ||
+            (createdByPetitioner && [3, 4].includes(row.state)) ||
+            (createdByContOp && [3, 4].includes(row.state)))
       },
       6: {
-        approve: hasPrevState && !createdBySupervisor,
-        edit: hasPrevState && !createdBySupervisor,
-        reject: [5, 6].includes(row.state) && !createdBySupervisor
+        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state !== 3 && row.state !== 6,
+        edit: !createdBySupervisor && isPetitionMadeByMelPetitioner,
+        reject: [2, 3, 4, 5, 6].includes(row.state) && !createdBySupervisor
       },
       7: {
         approve: false,
-        edit: false,
-        reject: false
+        edit: createdBySupervisor && isMyRequest && row.state <= 6,
+        reject: createdBySupervisor && isMyRequest && row.state <= 6
       },
       8: {
         approve: hasPrevState,
@@ -177,14 +221,28 @@ const TableBasic = ({ rows, role, roleData }) => {
     }
   }, [rows])
 
+  const titleLocalWidth = Number(localStorage.getItem('titleSolicitudesWidthColumn'))
+  const stateLocalWidth = Number(localStorage.getItem('stateSolicitudesWidthColumn'))
+  const dateLocalWidth = Number(localStorage.getItem('dateSolicitudesWidthColumn'))
+  const startLocalWidth = Number(localStorage.getItem('startSolicitudesWidthColumn'))
+  const endLocalWidth = Number(localStorage.getItem('endSolicitudesWidthColumn'))
+  const deadlineLocalWidth = Number(localStorage.getItem('deadlineSolicitudesWidthColumn'))
+  const daysToDeadlineLocalWidth = Number(localStorage.getItem('daysToDeadlineSolicitudesWidthColumn'))
+  const shiftLocalWidth = Number(localStorage.getItem('shiftSolicitudesWidthColumn'))
+  const otLocalWidth = Number(localStorage.getItem('otSolicitudesWidthColumn'))
+  const userLocalWidth = Number(localStorage.getItem('userSolicitudesWidthColumn'))
+  const actionsLocalWidth = Number(localStorage.getItem('actionsSolicitudesWidthColumn'))
+
   const columns = [
     {
       field: 'title',
       headerName: 'Solicitud',
-      flex: 0.8,
+      width: titleLocalWidth ? titleLocalWidth : 350,
       minWidth: 200,
+      maxWidth: 500,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('titleSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return (
           <Tooltip
@@ -219,11 +277,12 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'state',
       headerName: 'Estado',
-      flex: 0.8,
+      width: stateLocalWidth ? stateLocalWidth : 200,
       minWidth: 100,
-      maxWidth: 200,
+      maxWidth: 250,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('stateSolicitudesWidthColumn', params.colDef.computedWidth)
         let state = (row.state || row.state === 0) && typeof row.state === 'number' ? row.state : 100
 
         return (
@@ -245,85 +304,130 @@ const TableBasic = ({ rows, role, roleData }) => {
     {
       field: 'date',
       headerName: 'Creación',
-      flex: 0.4,
+      width: dateLocalWidth ? dateLocalWidth : 120,
       minWidth: 90,
+      maxWidth: 120,
       valueGetter: params => new Date(params.row.date.seconds * 1000),
       //valueGetter: params => unixToDate(params.row.date.seconds)[0],
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('dateSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{unixToDate(row.date.seconds)[0]}</div>
       }
     },
     {
       field: 'start',
-      headerName: 'Inicio',
-      flex: 0.4,
+      headerName: 'Inicio de Levantamiento',
+      width: startLocalWidth ? startLocalWidth : 170,
       minWidth: 90,
+      maxWidth: 200,
       valueGetter: params => unixToDate(params.row.start.seconds)[0],
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('startSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{unixToDate(row.start.seconds)[0]}</div>
       }
     },
     {
       field: 'end',
-      headerName: 'Término',
-      flex: 0.4,
+      headerName: 'Término de Levantamiento',
+      width: endLocalWidth ? endLocalWidth : 180,
       minWidth: 90,
+      maxWidth: 220,
       valueGetter: params => unixToDate(params.row.end?.seconds)[0],
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('endSolicitudesWidthColumn', params.colDef.computedWidth)
 
         return <div>{(row.end && unixToDate(row.end.seconds)[0]) || 'Pendiente'}</div>
+      }
+    },
+    {
+      field: 'deadline',
+      headerName: 'Fecha Límite',
+      width: deadlineLocalWidth ? deadlineLocalWidth : 120,
+      minWidth: 90,
+      maxWidth: 180,
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0],
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('deadlineSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{(row.deadline && unixToDate(row.deadline.seconds)[0]) || 'Pendiente'}</div>
+      }
+    },
+    {
+      field: 'daysToDeadline',
+      headerName: 'Días por Vencer',
+      width: daysToDeadlineLocalWidth ? daysToDeadlineLocalWidth : 120,
+      minWidth: 90,
+      maxWidth: 180,
+      valueGetter: params => unixToDate(params.row.deadline?.seconds)[0], //Hola
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.deadline ? Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60)) : 'Pendiente'}</div>
       }
     },
     {
       field: 'supervisorShift',
       maxWidth: 80,
       headerName: 'Turno',
-      flex: 0.4,
-      minWidth: 90,
+      width: shiftLocalWidth ? shiftLocalWidth : 90,
+      minWidth: 80,
+      maxWidth: 100,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('shiftSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.state >= 6 ? row.supervisorShift || 'No definido' : 'Por confirmar'}</div>
+        return <div>{row.supervisorShift || 'Por definir'}</div>
       }
     },
     {
       field: 'ot',
-
-      maxWidth: 60,
       headerName: 'OT',
-      flex: 0.3,
-      minWidth: 50,
+      width: otLocalWidth ? otLocalWidth : 90,
+      minWidth: 60,
+      maxWidth: 100,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('otSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.ot || 'N/A'}</div>
+        return <div>{row.ot || 'Por definir'}</div>
       }
     },
     {
       field: 'user',
       headerName: 'Autor',
-      flex: 0.5,
-      minWidth: 150
-    },
-    {
-      flex: 0.3,
-      minWidth: md ? 190 : 100,
-      field: 'actions',
-      headerName: 'Acciones',
+      width: userLocalWidth ? userLocalWidth : 190,
+      minWidth: 120,
+      maxWidth: 250,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
+
+        return <div>{row.user}</div>
+      }
+    },
+    {
+      field: 'actions',
+      headerName: 'Acciones',
+      width: actionsLocalWidth ? actionsLocalWidth : 190,
+      minWidth: 120,
+      maxWidth: 250,
+      renderCell: params => {
+        const { row } = params
+        localStorage.setItem('actionsSolicitudesWidthColumn', params.colDef.computedWidth)
         const permissionsData = permissions(row, role)
         const canApprove = permissionsData.approve
         const canEdit = permissionsData.edit
         const canReject = permissionsData.reject
 
-        const approveWithChanges = role === 5 && row.state <= 4 && !canApprove
-        const isRevisado = row.state > role
+        const approveWithChanges = role === 5 && row.state <= 4 && !canApprove && row.userRole !== 5
+        //const isRevisado = row.state > role
         const flexDirection = md ? 'row' : 'column'
 
         const renderButtons = (
@@ -382,12 +486,10 @@ const TableBasic = ({ rows, role, roleData }) => {
                   {renderButtons}
                 </Select>
               )
-            ) : isRevisado ? (
-              'Revisado'
             ) : row.state === 0 ? (
               'Rechazado'
             ) : (
-              'Pendiente de revisión'
+              ''
             )}
           </>
         )
@@ -471,7 +573,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         type: row.type,
         detention: row.detention,
         objective: row.objective,
-        deliverable: row.deliverable.join(', '),
+        deliverable: row.deliverable ? row.deliverable.join(', ') : '',
         contop: row.contop
       })
     })
@@ -505,6 +607,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
           sortingModel={defaultSortingModel}
           slots={{
+            columnMenu: CustomColumnMenu,
             toolbar:
               authUser.role === 1 ||
               authUser.role === 5 ||

@@ -5,34 +5,46 @@ export function registerValidator(values) {
   const valEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const valPhone = /^[0-9+]{8,12}$/
   const valRoleMel = [2, 3, 4]
-  const valRoleProcure = [1, 5, 6, 7, 8, 9, 10, 11]
+  const valRoleProcure = [1, 5, 6, 7, 8, 9, 10, 11, 12]
   const valShiftMel = ['P', 'Q']
   const valShiftProcure = ['A', 'B']
 
-  const valPlant = [
-    'Planta Concentradora Los Colorados',
-    'Planta Concentradora Laguna Seca | Línea 1',
-    'Planta Concentradora Laguna Seca | Línea 2',
-    'Chancado y Correas',
-    'Puerto Coloso',
-    'Instalaciones Cátodo',
-    'Sucursal Santiago',
-    'Instalaciones Mina',
-    'Instalaciones Lixiviación Sulfuros',
-    'Instalaciones Escondida Water Supply',
-    'Instalaciones Concentraducto',
-    'Instalaciones Monturaqui',
-    'Instalaciones Auxiliares',
-    'Subestaciones Eléctricas',
-    'Tranque y Relaves',
-    'Campamento Villa San Lorenzo',
-    'Campamento Villa Cerro Alegre'
-  ]
+  // const valPlant = [
+  //   'Planta Concentradora Los Colorados',
+  //   'Planta Concentradora Laguna Seca | Línea 1',
+  //   'Planta Concentradora Laguna Seca | Línea 2',
+  //   'Chancado y Correas',
+  //   'Puerto Coloso',
+  //   'Instalaciones Cátodo',
+  //   'Sucursal Santiago',
+  //   'Instalaciones Mina',
+  //   'Instalaciones Lixiviación Sulfuros',
+  //   'Instalaciones Escondida Water Supply',
+  //   'Instalaciones Concentraducto',
+  //   'Instalaciones Monturaqui',
+  //   'Instalaciones Auxiliares',
+  //   'Subestaciones Eléctricas',
+  //   'Tranque y Relaves',
+  //   'Campamento Villa San Lorenzo',
+  //   'Campamento Villa Cerro Alegre'
+  // ]
 
   const validations = {
-    name: {
+    // name: {
+    //   validate: value => valName.test(value),
+    //   message: 'El nombre debe contener solo letras y espacios en blanco.'
+    // },
+    firstName: {
       validate: value => valName.test(value),
       message: 'El nombre debe contener solo letras y espacios en blanco.'
+    },
+    fatherLastName: {
+      validate: value => valName.test(value),
+      message: 'El apellido paterno debe contener solo letras y espacios en blanco.'
+    },
+    motherLastName: {
+      validate: value => valName.test(value),
+      message: 'El apellido materno debe contener solo letras y espacios en blanco.'
     },
     email: {
       validate: value => valEmail.test(value),
@@ -62,31 +74,31 @@ export function registerValidator(values) {
       },
       message: 'El Rol seleccionado no se encuentra entre los sugeridos para la empresa seleccionada.'
     },
-    plant: {
-      validate: value => {
-        if (values.company === 'Procure' || values.role === 4) {
-          return true // No se valida la planta si la empresa es "Procure"
-        }
+    // plant: {
+    //   validate: value => {
+    //     if (values.company === 'Procure' || values.role === 4) {
+    //       return true // No se valida la planta si la empresa es "Procure"
+    //     }
 
-        if (Array.isArray(value)) {
-          if (values.role === 2) {
-            return value.length > 0 && value.every(item => valPlant.includes(item)) // value.length === 1 && value.every(item => valPlant.includes(item))
-          } else {
-            return value.length > 0 && value.every(item => valPlant.includes(item))
-          }
-        }
+    //     if (Array.isArray(value)) {
+    //       if (values.role === 2) {
+    //         return value.length > 0 && value.every(item => valPlant.includes(item)) // value.length === 1 && value.every(item => valPlant.includes(item))
+    //       } else {
+    //         return value.length > 0 && value.every(item => valPlant.includes(item))
+    //       }
+    //     }
 
-        return false
-      },
-      message: 'La Planta seleccionada no coincide con ninguna de las sugeridas.'
-    },
+    //     return false
+    //   },
+    //   message: 'La Planta seleccionada no coincide con ninguna de las sugeridas.'
+    // },
     shift: {
       validate: value => {
         if (values.company === 'MEL' && (values.role === 3 || values.role === 4)) {
 
           return true
 
-        } else if (values.company === 'Procure' && (values.role === 1 || values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10 || values.role === 11)) {
+        } else if (values.company === 'Procure' && (values.role === 1 || values.role === 5 || values.role === 6 || values.role === 9 || values.role === 10 || values.role === 11 || values.role === 12)) {
 
           return true
 
@@ -120,7 +132,7 @@ export function registerValidator(values) {
     if (typeof values[key] === 'string') {
       if (
         (key === 'shift' && hasShift && !values[key]) ||
-        (!['shift', 'opshift', 'plant', 'engineering', 'rut', 'phone'].includes(key) && values[key].trim() === '')
+        (!['motherLastName', 'shift', 'opshift', 'plant', 'engineering', 'rut', 'phone'].includes(key) && values[key].trim() === '')
       ) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
@@ -128,7 +140,7 @@ export function registerValidator(values) {
     if (!['role', 'plant', 'engineering', 'shift'].includes(key) && typeof values[key] !== 'string') {
       throw new Error(`El campo ${key} debe ser en formato texto.`)
     }
-    if (validations.hasOwnProperty(key) && !['rut', 'phone'].includes(key)) {
+    if (validations.hasOwnProperty(key) && !['rut', 'phone', 'motherLastName'].includes(key)) {
       const { validate, message } = validations[key]
       if (!validate(values[key])) {
         throw new Error(message)
