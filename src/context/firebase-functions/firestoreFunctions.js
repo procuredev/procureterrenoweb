@@ -1323,7 +1323,7 @@ const fetchSolicitudes = async (authUser, otType) => {
       queryRef = query(
         solicitudesRef,
         where('state', '==', 8),
-        where('supervisorShift', '==', authUser.shift[0]),
+        where('supervisorShift', 'in', authUser.shift),
         orderBy('ot')
       )
     } else if (otType === 'Levantamiento') {
@@ -1331,7 +1331,7 @@ const fetchSolicitudes = async (authUser, otType) => {
         solicitudesRef,
         where('state', '>=', 6),
         where('state', '<=', 8),
-        where('supervisorShift', '==', authUser.shift[0]),
+        where('supervisorShift', 'in', authUser.shift),
         orderBy('ot')
       )
     }
