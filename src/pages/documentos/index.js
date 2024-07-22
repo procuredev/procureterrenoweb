@@ -12,12 +12,11 @@ const Documentos = () => {
   const [nestedFiles, setNestedFiles] = useState(true)
   const [isSwitching, setIsSwitching] = useState(false) // Bandera para alternar el estado de nestedFiles
 
-  const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
   const CLIENT_ID = process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_ID
   const CLIENT_SECRET = process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_SECRET
   const SCOPES = 'https://www.googleapis.com/auth/drive'
   const REDIRECT_URI = 'http://localhost:3000/documentos'
-  const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+  //const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
 
   /*
    * useEffect se ejecuta al montar el componente.
