@@ -67,6 +67,7 @@ const UserDropdown = props => {
         setTimeout(() => {
           localStorage.removeItem('formData')
           localStorage.removeItem('user')
+          localStorage.removeItem('oauth2-test-params')
           handleDropdownClose('/login')
         }, 500) // Retraso de 500 milisegundos antes de redireccionar
       })

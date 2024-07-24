@@ -70,6 +70,9 @@ import {
 
 import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
 
+// ** Importa funciones de GoogleAuth
+import { handleGoogleDriveAuthorization } from 'src/googleAuth'
+
 const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(() => {
@@ -107,6 +110,15 @@ const FirebaseContextProvider = props => {
         const roles = await getDomainData('roles')
         setDomainRoles(roles)
         setLoading(false)
+
+        // Autorización de Google Drive
+        if ([1, 5, 6, 7, 8, 9, 10, 11].includes(databaseUserData.role)) {
+          try {
+            await handleGoogleDriveAuthorization()
+          } catch (error) {
+            console.error('Error during Google Drive authorization:', error)
+          }
+        }
       }
     })
 
