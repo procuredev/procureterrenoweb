@@ -515,7 +515,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...(doc.deadline && { deadline: moment(doc.deadline.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
         ...(doc.fotos && { fotos: doc.fotos }),
-        ...(doc.draftmen && { draftmen: doc.draftmen })
+        ...(doc.draftmen && { draftmen: doc.draftmen }),
+        ...(doc.cancelReason && {cancelReason: doc.cancelReason})
       }
     : {}
 
@@ -1403,7 +1404,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                 {(element.newState === 3 && element.prevState === 2 && element.userRole === 6 && values.userRole === 2) && ` en nombre de ${values.contop}`}
                               </Typography>
                               <Typography variant='body2'>
-                                {domainDictionary[element.newState]?.details  || element.comment}
+                              {element.newState !== 0 ? (domainDictionary[element.newState]?.details || element.comment) : ('Motivo: ' + (values.cancelReason || 'Sin definir'))}
                               </Typography>
                             </TimelineContent>
                           </TimelineItem>
@@ -1466,7 +1467,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                 : ''}
                             </Typography>
                             <Typography variant='body2'>
-                              {domainDictionary[element.newState]?.details || element.comment}
+                              {element.newState !== 0 ? (domainDictionary[element.newState]?.details || element.comment) : ('Motivo: ' + (values.cancelReason || 'Sin definir'))}
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>
