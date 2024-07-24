@@ -516,13 +516,15 @@ function getNextState(role, approves, latestEvent, userRole) {
 }
 
 const updateDocs = async (id, approves, userParam) => {
+
+  let canceled = approves.cancelReason ? true : false
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
   const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
   const latestEvent = await getLatestEvent(id)
   const rejected = 0
   const role = userParam.role
-  let newState = approves ? getNextState(role, approves, latestEvent, userRole) : rejected
+  let newState = !canceled ? getNextState(role, approves, latestEvent, userRole) : rejected
   let processedFields = { incomingFields: {}, changedFields: {} }
 
   // const addOT = role === 5 && approves && !hasOT

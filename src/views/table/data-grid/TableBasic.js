@@ -35,6 +35,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
   const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
+  const [cancelReason, setCancelReason] = useState('')
 
   const { updateDocs, authUser, domainDictionary } = useFirebase()
 
@@ -72,7 +73,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const writeCallback = async () => {
     setLoading(true)
-    await updateDocs(doc.id, approve, authUser)
+    await updateDocs(doc.id, {...approve, cancelReason: cancelReason}, authUser)
       .then(() => {
         setLoading(false)
         setOpenAlert(false)
@@ -90,6 +91,11 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
+    setCancelReason('')
+  }
+
+  const handleCancelReasonChange = event => {
+    setCancelReason(event.target.value)
   }
 
   // Componente personalizado para el menú de columna
@@ -626,6 +632,8 @@ const TableBasic = ({ rows, role, roleData }) => {
           callback={writeCallback}
           approves={approve}
           loading={loading}
+          cancelReason={cancelReason}
+          handleCancelReasonChange={handleCancelReasonChange}
         ></AlertDialog>
         {open && (
           <FullScreenDialog

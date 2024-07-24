@@ -1,15 +1,18 @@
-import * as React from 'react'
 import {
-  CircularProgress,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle
+  DialogTitle,
+  TextField
 } from '@mui/material'
 
-export default function AlertDialog({ authUser, state, open, handleClose, callback, approves, loading = false }) {
+// ** React Import
+
+export default function AlertDialog({ authUser, state, open, handleClose, callback, approves, loading = false, cancelReason = null, handleCancelReasonChange = null }) {
+
   let result
 
   if (approves === undefined) {
@@ -39,14 +42,31 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
         {loading ? (
           <CircularProgress />
         ) : (
-          <DialogContentText id='alert-dialog-description'>
-            ¿Estás segur@ de que quieres {result} la solicitud?
-          </DialogContentText>
+          <>
+            <DialogContentText id='alert-dialog-description'>
+              ¿Estás segur@ de que quieres {result} la solicitud? {result === 'rechazar' && 'Deberás indicar la razón por la cual se está cancelando este Levantamiento:'}
+            </DialogContentText>
+            {result === 'rechazar' && (
+              <TextField
+                autoFocus
+                margin='dense'
+                id='block-reason'
+                label='Motivo'
+                type='text'
+                fullWidth
+                value={cancelReason}
+                onChange={handleCancelReasonChange}
+              />
+            )}
+
+        </>
+
+
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>No</Button>
-        <Button onClick={callback} autoFocus>
+        <Button onClick={callback} autoFocus disabled={!cancelReason}>
           Sí
         </Button>
       </DialogActions>
