@@ -73,10 +73,14 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const writeCallback = async () => {
     setLoading(true)
-    await updateDocs(doc.id, {...approve, cancelReason: cancelReason}, authUser)
+
+    const objectToUpload = (typeof(approve) === "boolean" && cancelReason !== false) ? {...approve, cancelReason: cancelReason} : approve
+
+    await updateDocs(doc.id, objectToUpload, authUser)
       .then(() => {
         setLoading(false)
         setOpenAlert(false)
+        setCancelReason('')
       })
       .catch(error => {
         setLoading(false)
