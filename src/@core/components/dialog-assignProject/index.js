@@ -1,6 +1,8 @@
 // ** React Imports
 import { forwardRef, useState } from 'react'
 
+import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder' // Import the new hook
+
 // ** MUI Imports
 import EngineeringIcon from '@mui/icons-material/Engineering'
 import Autocomplete from '@mui/material/Autocomplete'
@@ -42,6 +44,8 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
 
+  const { fetchFolders, createFolder, isLoading: folderLoading } = useGoogleDriveFolder() // Use the new hook
+
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
     const updatedDraftmen = draftmen.filter(draftman => draftman.name !== name)
@@ -58,25 +62,61 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     // Verificamos si el option ya existe en el array draftmen
     if (!draftmen.some(draftman => draftman.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen(prevDraftmen => [...prevDraftmen, {name: option.name, userId: option.userId}])
+      setDraftmen(prevDraftmen => [...prevDraftmen, { name: option.name, userId: option.userId }])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
 
-  const onSubmit = id => {
+  const onSubmit = async id => {
     setLoading(true)
     if (draftmen.length > 0) {
-      updateDocs(id, {draftmen, pendingReschedule: false}, authUser)
-        .then(() => {
-          setDraftmen([])
-          handleClose()
-          setLoading(false)
-        })
-        .catch(error => {
-          handleClose()
-          console.error(error)
-          setLoading(false)
-        })
+      try {
+        await updateDocs(id, { draftmen, pendingReschedule: false }, authUser)
+
+        // Busca la carpeta de la planta.
+        const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+        const plantFolder = plantFolders.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
+
+        if (plantFolder) {
+          // Busca la carpeta del area.
+          const areaFolders = await fetchFolders(plantFolder.id)
+          const areaFolder = areaFolders.find(folder => folder.name === doc.area)
+
+          if (areaFolder) {
+            const projectFolderName = `OT N${doc.ot} - ${doc.title}`
+            const existingProjectFolders = await fetchFolders(areaFolder.id)
+            const projectFolder = existingProjectFolders.find(folder => folder.name === projectFolderName)
+
+            let projectFolderId
+            if (!projectFolder) {
+              const createdProjectFolder = await createFolder(projectFolderName, areaFolder.id)
+              projectFolderId = createdProjectFolder.id
+
+              const subfolders = [
+                'ANTECEDENTES',
+                'SOLICITUD DE REQUERIMIENTO',
+                'LEVANTAMIENTO',
+                'EN TRABAJO',
+                'REVISIONES & COMENTARIOS',
+                'EMITIDOS'
+              ]
+              for (const subfolder of subfolders) {
+                await createFolder(subfolder, projectFolderId)
+              }
+            } else {
+              projectFolderId = projectFolder.id
+              console.log(`Carpeta existente: ${projectFolderId}`)
+            }
+          }
+        }
+
+        setDraftmen([])
+        handleClose()
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -89,6 +129,23 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
   }
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
+
+  const getPlantAbbreviation = plantName => {
+    // Implement the logic to get the plant abbreviation from the full plant name
+    const plantMap = {
+      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
+      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
+      'Instalaciones Escondida Water Supply': 'IEWS',
+      'Planta Concentradora Los Colorados': 'PCLC',
+      'Instalaciones Cátodo': 'ICAT',
+      'Chancado y Correas': 'CHCO',
+      'Puerto Coloso': 'PCOL'
+    }
+
+    console.log('plantMap[plantName]', plantMap[plantName])
+
+    return plantMap[plantName] || ''
+  }
 
   return (
     <Dialog
@@ -120,7 +177,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
           </Typography>
           <Typography variant='body2'>{doc.title}</Typography>
         </Box>
-        {loading ? (
+        {loading || folderLoading ? (
           <CircularProgress sx={{ mb: 5 }} />
         ) : (
           <Box>

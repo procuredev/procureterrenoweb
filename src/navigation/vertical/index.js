@@ -64,7 +64,7 @@ const Navigation = () => {
       path: '/documentos',
       icon: 'mdi:file-document-outline',
       subject: 'documentos',
-      authorizedRoles: [1]
+      authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
       title: 'Mapa',
