@@ -66,7 +66,7 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>No</Button>
-        <Button onClick={callback} autoFocus disabled={!cancelReason}>
+        <Button onClick={callback} autoFocus disabled={result === 'rechazar' && !cancelReason}>
           Sí
         </Button>
       </DialogActions>
