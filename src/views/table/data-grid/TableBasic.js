@@ -105,8 +105,6 @@ const TableBasic = ({ rows, role, roleData }) => {
     // Reemplazar espacios iniciales
     const trimmedValue = value.replace(/^\s+/, '')
 
-    console.log(trimmedValue)
-
     setCancelReason(trimmedValue)
   }
 
