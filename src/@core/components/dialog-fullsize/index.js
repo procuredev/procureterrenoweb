@@ -762,6 +762,14 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const handleDateChange = dateField => async date => {
+
+    // Se maneja caso en que el usuario no selecciona fecha
+    if (!date) {
+      setValues({ ...values, [dateField]: null })
+      setHasChanges({ ...hasChanges, [dateField]: false })
+      return
+    }
+
     const fieldValue = moment(date.toDate())
     setValues({ ...values, [dateField]: fieldValue })
     setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
