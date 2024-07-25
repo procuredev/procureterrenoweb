@@ -50,7 +50,7 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
               <TextField
                 autoFocus
                 margin='dense'
-                id='block-reason'
+                id='cancel-reason'
                 label='Motivo'
                 type='text'
                 fullWidth

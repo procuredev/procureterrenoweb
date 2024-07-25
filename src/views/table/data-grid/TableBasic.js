@@ -99,7 +99,15 @@ const TableBasic = ({ rows, role, roleData }) => {
   }
 
   const handleCancelReasonChange = event => {
-    setCancelReason(event.target.value)
+
+    const value = event.target.value
+
+    // Reemplazar espacios iniciales
+    const trimmedValue = value.replace(/^\s+/, '')
+
+    console.log(trimmedValue)
+
+    setCancelReason(trimmedValue)
   }
 
   // Componente personalizado para el menú de columna
