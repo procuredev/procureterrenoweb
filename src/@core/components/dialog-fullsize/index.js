@@ -1235,7 +1235,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {additionalInfoVisible && (
                   <>
                     {/* Contraturno del Solicitante */}
-                    {petitionerContact.opshift && petitionerContact.opshift[0].name && (
+                    {console.log(petitionerContact)}
+                    {petitionerContact && petitionerContact.opshift && petitionerContact.opshift[0].name && (
                       <CustomListItem
                         editable={false}
                         label='Contraturno del Solicitante'
