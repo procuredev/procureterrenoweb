@@ -139,7 +139,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     const createdByPlanner = row.userRole === 5
     const createdBySupervisor = row.userRole === 7
     const hasOTEnd = row.ot && row.end
-    const isPetitionMadeByMelPetitioner = row.userRole === 2
+    const isPetitionMadeByMelPetitioner = row.userRole === 2 || row.userRole === 3
 
     const isPetitionMakeByPlaner =
       role === 3 &&
