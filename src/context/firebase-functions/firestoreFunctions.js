@@ -273,6 +273,7 @@ const addComment = async (id, comment, userParam) => {
 }
 
 function getNextState(role, approves, latestEvent, userRole) {
+
   const state = {
     returned: 1,
     petitioner: 2,
@@ -451,7 +452,7 @@ function getNextState(role, approves, latestEvent, userRole) {
 
         // Solicitud Modificada por Administrador de Contrato
         {
-          condition: approves && !requestMadeByMelPetitioner,
+          condition: approves && !requestMadeByMelPetitioner && latestEvent.newState !== 5,
           newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
           log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
         },

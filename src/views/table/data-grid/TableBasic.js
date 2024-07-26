@@ -71,8 +71,7 @@ const TableBasic = ({ rows, role, roleData }) => {
   const writeCallback = async () => {
     setLoading(true)
 
-    const objectToUpload =
-      typeof approve === 'boolean' && cancelReason !== false ? { ...approve, cancelReason: cancelReason } : approve
+    const objectToUpload = (typeof(approve) === "boolean" && Boolean(cancelReason)) ? {...approve, cancelReason: cancelReason} : approve
 
     await updateDocs(doc.id, objectToUpload, authUser)
       .then(() => {
@@ -177,22 +176,22 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: false // row.state <= 6 && !createdBySupervisor
       },
       5: {
-        approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor,
+        approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor && row.state !== 0,
         edit:
           !createdBySupervisor &&
           (createdByPlanner ||
             (createdByPetitioner && [3, 4].includes(row.state)) ||
-            (createdByContOp && [3, 4].includes(row.state))),
+            (createdByContOp && [3, 4].includes(row.state))) && row.state !== 0,
         reject:
           !createdBySupervisor &&
           (createdByPlanner ||
             (createdByPetitioner && [3, 4].includes(row.state)) ||
-            (createdByContOp && [3, 4].includes(row.state)))
+            (createdByContOp && [3, 4].includes(row.state))) && row.state !== 0
       },
       6: {
-        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state !== 3 && row.state !== 6,
-        edit: !createdBySupervisor && isPetitionMadeByMelPetitioner,
-        reject: [2, 3, 4, 5, 6].includes(row.state) && !createdBySupervisor
+        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state !== 3 && row.state !== 6 && row.state <= 7 && row.state !== 0,
+        edit: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state <= 7 && row.state !== 0,
+        reject: [2, 3, 4, 5, 6].includes(row.state) && !createdBySupervisor && row.state <= 7 && row.state !== 0
       },
       7: {
         approve: false,
