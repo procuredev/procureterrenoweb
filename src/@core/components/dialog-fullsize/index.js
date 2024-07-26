@@ -379,7 +379,7 @@ const PhotoGallery = ({ photos }) => {
   )
 }
 
-export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
+export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, domainData, canComment = false }) => {
   let isPlanner = roleData && roleData.id == '5' && doc.state >= 3 // modificacion para que planificador no pueda editar si el estado es menor a 3
   //let isPlanner = roleData && roleData.id == '5'
 
@@ -395,7 +395,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
-  const [domainData, setDomainData] = useState({})
+  //* const [domainData, setDomainData] = useState({})
   const [objectivesArray, setObjectivesArray] = useState([])
   const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
@@ -436,7 +436,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     getUserData,
     uploadFilesToFirebaseStorage,
     addComment,
-    getDomainData,
+    //* getDomainData,
     domainDictionary,
     //* consultOT,
     consultBlockDayInDB
@@ -521,28 +521,30 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     : {}
 
   // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
-  useEffect(() => {
-    const getAllDomainData = async () => {
-      try {
-        // Se llama a toda la información disponible en colección domain (tabla de dominio)
-        const domain = await getDomainData()
+  // useEffect(() => {
+  //   const getAllDomainData = async () => {
+  //     try {
+  //       // Se llama a toda la información disponible en colección domain (tabla de dominio)
+  //       const domain = await getDomainData()
 
-        // Manejo de errores para evitar Warning en Consola
-        if (!domain) {
-          console.error('No se encontraron los datos o datos son indefinidos o null.')
+  //       console.log(domain)
 
-          return
-        }
+  //       // Manejo de errores para evitar Warning en Consola
+  //       if (!domain) {
+  //         console.error('No se encontraron los datos o datos son indefinidos o null.')
 
-        // Se almacena la información de Tabla de Dominio en una variable de Entorno
-        setDomainData(domain)
-      } catch (error) {
-        console.error('Error buscando los datos:', error)
-      }
-    }
+  //         return
+  //       }
 
-    getAllDomainData()
-  }, [])
+  //       // Se almacena la información de Tabla de Dominio en una variable de Entorno
+  //       setDomainData(domain)
+  //     } catch (error) {
+  //       console.error('Error buscando los datos:', error)
+  //     }
+  //   }
+
+  //   getAllDomainData()
+  // }, [])
 
   // useEffect para buscar información específica de la colección domain en la base de datos
   useEffect(() => {
@@ -1017,6 +1019,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         open={openAlert}
         handleClose={handleCloseAlert}
         callback={() => writeCallback()}
+        domainData={domainData}
       ></AlertDialog>
       <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (

@@ -33,8 +33,9 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [loading, setLoading] = useState(false)
   const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
   const [cancelReason, setCancelReason] = useState('')
+  const [domainData, setDomainData] = useState({})
 
-  const { updateDocs, authUser, domainDictionary } = useFirebase()
+  const { updateDocs, authUser, domainDictionary, getDomainData } = useFirebase()
 
   const [columnVisibilityModel, setColumnVisibilityModel] = useState({
     // ... otros estados de visibilidad de columnas ...
@@ -48,6 +49,32 @@ const TableBasic = ({ rows, role, roleData }) => {
   })
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
+
+  // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
+  useEffect(() => {
+    const getAllDomainData = async () => {
+      try {
+        // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        const domain = await getDomainData()
+
+        console.log(domain)
+
+        // Manejo de errores para evitar Warning en Consola
+        if (!domain) {
+          console.error('No se encontraron los datos o datos son indefinidos o null.')
+
+          return
+        }
+
+        // Se almacena la información de Tabla de Dominio en una variable de Entorno
+        setDomainData(domain)
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getAllDomainData()
+  }, [])
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -654,6 +681,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             doc={findCurrentDoc(rows)}
             roleData={roleData}
             editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
+            domainData={domainData}
             canComment={[5, 6, 7].includes(authUser.role)}
           />
         )}

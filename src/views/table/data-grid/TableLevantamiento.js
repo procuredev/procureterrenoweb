@@ -46,8 +46,35 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const { updateDocs, authUser, getUserData, domainDictionary } = useFirebase()
   const [isLoading, setIsLoading] = useState(false)
   const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
+  const [domainData, setDomainData] = useState({})
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
+
+  // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
+  useEffect(() => {
+    const getAllDomainData = async () => {
+      try {
+        // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        const domain = await getDomainData()
+
+        console.log(domain)
+
+        // Manejo de errores para evitar Warning en Consola
+        if (!domain) {
+          console.error('No se encontraron los datos o datos son indefinidos o null.')
+
+          return
+        }
+
+        // Se almacena la información de Tabla de Dominio en una variable de Entorno
+        setDomainData(domain)
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getAllDomainData()
+  }, [])
 
   const handleClickOpen = doc => {
     setDoc(doc)
@@ -489,6 +516,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             doc={doc}
             roleData={roleData}
             editButtonVisible={false}
+            domainData={domainData}
             canComment={authUser.role === 7}
           />
         )}
