@@ -7,10 +7,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import {
-  DataGridPremium,
-  GridToolbarContainer
-} from '@mui/x-data-grid-premium'
+import { DataGridPremium, GridToolbarContainer } from '@mui/x-data-grid-premium'
 import { esES } from '@mui/x-data-grid-pro'
 import { addDays, differenceInDays, format, getWeek } from 'date-fns'
 import * as ExcelJS from 'exceljs'
@@ -74,7 +71,8 @@ const TableBasic = ({ rows, role, roleData }) => {
   const writeCallback = async () => {
     setLoading(true)
 
-    const objectToUpload = (typeof(approve) === "boolean" && cancelReason !== false) ? {...approve, cancelReason: cancelReason} : approve
+    const objectToUpload =
+      typeof approve === 'boolean' && cancelReason !== false ? { ...approve, cancelReason: cancelReason } : approve
 
     await updateDocs(doc.id, objectToUpload, authUser)
       .then(() => {
@@ -99,7 +97,6 @@ const TableBasic = ({ rows, role, roleData }) => {
   }
 
   const handleCancelReasonChange = event => {
-
     const value = event.target.value
 
     // Reemplazar espacios iniciales
@@ -120,7 +117,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
           // Oculta se ocultan
           columnMenuColumnsItem: null,
-          columnMenuFilterItem: null,
+          //columnMenuFilterItem: null,
           columnMenuAggregationItem: null,
           columnMenuGroupingItem: null
         }}
@@ -385,7 +382,13 @@ const TableBasic = ({ rows, role, roleData }) => {
         const { row } = params
         localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.deadline ? Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60)) : 'Pendiente'}</div>
+        return (
+          <div>
+            {row.deadline
+              ? Math.round((row.deadline.toDate().getTime() - today.toDate().getTime()) / (1000 * 24 * 60 * 60))
+              : 'Pendiente'}
+          </div>
+        )
       }
     },
     {
