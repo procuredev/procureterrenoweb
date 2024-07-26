@@ -1265,7 +1265,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       initialValue={sap}
                       value={values.sap}
                       onChange={handleInputChange('sap')}
-                      required={true}
+                      required={false}
                     />
 
                     {/* Tipo de Entregables esperados */}
