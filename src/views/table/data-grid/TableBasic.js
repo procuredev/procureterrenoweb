@@ -32,7 +32,10 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
   const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
-  const [cancelReason, setCancelReason] = useState('')
+  const [cancelReason, setCancelReason] = useState({
+    option: '',
+    details: ''
+  })
   const [domainData, setDomainData] = useState({})
 
   const { updateDocs, authUser, domainDictionary, getDomainData } = useFirebase()
@@ -104,7 +107,7 @@ const TableBasic = ({ rows, role, roleData }) => {
       .then(() => {
         setLoading(false)
         setOpenAlert(false)
-        setCancelReason('')
+        setCancelReason({})
       })
       .catch(error => {
         setLoading(false)
@@ -119,16 +122,23 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
-    setCancelReason('')
+    setCancelReason({})
   }
 
-  const handleCancelReasonChange = event => {
-    const value = event.target.value
-
-    // Reemplazar espacios iniciales
-    const trimmedValue = value.replace(/^\s+/, '')
-
-    setCancelReason(trimmedValue)
+  const handleCancelReasonChange = (event) => {
+    if (event.target.id === 'cancel-reason-option') {
+      setCancelReason(prevState => ({
+        ...prevState,
+        options: event.target.value
+      }))
+    } else if (event.target.id === 'cancel-reason-details') {
+      const value = event.target.value
+      const trimmedValue = value.replace(/^\s+/, '')
+      setCancelReason(prevState => ({
+        ...prevState,
+        details: trimmedValue
+      }))
+    }
   }
 
   // Componente personalizado para el menú de columna
@@ -673,6 +683,7 @@ const TableBasic = ({ rows, role, roleData }) => {
           loading={loading}
           cancelReason={cancelReason}
           handleCancelReasonChange={handleCancelReasonChange}
+          domainData={domainData}
         ></AlertDialog>
         {open && (
           <FullScreenDialog
