@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   CircularProgress,
   Dialog,
@@ -6,14 +7,18 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  InputLabel,
   MenuItem,
+  OutlinedInput,
   Select,
   TextField
 } from '@mui/material'
 
+
 // ** React Import
 
-export default function AlertDialog({ authUser, state, open, handleClose, callback, approves, loading = false, cancelReason = null, handleCancelReasonChange = null, domainData = null }) {
+export default function AlertDialog({ authUser, state, open, handleClose, onSubmit, approves, loading = false, cancelReason = null, handleCancelReasonChange = null, domainData = null }) {
 
   let result
 
@@ -50,31 +55,32 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
             </DialogContentText>
             {result === 'rechazar' && (
               <>
-                {/* Proyectista de Gabinete */}
-                <Select
-                  sx={{mt: 4}}
-                  //autoFocus
-                  fullWidth
-                  id='cancel-reason-option'
-                  label='Empresasdasdasa'
-                  value={cancelReason.option}
-                  margin='dense'
-                  onChange={handleCancelReasonChange}
-                  //onChange={handleChange('company')}
-                  //error={errors.company ? true : false}
-              >
-                {Object.keys(domainData.cancelReasonOptions).map(option => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-              </Select>
+              {/* Proyectista de Gabinete */}
+              <FormControl fullWidth sx={{mt:4, '& .MuiInputBase-root ': { width: '100%' }}}>
+                <InputLabel>
+                  {'Motivo de Cancelación'}
+                </InputLabel>
+                <Box display='flex' alignItems='center'>
+                  <Select
+                    input={<OutlinedInput label={'Motivo de Cancelación'} />}
+                    onChange={(event) => handleCancelReasonChange({ target: { id: 'cancel-reason-option', value: event.target.value } })}
+                  >
+                    {Object.keys(domainData.cancelReasonOptions) &&
+                      Object.keys(domainData.cancelReasonOptions).map(option => {
+                        return (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        )
+                      })}
+                  </Select>
+                </Box>
+              </FormControl>
+
 
               {/* Descripción del motivo de cancelamiento */}
               <TextField
-                //autoFocus
                 sx={{mt: 4}}
-                margin='dense'
                 id='cancel-reason-details'
                 label='Detalle'
                 type='text'
@@ -90,9 +96,10 @@ export default function AlertDialog({ authUser, state, open, handleClose, callba
 
         )}
       </DialogContent>
+      {console.log(cancelReason)}
       <DialogActions>
         <Button onClick={handleClose}>No</Button>
-        <Button onClick={callback} autoFocus disabled={result === 'rechazar' && !cancelReason.option && !cancelReason.details}>
+        <Button onClick={onSubmit} autoFocus disabled={result === 'rechazar' && (!cancelReason.option || !cancelReason.details)}>
           Sí
         </Button>
       </DialogActions>

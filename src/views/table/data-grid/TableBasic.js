@@ -98,7 +98,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
-  const writeCallback = async () => {
+  const onSubmit = async () => {
     setLoading(true)
 
     const objectToUpload = (typeof(approve) === "boolean" && Boolean(cancelReason)) ? {...approve, cancelReason: cancelReason} : approve
@@ -126,14 +126,16 @@ const TableBasic = ({ rows, role, roleData }) => {
   }
 
   const handleCancelReasonChange = (event) => {
-    if (event.target.id === 'cancel-reason-option') {
+    const {id, value} = event.target
+
+    if (id === 'cancel-reason-option') {
       setCancelReason(prevState => ({
         ...prevState,
-        options: event.target.value
+        option: value
       }))
-    } else if (event.target.id === 'cancel-reason-details') {
-      const value = event.target.value
-      const trimmedValue = value.replace(/^\s+/, '')
+    } else if (id === 'cancel-reason-details') {
+      // const value = event.target.value
+      const trimmedValue = value.trimStart()
       setCancelReason(prevState => ({
         ...prevState,
         details: trimmedValue
@@ -678,7 +680,7 @@ const TableBasic = ({ rows, role, roleData }) => {
         <AlertDialog
           open={openAlert}
           handleClose={handleCloseAlert}
-          callback={writeCallback}
+          onSubmit={onSubmit}
           approves={approve}
           loading={loading}
           cancelReason={cancelReason}
