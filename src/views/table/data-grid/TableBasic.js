@@ -110,11 +110,6 @@ const TableBasic = ({ rows, role, roleData }) => {
 
     const objectToUpload = (typeof(approve) === "boolean" && canceled) ? {...approve, cancelReason: cancelReason} : approve
 
-    console.log(approve)
-    console.log(objectToUpload)
-    console.log(cancelReason)
-    console.log(Boolean(cancelReason))
-
     await updateDocs(doc.id, objectToUpload, authUser)
       .then(() => {
         setLoading(false)
