@@ -492,7 +492,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         <AlertDialog
           open={openAlert}
           handleClose={handleCloseAlert}
-          callback={writeCallback}
+          onSubmit={writeCallback}
           approves={approve}
         ></AlertDialog>
         {loadingProyectistas ? (
