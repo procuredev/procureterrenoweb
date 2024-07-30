@@ -683,6 +683,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const writeCallback = async () => {
+
     const newData = {}
 
     for (const key in values) {
@@ -708,7 +709,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           return
         }
       }
+
       setLoading(true)
+
       await updateDocs(id, newData, authUser)
         .then(() => {
           setLoading(false)
@@ -1017,8 +1020,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         authUser={authUser}
         state={state}
         open={openAlert}
+        approves={true}
         handleClose={handleCloseAlert}
-        callback={() => writeCallback()}
+        onSubmit={() => writeCallback()}
         domainData={domainData}
       ></AlertDialog>
       <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>

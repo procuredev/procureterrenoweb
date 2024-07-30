@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react'
 
 // ** React Import
 
-export default function AlertDialog({ authUser, state, open, handleClose, onSubmit, approves, loading = false, cancelReason = null, handleCancelReasonChange = null, domainData = null }) {
+export default function AlertDialog({ authUser, state, open, handleClose, onSubmit, approves = null, loading = false, cancelReason = null, handleCancelReasonChange = null, domainData = null }) {
 
   let result
 
@@ -84,24 +84,39 @@ export default function AlertDialog({ authUser, state, open, handleClose, onSubm
   // función onSubmit(), que se encargará de revisar si hay errores, en caso de que hayan se detiene su ejecución; si no se continúa.
   const handleOnSubmit = async () => {
 
-    // Se ejecuta y define formErrors que definirá cuáles son los errores o campos vacíos del formulario
-    try {
-      validateCancelReason(cancelReason)
-    } catch (error) {
-      console.log(error)
-    }
+    console.log(cancelReason)
+    console.log(approves)
+    console.log(Boolean(cancelReason))
+    console.log(Boolean(approves))
 
-    // Si no se han dado motivos de Cancelación o falta indicar uno de ellos se detiene la ejecución del onSubmit.
-    if (cancelReason.option === '' || cancelReason.details === '' || errors.option !== '' || errors.details !== '') {
-
-      return
-
-    } else {
+    if (Boolean(approves)) {
 
       onSubmit()
       setErrors({option: '', details: ''})
 
+    } else {
+
+      // Se ejecuta y define formErrors que definirá cuáles son los errores o campos vacíos del formulario
+      try {
+        validateCancelReason(cancelReason)
+      } catch (error) {
+        console.log(error)
+      }
+
+      // Si no se han dado motivos de Cancelación o falta indicar uno de ellos se detiene la ejecución del onSubmit.
+      if (cancelReason && (cancelReason.option === '' || cancelReason.details === '') || errors.option !== '' || errors.details !== '') {
+
+        return
+
+      } else {
+
+        onSubmit()
+        setErrors({option: '', details: ''})
+
+      }
+
     }
+
   }
 
   // Función para manejar el cierre del dialog.
@@ -124,7 +139,7 @@ export default function AlertDialog({ authUser, state, open, handleClose, onSubm
             <DialogContentText id='alert-dialog-description'>
               ¿Estás segur@ de que quieres {result} la solicitud? {result === 'rechazar' && 'Deberás indicar la razón por la cual se está cancelando este Levantamiento:'}
             </DialogContentText>
-            {result === 'rechazar' && (
+            {result === 'rechazar' && cancelReason && (
               <>
               {/* Proyectista de Gabinete */}
               <FormControl fullWidth sx={{mt:4, '& .MuiInputBase-root ': { width: '100%' }}} error={Boolean(errors.option)}>
