@@ -57,8 +57,6 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         // Se llama a toda la información disponible en colección domain (tabla de dominio)
         const domain = await getDomainData()
 
-        console.log(domain)
-
         // Manejo de errores para evitar Warning en Consola
         if (!domain) {
           console.error('No se encontraron los datos o datos son indefinidos o null.')
