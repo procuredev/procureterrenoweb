@@ -27,10 +27,11 @@ import CalendarWrapper from 'src/@core/styles/libs/fullcalendar'
 import { useEffect, useRef, useState } from 'react'
 
 // ** Full Calendar & it's Plugins
+import FullCalendar from '@fullcalendar/react'
+
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
-import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 
 // ** Component Imports
