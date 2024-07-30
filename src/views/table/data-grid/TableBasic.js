@@ -107,7 +107,10 @@ const TableBasic = ({ rows, role, roleData }) => {
       .then(() => {
         setLoading(false)
         setOpenAlert(false)
-        setCancelReason({})
+        setCancelReason({
+          option: '',
+          details: ''
+        })
       })
       .catch(error => {
         setLoading(false)
@@ -122,7 +125,10 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
-    setCancelReason({})
+    setCancelReason({
+      option: '',
+      details: ''
+    })
   }
 
   const handleCancelReasonChange = (event) => {
