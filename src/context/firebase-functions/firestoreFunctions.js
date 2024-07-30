@@ -394,6 +394,12 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       5,
       [
+        // Si el estado del levantamiento es mayor o igual a 8, se mantiene en ese estado.
+        {
+          condition: approves && state >= 8,
+          newState: latestEvent.newState,
+          log: 'Modificado por planificador. Se mantiene en el mismo estado.'
+        },
         // Si el planificador modifica cualquier campo (6 --> 6)
         {
           condition: approves && approveWithChanges && requestMadeByPlanner,
