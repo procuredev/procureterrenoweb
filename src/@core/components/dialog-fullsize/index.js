@@ -772,6 +772,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     if (!date) {
       setValues({ ...values, [dateField]: null })
       setHasChanges({ ...hasChanges, [dateField]: false })
+
       return
     }
 

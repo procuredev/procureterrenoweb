@@ -32,10 +32,12 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [approve, setApprove] = useState(true)
   const [loading, setLoading] = useState(false)
   const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
+
   const [cancelReason, setCancelReason] = useState({
     option: '',
     details: ''
   })
+
   const [domainData, setDomainData] = useState({})
 
   const { updateDocs, authUser, domainDictionary, getDomainData } = useFirebase()
