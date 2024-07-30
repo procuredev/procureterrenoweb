@@ -1,3 +1,4 @@
+// ** MUI Import
 import {
   Box,
   Button,
@@ -15,17 +16,18 @@ import {
   Select,
   TextField
 } from '@mui/material'
-import { useEffect, useState } from 'react'
-
 
 // ** React Import
+import { useEffect, useState } from 'react'
 
+// Componente principal AlertDialog
 export default function AlertDialog({ authUser, state, open, handleClose, onSubmit, approves = null, loading = false, cancelReason = null, handleCancelReasonChange = null, domainData = null }) {
 
-  let result
-
+  // Estado para almacenar errores de validación.
   const [errors, setErrors] = useState({option: '', details: ''})
 
+  // Determinar la acción basada en el estado de la solicitud y el usuario
+  let result
   if (approves === undefined) {
     result = authUser.role === 5 && state === (3 || 4) ? 'aprobar' : 'modificar'
   } else if (approves) {
@@ -35,6 +37,7 @@ export default function AlertDialog({ authUser, state, open, handleClose, onSubm
   }
 
   function capitalize(text) {
+
     const firstLetter = text.charAt(0)
     const rest = text.slice(1)
 
@@ -65,25 +68,20 @@ export default function AlertDialog({ authUser, state, open, handleClose, onSubm
   // useEffect para que actualice el estado de 'errors' cuando el usuario seleccione una Opción o indique Detalles.
   useEffect(() => {
 
-    if (cancelReason && cancelReason.option) {
-      setErrors(prevState => ({
+    if (cancelReason) {
+      setErrors((prevState) => ({
         ...prevState,
-        option: ''
+        option: cancelReason.option ? '' : prevState.option,
+        details: cancelReason.details ? '' : prevState.details
       }))
     }
 
-    if (cancelReason && cancelReason.details) {
-      setErrors(prevState => ({
-        ...prevState,
-        details: ''
-      }))
-    }
-
-  },[cancelReason])
+  }, [cancelReason])
 
   // función onSubmit(), que se encargará de revisar si hay errores, en caso de que hayan se detiene su ejecución; si no se continúa.
   const handleOnSubmit = async () => {
 
+    // Si approves es 'true' (caso cuando se aprueba directamente o dentro de dialog-fullsize se aprueba)
     if (Boolean(approves)) {
 
       onSubmit()
