@@ -84,11 +84,6 @@ export default function AlertDialog({ authUser, state, open, handleClose, onSubm
   // función onSubmit(), que se encargará de revisar si hay errores, en caso de que hayan se detiene su ejecución; si no se continúa.
   const handleOnSubmit = async () => {
 
-    console.log(cancelReason)
-    console.log(approves)
-    console.log(Boolean(cancelReason))
-    console.log(Boolean(approves))
-
     if (Boolean(approves)) {
 
       onSubmit()
