@@ -247,8 +247,8 @@ const TableBasic = ({ rows, role, roleData }) => {
       },
       7: {
         approve: false,
-        edit: createdBySupervisor && isMyRequest && row.state <= 6,
-        reject: createdBySupervisor && isMyRequest && row.state <= 6
+        edit: false,
+        reject: false
       },
       8: {
         approve: hasPrevState,
