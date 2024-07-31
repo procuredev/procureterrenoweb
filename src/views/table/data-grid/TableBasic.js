@@ -7,10 +7,7 @@ import { useFirebase } from 'src/context/useFirebase'
 
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import {
-  DataGridPremium,
-  GridToolbarContainer
-} from '@mui/x-data-grid-premium'
+import { DataGridPremium, GridToolbarContainer } from '@mui/x-data-grid-premium'
 import { esES } from '@mui/x-data-grid-pro'
 import { addDays, differenceInDays, format, getWeek } from 'date-fns'
 import * as ExcelJS from 'exceljs'
@@ -36,7 +33,14 @@ const TableBasic = ({ rows, role, roleData }) => {
   const [loading, setLoading] = useState(false)
   const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
 
-  const { updateDocs, authUser, domainDictionary } = useFirebase()
+  const [cancelReason, setCancelReason] = useState({
+    option: '',
+    details: ''
+  })
+
+  const [domainData, setDomainData] = useState({})
+
+  const { updateDocs, authUser, domainDictionary, getDomainData } = useFirebase()
 
   const [columnVisibilityModel, setColumnVisibilityModel] = useState({
     // ... otros estados de visibilidad de columnas ...
@@ -50,6 +54,30 @@ const TableBasic = ({ rows, role, roleData }) => {
   })
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
+
+  // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
+  useEffect(() => {
+    const getAllDomainData = async () => {
+      try {
+        // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        const domain = await getDomainData()
+
+        // Manejo de errores para evitar Warning en Consola
+        if (!domain) {
+          console.error('No se encontraron los datos o datos son indefinidos o null.')
+
+          return
+        }
+
+        // Se almacena la información de Tabla de Dominio en una variable de Entorno
+        setDomainData(domain)
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getAllDomainData()
+  }, [])
 
   const findCurrentDoc = rows => {
     return rows.find(row => row.id === doc.id)
@@ -70,12 +98,26 @@ const TableBasic = ({ rows, role, roleData }) => {
     setApprove(isApproved)
   }
 
-  const writeCallback = async () => {
+  const onSubmit = async () => {
     setLoading(true)
-    await updateDocs(doc.id, approve, authUser)
+
+    let canceled
+    if (cancelReason.option === '' && cancelReason.details === '') {
+      canceled = false
+    } else {
+      canceled = true
+    }
+
+    const objectToUpload = (typeof(approve) === "boolean" && canceled) ? {...approve, cancelReason: cancelReason} : approve
+
+    await updateDocs(doc.id, objectToUpload, authUser)
       .then(() => {
         setLoading(false)
         setOpenAlert(false)
+        setCancelReason({
+          option: '',
+          details: ''
+        })
       })
       .catch(error => {
         setLoading(false)
@@ -90,6 +132,28 @@ const TableBasic = ({ rows, role, roleData }) => {
 
   const handleCloseAlert = () => {
     setOpenAlert(false)
+    setCancelReason({
+      option: '',
+      details: ''
+    })
+  }
+
+  const handleCancelReasonChange = (event) => {
+    const {id, value} = event.target
+
+    if (id === 'cancel-reason-option') {
+      setCancelReason(prevState => ({
+        ...prevState,
+        option: value
+      }))
+    } else if (id === 'cancel-reason-details') {
+      // const value = event.target.value
+      const trimmedValue = value.trimStart()
+      setCancelReason(prevState => ({
+        ...prevState,
+        details: trimmedValue
+      }))
+    }
   }
 
   // Componente personalizado para el menú de columna
@@ -104,7 +168,7 @@ const TableBasic = ({ rows, role, roleData }) => {
 
           // Oculta se ocultan
           columnMenuColumnsItem: null,
-          columnMenuFilterItem: null,
+          //columnMenuFilterItem: null,
           columnMenuAggregationItem: null,
           columnMenuGroupingItem: null
         }}
@@ -123,7 +187,7 @@ const TableBasic = ({ rows, role, roleData }) => {
     const createdByPlanner = row.userRole === 5
     const createdBySupervisor = row.userRole === 7
     const hasOTEnd = row.ot && row.end
-    const isPetitionMadeByMelPetitioner = row.userRole === 2
+    const isPetitionMadeByMelPetitioner = row.userRole === 2 || row.userRole === 3
 
     const isPetitionMakeByPlaner =
       role === 3 &&
@@ -164,27 +228,27 @@ const TableBasic = ({ rows, role, roleData }) => {
         reject: false // row.state <= 6 && !createdBySupervisor
       },
       5: {
-        approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor,
+        approve: hasOTEnd && [1, 3, 4].includes(row.state) && createdByPlanner && !createdBySupervisor && row.state !== 0,
         edit:
           !createdBySupervisor &&
           (createdByPlanner ||
             (createdByPetitioner && [3, 4].includes(row.state)) ||
-            (createdByContOp && [3, 4].includes(row.state))),
+            (createdByContOp && [3, 4].includes(row.state))) && row.state !== 0,
         reject:
           !createdBySupervisor &&
           (createdByPlanner ||
             (createdByPetitioner && [3, 4].includes(row.state)) ||
-            (createdByContOp && [3, 4].includes(row.state)))
+            (createdByContOp && [3, 4].includes(row.state))) && row.state !== 0
       },
       6: {
-        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state !== 3 && row.state !== 6,
-        edit: !createdBySupervisor && isPetitionMadeByMelPetitioner,
-        reject: [2, 3, 4, 5, 6].includes(row.state) && !createdBySupervisor
+        approve: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state !== 3 && row.state !== 6 && row.state <= 7 && row.state !== 0,
+        edit: !createdBySupervisor && isPetitionMadeByMelPetitioner && row.state <= 7 && row.state !== 0,
+        reject: [2, 3, 4, 5, 6].includes(row.state) && !createdBySupervisor && row.state <= 7 && row.state !== 0
       },
       7: {
         approve: false,
-        edit: createdBySupervisor && isMyRequest && row.state <= 6,
-        reject: createdBySupervisor && isMyRequest && row.state <= 6
+        edit: false,
+        reject: false
       },
       8: {
         approve: hasPrevState,
@@ -369,7 +433,13 @@ const TableBasic = ({ rows, role, roleData }) => {
         const { row } = params
         localStorage.setItem('daysToDeadlineSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.deadline ? Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60)) : 'Pendiente'}</div>
+        return (
+          <div>
+            {row.deadline
+              ? Math.round((row.deadline.toDate().getTime() - today.toDate().getTime()) / (1000 * 24 * 60 * 60))
+              : 'Pendiente'}
+          </div>
+        )
       }
     },
     {
@@ -623,9 +693,12 @@ const TableBasic = ({ rows, role, roleData }) => {
         <AlertDialog
           open={openAlert}
           handleClose={handleCloseAlert}
-          callback={writeCallback}
+          onSubmit={onSubmit}
           approves={approve}
           loading={loading}
+          cancelReason={cancelReason}
+          handleCancelReasonChange={handleCancelReasonChange}
+          domainData={domainData}
         ></AlertDialog>
         {open && (
           <FullScreenDialog
@@ -634,6 +707,7 @@ const TableBasic = ({ rows, role, roleData }) => {
             doc={findCurrentDoc(rows)}
             roleData={roleData}
             editButtonVisible={permissions(findCurrentDoc(rows), role)?.edit || false}
+            domainData={domainData}
             canComment={[5, 6, 7].includes(authUser.role)}
           />
         )}

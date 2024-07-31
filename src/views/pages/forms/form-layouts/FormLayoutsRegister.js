@@ -312,6 +312,13 @@ const FormLayoutsBasic = () => {
 
       values.name = values.firstName + (values.fatherLastName.length > 0 ? ' ' : '') + values.fatherLastName + (values.motherLastName.length > 0 ? ' ' : '') + values.motherLastName
 
+      // Primero que todo, se deberán formatear los campos rut para guardarlo correctamtente
+      if (values.rut) {
+        let formattedRut = values.rut.replace(/[.]/g, '')
+        values.rut = formattedRut
+        //console.log(formattedRut)
+      }
+
       try {
         await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)
         // Inicia el estado de creación de perfil

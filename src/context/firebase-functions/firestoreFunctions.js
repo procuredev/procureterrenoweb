@@ -273,6 +273,7 @@ const addComment = async (id, comment, userParam) => {
 }
 
 function getNextState(role, approves, latestEvent, userRole) {
+
   const state = {
     returned: 1,
     petitioner: 2,
@@ -393,6 +394,12 @@ function getNextState(role, approves, latestEvent, userRole) {
     [
       5,
       [
+        // Si el estado del levantamiento es mayor o igual a 8, se mantiene en ese estado.
+        {
+          condition: approves && state >= 8,
+          newState: latestEvent.newState,
+          log: 'Modificado por planificador. Se mantiene en el mismo estado.'
+        },
         // Si el planificador modifica cualquier campo (6 --> 6)
         {
           condition: approves && approveWithChanges && requestMadeByPlanner,
@@ -451,7 +458,7 @@ function getNextState(role, approves, latestEvent, userRole) {
 
         // Solicitud Modificada por Administrador de Contrato
         {
-          condition: approves && !requestMadeByMelPetitioner,
+          condition: approves && !requestMadeByMelPetitioner && latestEvent.newState !== 5,
           newState: latestEvent.newState ? latestEvent.newState : state.contAdmin,
           log: 'Solicitud ingresada por MEL es aprobada por Administrador de Contrato'
         },
@@ -516,13 +523,15 @@ function getNextState(role, approves, latestEvent, userRole) {
 }
 
 const updateDocs = async (id, approves, userParam) => {
+
+  let canceled = approves.cancelReason ? true : false
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
   const { start: docStartDate, ot: hasOT, state: prevState, userRole } = docSnapshot
   const latestEvent = await getLatestEvent(id)
   const rejected = 0
   const role = userParam.role
-  let newState = approves ? getNextState(role, approves, latestEvent, userRole) : rejected
+  let newState = !canceled ? getNextState(role, approves, latestEvent, userRole) : rejected
   let processedFields = { incomingFields: {}, changedFields: {} }
 
   // const addOT = role === 5 && approves && !hasOT
