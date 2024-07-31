@@ -228,7 +228,6 @@ const getData = async id => {
 
 // Función para llamar a todos los usuarios dentro de la colección 'users'
 const getAllUsersData = async () => {
-
   try {
     // Referencia a la colección
     const usersRef = collection(db, 'users')
@@ -246,13 +245,9 @@ const getAllUsersData = async () => {
 
     // Retornar los documentos
     return usersData
-
   } catch (error) {
-
-    console.error("Error al obtener los datos de los usuarios: ", error)
-
+    console.error('Error al obtener los datos de los usuarios: ', error)
   }
-
 }
 
 // getUserData agrupa funciones relacionadas con la colección 'users'
@@ -303,13 +298,15 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
                 name: doc.data().name,
                 avatar: doc.data().urlFoto,
                 enabled: doc.data().enabled,
-                shift: doc.data().shift
+                shift: doc.data().shift,
+                email: doc.data().email
               }
             : {
                 userId: doc.id,
                 name: doc.data().name,
                 enabled: doc.data().enabled,
-                shift: doc.data().shift
+                shift: doc.data().shift,
+                email: doc.data().email
               }
           : type === 'getReceiverUsers'
           ? {

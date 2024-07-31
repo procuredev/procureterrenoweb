@@ -44,7 +44,7 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
 
-  const { fetchFolders, createFolder, isLoading: folderLoading } = useGoogleDriveFolder() // Use the new hook
+  const { fetchFolders, createFolder, createPermission, isLoading: folderLoading } = useGoogleDriveFolder() // Use the new hook
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -75,22 +75,33 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
 
         // Busca la carpeta de la planta.
         const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
-        const plantFolder = plantFolders.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
+        console.log('plantFolders', plantFolders)
+        const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
 
         if (plantFolder) {
           // Busca la carpeta del area.
           const areaFolders = await fetchFolders(plantFolder.id)
-          const areaFolder = areaFolders.find(folder => folder.name === doc.area)
+          const areaFolder = areaFolders.files.find(folder => folder.name === doc.area)
 
           if (areaFolder) {
             const projectFolderName = `OT N${doc.ot} - ${doc.title}`
             const existingProjectFolders = await fetchFolders(areaFolder.id)
-            const projectFolder = existingProjectFolders.find(folder => folder.name === projectFolderName)
+            const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
 
             let projectFolderId
             if (!projectFolder) {
               const createdProjectFolder = await createFolder(projectFolderName, areaFolder.id)
               projectFolderId = createdProjectFolder.id
+
+              // Asigna permisos a los proyectistas seleccionados.
+              console.log('Creating permissions for folder:', projectFolderId)
+
+              /*  for (const proyectista of proyectistas) {
+                console.log('Creating permission for:', proyectista.email)
+                await createPermission(projectFolderId, proyectista.email, 'writer')
+              } */
+
+              await createPermission(projectFolderId, 'd.alvarez@procure.cl', 'writer')
 
               const subfolders = [
                 'ANTECEDENTES',
@@ -287,5 +298,3 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     </Dialog>
   )
 }
-
-//export default DialogAssignProject
