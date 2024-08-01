@@ -111,7 +111,13 @@ export const useGoogleDriveFolder = () => {
           body: JSON.stringify({
             role,
             type: 'user',
-            emailAddress
+            emailAddress,
+            permissionDetails: [
+              {
+                permissionType: 'user',
+                role: role
+              }
+            ]
           })
         }
       )
