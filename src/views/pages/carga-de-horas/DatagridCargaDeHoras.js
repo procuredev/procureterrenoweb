@@ -292,7 +292,7 @@ const DataGridCargaDeHoras = () => {
       newValue,
       isNew: !dayDocId, // Determina si es una nueva creación
       day: dayTimestamp,
-      userRole: authUser.role,
+      userRole: state.toggleValue === false ? authUser.role : state.selectedUser.role,
       userShift: authUser.shift,
       shift: shift,
       hoursType: rowData.hoursType,
