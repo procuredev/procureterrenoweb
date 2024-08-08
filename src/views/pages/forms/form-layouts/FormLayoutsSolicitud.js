@@ -111,6 +111,7 @@ const FormLayoutsSolicitud = () => {
   const [deliverablesOptions, setDeliverablesOptions] = useState([])
   const [urgencyTypesOptions, setUrgencyTypesOptions] = useState([])
   const [operationalStatusOptions, setOperationalStatusOptions] = useState([])
+  const [costCenterOptions, setCostCenterOptions] = useState([])
 
   const [hasShownDialog, setHasShownDialog] = useState(false)
   const [buttonDisabled, setButtonDisabled] = useState(false)
@@ -163,11 +164,10 @@ const FormLayoutsSolicitud = () => {
       'tag',
       'urlVideo',
       //* 'ot',
-      'mcDescription',
-      'costCenter'
+      'mcDescription'
     ]
     const selectFields = ['plant', 'petitioner', 'type', 'detention', 'objective', 'contop', 'urgency']
-    const autoFields = ['area', 'deliverable', 'receiver']
+    const autoFields = ['area', 'deliverable', 'receiver', 'costCenter']
     let newValue
     switch (true) {
       case strFields.includes(prop): {
@@ -346,13 +346,13 @@ const FormLayoutsSolicitud = () => {
     fnlocation: /[^A-Za-z0-9@\/.-]/, ///[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
     //* ot: /[^\s0-9]/, // /[^0-9]/g
     tag: /[^A-Za-z0-9@\/.-]/, // /[^A-Z\s0-9- -.\"]/, // /[^0-9]/g
-    costCenter: /[^0-9]+/ // /[^0-9]/g
+    //costCenter: /[^0-9]+/ // /[^0-9]/g
   }
 
   const validateForm = values => {
     const trimmedValues = {}
     const newErrors = {}
-    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'costCenter', 'mcDescription']
+    const textFieldValues = ['title', 'fnlocation', 'sap', 'description', 'tag', 'mcDescription']
     //* const shouldValidateOT = authUser.role === 5 || authUser.role === 7 // validar 'ot' si el usuario tiene el rol 5 o 7.
     const shouldValidateEND = authUser.role === 5 || authUser.role === 7 // validar 'end' si el usuario tiene el rol 5 o 7.
 
@@ -519,6 +519,13 @@ const FormLayoutsSolicitud = () => {
             .sort()
           setAreas(areas)
         }
+
+        // Se reordena la información de costCenter en domain
+        if (domainData && domainData.costCenters && values.plant) {
+          const costCenters = domainData.costCenters[values.plant]
+          setCostCenterOptions(costCenters)
+        }
+
       } catch (error) {
         console.error('Error buscando los datos:', error)
       }
@@ -1194,20 +1201,16 @@ const FormLayoutsSolicitud = () => {
             />
 
             {/* Centro de Costos */}
-            <CustomTextField
+            <CustomAutocomplete
               inputRef={costCenterRef}
               required={authUser.role != 7}
-              type='text'
+              options={costCenterOptions}
               label='Centro de Costos'
               value={values.costCenter}
               onChange={handleChange('costCenter')}
               error={errors.costCenter}
-              inputProps={{ maxLength: 25 }}
-              autoComplete='off'
-              onInput={e => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '')
-              }}
               helper='Ingresa el código del Centro de Costos.'
+              multiple={false}
             />
 
             {/* Functional Location */}
