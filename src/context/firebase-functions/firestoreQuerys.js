@@ -667,6 +667,30 @@ const fetchPlaneProperties = async () => {
   }
 }
 
+const fetchDisciplineProperties = async () => {
+  const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
+  const docSnapshot = await getDoc(propsRef)
+
+  if (docSnapshot.exists()) {
+    return docSnapshot.data()
+  } else {
+    throw new Error('No matching document found in the database.')
+  }
+}
+
+const fetchDeliverablesByDiscipline = async discipline => {
+  const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
+  const docSnapshot = await getDoc(propsRef)
+
+  if (docSnapshot.exists()) {
+    const data = docSnapshot.data()
+
+    return data[discipline]
+  } else {
+    throw new Error('No matching discipline found in the database.')
+  }
+}
+
 const fetchMelDisciplines = async () => {
   const docRef = doc(db, 'domain', 'blueprintMelProperties')
   const docSnap = await getDoc(docRef)
@@ -988,5 +1012,7 @@ export {
   subscribeToPetition,
   consultOT,
   subscribeToUserProfileChanges,
-  subscribeToBlockDayChanges
+  subscribeToBlockDayChanges,
+  fetchDisciplineProperties,
+  fetchDeliverablesByDiscipline
 }

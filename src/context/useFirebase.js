@@ -41,7 +41,8 @@ import {
   deleteWeekHoursByType,
   fetchSolicitudes,
   fetchUserList,
-  updateWeekHoursWithPlant
+  updateWeekHoursWithPlant,
+  generateCodes
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -65,7 +66,9 @@ import {
   subscribeToPetition,
   subscribeToUserProfileChanges,
   useEvents,
-  useSnapshot
+  useSnapshot,
+  fetchDisciplineProperties,
+  fetchDeliverablesByDiscipline
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
@@ -186,7 +189,10 @@ const FirebaseContextProvider = props => {
     deleteWeekHoursByType,
     fetchSolicitudes,
     fetchUserList,
-    updateWeekHoursWithPlant
+    updateWeekHoursWithPlant,
+    fetchDisciplineProperties,
+    fetchDeliverablesByDiscipline,
+    generateCodes
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
