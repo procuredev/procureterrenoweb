@@ -1221,7 +1221,7 @@ const FormLayoutsSolicitud = () => {
             {/* Centro de Costos */}
             <CustomAutocomplete
               inputRef={costCenterRef}
-              required={authUser.role != 7}
+              required={true}
               options={costCenterOptions}
               label='Centro de Costos'
               value={values.costCenter}
