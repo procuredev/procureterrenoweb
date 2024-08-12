@@ -800,6 +800,15 @@ const FormLayoutsSolicitud = () => {
         }))
       }
 
+      // Si no se ha definido el Centro de Costos, automáticamente se definirá.
+      if (!values.costCenter && values.plant && costCenterOptions) {
+        setValues(prevValues => ({
+          ...prevValues,
+          costCenter: costCenterOptions[0] // Establecer automáticamente el Centro de Costos seleccionado
+        }))
+      }
+
+
       setContOpOptions(contOpOptions) // Establecer las opciones de Contract Operator en la lista desplegable del formulario
 
       // Filtrar los Solicitantes para incluir solo aquellos con roles 2 y 3 (para que no aparezcan ni Contract Owner ni usuarios Procure)
@@ -860,10 +869,19 @@ const FormLayoutsSolicitud = () => {
 
   // useEffect para ejecutar las funciones fetchData y luego getFixedUsers, cuando hay cambios en Planta o en Contract Opetaror.
   useEffect(() => {
-    if (values.plant) {
-      fetchData().then(getFixedUsers())
-    }
-  }, [values.plant, values.contop])
+    const fetchDataAndGetUsers = async () => {
+      if (values.plant) {
+        try {
+          await fetchData()
+          await getFixedUsers()
+        } catch (error) {
+          console.error('Error fetching data:', error)
+        }
+      }
+    };
+
+    fetchDataAndGetUsers()
+  }, [values.plant, values.contop, costCenterOptions])
 
   useEffect(() => {
     if (values.objective === 'Análisis GPR') {
