@@ -20,7 +20,6 @@ import EngineeringIcon from '@mui/icons-material/Engineering'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getMappedCodes } from './mapping'
 
 // ** Hooks Imports
 import { useFirebase } from 'src/context/useFirebase'

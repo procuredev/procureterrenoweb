@@ -108,7 +108,10 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     // Verificamos si el option ya existe en el array draftmen
     if (!draftmen.some(draftman => draftman.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen(prevDraftmen => [...prevDraftmen, { name: option.name, userId: option.userId }])
+      setDraftmen(prevDraftmen => [
+        ...prevDraftmen,
+        { name: option.name, userId: option.userId, shift: option.shift, enabled: option.enabled, email: option.email }
+      ])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
@@ -143,22 +146,34 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
       try {
+        // Actualiza cada elemento en draftmen con allocationTime
+        const updatedDraftmen = draftmen.map(designer => ({
+          ...designer,
+          allocationTime: new Date().getTime()
+        }))
+
         await updateDocs(
           id,
-          { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: draftmen },
+          { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: updatedDraftmen },
           authUser
         )
 
-        const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+        const plantFoldersResponse = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+
+        // Accede al array de archivos dentro del objeto retornado
+        const plantFolders = plantFoldersResponse.files
+
         const plantFolder = plantFolders.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
 
         if (plantFolder) {
-          const areaFolders = await fetchFolders(plantFolder.id)
+          const areaFoldersResponse = await fetchFolders(plantFolder.id)
+          const areaFolders = areaFoldersResponse.files
           const areaFolder = areaFolders.find(folder => folder.name === doc.area)
 
           if (areaFolder) {
             const projectFolderName = `OT N${doc.ot} - ${doc.title}`
-            const existingProjectFolders = await fetchFolders(areaFolder.id)
+            const existingProjectFoldersResponse = await fetchFolders(areaFolder.id)
+            const existingProjectFolders = existingProjectFoldersResponse.files
             const projectFolder = existingProjectFolders.find(folder => folder.name === projectFolderName)
 
             let projectFolderId
@@ -182,7 +197,8 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
               console.log(`Carpeta existente: ${projectFolderId}`)
             }
 
-            const levantamientoFolder = await fetchFolders(projectFolderId)
+            const levantamientoFolderResponse = await fetchFolders(projectFolderId)
+            const levantamientoFolder = levantamientoFolderResponse.files
             const levantamientoSubfolder = levantamientoFolder.find(folder => folder.name === 'LEVANTAMIENTO')
 
             if (levantamientoSubfolder) {

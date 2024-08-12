@@ -483,7 +483,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'fecha modificada por Supervisor'
         },
         {
-          condition: approves && approves.hasOwnProperty('designerReview'),
+          condition: approves && approves.hasOwnProperty('gabineteDraftmen'),
           newState: state.draftsman,
           log: 'Proyectistas agregados por Supervisor'
         },
