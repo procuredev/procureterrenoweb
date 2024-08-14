@@ -54,12 +54,12 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [error, setError] = useState('')
   const [expandedRows, setExpandedRows] = useState(new Set())
 
-  const [drawingTimeSelected, setDrawingTimeSelected] = useState({
+  /*  const [drawingTimeSelected, setDrawingTimeSelected] = useState({
     start: null,
     end: null,
     hours: 0,
     minutes: 0
-  })
+  }) */
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -84,9 +84,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     const remarks = remarksState.length > 0 ? remarksState : false
 
     authUser.role === 8
-      ? await updateBlueprint(petitionId, doc, approve, authUser, false, drawingTimeSelected.investedHours)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, false /* drawingTimeSelected.investedHours */)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setDrawingTimeSelected('')
+            setOpenAlert(false), setBlueprintGenerated(true) /* , setDrawingTimeSelected('') */
           })
           .catch(err => console.error(err), setOpenAlert(false))
       : authUser.role === 9
@@ -97,7 +97,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           .catch(err => console.error(err), setOpenAlert(false))
       : await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState(''), setDrawingTimeSelected('')
+            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('') /* , setDrawingTimeSelected('') */
           })
           .catch(err => console.error(err), setOpenAlert(false))
   }
@@ -354,7 +354,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     )
   }
 
-  useEffect(() => {
+  /* useEffect(() => {
     if (drawingTimeSelected.start && drawingTimeSelected.end) {
       const workStartHour = 8 // Hora de inicio de la jornada laboral
       const workEndHour = 20 // Hora de finalización de la jornada laboral
@@ -417,7 +417,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         }
       }))
     }
-  }, [drawingTimeSelected.start, drawingTimeSelected.end])
+  }, [drawingTimeSelected.start, drawingTimeSelected.end]) */
 
   useEffect(() => {
     // Primera parte: obtener los nombres de los planos
@@ -959,7 +959,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {row.storageHlcDocuments ? null : (
                       <Upload
                         sx={{
-                          fontSize: xlDown ? '1rem' : '1.2rem'
+                          fontSize: '1rem'
                         }}
                       />
                     )}
@@ -1213,7 +1213,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       <DataGridPremium
         sx={{
           height: '100%',
-          maxHeight: !lg ? '700px' : '400px',
+          maxHeight: lg ? '700px' : '400px',
           width: '100%',
           '& .MuiDataGrid-cell--withRenderer': {
             alignItems: 'baseline'
@@ -1288,8 +1288,8 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         authUser={authUser}
         setRemarksState={setRemarksState}
         blueprint={doc && doc}
-        drawingTimeSelected={drawingTimeSelected}
-        setDrawingTimeSelected={setDrawingTimeSelected}
+        //drawingTimeSelected={drawingTimeSelected}
+        //setDrawingTimeSelected={setDrawingTimeSelected}
         error={error}
         setError={setError}
       ></AlertDialogGabinete>

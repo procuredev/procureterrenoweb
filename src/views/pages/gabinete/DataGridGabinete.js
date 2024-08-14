@@ -329,7 +329,7 @@ const DataGridGabinete = () => {
               disabled={currentPetition?.otFinished}
               onClick={() => currentPetition && handleClickOpen(currentPetition)}
             >
-              Asignar proyectista
+              Modificar proyectista
             </Button>
           </>
         ) : authUser.role === 9 ? (

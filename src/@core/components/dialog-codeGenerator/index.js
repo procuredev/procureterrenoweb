@@ -42,7 +42,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
 
   // ** Hooks
   //const { updateDocs, authUser, generateBlueprint, fetchPlaneProperties, generateCodes } = useFirebase()
-  const { fetchDisciplineProperties, fetchDeliverablesByDiscipline, generateCodes, authUser } = useFirebase()
+  const { fetchDisciplineProperties, fetchDeliverablesByDiscipline, generateBlueprintCodes, authUser } = useFirebase()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,7 +72,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
       setIsSubmitDisabled(true)
       try {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
-        await generateCodes(mappedCodes[typeOfDocument], doc, quantity, authUser)
+        await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, authUser)
         setBlueprintGenerated(true)
         handleClose()
       } catch (error) {
@@ -111,27 +111,47 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
           <Typography variant='body2'>Establece parámetros para crear el código</Typography>
         </Box>
 
-        <FormControl fullWidth>
-          <InputLabel>Tipo de disciplina</InputLabel>
-          <Select value={typeOfDiscipline} onChange={handleChangeTypeOfDiscipline}>
-            {disciplines.map((discipline, index) => (
-              <MenuItem key={index} value={discipline}>
-                {discipline}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth>
-          <InputLabel>Tipo de documento</InputLabel>
-          <Select value={typeOfDocument} onChange={handleChangeTypeOfDocument}>
-            {deliverables.map((deliverable, index) => (
-              <MenuItem key={index} value={deliverable}>
-                {deliverable}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <TextField label='Cantidad' type='number' value={quantity} onChange={handleQuantityChange} fullWidth />
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+          <FormControl fullWidth>
+            <InputLabel id='demo-select-small-label'>Tipo de disciplina</InputLabel>
+            <Select
+              label='Tipo de disciplina'
+              labelId='controlled-select-label'
+              id='controlled-select'
+              value={typeOfDiscipline}
+              onChange={handleChangeTypeOfDiscipline}
+            >
+              {disciplines.map((discipline, index) => (
+                <MenuItem key={index} value={discipline}>
+                  {discipline}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+          <FormControl fullWidth>
+            <InputLabel id='demo-select-small-label'>Tipo de documento</InputLabel>
+            <Select
+              label='Tipo de documento'
+              id='controlled-select'
+              labelId='controlled-select-label'
+              value={typeOfDocument}
+              onChange={handleChangeTypeOfDocument}
+            >
+              {deliverables.map((deliverable, index) => (
+                <MenuItem key={index} value={deliverable}>
+                  {deliverable}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+          <TextField label='Cantidad' type='number' value={quantity} onChange={handleQuantityChange} fullWidth />
+        </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button

@@ -660,7 +660,7 @@ function formatCount(count) {
   return String(count).padStart(3, '0')
 }
 
-const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, petition, blueprintId, userParam) => {
+/* const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, petition, blueprintId, userParam) => {
   try {
     const idProject = '21286'
 
@@ -723,9 +723,9 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
     console.error('Error al generar clientCode:', error)
     throw new Error('Error al generar clientCode')
   }
-}
+} */
 
-const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
+/* const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
   try {
     const solicitudRef = doc(db, 'solicitudes', petition.id)
     const solicitudDoc = await getDoc(solicitudRef)
@@ -775,7 +775,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     console.error('Error al generar Blueprint:', error)
     throw new Error('Error al generar Blueprint')
   }
-}
+} */
 
 const addDescription = async (petitionID, blueprint, description) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint)
@@ -819,9 +819,9 @@ const getNextRevision = async (
     userId,
     storageHlcDocuments
   },
-  remarks,
-  hours,
-  investedHours
+  remarks
+  //hours,
+  //investedHours
 ) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision
@@ -928,16 +928,16 @@ const getNextRevision = async (
     userName: displayName,
     userId: uid,
     date: Timestamp.fromDate(new Date()),
-    remarks: remarks || 'sin observaciones',
-    drawingHours: hours ? hours : null,
-    investedHours: investedHours || null
+    remarks: remarks || 'sin observaciones'
+    //drawingHours: hours ? hours : null,
+    //investedHours: investedHours || null
   }
 
   return nextRevision
 }
 
 // updateBlueprint() actualiza el entregable en la base de datos
-const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours, investedHours) => {
+const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks /* hours, investedHours */) => {
   // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
   const solicitudRef = doc(db, 'solicitudes', petitionID)
@@ -951,9 +951,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     latestRevision,
     userParam,
     blueprint,
-    remarks,
-    hours,
-    investedHours
+    remarks
+    //hours,
+    //investedHours
   )
 
   // Comprueba varias condiciones sobre el plano
@@ -1398,7 +1398,7 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
   }
 }
 
-const generateCodes = async (mappedCodes, docData, quantity, userParam) => {
+const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam) => {
   const { melDiscipline, melDeliverable, procureDiscipline, procureDeliverable } = mappedCodes
 
   // Parámetros adicionales
@@ -1452,7 +1452,7 @@ const generateCodes = async (mappedCodes, docData, quantity, userParam) => {
     let melCounter
 
     if (!melCounterDoc.exists()) {
-      melCounter = formatCountMEL(1)
+      melCounter = formatCountMEL(0)
       transaction.set(melCounterRef, { count: melCounter })
     } else {
       melCounter = melCounterDoc.data().count
@@ -1514,11 +1514,11 @@ export {
   updateDocs,
   updateUserPhone,
   blockDayInDatabase,
-  generateBlueprint,
+  //generateBlueprint,
   useBlueprints,
   updateBlueprint,
   addDescription,
-  generateBlueprintCodeClient,
+  //generateBlueprintCodeClient,
   generateTransmittalCounter,
   updateSelectedDocuments,
   addComment,
@@ -1531,5 +1531,5 @@ export {
   fetchSolicitudes,
   fetchUserList,
   updateWeekHoursWithPlant,
-  generateCodes
+  generateBlueprintCodes
 }

@@ -134,7 +134,7 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
         </IconButton>
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
-            Agregar Proyectistas
+            Modificar Proyectistas
           </Typography>
           <Typography variant='body2'>{doc.title}</Typography>
         </Box>

@@ -30,14 +30,14 @@ export default function AlertDialogGabinete({
   authUser,
   setRemarksState,
   blueprint,
-  drawingTimeSelected,
-  setDrawingTimeSelected,
+  //drawingTimeSelected,
+  //setDrawingTimeSelected,
   error,
   setError
 }) {
   const [toggleRemarks, setToggleRemarks] = useState(false)
 
-  const handleDateChangeWrapper = dateField => date => {
+  /* const handleDateChangeWrapper = dateField => date => {
     if (!date) {
       console.error('La fecha proporcionada es nula')
 
@@ -66,7 +66,7 @@ export default function AlertDialogGabinete({
     // Establecer los minutos a 0 cada vez que el usuario selecciona una fecha y hora
     newValue.setMinutes(0)
     setValue(newValue)
-  }
+  } */
 
   return (
     <Dialog
@@ -88,7 +88,7 @@ export default function AlertDialogGabinete({
           entregables?
         </DialogContentText>
 
-        {(approves && authUser.role === 8) || (approves && authUser.role === 7 && authUser.uid === blueprint.userId) ? (
+        {/*  {(approves && authUser.role === 8) || (approves && authUser.role === 7 && authUser.uid === blueprint.userId) ? (
           <>
             <Box sx={{ mb: 4, textAlign: 'center' }}>
               <Typography variant='body2'>Establece el total de horas</Typography>
@@ -135,7 +135,7 @@ export default function AlertDialogGabinete({
                 //id='outlined-basic'
                 //label='Horas del Levantamiento'
                 disabled={true}
-                justifyContent='center'
+                //justifyContent='center'
                 value={
                   drawingTimeSelected.start === null ||
                   drawingTimeSelected.end === null ||
@@ -153,7 +153,7 @@ export default function AlertDialogGabinete({
           </>
         ) : (
           ''
-        )}
+        )} */}
 
         {approves && authUser.role === 9 && blueprint?.approvedByDocumentaryControl === true ? (
           <FormControlLabel
@@ -183,12 +183,12 @@ export default function AlertDialogGabinete({
         <Button
           onClick={() => {
             handleClose()
-            setDrawingTimeSelected({
-              start: null,
-              end: null,
-              hours: 0,
-              minutes: 0
-            })
+            // setDrawingTimeSelected({
+            //   start: null,
+            //   end: null,
+            //   hours: 0,
+            //   minutes: 0
+            // })
             setToggleRemarks(false)
             setError('')
           }}
@@ -197,7 +197,7 @@ export default function AlertDialogGabinete({
         </Button>
         <Button
           onClick={() => {
-            authUser.role !== 8 || (authUser.role === 8 && drawingTimeSelected.investedHours?.hours > 0)
+            authUser.role !== 8 || authUser.role === 8 /* && drawingTimeSelected.investedHours?.hours > 0 */
               ? callback()
               : setError('Por favor, indique fecha de inicio y fecha de término.')
             setToggleRemarks(false)

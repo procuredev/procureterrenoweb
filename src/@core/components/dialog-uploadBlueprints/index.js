@@ -520,7 +520,12 @@ export const UploadBlueprintsDialog = ({
 
   return (
     <Box>
-      <AlertDialog open={openAlert} handleClose={handleCloseAlert} callback={() => writeCallback()}></AlertDialog>
+      <AlertDialog
+        authUser={authUser}
+        open={openAlert}
+        handleClose={handleCloseAlert}
+        callback={() => writeCallback()}
+      ></AlertDialog>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='h5'>Revisión: {values.revision}</Typography>
@@ -528,50 +533,19 @@ export const UploadBlueprintsDialog = ({
             {`Código Procure: ${values.id}` || 'Sin código Procure'}
           </Typography>
           <Typography variant='h6' sx={{ my: 2, display: 'flex', alignItems: 'center' }}>
-            Código MEL:
-            {values.clientCode ? (
-              <Typography variant='h6' sx={{ ml: 2 }}>
-                {values.clientCode}
-              </Typography>
-            ) : authUser.role === 8 || authUser.role === 7 ? (
-              <>
-                {!generateClientCode && (
-                  <Button
-                    component='label'
-                    role={undefined}
-                    variant='contained'
-                    tabIndex={-1}
-                    startIcon={<BorderColorIcon />}
-                    size='small'
-                    sx={{ ml: 2, opacity: 0.9 }}
-                    onClick={() => {
-                      if (authUser.uid === doc.userId) {
-                        setGenerateClientCode(prev => !prev)
-                      }
-                    }}
-                  >
-                    Crear código MEL
-                    {/* <VisuallyHiddenInput type='file' /> */}
-                  </Button>
-                )}
-              </>
-            ) : (
-              <Typography variant='h6' sx={{ ml: 2 }}>
-                Sin código MEL
-              </Typography>
-            )}
+            Código MEL: {values.clientCode}
           </Typography>
         </Box>
       </DialogTitle>
 
-      {generateClientCode ? (
+      {/* {generateClientCode ? (
         <DialogClientCodeGenerator
           petition={petition}
           blueprint={currentRow}
           setBlueprintGenerated={setBlueprintGenerated}
           handleClose={() => setGenerateClientCode(false)}
         />
-      ) : null}
+      ) : null} */}
       <Box sx={{ margin: 'auto' }}>
         {
           <Box>

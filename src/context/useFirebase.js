@@ -25,8 +25,8 @@ import {
   addDescription,
   blockDayInDatabase,
   finishPetition,
-  generateBlueprint,
-  generateBlueprintCodeClient,
+  //generateBlueprint,
+  //generateBlueprintCodeClient,
   generateTransmittalCounter,
   newDoc,
   updateBlueprint,
@@ -42,7 +42,7 @@ import {
   fetchSolicitudes,
   fetchUserList,
   updateWeekHoursWithPlant,
-  generateCodes
+  generateBlueprintCodes
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -53,10 +53,10 @@ import {
   consultObjetives,
   consultSAP,
   consultUserEmailInDB,
-  fetchMelDeliverableType,
-  fetchMelDisciplines,
+  //fetchMelDeliverableType,
+  //fetchMelDisciplines,
   fetchPetitionById,
-  fetchPlaneProperties,
+  //fetchPlaneProperties,
   getAllUsersData,
   getData,
   getDomainData,
@@ -162,15 +162,15 @@ const FirebaseContextProvider = props => {
     consultObjetives,
     getUsersWithSolicitudes,
     signGoogle,
-    generateBlueprint,
+    //generateBlueprint,
     useBlueprints,
     fetchPetitionById,
-    fetchPlaneProperties,
+    //fetchPlaneProperties,
     updateBlueprint,
     addDescription,
-    fetchMelDisciplines,
-    fetchMelDeliverableType,
-    generateBlueprintCodeClient,
+    //fetchMelDisciplines,
+    //fetchMelDeliverableType,
+    //generateBlueprintCodeClient,
     generateTransmittalCounter,
     updateSelectedDocuments,
     consultBluePrints,
@@ -192,7 +192,7 @@ const FirebaseContextProvider = props => {
     updateWeekHoursWithPlant,
     fetchDisciplineProperties,
     fetchDeliverablesByDiscipline,
-    generateCodes
+    generateBlueprintCodes
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

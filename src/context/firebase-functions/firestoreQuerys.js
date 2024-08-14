@@ -653,7 +653,7 @@ const consultDocs = async (type, options = {}) => {
   }
 }
 
-const fetchPlaneProperties = async () => {
+/* const fetchPlaneProperties = async () => {
   const docRef = doc(db, 'domain', 'blueprintProcureProperties')
   const docSnap = await getDoc(docRef)
 
@@ -665,7 +665,7 @@ const fetchPlaneProperties = async () => {
   } else {
     console.log('El documento no existe')
   }
-}
+} */
 
 const fetchDisciplineProperties = async () => {
   const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
@@ -691,7 +691,7 @@ const fetchDeliverablesByDiscipline = async discipline => {
   }
 }
 
-const fetchMelDisciplines = async () => {
+/* const fetchMelDisciplines = async () => {
   const docRef = doc(db, 'domain', 'blueprintMelProperties')
   const docSnap = await getDoc(docRef)
 
@@ -743,7 +743,7 @@ const fetchMelDeliverableType = async discipline => {
   } else {
     console.log('El documento no existe')
   }
-}
+} */
 
 const fetchPetitionById = async id => {
   const docRef = doc(db, 'solicitudes', id)
@@ -1005,9 +1005,9 @@ export {
   consultObjetives,
   getUsersWithSolicitudes,
   fetchPetitionById,
-  fetchPlaneProperties,
-  fetchMelDisciplines,
-  fetchMelDeliverableType,
+  //fetchPlaneProperties,
+  //fetchMelDisciplines,
+  //fetchMelDeliverableType,
   consultBluePrints,
   subscribeToPetition,
   consultOT,
