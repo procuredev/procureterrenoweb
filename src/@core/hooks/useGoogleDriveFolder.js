@@ -31,7 +31,7 @@ export const useGoogleDriveFolder = () => {
         if (response.status === 401) {
           await refreshAccessToken()
 
-          return createPermission(fileId, emailAddress, role) // Retry after refreshing the token
+          return createPermission(fileId, emailAddress, role)
         }
         throw new Error(`Failed to create permission: ${errorData.error.message}`)
       }
