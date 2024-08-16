@@ -1,9 +1,9 @@
 // ** Firebase Imports
-import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { getDownloadURL, getStorage, ref, uploadBytes, uploadString } from 'firebase/storage'
 import { db } from 'src/configs/firebase'
 
-const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 'solicitud', petitionId = null) => {
+const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 'solicitudes', petitionId = null) => {
   const storage = getStorage()
 
   if (files && files.length > 0) {
@@ -54,6 +54,8 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 's
           arrayActual = solicitudDoc.data().storageBlueprints
         } else if (destination === 'hlcDocuments') {
           arrayActual = solicitudDoc.data().storageHlcDocuments
+        } else if (destination === 'solicitudes') {
+          arrayActual = solicitudDoc.data().fotos
         }
 
         // Si el array actual no existe, inicialízalo como un array vacío
@@ -71,6 +73,8 @@ const uploadFilesToFirebaseStorage = async (files, idSolicitud, destination = 's
           await updateDoc(solicitudRef, { storageBlueprints: arrayActual })
         } else if (destination === 'hlcDocuments') {
           await updateDoc(solicitudRef, { storageHlcDocuments: arrayActual })
+        } else if (destination === 'solicitudes') {
+          await updateDoc(solicitudRef, { fotos: arrayActual })
         }
         console.log('URL de la foto actualizada exitosamente')
 

@@ -675,6 +675,29 @@ exports.scheduledFirestoreExport = functions.pubsub
         console.error("Error al actualizar el email en Solicitudes:", error)
       }
 
+
+      // try-catch para cambiar el 'petitioner' en cada una de las solicitudes solicitudes/{solicitudId}
+      try {
+        // Actualizar email en Firestore
+        const solicitudesRef = admin.firestore().collection("solicitudes")
+
+        // Obtener documentos que coinciden con el userId
+        const querySnapshot = await solicitudesRef.where("petitioner", "==", before.name).get()
+
+        // Actualizar el campo "petitioner"en los documentos encontrados
+        const batch = admin.firestore().batch()
+        querySnapshot.forEach((doc) => {
+            batch.update(doc.ref, { petitioner: after.name })
+        })
+
+        // Ejecutar la actualización en lote
+        await batch.commit()
+
+        console.log("Solicitante actualizado exitosamente en Solicitudes.")
+      } catch (error) {
+        console.error("Error al actualizar el Solicitante en Solicitudes:", error)
+      }
+
     }
 
   })
