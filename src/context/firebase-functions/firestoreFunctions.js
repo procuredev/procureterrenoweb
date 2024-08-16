@@ -297,7 +297,9 @@ function getNextState(role, approves, latestEvent, userRole) {
   const modifiedBySameRole = userRole === role
   const requestMadeByPlanner = userRole === 5
   const requestMadeByMelPetitioner = userRole === 2 && (!latestEvent || (latestEvent && latestEvent.newState === 2))
-  const requestMadeByMelPetitionerAndApprovedByContractAdmin = userRole === 2 && latestEvent.newState === 3 && latestEvent.userRole === 6
+
+  const requestMadeByMelPetitionerAndApprovedByContractAdmin =
+    userRole === 2 && latestEvent.newState === 3 && latestEvent.userRole === 6
 
   const rules = new Map([
     [
@@ -377,7 +379,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && !state === 2 && state < 7,
           newState: state.contOperator,
           log: 'Modificado por Contract Operator'
-        },
+        }
       ]
     ],
     [
@@ -428,8 +430,9 @@ function getNextState(role, approves, latestEvent, userRole) {
         {
           condition: approves && approveWithChanges && requestMadeByMelPetitionerAndApprovedByContractAdmin,
           newState: state.contAdmin,
-          log: 'Aprobado por Planificación: Solicitud Ingresada por MEL y aprobada por Administrador de Contrato en nombre de Contract Operator'
-        },
+          log:
+            'Aprobado por Planificación: Solicitud Ingresada por MEL y aprobada por Administrador de Contrato en nombre de Contract Operator'
+        }
       ]
     ],
     [
@@ -487,7 +490,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'fecha modificada por Supervisor'
         },
         {
-          condition: approves && approves.hasOwnProperty('designerReview'),
+          condition: approves && approves.hasOwnProperty('gabineteDraftmen'),
           newState: state.draftsman,
           log: 'Proyectistas agregados por Supervisor'
         },
@@ -666,7 +669,7 @@ function formatCount(count) {
   return String(count).padStart(3, '0')
 }
 
-const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, petition, blueprintId, userParam) => {
+/* const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, petition, blueprintId, userParam) => {
   try {
     const idProject = '21286'
 
@@ -729,9 +732,9 @@ const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, pet
     console.error('Error al generar clientCode:', error)
     throw new Error('Error al generar clientCode')
   }
-}
+} */
 
-const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
+/* const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
   try {
     const solicitudRef = doc(db, 'solicitudes', petition.id)
     const solicitudDoc = await getDoc(solicitudRef)
@@ -781,7 +784,7 @@ const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, use
     console.error('Error al generar Blueprint:', error)
     throw new Error('Error al generar Blueprint')
   }
-}
+} */
 
 const addDescription = async (petitionID, blueprint, description) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint)
@@ -825,9 +828,9 @@ const getNextRevision = async (
     userId,
     storageHlcDocuments
   },
-  remarks,
-  hours,
-  investedHours
+  remarks
+  //hours,
+  //investedHours
 ) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision
@@ -934,16 +937,16 @@ const getNextRevision = async (
     userName: displayName,
     userId: uid,
     date: Timestamp.fromDate(new Date()),
-    remarks: remarks || 'sin observaciones',
-    drawingHours: hours ? hours : null,
-    investedHours: investedHours || null
+    remarks: remarks || 'sin observaciones'
+    //drawingHours: hours ? hours : null,
+    //investedHours: investedHours || null
   }
 
   return nextRevision
 }
 
 // updateBlueprint() actualiza el entregable en la base de datos
-const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours, investedHours) => {
+const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks /* hours, investedHours */) => {
   // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
   const solicitudRef = doc(db, 'solicitudes', petitionID)
@@ -957,9 +960,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     latestRevision,
     userParam,
     blueprint,
-    remarks,
-    hours,
-    investedHours
+    remarks
+    //hours,
+    //investedHours
   )
 
   // Comprueba varias condiciones sobre el plano
@@ -1404,16 +1407,127 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
   }
 }
 
+const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam) => {
+  const { melDiscipline, melDeliverable, procureDiscipline, procureDeliverable } = mappedCodes
+
+  // Parámetros adicionales
+  const idProject = '21286'
+  const { ot, plant, area } = docData
+
+  // Crea la referencia al campo específico del contador de Procure
+  const procureCounterField = `${procureDiscipline}-${procureDeliverable}-counter`
+  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+
+  // Crea la referencia al documento específico del contador MEL
+  const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
+  const melCounterRef = doc(db, 'solicitudes', docData.id, 'clientCodeGeneratorCount', melCounterDocId)
+
+  // Función para formatear el contador MEL
+  function formatCountMEL(count) {
+    return String(count).padStart(5, '0')
+  }
+
+  // Función para formatear el contador Procure
+  function formatCountProcure(count) {
+    return String(count).padStart(3, '0')
+  }
+
+  // Función para obtener la definición corta de la planta
+  function getShortDefinition(plantLongDef) {
+    const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
+
+    const valPlant = [
+      'Planta Concentradora Los Colorados',
+      'Planta Concentradora Laguna Seca | Línea 1',
+      'Planta Concentradora Laguna Seca | Línea 2',
+      'Chancado y Correas',
+      'Puerto Coloso',
+      'Instalaciones Cátodo'
+    ]
+    const index = valPlant.indexOf(plantLongDef)
+
+    return index !== -1 ? shortPlants[index] : 'No se encontró definición corta para esta planta'
+  }
+
+  const instalacion = getShortDefinition(plant)
+  const areaNumber = area.slice(0, 4)
+  const otNumber = `OT${ot}`
+
+  await runTransaction(db, async transaction => {
+    const procureCounterDoc = await transaction.get(procureCounterRef)
+    const melCounterDoc = await transaction.get(melCounterRef)
+
+    // Manejo de la situación cuando el documento de MEL no existe
+    let melCounter
+
+    if (!melCounterDoc.exists()) {
+      melCounter = formatCountMEL(0)
+      transaction.set(melCounterRef, { count: melCounter })
+    } else {
+      melCounter = melCounterDoc.data().count
+    }
+
+    // Obtiene el valor actual del contador específico
+    const procureCounterData = procureCounterDoc.data()[procureCounterField]
+    if (!procureCounterData) {
+      throw new Error(`El campo ${procureCounterField} no existe en el documento blueprints_InternalCode-Counter.`)
+    }
+    let procureCounter = Number(procureCounterData.count)
+    //const procureCounter = procureCounterData.count
+    //const melCounter = melCounterDoc.data().count
+    melCounter = Number(melCounter)
+
+    const newDocs = []
+
+    for (let i = 0; i < quantity; i++) {
+      const procureCode = `${idProject}-${procureDiscipline}-${procureDeliverable}-${formatCountProcure(
+        procureCounter + i + 1
+      )}`
+
+      const melCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${melDiscipline}-${melDeliverable}-${formatCountMEL(
+        melCounter + i + 1
+      )}`
+
+      newDocs.push({
+        id: procureCode,
+        clientCode: melCode,
+        userId: userParam.uid,
+        userName: userParam.displayName,
+        revision: 'iniciado',
+        userEmail: userParam.email,
+        sentByDesigner: false,
+        sentBySupervisor: false,
+        date: Timestamp.fromDate(new Date())
+      })
+    }
+
+    const newProcureCounter = Number(procureCounter) + Number(quantity)
+    const newMelCounter = Number(melCounter) + Number(quantity)
+
+    // Actualiza el contador específico en el documento
+    transaction.update(procureCounterRef, {
+      [`${procureCounterField}.count`]: formatCountProcure(newProcureCounter)
+    })
+    transaction.update(melCounterRef, { count: formatCountMEL(newMelCounter) })
+
+    const blueprintCollectionRef = collection(db, 'solicitudes', docData.id, 'blueprints')
+    newDocs.forEach(newDoc => {
+      const newDocRef = doc(blueprintCollectionRef, newDoc.id)
+      transaction.set(newDocRef, newDoc)
+    })
+  })
+}
+
 export {
   newDoc,
   updateDocs,
   updateUserPhone,
   blockDayInDatabase,
-  generateBlueprint,
+  //generateBlueprint,
   useBlueprints,
   updateBlueprint,
   addDescription,
-  generateBlueprintCodeClient,
+  //generateBlueprintCodeClient,
   generateTransmittalCounter,
   updateSelectedDocuments,
   addComment,
@@ -1425,5 +1539,6 @@ export {
   deleteWeekHoursByType,
   fetchSolicitudes,
   fetchUserList,
-  updateWeekHoursWithPlant
+  updateWeekHoursWithPlant,
+  generateBlueprintCodes
 }

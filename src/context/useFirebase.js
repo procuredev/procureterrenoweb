@@ -25,8 +25,8 @@ import {
   addDescription,
   blockDayInDatabase,
   finishPetition,
-  generateBlueprint,
-  generateBlueprintCodeClient,
+  //generateBlueprint,
+  //generateBlueprintCodeClient,
   generateTransmittalCounter,
   newDoc,
   updateBlueprint,
@@ -41,7 +41,8 @@ import {
   deleteWeekHoursByType,
   fetchSolicitudes,
   fetchUserList,
-  updateWeekHoursWithPlant
+  updateWeekHoursWithPlant,
+  generateBlueprintCodes
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -52,10 +53,10 @@ import {
   consultObjetives,
   consultSAP,
   consultUserEmailInDB,
-  fetchMelDeliverableType,
-  fetchMelDisciplines,
+  //fetchMelDeliverableType,
+  //fetchMelDisciplines,
   fetchPetitionById,
-  fetchPlaneProperties,
+  //fetchPlaneProperties,
   getAllUsersData,
   getData,
   getDomainData,
@@ -65,10 +66,15 @@ import {
   subscribeToPetition,
   subscribeToUserProfileChanges,
   useEvents,
-  useSnapshot
+  useSnapshot,
+  fetchDisciplineProperties,
+  fetchDeliverablesByDiscipline
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
+
+// ** Importa funciones de GoogleAuth
+import { handleGoogleDriveAuthorization } from 'src/googleAuth'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
@@ -107,6 +113,15 @@ const FirebaseContextProvider = props => {
         const roles = await getDomainData('roles')
         setDomainRoles(roles)
         setLoading(false)
+
+        // Autorización de Google Drive
+        if ([1, 5, 6, 7, 8, 9, 10, 11].includes(databaseUserData.role)) {
+          try {
+            await handleGoogleDriveAuthorization()
+          } catch (error) {
+            console.error('Error during Google Drive authorization:', error)
+          }
+        }
       }
     })
 
@@ -147,15 +162,15 @@ const FirebaseContextProvider = props => {
     consultObjetives,
     getUsersWithSolicitudes,
     signGoogle,
-    generateBlueprint,
+    //generateBlueprint,
     useBlueprints,
     fetchPetitionById,
-    fetchPlaneProperties,
+    //fetchPlaneProperties,
     updateBlueprint,
     addDescription,
-    fetchMelDisciplines,
-    fetchMelDeliverableType,
-    generateBlueprintCodeClient,
+    //fetchMelDisciplines,
+    //fetchMelDeliverableType,
+    //generateBlueprintCodeClient,
     generateTransmittalCounter,
     updateSelectedDocuments,
     consultBluePrints,
@@ -174,7 +189,10 @@ const FirebaseContextProvider = props => {
     deleteWeekHoursByType,
     fetchSolicitudes,
     fetchUserList,
-    updateWeekHoursWithPlant
+    updateWeekHoursWithPlant,
+    fetchDisciplineProperties,
+    fetchDeliverablesByDiscipline,
+    generateBlueprintCodes
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

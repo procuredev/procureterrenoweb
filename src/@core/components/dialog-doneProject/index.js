@@ -33,6 +33,7 @@ import Icon from 'src/@core/components/icon'
 // ** Hooks Imports
 import { CircularProgress, FormControl } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
+import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -56,6 +57,8 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
+
+  const { fetchFolders, createFolder, uploadFile, isLoading: folderLoading } = useGoogleDriveFolder()
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -106,7 +109,12 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     // Verificamos si el option ya existe en el array draftmen
     if (!draftmen.some(draftman => draftman.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen(prevDraftmen => [...prevDraftmen, { name: option.name, userId: option.userId }])
+
+      setDraftmen(prevDraftmen => [
+        ...prevDraftmen,
+        { name: option.name, userId: option.userId, shift: option.shift, enabled: option.enabled, email: option.email }
+      ])
+
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
@@ -124,6 +132,8 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       initialUprisingTime.hours !== uprisingTimeSelected.hours ||
       initialUprisingTime.minutes !== uprisingTimeSelected.minutes
     const dateChanged = !initialDeadlineDate.isSame(deadlineDate, 'day')
+
+
     const draftmenChanged =
       initialDraftmen.length !== draftmen.length ||
       initialDraftmen.some((draftman, index) => draftman.name !== draftmen[index]?.name)
@@ -135,31 +145,109 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     }
   }, [uprisingTimeSelected, deadlineDate, draftmen, error])
 
+  const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
+
+  const getPlantAbbreviation = plantName => {
+    // Implement the logic to get the plant abbreviation from the full plant name
+    const plantMap = {
+      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
+      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
+      'Instalaciones Escondida Water Supply': 'IEWS',
+      'Planta Concentradora Los Colorados': 'PCLC',
+      'Instalaciones Cátodo': 'ICAT',
+      'Chancado y Correas': 'CHCO',
+      'Puerto Coloso': 'PCOL'
+    }
+
+    console.log('plantMap[plantName]', plantMap[plantName])
+
+    return plantMap[plantName] || ''
+  }
+
   // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
-  const onSubmit = id => {
+  const onSubmit = async id => {
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
-      updateDocs(
-        id,
-        { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: draftmen },
-        authUser
-      )
-        .then(() => {
-          setLoading(false)
-          handleClose()
-        })
-        .catch(error => {
-          alert.error(error)
-          console.error(error)
-          setLoading(false)
-          handleClose()
-        })
+      try {
+        // Busca la carpeta de la planta.
+        const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+        let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
+
+        // Si no existe la carpeta de la planta, se crea
+        if (!plantFolder) {
+          const plantName = getPlantAbbreviation(doc.plant)
+          plantFolder = await createFolder(plantName, '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+        }
+
+        if (plantFolder) {
+          // Busca la carpeta del área.
+          const areaFolders = await fetchFolders(plantFolder.id)
+          let areaFolder = areaFolders.files.find(folder => folder.name === doc.area)
+
+          // Si no existe la carpeta del área, se crea
+          if (!areaFolder) {
+            areaFolder = await createFolder(doc.area, plantFolder.id)
+          }
+
+          if (areaFolder) {
+            const projectFolderName = `OT N${doc.ot} - ${doc.title}`
+            const existingProjectFolders = await fetchFolders(areaFolder.id)
+            let projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+
+            if (!projectFolder) {
+              projectFolder = await createFolder(projectFolderName, areaFolder.id)
+
+              // Crea subcarpetas.
+              const subfolders = [
+                'ANTECEDENTES',
+                'SOLICITUD DE REQUERIMIENTO',
+                'LEVANTAMIENTO',
+                'EN TRABAJO',
+                'REVISIONES & COMENTARIOS',
+                'EMITIDOS'
+              ]
+              for (const subfolder of subfolders) {
+                await createFolder(subfolder, projectFolder.id)
+              }
+            }
+
+            // Una vez creadas las carpetas, ubica la carpeta "LEVANTAMIENTO"
+            const levantamientoFolder = await fetchFolders(projectFolder.id)
+            const targetFolder = levantamientoFolder.files.find(folder => folder.name === 'LEVANTAMIENTO')
+
+            if (targetFolder) {
+              const fileContent = `levantamiento de OT ${doc.ot} - ${doc.title} TERMINADO`
+              const file = new Blob([fileContent], { type: 'text/plain' })
+              const fileName = `levantamiento de OT ${doc.ot} terminado.txt`
+
+              await uploadFile(fileName, file, targetFolder.id)
+            }
+          }
+        }
+
+        // Actualiza cada elemento en draftmen con allocationTime
+        const updatedDraftmen = draftmen.map(designer => ({
+          ...designer,
+          allocationTime: new Date().getTime()
+        }))
+
+        await updateDocs(
+          id,
+          { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: updatedDraftmen },
+          authUser
+        )
+
+        setDraftmen([])
+        handleClose()
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
     } else {
       setError('Por favor, indique fecha de inicio y fecha de término.')
     }
   }
-
-  const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
   return (
     <Dialog

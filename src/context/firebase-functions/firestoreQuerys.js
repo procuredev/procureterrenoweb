@@ -228,7 +228,6 @@ const getData = async id => {
 
 // Función para llamar a todos los usuarios dentro de la colección 'users'
 const getAllUsersData = async () => {
-
   try {
     // Referencia a la colección
     const usersRef = collection(db, 'users')
@@ -246,13 +245,9 @@ const getAllUsersData = async () => {
 
     // Retornar los documentos
     return usersData
-
   } catch (error) {
-
-    console.error("Error al obtener los datos de los usuarios: ", error)
-
+    console.error('Error al obtener los datos de los usuarios: ', error)
   }
-
 }
 
 // getUserData agrupa funciones relacionadas con la colección 'users'
@@ -303,13 +298,15 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
                 name: doc.data().name,
                 avatar: doc.data().urlFoto,
                 enabled: doc.data().enabled,
-                shift: doc.data().shift
+                shift: doc.data().shift,
+                email: doc.data().email
               }
             : {
                 userId: doc.id,
                 name: doc.data().name,
                 enabled: doc.data().enabled,
-                shift: doc.data().shift
+                shift: doc.data().shift,
+                email: doc.data().email
               }
           : type === 'getReceiverUsers'
           ? {
@@ -656,7 +653,7 @@ const consultDocs = async (type, options = {}) => {
   }
 }
 
-const fetchPlaneProperties = async () => {
+/* const fetchPlaneProperties = async () => {
   const docRef = doc(db, 'domain', 'blueprintProcureProperties')
   const docSnap = await getDoc(docRef)
 
@@ -668,9 +665,33 @@ const fetchPlaneProperties = async () => {
   } else {
     console.log('El documento no existe')
   }
+} */
+
+const fetchDisciplineProperties = async () => {
+  const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
+  const docSnapshot = await getDoc(propsRef)
+
+  if (docSnapshot.exists()) {
+    return docSnapshot.data()
+  } else {
+    throw new Error('No matching document found in the database.')
+  }
 }
 
-const fetchMelDisciplines = async () => {
+const fetchDeliverablesByDiscipline = async discipline => {
+  const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
+  const docSnapshot = await getDoc(propsRef)
+
+  if (docSnapshot.exists()) {
+    const data = docSnapshot.data()
+
+    return data[discipline]
+  } else {
+    throw new Error('No matching discipline found in the database.')
+  }
+}
+
+/* const fetchMelDisciplines = async () => {
   const docRef = doc(db, 'domain', 'blueprintMelProperties')
   const docSnap = await getDoc(docRef)
 
@@ -722,7 +743,7 @@ const fetchMelDeliverableType = async discipline => {
   } else {
     console.log('El documento no existe')
   }
-}
+} */
 
 const fetchPetitionById = async id => {
   const docRef = doc(db, 'solicitudes', id)
@@ -984,12 +1005,14 @@ export {
   consultObjetives,
   getUsersWithSolicitudes,
   fetchPetitionById,
-  fetchPlaneProperties,
-  fetchMelDisciplines,
-  fetchMelDeliverableType,
+  //fetchPlaneProperties,
+  //fetchMelDisciplines,
+  //fetchMelDeliverableType,
   consultBluePrints,
   subscribeToPetition,
   consultOT,
   subscribeToUserProfileChanges,
-  subscribeToBlockDayChanges
+  subscribeToBlockDayChanges,
+  fetchDisciplineProperties,
+  fetchDeliverablesByDiscipline
 }

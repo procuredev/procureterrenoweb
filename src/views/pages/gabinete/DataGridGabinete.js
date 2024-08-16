@@ -67,7 +67,7 @@ const DataGridGabinete = () => {
 
   if (authUser.role === 8) {
     petitions = petitions.filter(petition =>
-      petition.designerReview?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
+      petition.gabineteDraftmen?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
     )
   }
 
@@ -275,7 +275,7 @@ const DataGridGabinete = () => {
           readOnly
           sx={{ m: 2.5, width: '100%' }}
           value={
-            (currentOT && petitions.find(doc => doc.ot == currentOT)?.designerReview?.map(item => item.name)) || []
+            (currentOT && petitions.find(doc => doc.ot == currentOT)?.gabineteDraftmen?.map(item => item.name)) || []
           }
           options={[]}
           renderInput={params => (
@@ -329,7 +329,7 @@ const DataGridGabinete = () => {
               disabled={currentPetition?.otFinished}
               onClick={() => currentPetition && handleClickOpen(currentPetition)}
             >
-              Asignar proyectista
+              Modificar proyectista
             </Button>
           </>
         ) : authUser.role === 9 ? (
@@ -347,8 +347,8 @@ const DataGridGabinete = () => {
 
         {authUser.role === 7 &&
         currentPetition &&
-        currentPetition.designerReview &&
-        currentPetition.designerReview.find(user => user.userId === authUser.uid) ? (
+        currentPetition.gabineteDraftmen &&
+        currentPetition.gabineteDraftmen.find(user => user.userId === authUser.uid) ? (
           <Button
             sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
