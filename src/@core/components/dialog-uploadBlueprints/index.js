@@ -1,42 +1,35 @@
-import React, { Fragment, useState, useEffect } from 'react'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { useTheme } from '@mui/material/styles'
+import { Download } from '@mui/icons-material'
+import BorderColorIcon from '@mui/icons-material/BorderColor'
 import Button from '@mui/material/Button'
-import Close from '@mui/icons-material/Close'
 import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
-import DialogActions from '@mui/material/DialogActions'
 import DialogTitle from '@mui/material/DialogTitle'
-import Paper from '@mui/material/Paper'
-import Box from '@mui/system/Box'
-import TextField from '@mui/material/TextField'
-import Edit from '@mui/icons-material/Edit'
 import FormControl from '@mui/material/FormControl'
-import Chip from '@mui/material/Chip'
+import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Slide from '@mui/material/Slide'
+import Link from '@mui/material/Link'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
-import { ChevronLeft, ChevronRight, Download } from '@mui/icons-material'
-import Link from '@mui/material/Link'
-import Icon from 'src/@core/components/icon'
-import Grid from '@mui/material/Grid'
-import DialogErrorFile from 'src/@core/components/dialog-errorFile'
+import Paper from '@mui/material/Paper'
+import Slide from '@mui/material/Slide'
+import Typography from '@mui/material/Typography'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import Box from '@mui/system/Box'
+import React, { Fragment, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Timeline, timelineOppositeContentClasses } from '@mui/lab'
+import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
+import Icon from 'src/@core/components/icon'
 import { useFirebase } from 'src/context/useFirebase'
-import CloudUploadIcon from '@mui/icons-material/CloudUpload'
-import BorderColorIcon from '@mui/icons-material/BorderColor'
 
-import moment from 'moment-timezone'
 import 'moment/locale/es'
 
-import CustomListItem from 'src/@core/components/custom-list'
-import DateListItem from 'src/@core/components/custom-date'
 import { InputAdornment } from '@mui/material'
+import DateListItem from 'src/@core/components/custom-date'
+import CustomListItem from 'src/@core/components/custom-list'
 import { DialogClientCodeGenerator } from '../dialog-clientCodeGenerator'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -520,12 +513,7 @@ export const UploadBlueprintsDialog = ({
 
   return (
     <Box>
-      <AlertDialog
-        authUser={authUser}
-        open={openAlert}
-        handleClose={handleCloseAlert}
-        callback={() => writeCallback()}
-      ></AlertDialog>
+      <AlertDialog open={openAlert} handleClose={handleCloseAlert} onSubmit={() => writeCallback()}></AlertDialog>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='h5'>Revisión: {values.revision}</Typography>

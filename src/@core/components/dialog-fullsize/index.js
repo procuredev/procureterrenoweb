@@ -379,7 +379,7 @@ const PhotoGallery = ({ photos }) => {
   )
 }
 
-export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, canComment = false }) => {
+export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonVisible, domainData, canComment = false }) => {
   let isPlanner = roleData && roleData.id == '5' && doc.state >= 3 // modificacion para que planificador no pueda editar si el estado es menor a 3
   //let isPlanner = roleData && roleData.id == '5'
 
@@ -395,7 +395,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   const [commentDialog, setCommentDialog] = useState(false)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
-  const [domainData, setDomainData] = useState({})
+  //* const [domainData, setDomainData] = useState({})
   const [objectivesArray, setObjectivesArray] = useState([])
   const [deliverablesArray, setDeliverablesArray] = useState([])
   const [plantsNames, setPlantsNames] = useState([])
@@ -436,7 +436,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
     getUserData,
     uploadFilesToFirebaseStorage,
     addComment,
-    getDomainData,
+    //* getDomainData,
     domainDictionary,
     //* consultOT,
     consultBlockDayInDB
@@ -515,33 +515,36 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         ...(doc.deadline && { deadline: moment(doc.deadline.toDate()) }),
         ...(doc.supervisorShift && { supervisorShift: doc.supervisorShift }),
         ...(doc.fotos && { fotos: doc.fotos }),
-        ...(doc.draftmen && { draftmen: doc.draftmen })
+        ...(doc.draftmen && { draftmen: doc.draftmen }),
+        ...(doc.cancelReason && {cancelReason: doc.cancelReason})
       }
     : {}
 
   // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
-  useEffect(() => {
-    const getAllDomainData = async () => {
-      try {
-        // Se llama a toda la información disponible en colección domain (tabla de dominio)
-        const domain = await getDomainData()
+  // useEffect(() => {
+  //   const getAllDomainData = async () => {
+  //     try {
+  //       // Se llama a toda la información disponible en colección domain (tabla de dominio)
+  //       const domain = await getDomainData()
 
-        // Manejo de errores para evitar Warning en Consola
-        if (!domain) {
-          console.error('No se encontraron los datos o datos son indefinidos o null.')
+  //       console.log(domain)
 
-          return
-        }
+  //       // Manejo de errores para evitar Warning en Consola
+  //       if (!domain) {
+  //         console.error('No se encontraron los datos o datos son indefinidos o null.')
 
-        // Se almacena la información de Tabla de Dominio en una variable de Entorno
-        setDomainData(domain)
-      } catch (error) {
-        console.error('Error buscando los datos:', error)
-      }
-    }
+  //         return
+  //       }
 
-    getAllDomainData()
-  }, [])
+  //       // Se almacena la información de Tabla de Dominio en una variable de Entorno
+  //       setDomainData(domain)
+  //     } catch (error) {
+  //       console.error('Error buscando los datos:', error)
+  //     }
+  //   }
+
+  //   getAllDomainData()
+  // }, [])
 
   // useEffect para buscar información específica de la colección domain en la base de datos
   useEffect(() => {
@@ -680,6 +683,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const writeCallback = async () => {
+
     const newData = {}
 
     for (const key in values) {
@@ -705,7 +709,9 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
           return
         }
       }
+
       setLoading(true)
+
       await updateDocs(id, newData, authUser)
         .then(() => {
           setLoading(false)
@@ -761,6 +767,15 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
   }
 
   const handleDateChange = dateField => async date => {
+
+    // Se maneja caso en que el usuario no selecciona fecha
+    if (!date) {
+      setValues({ ...values, [dateField]: null })
+      setHasChanges({ ...hasChanges, [dateField]: false })
+
+      return
+    }
+
     const fieldValue = moment(date.toDate())
     setValues({ ...values, [dateField]: fieldValue })
     setHasChanges({ ...hasChanges, [dateField]: !fieldValue.isSame(initialValues[dateField]) })
@@ -1006,8 +1021,10 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         authUser={authUser}
         state={state}
         open={openAlert}
+        approves={true}
         handleClose={handleCloseAlert}
-        callback={() => writeCallback()}
+        onSubmit={() => writeCallback()}
+        domainData={domainData}
       ></AlertDialog>
       <Paper sx={{ margin: 'auto', padding: small ? 0 : '30px', overflowY: 'hidden' }}>
         {eventData == undefined ? (
@@ -1226,7 +1243,8 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                 {additionalInfoVisible && (
                   <>
                     {/* Contraturno del Solicitante */}
-                    {petitionerContact.opshift && petitionerContact.opshift[0].name && (
+                    {console.log(petitionerContact)}
+                    {petitionerContact && petitionerContact.opshift && petitionerContact.opshift[0].name && (
                       <CustomListItem
                         editable={false}
                         label='Contraturno del Solicitante'
@@ -1255,7 +1273,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                       initialValue={sap}
                       value={values.sap}
                       onChange={handleInputChange('sap')}
-                      required={true}
+                      required={false}
                     />
 
                     {/* Tipo de Entregables esperados */}
@@ -1403,7 +1421,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                 {(element.newState === 3 && element.prevState === 2 && element.userRole === 6 && values.userRole === 2) && ` en nombre de ${values.contop}`}
                               </Typography>
                               <Typography variant='body2'>
-                                {domainDictionary[element.newState]?.details  || element.comment}
+                                {element.newState !== 0 ? (domainDictionary[element.newState]?.details || element.comment) : ('Motivo: ' + (values.cancelReason.option + '. ' + values.cancelReason.details + '.' || 'Sin definir'))}
                               </Typography>
                             </TimelineContent>
                           </TimelineItem>
@@ -1466,7 +1484,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
                                 : ''}
                             </Typography>
                             <Typography variant='body2'>
-                              {domainDictionary[element.newState]?.details || element.comment}
+                              {element.newState !== 0 ? (domainDictionary[element.newState]?.details || element.comment) : ('Motivo: ' + (values.cancelReason.option + '. ' + values.cancelReason.details + '.' || 'Sin definir'))}
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>

@@ -1,13 +1,13 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import Chip from '@mui/material/Chip'
-import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
+import TextField from '@mui/material/TextField'
 
 // ** Tooltip
 import tippy from 'tippy.js'
@@ -16,29 +16,30 @@ import 'tippy.js/dist/tippy.css'
 const moment = require('moment')
 
 // ** Hooks
+import { useTheme } from '@mui/material/styles'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useFirebase } from 'src/context/useFirebase'
-import { useTheme } from '@mui/material/styles'
 
 // ** FullCalendar & App Components Imports
 import CalendarWrapper from 'src/@core/styles/libs/fullcalendar'
 
 // ** React Import
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from '@fullcalendar/react'
-import listPlugin from '@fullcalendar/list'
+
 import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import listPlugin from '@fullcalendar/list'
+import timeGridPlugin from '@fullcalendar/timegrid'
 
 // ** Component Imports
+import { Typography } from '@mui/material'
+import filterByLabel from 'src/@core/components/custom-filters/customFilters'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import FilterComponent from 'src/@core/components/filter-component'
 import generateFilterConfig from 'src/@core/components/filter-configs/filterConfigs'
-import filterByLabel from 'src/@core/components/custom-filters/customFilters'
-import { Typography } from '@mui/material'
 
 const AppCalendar = () => {
   // ** Añade el ref para el calendario, para poder acceder a sus métodos en calendarOptions
@@ -87,6 +88,31 @@ const AppCalendar = () => {
   const [blockResult, setBlockResult] = useState([])
   const [consultationResult, setConsultationResult] = useState('')
   const [blockReason, setBlockReason] = useState('')
+  const [domainData, setDomainData] = useState({})
+
+  // useEffect para buscar la información de la Tabla de Dominio cuando se monta el componente
+  useEffect(() => {
+    const getAllDomainData = async () => {
+      try {
+        // Se llama a toda la información disponible en colección domain (tabla de dominio)
+        const domain = await getDomainData()
+
+        // Manejo de errores para evitar Warning en Consola
+        if (!domain) {
+          console.error('No se encontraron los datos o datos son indefinidos o null.')
+
+          return
+        }
+
+        // Se almacena la información de Tabla de Dominio en una variable de Entorno
+        setDomainData(domain)
+      } catch (error) {
+        console.error('Error buscando los datos:', error)
+      }
+    }
+
+    getAllDomainData()
+  }, [])
 
   useEffect(() => {
     const unsubscribe = subscribeToBlockDayChanges(setBlockResult)
@@ -385,6 +411,7 @@ const AppCalendar = () => {
               handleClose={handleClose}
               doc={doc}
               roleData={roleData}
+              domainData={domainData}
               canComment={authUser.role === 7}
             />
           )}

@@ -66,6 +66,7 @@ const Navigation = () => {
       subject: 'documentos',
       authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11, 12]
     },
+
     {
       title: 'Mapa',
       path: '/mapa',
