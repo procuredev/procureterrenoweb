@@ -65,13 +65,13 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     setDraftmen(updatedDraftmen)
   }
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = event => {
     if (event.key === '.' || event.key === ',' || event.key === '-' || event.key === '+') {
       event.preventDefault()
     }
   }
 
-  const handlePaste = (event) => {
+  const handlePaste = event => {
     event.preventDefault()
     setError('No se permite pegar valores en este campo.')
   }
@@ -81,7 +81,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
 
     // Verifica si el valor ingresado es un número y si es mayor a 1
     if (!isNaN(inputValue) && Number(inputValue) > 0 && !inputValue.startsWith('0')) {
-      setUprisingTimeSelected({hours: Number(inputValue), minutes: 0})
+      setUprisingTimeSelected({ hours: Number(inputValue), minutes: 0 })
       setError('') // Limpia el mensaje de error si existe
     } else {
       setUprisingTimeSelected('')
@@ -106,14 +106,13 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     // Verificamos si el option ya existe en el array draftmen
     if (!draftmen.some(draftman => draftman.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDraftmen(prevDraftmen => [...prevDraftmen, {name: option.name, userId: option.userId}])
+      setDraftmen(prevDraftmen => [...prevDraftmen, { name: option.name, userId: option.userId }])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
 
   // useEffect que definirá si el botón "Guardar" estará habilitado o no.
   useEffect(() => {
-
     const initialUprisingTime = {
       hours: 0,
       minutes: 0
@@ -121,24 +120,30 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     const initialDeadlineDate = moment()
     const initialDraftmen = []
 
-    const timeChanged = initialUprisingTime.hours !== uprisingTimeSelected.hours || initialUprisingTime.minutes !== uprisingTimeSelected.minutes;
-    const dateChanged = !initialDeadlineDate.isSame(deadlineDate, 'day');
-    const draftmenChanged = initialDraftmen.length !== draftmen.length || initialDraftmen.some((draftman, index) => draftman.name !== draftmen[index]?.name);
+    const timeChanged =
+      initialUprisingTime.hours !== uprisingTimeSelected.hours ||
+      initialUprisingTime.minutes !== uprisingTimeSelected.minutes
+    const dateChanged = !initialDeadlineDate.isSame(deadlineDate, 'day')
+    const draftmenChanged =
+      initialDraftmen.length !== draftmen.length ||
+      initialDraftmen.some((draftman, index) => draftman.name !== draftmen[index]?.name)
 
     if (timeChanged && dateChanged && draftmenChanged && !error && uprisingTimeSelected.hours > 0) {
       setIsSubmitDisabled(false)
     } else {
       setIsSubmitDisabled(true)
     }
-
-  },[uprisingTimeSelected, deadlineDate, draftmen, error])
-
+  }, [uprisingTimeSelected, deadlineDate, draftmen, error])
 
   // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
   const onSubmit = id => {
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
-      updateDocs(id, { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: draftmen }, authUser)
+      updateDocs(
+        id,
+        { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: draftmen },
+        authUser
+      )
         .then(() => {
           setLoading(false)
           handleClose()
@@ -195,7 +200,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
               fullWidth
-              sx={{ mb: 6 }} // Ajusta el espacio entre los dos campos
+              sx={{ mb: 6 }} // Ajusta el espacio entre los dos campos.
             />
 
             {/* Fecha Límite */}
@@ -210,7 +215,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                 }}
               >
                 <MobileDatePicker
-                  dayOfWeekFormatter={(day) => day.substring(0, 2).toUpperCase()}
+                  dayOfWeekFormatter={day => day.substring(0, 2).toUpperCase()}
                   minDate={moment().subtract(1, 'year')}
                   maxDate={moment().add(1, 'year')}
                   label='Fecha Límite (Entrega de Gabinete)'
@@ -233,7 +238,9 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                 options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
                 ListboxComponent={List}
                 getOptionLabel={option => option.name}
-                renderInput={params => <TextField {...params} size='small' label='Seleccionar Proyectistas de Gabinete'/>}
+                renderInput={params => (
+                  <TextField {...params} size='small' label='Seleccionar Proyectistas de Gabinete' />
+                )}
                 filterOptions={filterOptions} // Agrega este prop
                 renderOption={(props, option) => (
                   <ListItem {...props} onClick={() => handleListItemClick(option)}>
@@ -265,7 +272,9 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                   </ListItem>
                 )}
               />
-              <Typography variant='h6'>{`${draftmen.length} Proyectista${draftmen.length === 1 ? '' : 's'} de Gabinete seleccionado${draftmen.length === 1 ? '' : 's'}`}</Typography>
+              <Typography variant='h6'>{`${draftmen.length} Proyectista${
+                draftmen.length === 1 ? '' : 's'
+              } de Gabinete seleccionado${draftmen.length === 1 ? '' : 's'}`}</Typography>
               <List dense sx={{ py: 4 }}>
                 {draftmen.map(draftman => {
                   return (
@@ -321,7 +330,6 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                 })}
               </List>
             </Box>
-
           </Box>
         )}
 
