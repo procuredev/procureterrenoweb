@@ -39,6 +39,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
   const [disciplines, setDisciplines] = useState([])
   const [deliverables, setDeliverables] = useState([])
   const [quantity, setQuantity] = useState(1)
+  const [selectedDraftman, setSelectedDraftman] = useState(null)
 
   // ** Hooks
   //const { updateDocs, authUser, generateBlueprint, fetchPlaneProperties, generateCodes } = useFirebase()
@@ -67,12 +68,17 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
     setQuantity(event.target.value)
   }
 
+  const handleChangeDraftman = event => {
+    const selected = doc.gabineteDraftmen.find(draftman => draftman.name === event.target.value)
+    setSelectedDraftman(selected)
+  }
+
   const onsubmit = async id => {
     if (typeOfDiscipline && typeOfDocument && quantity > 0) {
       setIsSubmitDisabled(true)
       try {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
-        await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, authUser)
+        await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
         setBlueprintGenerated(true)
         handleClose()
       } catch (error) {
@@ -109,6 +115,25 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
             Generar nuevo documento
           </Typography>
           <Typography variant='body2'>Establece parámetros para crear el código</Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+          <FormControl fullWidth>
+            <InputLabel id='draftman-select-label'>Seleccionar Proyectista</InputLabel>
+            <Select
+              label='Seleccionar Proyectista'
+              labelId='draftman-select-label'
+              id='draftman-select'
+              value={selectedDraftman ? selectedDraftman.name : ''}
+              onChange={handleChangeDraftman}
+            >
+              {doc.gabineteDraftmen.map(draftman => (
+                <MenuItem key={draftman.userId} value={draftman.name}>
+                  {draftman.name} {/* Asumiendo que 'name' es el atributo del nombre del proyectista */}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>

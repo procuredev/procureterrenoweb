@@ -39,7 +39,17 @@ import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBluepr
 // TODO: Move to firebase-functions
 import { getStorage, ref, list } from 'firebase/storage'
 
-const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated, apiRef }) => {
+const TableGabinete = ({
+  rows,
+  role,
+  roleData,
+  petitionId,
+  petition,
+  setBlueprintGenerated,
+  apiRef,
+  selectedRows,
+  setSelectedRows
+}) => {
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState({})
@@ -78,6 +88,11 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     setDoc(doc)
     setOpenAlert(true)
     setApprove(isApproved)
+  }
+
+  const handleSelectionChange = selection => {
+    const selectedData = selection.map(id => rows.find(row => row.id === id))
+    setSelectedRows(selectedData)
   }
 
   const writeCallback = async () => {
@@ -1208,6 +1223,27 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     }
   ]
 
+  const isRowSelectable = params => {
+    if (authUser.role === 7) {
+      return true
+    }
+
+    if (params.row.revision && typeof params.row.revision === 'string' && params.row.revisions.length > 0) {
+      const sortedRevisions = [...params.row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
+      const lastRevision = sortedRevisions[0]
+
+      return (
+        (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
+        params.row.storageBlueprints &&
+        (params.row.sentByDesigner || params.row.sentBySupervisor) &&
+        params.row.approvedByDocumentaryControl === true &&
+        !('lastTransmittal' in lastRevision)
+      )
+    }
+
+    return false
+  }
+
   return (
     <Card sx={{ height: 'inherit' }}>
       <DataGridPremium
@@ -1240,23 +1276,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
           }
         }}
         apiRef={apiRef}
-        checkboxSelection={authUser.role === 9}
-        isRowSelectable={params => {
-          if (params.row.revision && typeof params.row.revision === 'string' && params.row.revisions.length > 0) {
-            const sortedRevisions = [...params.row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
-            const lastRevision = sortedRevisions[0]
-
-            return (
-              (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
-              params.row.storageBlueprints &&
-              (params.row.sentByDesigner || params.row.sentBySupervisor) &&
-              params.row.approvedByDocumentaryControl === true &&
-              !('lastTransmittal' in lastRevision)
-            )
-          }
-
-          return false // o alguna otra lógica por defecto si 'revision' no está disponible
-        }}
+        checkboxSelection={authUser.role === 9 || authUser.role === 7}
+        onRowSelectionModelChange={handleSelectionChange}
+        isRowSelectable={isRowSelectable}
         getRowId={row => row.id}
         getRowClassName={params => {
           // Aquí puedes verificar si la fila es una revisión y aplicar una clase condicional

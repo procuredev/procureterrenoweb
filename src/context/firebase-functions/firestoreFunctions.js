@@ -273,7 +273,6 @@ const addComment = async (id, comment, userParam) => {
 }
 
 function getNextState(role, approves, latestEvent, userRole) {
-
   const state = {
     returned: 1,
     petitioner: 2,
@@ -526,7 +525,6 @@ function getNextState(role, approves, latestEvent, userRole) {
 }
 
 const updateDocs = async (id, approves, userParam) => {
-
   let canceled = approves.cancelReason ? true : false
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
@@ -1491,8 +1489,8 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
       newDocs.push({
         id: procureCode,
         clientCode: melCode,
-        userId: userParam.uid,
-        userName: userParam.displayName,
+        userId: userParam.userId,
+        userName: userParam.name,
         revision: 'iniciado',
         userEmail: userParam.email,
         sentByDesigner: false,

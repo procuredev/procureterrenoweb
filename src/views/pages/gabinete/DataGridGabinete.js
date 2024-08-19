@@ -29,6 +29,7 @@ import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
 import DialogErrorTransmittal from 'src/@core/components/dialog-errorTransmittal'
 import DialogFinishOt from 'src/@core/components/dialog-finishOt'
+import ReasignarDialog from 'src/@core/components/dialog-deliverableReassign'
 import { el } from 'date-fns/locale'
 
 const DataGridGabinete = () => {
@@ -47,6 +48,8 @@ const DataGridGabinete = () => {
   const [errorTransmittal, setErrorTransmittal] = useState(false)
   const [openTransmittalDialog, setOpenTransmittalDialog] = useState(false)
   const [selectedDocs, setSelectedDocs] = useState([])
+  const [selectedRows, setSelectedRows] = useState([])
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const apiRef = useGridApiRef()
 
@@ -115,6 +118,10 @@ const DataGridGabinete = () => {
 
   const handleClose = () => {
     setOpen(false)
+  }
+
+  const handleReasignarClick = () => {
+    setDialogOpen(true)
   }
 
   const handleChange = value => {
@@ -246,15 +253,38 @@ const DataGridGabinete = () => {
 
   return (
     <Box id='main' sx={{ display: 'flex', width: '100%', flexDirection: 'column' }}>
-      <Autocomplete
-        options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
-        getOptionLabel={option => option.value + ' ' + option.title + ' '}
-        sx={{ mx: 6.5 }}
-        onChange={(event, value) => handleChange(value)}
-        onInputChange={(event, value) => setCurrentAutoComplete(value)}
-        isOptionEqualToValue={(option, value) => option.value === value.value}
-        renderInput={params => <TextField {...params} label='OT' />}
-      />
+      <Box sx={{ display: 'flex' }}>
+        <Autocomplete
+          options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
+          getOptionLabel={option => option.value + ' ' + option.title + ' '}
+          sx={{ mx: 6.5, flexGrow: '8' }}
+          onChange={(event, value) => handleChange(value)}
+          onInputChange={(event, value) => setCurrentAutoComplete(value)}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          renderInput={params => <TextField {...params} label='OT' />}
+        />
+        {authUser.role === 7 && (
+          <Button
+            variant='contained'
+            color='primary'
+            disabled={selectedRows.length === 0}
+            sx={{ flexGrow: '1' }}
+            onClick={handleReasignarClick}
+          >
+            Reasignar
+          </Button>
+        )}
+        {authUser.role === 7 && (
+          <Button
+            variant='contained'
+            color='error'
+            sx={{ mx: 6.5, flexGrow: '1' }}
+            disabled={selectedRows.length === 0} /* onClick={handleReasignarClick} */
+          >
+            Borrar
+          </Button>
+        )}
+      </Box>
       <Box sx={{ m: 4, display: 'flex' }}>
         <TextField
           sx={{ m: 2.5, width: '50%' }}
@@ -312,7 +342,7 @@ const DataGridGabinete = () => {
               Finalizar OT
             </Button>
           )
-        ) : authUser.role === 8 ? (
+        ) : /* authUser.role === 8 ? (
           <Button
             sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
@@ -321,7 +351,8 @@ const DataGridGabinete = () => {
           >
             Generar nuevo documento
           </Button>
-        ) : authUser.role === 7 ? (
+        ) : */ authUser.role ===
+          7 ? (
           <>
             <Button
               sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
@@ -345,10 +376,11 @@ const DataGridGabinete = () => {
           ''
         )}
 
-        {authUser.role === 7 &&
+        {authUser.role ===
+        7 /*  &&
         currentPetition &&
         currentPetition.gabineteDraftmen &&
-        currentPetition.gabineteDraftmen.find(user => user.userId === authUser.uid) ? (
+        currentPetition.gabineteDraftmen.find(user => user.userId === authUser.uid) */ ? (
           <Button
             sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
@@ -370,6 +402,8 @@ const DataGridGabinete = () => {
           petition={currentPetition ? currentPetition : null}
           setBlueprintGenerated={setBlueprintGenerated}
           apiRef={apiRef}
+          selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
         />
       </Box>
 
@@ -441,6 +475,7 @@ const DataGridGabinete = () => {
           petitionFinished={petitionFinished}
         />
       )}
+      <ReasignarDialog open={dialogOpen} onClose={() => setDialogOpen(false)} selectedRows={selectedRows} />
       {errorTransmittal && <DialogErrorTransmittal open={errorTransmittal} handleClose={handleCloseErrorTransmittal} />}
     </Box>
   )
