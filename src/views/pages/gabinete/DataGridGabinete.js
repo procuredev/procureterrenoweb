@@ -267,7 +267,10 @@ const DataGridGabinete = () => {
           <Button
             variant='contained'
             color='primary'
-            disabled={selectedRows.length === 0}
+            disabled={
+              selectedRows.length === 0 ||
+              (currentOT && petitions.find(doc => doc.ot == currentOT)?.gabineteDraftmen.length < 2)
+            }
             sx={{ flexGrow: '1' }}
             onClick={handleReasignarClick}
           >
