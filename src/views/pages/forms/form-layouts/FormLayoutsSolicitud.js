@@ -801,7 +801,7 @@ const FormLayoutsSolicitud = () => {
       }
 
       // Si no se ha definido el Centro de Costos, automáticamente se definirá.
-      if (!values.costCenter && values.plant && costCenterOptions) {
+      if (values.plant && costCenterOptions) {
         setValues(prevValues => ({
           ...prevValues,
           costCenter: costCenterOptions[0] // Establecer automáticamente el Centro de Costos seleccionado
