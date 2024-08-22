@@ -7,19 +7,23 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import CardMedia from '@mui/material/CardMedia'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
-import Avatar from 'src/@core/components/mui/avatar'
 
 // ** Hooks
 import { useRouter } from 'next/router'
 import { useFirebase } from 'src/context/useFirebase'
 
+const costCentersData = {
+  'Planta Concentradora Los Colorados': [1, 2, 3],
+  'Planta Concentradora Laguna Seca | Línea 1': [4, 5, 6],
+  'Planta Concentradora Laguna Seca | Línea 2': [7, 8, 9],
+}
+
 // Función que llenará los datos de cada card
-const AppCard = ({ name, job, photo, description, linkedin }) => {
+const AppCard = ({ name, job, description, linkedin }) => {
   const [expanded, setExpanded] = useState(false)
 
   const handleExpandClick = () => {
@@ -31,74 +35,9 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
     shortDescription = description.substring(0, 150)
   }
 
-  let avatarContent
-  if (Array.isArray(photo) && photo.length === 0) {
-    // `photo` es un array vacío, proporcionar un valor predeterminado
-    avatarContent = (
-      <Avatar
-        sx={{
-          width: 180,
-          height: 180,
-          borderRadius: '50%',
-          objectFit: 'contain',
-          bgcolor: 'primary.main'
-        }}
-      />
-    )
-  } else if (photo && typeof photo === 'string') {
-    // `photo` es una imagen válida
-    avatarContent = (
-      <Avatar
-        src={photo}
-        alt={name}
-        sx={{
-          width: 180,
-          height: 180,
-          borderRadius: '50%',
-          objectFit: 'contain'
-        }}
-      />
-    )
-  } else {
-    // No hay `photo` proporcionada, usar avatar con iniciales del nombre
-    const initials = name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-    avatarContent = (
-      <Avatar
-        sx={{
-          width: 180,
-          height: 180,
-          borderRadius: '50%',
-          objectFit: 'contain',
-          bgcolor: 'primary.main',
-          fontSize: '72px' // Tamaño de la fuente ajustado
-        }}
-      >
-        {initials.toUpperCase()}
-      </Avatar>
-    )
-  }
-
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ position: 'relative' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-          <Box sx={{ position: 'absolute' }}>{avatarContent}</Box>
-          {photo && typeof photo === 'string' && (
-            <CardMedia
-              component='img'
-              sx={{
-                width: 180,
-                height: 180,
-                borderRadius: '50%',
-                objectFit: 'contain'
-              }}
-              image={photo}
-            />
-          )}
-        </Box>
         <CardContent sx={{ flexGrow: 1 }}>
           <Typography variant='h6' sx={{ mb: 1 }}>
             {name}
@@ -137,7 +76,7 @@ const AppCard = ({ name, job, photo, description, linkedin }) => {
   )
 }
 
-const NuestroEquipo = () => {
+const CentrosDeCosto = () => {
   // ** Hooks
   const { authUser, getUserData } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
   const router = useRouter() // Importación de router... no sé que utlidad le daré
@@ -212,8 +151,8 @@ const NuestroEquipo = () => {
   )
 }
 
-NuestroEquipo.acl = {
-  subject: 'nuestro-equipo'
+CentrosDeCosto.acl = {
+  subject: 'centros-de-costo'
 }
 
-export default NuestroEquipo
+export default CentrosDeCosto
