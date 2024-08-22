@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 
 // ** MUI Import
+import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -78,12 +79,19 @@ const CentrosDeCosto = () => {
     setSelectedCheckboxIndex(index)
   }
 
+  const handleDeleteCostCenter = () => {
+    //
+  }
+
   // useEffect para almacenar dentro de costCentersData
   useEffect(() => {
     const fetchCostCenters = async () => {
       try {
         const costCenters = await getDomainData('costCenters')
         const costCentersArray = Object.keys(costCenters).map((key) => [key, costCenters[key]])
+
+        // Ordenar los elementos alfabéticamente por el nombre del `plant`
+        costCentersArray.sort((a, b) => a[0].localeCompare(b[0]))
 
         setCostCentersData(costCentersArray)
       } catch (error) {
@@ -128,6 +136,11 @@ const CentrosDeCosto = () => {
                     setSelectedPlant(updatedPlant)
                   }}
                 />
+              </Grid>
+              <Grid item>
+                <IconButton onClick={() => handleDeleteCostCenter()}>
+                  <DeleteIcon />
+                </IconButton>
               </Grid>
             </Grid>
           ))}
