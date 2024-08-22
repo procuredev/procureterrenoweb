@@ -2,75 +2,46 @@
 import { useEffect, useState } from 'react'
 
 // ** MUI Import
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import LinkedInIcon from '@mui/icons-material/LinkedIn'
+import EditIcon from '@mui/icons-material/Edit'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
-import Link from '@mui/material/Link'
+import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 
 // ** Hooks
 import { useRouter } from 'next/router'
 import { useFirebase } from 'src/context/useFirebase'
 
-const costCentersData = {
-  'Planta Concentradora Los Colorados': [1, 2, 3],
-  'Planta Concentradora Laguna Seca | Línea 1': [4, 5, 6],
-  'Planta Concentradora Laguna Seca | Línea 2': [7, 8, 9],
-}
-
 // Función que llenará los datos de cada card
-const AppCard = ({ name, job, description, linkedin }) => {
-  const [expanded, setExpanded] = useState(false)
-
-  const handleExpandClick = () => {
-    setExpanded(!expanded)
-  }
-
-  let shortDescription = ''
-  if (description) {
-    shortDescription = description.substring(0, 150)
-  }
-
+const AppCard = ({ plant, onEdit }) => {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ position: 'relative' }}>
         <CardContent sx={{ flexGrow: 1 }}>
-          <Typography variant='h6' sx={{ mb: 1 }}>
-            {name}
-          </Typography>
-          <Typography variant='h8' sx={{ mb: 4 }}>
-            {job}
-          </Typography>
-          <Typography variant='body2' sx={{ mt: 2 }} textAlign='justify'>
-            {description && (
-              <>
-                {expanded ? description : shortDescription}
-                {description.length > 150 && !expanded && '...'}
-              </>
-            )}
-          </Typography>
-          {description && description.length > 150 && (
-            <IconButton
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label='show more'
-              sx={{ alignSelf: 'flex-end' }}
-            >
-              <ExpandMoreIcon sx={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant='h6' sx={{ mb: 1 }}>
+              {plant[0]}
+            </Typography>
+            <IconButton aria-label="edit" onClick={onEdit}>
+              <EditIcon />
             </IconButton>
-          )}
-        </CardContent>
-        {linkedin && (
-          <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
-            <Link href={linkedin} target='_blank' rel='noopener'>
-              <LinkedInIcon />
-            </Link>
           </Box>
-        )}
+          {plant[1].map(costCenter => (
+            <Box key={costCenter} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant='h6' sx={{ mb: 1 }}>
+                {costCenter}
+              </Typography>
+            </Box>
+          ))}
+        </CardContent>
       </Box>
     </Card>
   )
@@ -78,75 +49,81 @@ const AppCard = ({ name, job, description, linkedin }) => {
 
 const CentrosDeCosto = () => {
   // ** Hooks
-  const { authUser, getUserData } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
+  const { authUser, getDomainData } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
   const router = useRouter() // Importación de router... no sé que utlidad le daré
 
   // ** States
-  const [procureUsers, setProcureUsers] = useState([]) // declaración de constante donde se almacenan los datos de los usuarios de procure
+  const [costCentersData, setCostCentersData] = useState([]) // declaración de constante donde se almacenan los datos de los usuarios de procure
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedPlant, setSelectedPlant] = useState(null)
 
-  // useEffect para almacenar dentro de procureUsers
+  const handleEdit = (plant) => {
+    setSelectedPlant(plant)
+    setDialogOpen(true)
+  }
+
+  const handleDialogClose = () => {
+    setDialogOpen(false)
+    setSelectedPlant(null)
+  }
+
+  const handleSave = () => {
+    // Aquí deberías actualizar los datos de `costCentersData` con los cambios realizados en el diálogo
+    setDialogOpen(false)
+  }
+
+  // useEffect para almacenar dentro de costCentersData
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchCostCenters = async () => {
       try {
-        const users = await getUserData('getAllProcureUsers')
-        const enabledUsers = users.filter(user => (user.enabled != false))
+        const costCenters = await getDomainData('costCenters')
+        const costCentersArray = Object.keys(costCenters).map((key) => [key, costCenters[key]])
 
-        setProcureUsers(enabledUsers)
+        setCostCentersData(costCentersArray)
       } catch (error) {
-        console.error('Error al obtener los usuarios de Procure:', error)
+        console.error('Error al obtener los Centros de Costo de Procure:', error)
       }
     }
 
-    fetchUsers()
+    fetchCostCenters()
   }, [])
 
-  // Declaración de varibles: array usuarios, prioridad (orden en que serán mostrados), jon (cargo)
-  let users = [] // array que almacenará los usuarios que cumplen con las condiciones
-  let priority // número para poder mostrarlos en orden de prioridad
-  let job // string donde se indicará el nombre de su rol
-
-  // iteración para llenar el array users con los datos de los usuarios pertenecientes a Procure
-  procureUsers.forEach(object => {
-    // Se almacenarán todos los usuarios Procure que tienen roles 5, 6, 7 u 8
-    if (object.role == 5 || object.role == 6 || object.role == 7 || object.role == 8) {
-      if (object.role == 6) {
-        priority = 1
-        job = 'Administrador de Contrato'
-      } else if (object.role == 7) {
-        priority = 2
-        job = 'Supervisor de Terreno'
-      } else if (object.role == 5) {
-        priority = 3
-        job = 'Planificador'
-      } else {
-        priority = 4
-        job = 'Proyectista de Terreno'
-      }
-      users.push({
-        name: object.name,
-        priority: priority,
-        job: job,
-        photo: object.urlFoto,
-        description: object.description,
-        linkedin: object.linkedin
-      })
-    }
-  })
-
-  // Se ordena el array users para que se muestre de mayor prioridad a menor prioridad
-  users.sort((a, b) => a.priority - b.priority)
 
   return (
     <Grid container spacing={2}>
-     {procureUsers.length > 0 ? (
-        users.map((user, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <AppCard {...user} />
+      {costCentersData.length > 0 ? (
+        costCentersData.map((plant, index) => (
+          <Grid item xs={12} sm={12} md={6} key={index}>
+            <AppCard plant={plant} onEdit={() => handleEdit(plant)} />
           </Grid>
         ))
       ) : (
         <Typography variant="body1">Cargando usuarios...</Typography>
       )}
+
+      <Dialog open={dialogOpen} onClose={handleDialogClose}>
+        <DialogTitle>Editar Centros de Costo</DialogTitle>
+        <DialogContent>
+          {selectedPlant && selectedPlant[1].map((costCenter, index) => (
+            <TextField
+              key={index}
+              label={`Centro de Costo ${index + 1}`}
+              defaultValue={costCenter}
+              fullWidth
+              sx={{ mt: 4 }}
+              onChange={(e) => {
+                const updatedPlant = [...selectedPlant]
+                updatedPlant[1][idx] = e.target.value
+                setSelectedPlant(updatedPlant)
+              }}
+            />
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancelar</Button>
+          <Button onClick={handleSave} variant="contained">Guardar</Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   )
 }
