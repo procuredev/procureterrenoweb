@@ -7,6 +7,7 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Checkbox from '@mui/material/Checkbox'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -56,6 +57,7 @@ const CentrosDeCosto = () => {
   const [costCentersData, setCostCentersData] = useState([]) // declaración de constante donde se almacenan los datos de los usuarios de procure
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedPlant, setSelectedPlant] = useState(null)
+  const [selectedCheckboxIndex, setSelectedCheckboxIndex] = useState(0)
 
   const handleEdit = (plant) => {
     setSelectedPlant(plant)
@@ -70,6 +72,10 @@ const CentrosDeCosto = () => {
   const handleSave = () => {
     // Aquí deberías actualizar los datos de `costCentersData` con los cambios realizados en el diálogo
     setDialogOpen(false)
+  }
+
+  const handleCheckboxChange = (index) => {
+    setSelectedCheckboxIndex(index)
   }
 
   // useEffect para almacenar dentro de costCentersData
@@ -105,18 +111,25 @@ const CentrosDeCosto = () => {
         <DialogTitle>Editar Centros de Costo</DialogTitle>
         <DialogContent>
           {selectedPlant && selectedPlant[1].map((costCenter, index) => (
-            <TextField
-              key={index}
-              label={`Centro de Costo ${index + 1}`}
-              defaultValue={costCenter}
-              fullWidth
-              sx={{ mt: 4 }}
-              onChange={(e) => {
-                const updatedPlant = [...selectedPlant]
-                updatedPlant[1][idx] = e.target.value
-                setSelectedPlant(updatedPlant)
-              }}
-            />
+            <Grid container alignItems="center" spacing={2}>
+              <Grid item>
+                <Checkbox checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
+              </Grid>
+              <Grid item xs>
+                <TextField
+                  key={index}
+                  label={`Centro de Costo ${index + 1}`}
+                  defaultValue={costCenter}
+                  fullWidth
+                  sx={{ mt: 4 }}
+                  onChange={(e) => {
+                    const updatedPlant = [...selectedPlant]
+                    updatedPlant[1][index] = e.target.value
+                    setSelectedPlant(updatedPlant)
+                  }}
+                />
+              </Grid>
+            </Grid>
           ))}
         </DialogContent>
         <DialogActions>
