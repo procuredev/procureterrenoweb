@@ -2,6 +2,8 @@
 import {
   Timestamp,
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -1404,6 +1406,32 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
   }
 }
 
+const createCostCenter = async (plant, costCenter) => {
+  const docRef = doc(db, 'domain', 'costCenters')
+
+  await updateDoc(docRef, {
+    [plant]: arrayUnion(costCenter)
+  })
+
+}
+
+const modifyCostCenter = async (plant, costCenter) => {
+
+}
+
+const deleteCostCenter = async (plant, costCenter) => {
+
+  console.log(plant)
+  console.log(costCenter)
+
+  const docRef = doc(db, 'domain', 'costCenters')
+
+  await updateDoc(docRef, {
+    [plant]: arrayRemove(costCenter)
+  })
+
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1425,5 +1453,8 @@ export {
   deleteWeekHoursByType,
   fetchSolicitudes,
   fetchUserList,
-  updateWeekHoursWithPlant
+  updateWeekHoursWithPlant,
+  createCostCenter,
+  modifyCostCenter,
+  deleteCostCenter
 }
