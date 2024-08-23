@@ -49,16 +49,34 @@ const AppCard = ({ plant, onEdit }) => {
   )
 }
 
+const DialogDeleteWarning = ({open, onClose, onAccept}) => {
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Advertencia</DialogTitle>
+      <DialogContent>¿Estás seguro de eliminar este Centro de Costos?</DialogContent>
+      <DialogActions>
+          <Button onClick={onClose}>No</Button>
+          <Button onClick={onAccept} variant="contained">Si</Button>
+        </DialogActions>
+    </Dialog>
+  )
+}
+
 const CentrosDeCosto = () => {
   // ** Hooks
   const { authUser, getDomainData } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
   const router = useRouter() // Importación de router... no sé que utlidad le daré
+
+  const deleteCostCenter = () => {
+
+  }
 
   // ** States
   const [costCentersData, setCostCentersData] = useState([]) // declaración de constante donde se almacenan los datos de los usuarios de procure
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedPlant, setSelectedPlant] = useState(null)
   const [selectedCheckboxIndex, setSelectedCheckboxIndex] = useState(0)
+  const [dialogWarningOpen, setDialogWarningOpen] = useState(false)
 
   const handleEdit = (plant) => {
     setSelectedPlant(plant)
@@ -80,7 +98,11 @@ const CentrosDeCosto = () => {
   }
 
   const handleDeleteCostCenter = () => {
-    //
+    setDialogWarningOpen(true)
+  }
+
+  const handleCloseDialogWarning = () => {
+    setDialogWarningOpen(false)
   }
 
   // useEffect para almacenar dentro de costCentersData
@@ -119,17 +141,16 @@ const CentrosDeCosto = () => {
         <DialogTitle>Editar Centros de Costo</DialogTitle>
         <DialogContent>
           {selectedPlant && selectedPlant[1].map((costCenter, index) => (
-            <Grid container alignItems="center" spacing={2}>
-              <Grid item>
-                <Checkbox sx={{mt: 4}} checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
+            <Grid container alignItems="center">
+              <Grid>
+                <Checkbox sx={{mb: 4}} checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
               </Grid>
-              <Grid item xs>
+              <Grid>
                 <TextField
                   key={index}
-                  label={`Centro de Costo ${index + 1}`}
                   defaultValue={costCenter}
                   fullWidth
-                  sx={{ mt: 4 }}
+                  sx={{ mb: 4 }}
                   onChange={(e) => {
                     const updatedPlant = [...selectedPlant]
                     updatedPlant[1][index] = e.target.value
@@ -139,7 +160,7 @@ const CentrosDeCosto = () => {
               </Grid>
               <Grid>
                 <IconButton onClick={() => handleDeleteCostCenter()}>
-                  <DeleteIcon sx={{ mt: 4 }} />
+                  <DeleteIcon sx={{mb:4}} />
                 </IconButton>
               </Grid>
             </Grid>
@@ -150,6 +171,11 @@ const CentrosDeCosto = () => {
           <Button onClick={handleSave} variant="contained">Guardar</Button>
         </DialogActions>
       </Dialog>
+
+      {dialogWarningOpen && (
+        <DialogDeleteWarning open={dialogWarningOpen} onClose={handleCloseDialogWarning} onAccept={deleteCostCenter()}/>
+      )}
+
     </Grid>
   )
 }
