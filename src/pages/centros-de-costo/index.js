@@ -121,7 +121,7 @@ const CentrosDeCosto = () => {
           {selectedPlant && selectedPlant[1].map((costCenter, index) => (
             <Grid container alignItems="center" spacing={2}>
               <Grid item>
-                <Checkbox checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
+                <Checkbox sx={{mt: 4}} checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
               </Grid>
               <Grid item xs>
                 <TextField
@@ -137,9 +137,9 @@ const CentrosDeCosto = () => {
                   }}
                 />
               </Grid>
-              <Grid item>
+              <Grid>
                 <IconButton onClick={() => handleDeleteCostCenter()}>
-                  <DeleteIcon />
+                  <DeleteIcon sx={{ mt: 4 }} />
                 </IconButton>
               </Grid>
             </Grid>
