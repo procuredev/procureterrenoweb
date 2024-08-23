@@ -49,6 +49,45 @@ const AppCard = ({ plant, onEdit }) => {
   )
 }
 
+const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, setSelectedPlant, selectedCheckboxIndex, handleCheckboxChange, handleDeleteCostCenter, handleSave}) => {
+  return (
+    <Dialog open={dialogOpen} onClose={handleDialogClose}>
+      <DialogTitle>Editar Centros de Costo</DialogTitle>
+      <DialogContent>
+        {selectedPlant && selectedPlant[1].map((costCenter, index) => (
+          <Grid container alignItems="center">
+            <Grid>
+              <Checkbox sx={{mb: 4}} checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
+            </Grid>
+            <Grid>
+              <TextField
+                key={index}
+                defaultValue={costCenter}
+                fullWidth
+                sx={{ mb: 4 }}
+                onChange={(e) => {
+                  const updatedPlant = [...selectedPlant]
+                  updatedPlant[1][index] = e.target.value
+                  setSelectedPlant(updatedPlant)
+                }}
+              />
+            </Grid>
+            <Grid>
+              <IconButton onClick={() => handleDeleteCostCenter()}>
+                <DeleteIcon sx={{mb:4}} />
+              </IconButton>
+            </Grid>
+          </Grid>
+        ))}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleDialogClose}>Cancelar</Button>
+        <Button onClick={handleSave} variant="contained">Guardar</Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
 const DialogDeleteWarning = ({open, onClose, onAccept}) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -89,7 +128,6 @@ const CentrosDeCosto = () => {
   }
 
   const handleSave = () => {
-    // Aquí deberías actualizar los datos de `costCentersData` con los cambios realizados en el diálogo
     setDialogOpen(false)
   }
 
@@ -137,44 +175,9 @@ const CentrosDeCosto = () => {
         <Typography variant="body1">Cargando usuarios...</Typography>
       )}
 
-      <Dialog open={dialogOpen} onClose={handleDialogClose}>
-        <DialogTitle>Editar Centros de Costo</DialogTitle>
-        <DialogContent>
-          {selectedPlant && selectedPlant[1].map((costCenter, index) => (
-            <Grid container alignItems="center">
-              <Grid>
-                <Checkbox sx={{mb: 4}} checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
-              </Grid>
-              <Grid>
-                <TextField
-                  key={index}
-                  defaultValue={costCenter}
-                  fullWidth
-                  sx={{ mb: 4 }}
-                  onChange={(e) => {
-                    const updatedPlant = [...selectedPlant]
-                    updatedPlant[1][index] = e.target.value
-                    setSelectedPlant(updatedPlant)
-                  }}
-                />
-              </Grid>
-              <Grid>
-                <IconButton onClick={() => handleDeleteCostCenter()}>
-                  <DeleteIcon sx={{mb:4}} />
-                </IconButton>
-              </Grid>
-            </Grid>
-          ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Cancelar</Button>
-          <Button onClick={handleSave} variant="contained">Guardar</Button>
-        </DialogActions>
-      </Dialog>
+      <DialogEditCostCenters dialogOpen={dialogOpen} handleDialogClose={handleDialogClose} selectedPlant={selectedPlant} setSelectedPlant={setSelectedPlant} selectedCheckboxIndex={selectedCheckboxIndex} handleCheckboxChange={handleCheckboxChange} handleDeleteCostCenter={handleDeleteCostCenter} handleSave={handleSave}/>
 
-      {dialogWarningOpen && (
-        <DialogDeleteWarning open={dialogWarningOpen} onClose={handleCloseDialogWarning} onAccept={deleteCostCenter()}/>
-      )}
+      <DialogDeleteWarning open={dialogWarningOpen} onClose={handleCloseDialogWarning} onAccept={deleteCostCenter()}/>
 
     </Grid>
   )
