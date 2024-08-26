@@ -60,10 +60,10 @@ const DialogDeleteBlueprint = ({ open, onClose, selectedRows, doc: mainDoc, setS
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Confirmar Eliminación</DialogTitle>
+      <DialogTitle sx={{ mx: 4 }}>Confirmar Eliminación</DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          ¿Estás seguro de que quieres eliminar el siguiente documento? Esta acción no se puede deshacer.
+        <DialogContentText sx={{ mx: 4 }}>
+          ¿Estás segur@ de que quieres eliminar el siguiente documento? <br /> Esta acción no se puede deshacer.
         </DialogContentText>
         <List>
           <ListItem>
@@ -78,7 +78,7 @@ const DialogDeleteBlueprint = ({ open, onClose, selectedRows, doc: mainDoc, setS
         <Button onClick={onClose} color='primary'>
           Cancelar
         </Button>
-        <Button onClick={handleDelete} color='secondary'>
+        <Button onClick={handleDelete} color='error'>
           Eliminar
         </Button>
       </DialogActions>
