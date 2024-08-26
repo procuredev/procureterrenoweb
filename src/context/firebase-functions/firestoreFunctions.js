@@ -608,6 +608,7 @@ const blockDayInDatabase = async (date, cause = '') => {
 // Maneja la obtención de datos de planos asociados a una solicitud y devuelve un array de datos y una función para actualizarlos.
 const useBlueprints = id => {
   const [data, setData] = useState([])
+  const [projectistData, setProjectistData] = useState({})
 
   useEffect(() => {
     if (!id) return undefined
@@ -619,14 +620,30 @@ const useBlueprints = id => {
     const unsubscribeBlueprints = onSnapshot(blueprintsRef, docSnapshot => {
       if (docSnapshot.docs.length === 0) {
         setData([])
+        setProjectistData({})
 
         return
       }
 
       let allDocs = []
+      let projectistDataTemp = {}
 
       docSnapshot.docs.forEach(doc => {
         const docData = doc.data()
+        const { userName, id } = docData
+
+        // Actualización de agrupación de datos
+        if (userName && id) {
+          const documentType = `${id.split('-')[1]}-${id.split('-')[2]}` // Ej: "500-PL"
+          if (!projectistDataTemp[userName]) {
+            projectistDataTemp[userName] = {}
+          }
+          if (!projectistDataTemp[userName][documentType]) {
+            projectistDataTemp[userName][documentType] = 0
+          }
+
+          projectistDataTemp[userName][documentType] += 1
+        }
         const revisionsRef = collection(doc.ref, 'revisions')
 
         // Suscribirse a cambios en 'revisions'
@@ -647,6 +664,7 @@ const useBlueprints = id => {
           // Actualizar el estado solo cuando se han procesado todos los documentos.
           if (allDocs.length === docSnapshot.docs.length) {
             setData([...allDocs])
+            setProjectistData(projectistDataTemp)
           }
         })
 
@@ -660,7 +678,7 @@ const useBlueprints = id => {
     return () => unsubscribeAll.forEach(unsubscribe => unsubscribe())
   }, [id])
 
-  return [data, setData]
+  return [data, projectistData, setData]
 }
 
 function formatCount(count) {
@@ -1516,6 +1534,91 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
   })
 }
 
+const updateBlueprintAssignment = async (petitionId, blueprintId, newUser) => {
+  const batch = writeBatch(db)
+
+  try {
+    // Crea una referencia al documento en la subcolección `blueprints`
+    const blueprintDocRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
+
+    // Actualiza el documento con los nuevos valores
+    batch.update(blueprintDocRef, {
+      userId: newUser.userId,
+      userName: newUser.name,
+      userEmail: newUser.email
+    })
+
+    // Ejecuta el batch
+    await batch.commit()
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating blueprint assignment:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const getProcureCounter = async procureCounterField => {
+  // Crea referencia a Firestore para el contador de Procure
+  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+
+  const procureCounterDoc = await getDoc(procureCounterRef)
+
+  if (!procureCounterDoc.exists()) {
+    throw new Error(`El documento blueprints_InternalCode-Counter no existe en Firestore.`)
+  }
+
+  const currentProcureCounterData = procureCounterDoc.data()[procureCounterField]
+  if (!currentProcureCounterData) {
+    throw new Error(`El campo ${procureCounterField} no existe en el documento blueprints_InternalCode-Counter.`)
+  }
+
+  const currentProcureCounter = Number(currentProcureCounterData.count)
+
+  return currentProcureCounter
+}
+
+const markBlueprintAsDeleted = async (mainDocId, procureId) => {
+  const blueprintDocRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
+
+  await updateDoc(blueprintDocRef, {
+    deleted: true
+  })
+}
+
+const deleteBlueprintAndDecrementCounters = async (
+  mainDocId,
+  procureId,
+  procureCounterField,
+  currentProcureCounter,
+  currentMelCounter,
+  melDiscipline,
+  melDeliverable
+) => {
+  // Crea referencias a Firestore para el contador de Procure y MEL
+  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+  const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
+  const melCounterRef = doc(db, 'solicitudes', mainDocId, 'clientCodeGeneratorCount', melCounterDocId)
+
+  // Referencia al documento de la subcolección "blueprints" que se eliminará
+  const blueprintDocRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
+
+  await runTransaction(db, async transaction => {
+    // Elimina el documento de 'blueprints'
+    transaction.delete(blueprintDocRef)
+
+    // Disminuye los contadores
+    transaction.update(procureCounterRef, {
+      [`${procureCounterField}.count`]: String(currentProcureCounter - 1).padStart(3, '0')
+    })
+
+    transaction.update(melCounterRef, {
+      count: String(currentMelCounter - 1).padStart(5, '0')
+    })
+  })
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1538,5 +1641,9 @@ export {
   fetchSolicitudes,
   fetchUserList,
   updateWeekHoursWithPlant,
-  generateBlueprintCodes
+  generateBlueprintCodes,
+  updateBlueprintAssignment,
+  getProcureCounter,
+  markBlueprintAsDeleted,
+  deleteBlueprintAndDecrementCounters
 }

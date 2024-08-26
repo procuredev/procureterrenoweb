@@ -42,7 +42,11 @@ import {
   fetchSolicitudes,
   fetchUserList,
   updateWeekHoursWithPlant,
-  generateBlueprintCodes
+  generateBlueprintCodes,
+  updateBlueprintAssignment,
+  getProcureCounter,
+  markBlueprintAsDeleted,
+  deleteBlueprintAndDecrementCounters
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -192,7 +196,11 @@ const FirebaseContextProvider = props => {
     updateWeekHoursWithPlant,
     fetchDisciplineProperties,
     fetchDeliverablesByDiscipline,
-    generateBlueprintCodes
+    generateBlueprintCodes,
+    updateBlueprintAssignment,
+    getProcureCounter,
+    markBlueprintAsDeleted,
+    deleteBlueprintAndDecrementCounters
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

@@ -7,7 +7,7 @@ import { useFirebase } from 'src/context/useFirebase'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import { useGridApiRef } from '@mui/x-data-grid'
-import { Autocomplete, ListItemText, ListItem, List } from '@mui/material'
+import { Autocomplete, ListItemText, ListItem, List, Typography, Checkbox } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 
@@ -30,6 +30,7 @@ import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
 import DialogErrorTransmittal from 'src/@core/components/dialog-errorTransmittal'
 import DialogFinishOt from 'src/@core/components/dialog-finishOt'
 import ReasignarDialog from 'src/@core/components/dialog-deliverableReassign'
+import DialogDeleteBlueprint from 'src/@core/components/dialog-deleteBlueprint'
 import { el } from 'date-fns/locale'
 
 const DataGridGabinete = () => {
@@ -50,6 +51,9 @@ const DataGridGabinete = () => {
   const [selectedDocs, setSelectedDocs] = useState([])
   const [selectedRows, setSelectedRows] = useState([])
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [checkedTypes, setCheckedTypes] = useState({})
+  const [showReasignarSection, setShowReasignarSection] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const apiRef = useGridApiRef()
 
@@ -75,7 +79,7 @@ const DataGridGabinete = () => {
   }
 
   //let blueprints = useBlueprints(currentPetition?.id)
-  const [blueprints, setBlueprints] = useBlueprints(currentPetition?.id)
+  const [blueprints, projectistData, setBlueprints] = useBlueprints(currentPetition?.id)
 
   const theme = useTheme()
   const smDown = useMediaQuery(theme.breakpoints.down('sm'))
@@ -98,6 +102,20 @@ const DataGridGabinete = () => {
         setIsLoading(false)
         console.error(error)
       })
+  }
+
+  // Abre el diálogo de eliminación
+  const handleDeleteClick = () => {
+    if (selectedRows.length === 1) {
+      setIsDeleteDialogOpen(true)
+    } else {
+      alert('Por favor, selecciona una única fila para borrar.')
+    }
+  }
+
+  // Cierra el diálogo de eliminación
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false)
   }
 
   const handleCloseCodeGenerator = () => {
@@ -251,6 +269,86 @@ const DataGridGabinete = () => {
     }
   }, [transmittalGenerated, setBlueprints])
 
+  const handleCheckboxChange = (projectist, type) => {
+    const key = `${projectist}-${type}`
+
+    // Filtra los documentos correspondientes al `projectist` y `type`
+    const filteredDocs = blueprints.filter(
+      doc => doc.userName === projectist && `${doc.id.split('-')[1]}-${doc.id.split('-')[2]}` === type
+    )
+
+    // Guardamos el estado actual antes de actualizar
+    setCheckedTypes(prevCheckedTypes => {
+      const updatedCheckedTypes = { ...prevCheckedTypes }
+
+      // Si el checkbox está marcado, lo agregamos o lo mantenemos en el estado
+      if (!updatedCheckedTypes[key]) {
+        updatedCheckedTypes[key] = true
+      } else {
+        // Si el checkbox está desmarcado, lo eliminamos del estado
+        delete updatedCheckedTypes[key]
+      }
+
+      // Actualiza la selección de filas en la tabla
+      setSelectedRows(prevSelectedRows => {
+        let updatedRows
+
+        if (updatedCheckedTypes[key]) {
+          // Si se selecciona el checkbox grupal, agregar todos los documentos relacionados
+          updatedRows = [
+            ...prevSelectedRows,
+            ...filteredDocs.filter(doc => !prevSelectedRows.some(row => row.id === doc.id))
+          ]
+        } else {
+          // Si se deselecciona el checkbox grupal, eliminar todos los documentos relacionados
+          updatedRows = prevSelectedRows.filter(row => !filteredDocs.some(doc => doc.id === row.id))
+        }
+
+        return updatedRows
+      })
+
+      return updatedCheckedTypes
+    })
+  }
+
+  console.log('selectedRows', selectedRows)
+
+  const renderProjectistSummary = () => {
+    return Object.entries(projectistData).map(([projectist, types]) => {
+      return (
+        <Box key={projectist} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography>{projectist}:</Typography>
+          {Object.entries(types).map(([type, count]) => (
+            <Box key={type} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Checkbox
+                checked={!!checkedTypes[`${projectist}-${type}`]}
+                onChange={() => handleCheckboxChange(projectist, type)}
+              />
+              <Typography>
+                {type} ({count} doc{count > 1 ? 's' : ''})
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )
+    })
+  }
+
+  const handleReasignarToggle = () => {
+    setShowReasignarSection(prevState => {
+      if (prevState) {
+        // Si se está desmarcando el checkbox, limpia la variables de estado: `selectedRows` y `checkedTypes`
+        setSelectedRows([])
+        setCheckedTypes({})
+      }
+
+      return !prevState
+    })
+  }
+
+  console.log('checkedTypes', checkedTypes)
+  console.log('isDeleteDialogOpen', isDeleteDialogOpen)
+
   return (
     <Box id='main' sx={{ display: 'flex', width: '100%', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex' }}>
@@ -263,26 +361,20 @@ const DataGridGabinete = () => {
           isOptionEqualToValue={(option, value) => option.value === value.value}
           renderInput={params => <TextField {...params} label='OT' />}
         />
+
         {authUser.role === 7 && (
-          <Button
-            variant='contained'
-            color='primary'
-            disabled={
-              selectedRows.length === 0 ||
-              (currentOT && petitions.find(doc => doc.ot == currentOT)?.gabineteDraftmen.length < 2)
-            }
-            sx={{ flexGrow: '1' }}
-            onClick={handleReasignarClick}
-          >
-            Reasignar
-          </Button>
+          <>
+            <Checkbox checked={showReasignarSection} onChange={handleReasignarToggle} color='info' />
+            <Typography sx={{ alignContent: 'center' }}>REASIGNAR</Typography>
+          </>
         )}
         {authUser.role === 7 && (
           <Button
             variant='contained'
             color='error'
             sx={{ mx: 6.5, flexGrow: '1' }}
-            disabled={selectedRows.length === 0} /* onClick={handleReasignarClick} */
+            onClick={handleDeleteClick}
+            disabled={selectedRows.length === 0 || (selectedRows.length > 0 && showReasignarSection)}
           >
             Borrar
           </Button>
@@ -396,7 +488,27 @@ const DataGridGabinete = () => {
           ''
         )}
       </Box>
-      <Box sx={{ m: 4, height: '100%' }}>
+      {authUser.role === 7 && currentPetition && showReasignarSection && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, ml: 6.5 }}>{renderProjectistSummary()}</Box>
+          <Box sx={{ mr: 6.5 }}>
+            <Button
+              variant='contained'
+              color='info'
+              disabled={
+                selectedRows.length === 0 ||
+                (currentOT && petitions.find(doc => doc.ot == currentOT)?.gabineteDraftmen.length < 2)
+              }
+              sx={{ flexGrow: '1' }}
+              onClick={handleReasignarClick}
+            >
+              Reasignar
+            </Button>
+          </Box>
+        </Box>
+      )}
+
+      <Box sx={{ m: 6.5, height: '100%' }}>
         <TableGabinete
           rows={blueprints ? blueprints : []}
           roleData={roleData}
@@ -407,6 +519,8 @@ const DataGridGabinete = () => {
           apiRef={apiRef}
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
+          checkedTypes={checkedTypes}
+          showReasignarSection={showReasignarSection}
         />
       </Box>
 
@@ -478,7 +592,19 @@ const DataGridGabinete = () => {
           petitionFinished={petitionFinished}
         />
       )}
-      <ReasignarDialog open={dialogOpen} onClose={() => setDialogOpen(false)} selectedRows={selectedRows} />
+      <ReasignarDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        selectedRows={selectedRows}
+        doc={petitions && currentOT && petitions.find(petition => petition.ot == currentOT)}
+      />
+      <DialogDeleteBlueprint
+        open={isDeleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        selectedRows={selectedRows}
+        doc={petitions && currentOT && petitions.find(petition => petition.ot == currentOT)}
+        setSelectedRows={setSelectedRows}
+      />
       {errorTransmittal && <DialogErrorTransmittal open={errorTransmittal} handleClose={handleCloseErrorTransmittal} />}
     </Box>
   )

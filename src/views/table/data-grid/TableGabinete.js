@@ -13,7 +13,8 @@ import {
 } from '@mui/x-data-grid-premium'
 
 import { Container } from '@mui/system'
-import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
+import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew } from '@mui/icons-material'
+import SyncIcon from '@mui/icons-material/Sync'
 
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
 import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
@@ -48,7 +49,9 @@ const TableGabinete = ({
   setBlueprintGenerated,
   apiRef,
   selectedRows,
-  setSelectedRows
+  setSelectedRows,
+  checkedTypes,
+  showReasignarSection
 }) => {
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -91,8 +94,23 @@ const TableGabinete = ({
   }
 
   const handleSelectionChange = selection => {
-    const selectedData = selection.map(id => rows.find(row => row.id === id))
-    setSelectedRows(selectedData)
+    if (showReasignarSection) {
+      setSelectedRows(prevSelectedRows => {
+        const newSelection = selection.map(id => rows.find(row => row.id === id))
+
+        // Filtra duplicados y combina selecciones
+        const combinedSelection = [
+          ...prevSelectedRows.filter(row => selection.includes(row.id)),
+          ...newSelection.filter(row => !prevSelectedRows.some(prevRow => prevRow.id === row.id))
+        ]
+
+        return combinedSelection
+      })
+    } else {
+      // En modo selección única, permite solo una selección a la vez
+      const selectedRow = rows.find(row => row.id === selection[0])
+      setSelectedRows(selectedRow ? [selectedRow] : [])
+    }
   }
 
   const writeCallback = async () => {
@@ -301,7 +319,7 @@ const TableGabinete = ({
       >
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
         {canReject && renderButton(row, false, 'error', CancelOutlined)}
-        {canResume && renderButton(row, true, 'info', AutorenewOutlined, disabled, true)}
+        {canResume && renderButton(row, true, 'info', SyncIcon, disabled, true)}
       </Container>
     )
   }
@@ -459,6 +477,16 @@ const TableGabinete = ({
     fetchProyectistas()
   }, [authUser.shift])
 
+  useEffect(() => {
+    // Sincroniza el estado de selección del DataGrid con selectedRows
+    const selectedIds = selectedRows.map(row => row.id)
+
+    // Evita actualizar si no hay cambios en la selección
+    if (apiRef.current.getSelectedRows().size !== selectedIds.length) {
+      apiRef.current.setRowSelectionModel(selectedIds)
+    }
+  }, [selectedRows, apiRef])
+
   const getFileName = (content, index) => {
     if (typeof content === 'string') {
       const urlSegments = content.split('%2F')
@@ -471,6 +499,11 @@ const TableGabinete = ({
       // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
       return ''
     }
+  }
+
+  // Filtra las filas eliminadas
+  const filterDeletedRows = rows => {
+    return rows.filter(row => !row.deleted)
   }
 
   const transformDataForGrouping = rows => {
@@ -489,8 +522,9 @@ const TableGabinete = ({
       .flat()
   }
 
-  // En el cuerpo del componente TableGabinete
-  const transformedRows = transformDataForGrouping(rows)
+  // Filtra y transforma las filas en una sola operación
+  const filteredAndTransformedRows = filterDeletedRows(rows)
+  const transformedRows = transformDataForGrouping(filteredAndTransformedRows)
 
   const filteredRows = transformedRows.filter(row => {
     return !row.isRevision || expandedRows.has(row.parentId)
@@ -512,7 +546,7 @@ const TableGabinete = ({
   const columns = [
     {
       field: 'id',
-      width: role === 9 && !lg ? 355 : role !== 9 && !lg ? 360 : role !== 9 ? 290 : 285,
+      width: role === 9 && !lg ? 355 : role !== 9 && !lg ? 360 : role !== 9 ? 300 : 300,
       headerName: 'Código Procure / MEL',
 
       renderCell: params => {
@@ -547,7 +581,8 @@ const TableGabinete = ({
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
                   {toggleIcon}
                   <IconButton
-                    sx={{ p: 0 }}
+                    sx={{ p: 0, mr: 2 }}
+                    color={row.storageBlueprints?.length > 0 && !row.description ? 'error' : 'secondary'}
                     id={row.id}
                     onClick={() => {
                       handleOpenUploadDialog(row)
@@ -822,38 +857,41 @@ const TableGabinete = ({
                   </Typography>
                 )}
 
-                <IconButton
-                  sx={{
-                    my: 'auto',
-                    ml: 2,
-                    p: 0
-                  }}
-                  onClick={
-                    (authUser.uid === row.userId && !row.sentByDesigner) ||
-                    ((authUser.role === 6 || authUser.role === 7) &&
-                      row.sentByDesigner &&
-                      !row.approvedByDocumentaryControl) ||
-                    (authUser.role === 9 &&
-                      (row.approvedBySupervisor ||
-                        row.approvedByContractAdmin ||
-                        (row.approvedByDocumentaryControl && row.sentByDesigner)))
-                      ? //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
-                        () => handleOpenUploadDialog(row)
-                      : null
-                  }
-                >
-                  {row.storageBlueprints ? null : (
-                    <Upload
-                      sx={{
-                        fontSize: lg ? '1rem' : '1.2rem',
-                        color:
-                          authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
-                            ? theme.palette.success
-                            : theme.palette.grey[500]
-                      }}
-                    />
-                  )}
-                </IconButton>
+                {authUser.uid === row.userId && !row.sentByDesigner && (
+                  <IconButton
+                    sx={{
+                      my: 'auto',
+                      ml: 2,
+                      p: 0
+                    }}
+                    color='primary'
+                    onClick={
+                      (authUser.uid === row.userId && !row.sentByDesigner) ||
+                      ((authUser.role === 6 || authUser.role === 7) &&
+                        row.sentByDesigner &&
+                        !row.approvedByDocumentaryControl) ||
+                      (authUser.role === 9 &&
+                        (row.approvedBySupervisor ||
+                          row.approvedByContractAdmin ||
+                          (row.approvedByDocumentaryControl && row.sentByDesigner)))
+                        ? //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                          () => handleOpenUploadDialog(row)
+                        : null
+                    }
+                  >
+                    {row.storageBlueprints ? null : (
+                      <Upload
+                        sx={{
+                          fontSize: lg ? '1rem' : '1.2rem',
+                          color:
+                            authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
+                              ? theme.palette.success
+                              : theme.palette.grey[500]
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                )}
               </Box>
             </Box>
           )
@@ -1146,6 +1184,7 @@ const TableGabinete = ({
         const disabled = petition?.otFinished
 
         const buttons = renderButtons(row, flexDirection, canApprove, canReject, disabled, canResume)
+        //const buttons = renderButtons(row, flexDirection, canApprove, canReject)
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
           return ''
@@ -1223,9 +1262,41 @@ const TableGabinete = ({
     }
   ]
 
+  const getSelectableRows = () => {
+    if (showReasignarSection) {
+      // Si la sección de reasignación está habilitada, permite seleccionar todas las filas
+      return rows
+    }
+
+    // Crea un mapa para rastrear la fila con el contador superior para cada `type`
+    const typeMap = {}
+
+    rows.forEach(row => {
+      const type = `${row.id.split('-')[1]}-${row.id.split('-')[2]}`
+      const counter = parseInt(row.id.split('-')[3], 10)
+
+      if (!typeMap[type] || counter > typeMap[type].counter) {
+        typeMap[type] = { row, counter }
+      }
+    })
+
+    // Solo permite la selección de la fila con el contador superior para cada `type`
+    return Object.values(typeMap).map(item => item.row)
+  }
+
   const isRowSelectable = params => {
     if (authUser.role === 7) {
-      return true
+      if (showReasignarSection) {
+        // Si la sección de reasignación está habilitada, permite seleccionar cualquier fila
+        return true
+      }
+
+      // Obtiene las filas seleccionables según el `type` y el contador superior
+      const selectableRows = getSelectableRows()
+
+      return selectableRows.some(
+        selectableRow => selectableRow.id === params.row.id && params.row.revision === 'iniciado'
+      )
     }
 
     if (params.row.revision && typeof params.row.revision === 'string' && params.row.revisions.length > 0) {
@@ -1248,7 +1319,7 @@ const TableGabinete = ({
     <Card sx={{ height: 'inherit' }}>
       <DataGridPremium
         sx={{
-          height: '100%',
+          height: 600,
           maxHeight: lg ? '700px' : '400px',
           width: '100%',
           '& .MuiDataGrid-cell--withRenderer': {
@@ -1256,6 +1327,9 @@ const TableGabinete = ({
           },
           '& .MuiDataGrid-virtualScroller': {
             minHeight: '200px'
+          },
+          '& .no-checkbox': {
+            backgroundColor: theme.palette.mode === 'dark' ? '#666666' : '#CDCDCD'
           }
         }}
         classes={{ root: classes.root }}
@@ -1278,6 +1352,7 @@ const TableGabinete = ({
         apiRef={apiRef}
         checkboxSelection={authUser.role === 9 || authUser.role === 7}
         onRowSelectionModelChange={handleSelectionChange}
+        disableRowSelectionOnClick
         isRowSelectable={isRowSelectable}
         getRowId={row => row.id}
         getRowClassName={params => {

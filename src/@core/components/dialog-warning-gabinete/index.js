@@ -11,7 +11,7 @@ import {
   TextField,
   DialogTitle,
   FormControlLabel,
-  Switch,
+  Checkbox,
   Box
 } from '@mui/material'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
@@ -157,13 +157,13 @@ export default function AlertDialogGabinete({
 
         {approves && authUser.role === 9 && blueprint?.approvedByDocumentaryControl === true ? (
           <FormControlLabel
-            control={<Switch onChange={() => setToggleRemarks(!toggleRemarks)} />}
+            control={<Checkbox onChange={() => setToggleRemarks(!toggleRemarks)} />}
             sx={{ mt: 4 }}
             label='Agregar Comentario'
           />
         ) : !approves ? (
           <FormControlLabel
-            control={<Switch onChange={() => setToggleRemarks(!toggleRemarks)} />}
+            control={<Checkbox onChange={() => setToggleRemarks(!toggleRemarks)} />}
             sx={{ mt: 4 }}
             label='Agregar Observación'
           />

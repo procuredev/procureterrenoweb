@@ -560,7 +560,11 @@ export const UploadBlueprintsDialog = ({
                   endAdornment: (
                     <InputAdornment position='end'>
                       {!isDescriptionSaved && (
-                        <Button onClick={submitDescription} disabled={isSaving}>
+                        <Button
+                          onClick={submitDescription}
+                          disabled={isSaving}
+                          color={storageBlueprints?.length > 0 && !description ? 'error' : 'primary'}
+                        >
                           {isSaving ? 'Guardando...' : 'Guardar descripción'}
                         </Button>
                       )}
