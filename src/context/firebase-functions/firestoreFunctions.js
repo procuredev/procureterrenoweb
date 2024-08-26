@@ -1415,19 +1415,52 @@ const createCostCenter = async (plant, costCenter) => {
 
 }
 
-const modifyCostCenter = async (plant, costCenter) => {
+const modifyCostCenter = async (plant, index, newCostCenterValue) => {
+
+  const docRef = doc(db, 'domain', 'costCenters')
+  const querySnapshot = await getDoc(docRef)
+  const docSnapshot = querySnapshot.data()
+
+  var plantCostCenters = docSnapshot[plant]
+  plantCostCenters[index] = newCostCenterValue
+
+  await updateDoc(docRef, {
+    [plant]: plantCostCenters
+  })
 
 }
 
 const deleteCostCenter = async (plant, costCenter) => {
 
-  console.log(plant)
-  console.log(costCenter)
-
   const docRef = doc(db, 'domain', 'costCenters')
 
   await updateDoc(docRef, {
     [plant]: arrayRemove(costCenter)
+  })
+
+}
+
+const setDefaultCostCenter = async (plant, oldIndex) => {
+
+  const docRef = doc(db, 'domain', 'costCenters')
+  const querySnapshot = await getDoc(docRef)
+  const docSnapshot = querySnapshot.data()
+
+  var plantCostCenters = docSnapshot[plant]
+
+  if (0 >= plantCostCenters.length) {
+    var k = 0 - plantCostCenters.length + 1
+    while (k--) {
+        plantCostCenters.push(undefined)
+    }
+  }
+
+  plantCostCenters.splice(0, 0, plantCostCenters.splice(oldIndex, 1)[0])
+
+  console.log(plantCostCenters)
+
+  await updateDoc(docRef, {
+    [plant]: plantCostCenters
   })
 
 }
@@ -1456,5 +1489,6 @@ export {
   updateWeekHoursWithPlant,
   createCostCenter,
   modifyCostCenter,
-  deleteCostCenter
+  deleteCostCenter,
+  setDefaultCostCenter
 }

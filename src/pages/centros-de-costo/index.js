@@ -15,10 +15,10 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 
 // ** Hooks
+import { CircularProgress, TextField } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useFirebase } from 'src/context/useFirebase'
 
@@ -49,31 +49,26 @@ const AppCard = ({ plant, onEdit }) => {
   )
 }
 
-const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, setSelectedPlant, selectedCheckboxIndex, handleCheckboxChange, handleDeleteCostCenter, handleSave}) => {
+const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, selectedCheckboxIndex, handleCheckboxChange, handleModifyCostCenter, handleDeleteCostCenter, handleCreateCostCenter}) => {
   return (
     <Dialog open={dialogOpen} onClose={handleDialogClose}>
       <DialogTitle>Editar Centros de Costo</DialogTitle>
       <DialogContent>
         {selectedPlant && selectedPlant[1].map((costCenter, index) => (
-          <Grid container alignItems="center">
+          <Grid container alignItems="center" key={`${costCenter}-${index}`}>
             <Grid>
               <Checkbox sx={{mb: 4}} checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
             </Grid>
-            <Grid>
-              <TextField
-                key={index}
-                defaultValue={costCenter}
-                fullWidth
-                sx={{ mb: 4 }}
-                onChange={(e) => {
-                  const updatedPlant = [...selectedPlant]
-                  updatedPlant[1][index] = e.target.value
-                  setSelectedPlant(updatedPlant)
-                }}
-              />
+            <Grid sx={{ minWidth: 200, maxWidth: 200 , mb:4}}>
+              {costCenter}
             </Grid>
             <Grid>
-              <IconButton onClick={() => handleDeleteCostCenter()}>
+              <IconButton onClick={() => handleModifyCostCenter(index, costCenter)}>
+                <EditIcon sx={{mb:4}} />
+              </IconButton>
+            </Grid>
+            <Grid>
+              <IconButton onClick={() => handleDeleteCostCenter(costCenter)}>
                 <DeleteIcon sx={{mb:4}} />
               </IconButton>
             </Grid>
@@ -82,9 +77,51 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
       </DialogContent>
       <DialogActions>
         <Button onClick={handleDialogClose}>Cancelar</Button>
-        <Button onClick={handleSave} variant="contained">Guardar</Button>
+        <Button onClick={handleCreateCostCenter} variant="contained">Agregar</Button>
       </DialogActions>
     </Dialog>
+  )
+}
+
+const DialogCreateCostCenter = ({open, onClose, onAccept, onChange}) => {
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Agregar Centro de Costo</DialogTitle>
+      <DialogContent>
+        <TextField
+          // key={index}
+          // defaultValue={costCenter}
+          fullWidth
+          sx={{ mb: 4 }}
+          onChange={onChange}
+        />
+      </DialogContent>
+      <DialogActions>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button onClick={onAccept} variant="contained">Guardar</Button>
+        </DialogActions>
+  </Dialog>
+  )
+}
+
+const DialogModify = ({index, costCenter, open, onClose, onAccept, onChange}) => {
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Modificar Centro de Costo</DialogTitle>
+      <DialogContent>
+        <TextField
+          key={index}
+          defaultValue={costCenter}
+          fullWidth
+          sx={{ mb: 4 }}
+          onChange={onChange}
+        />
+      </DialogContent>
+      <DialogActions>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button onClick={onAccept} variant="contained">Guardar</Button>
+        </DialogActions>
+  </Dialog>
   )
 }
 
@@ -97,18 +134,47 @@ const DialogDeleteWarning = ({open, onClose, onAccept}) => {
           <Button onClick={onClose}>No</Button>
           <Button onClick={onAccept} variant="contained">Si</Button>
         </DialogActions>
+  </Dialog>
+  )
+}
+
+const DialogDefaultCostCenter = ({open, onClose, onAccept}) => {
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Advertencia</DialogTitle>
+      <DialogContent>¿Estás seguro de seleccionar este Centro de Costo como principal?</DialogContent>
+      <DialogActions>
+          <Button onClick={onClose}>No</Button>
+          <Button onClick={onAccept} variant="contained">Si</Button>
+        </DialogActions>
+  </Dialog>
+  )
+}
+
+const DialogWaiting = ({loading, handleClose}) => {
+  return (
+    <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={loading !== null} maxWidth={false}>
+      <DialogTitle sx={{ mt: 2, textAlign: 'center' }} id='spinner-dialog-title'>
+        { loading ? 'Actualizando Centros de Costo' : 'Centros de Costo actualizados con éxito'}
+      </DialogTitle>
+      <DialogContent sx={{ textAlign: 'center' }}>
+        { loading ? (
+          <CircularProgress size={40} />
+        ) : (
+          <Button variant="contained" color="primary" onClick={handleClose}>
+            Aceptar
+          </Button>
+        )}
+      </DialogContent>
     </Dialog>
   )
 }
 
+
 const CentrosDeCosto = () => {
   // ** Hooks
-  const { authUser, getDomainData } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
+  const { authUser, getDomainData, createCostCenter, modifyCostCenter, deleteCostCenter, setDefaultCostCenter } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
   const router = useRouter() // Importación de router... no sé que utlidad le daré
-
-  const deleteCostCenter = () => {
-
-  }
 
   // ** States
   const [costCentersData, setCostCentersData] = useState([]) // declaración de constante donde se almacenan los datos de los usuarios de procure
@@ -116,6 +182,13 @@ const CentrosDeCosto = () => {
   const [selectedPlant, setSelectedPlant] = useState(null)
   const [selectedCheckboxIndex, setSelectedCheckboxIndex] = useState(0)
   const [dialogWarningOpen, setDialogWarningOpen] = useState(false)
+  const [selectedCostCenter, setSelectedCostCenter] = useState(null)
+  const [selectedCostCenterIndex, setSelectedCostCenterIndex] = useState(null)
+  const [waiting, setWaiting] = useState(null)
+  const [dialogModifyOpen, setDialogModifyOpen] = useState(false)
+  const [newCostCenterValue, setNewCostCenterValue] = useState(null)
+  const [dialogCreateCostCenterOpen, setDialogCreateCostCenterOpen] = useState(false)
+  const [dialogDefaultCostCenterOpen, setDialogDefaultCostCenterOpen] = useState(false)
 
   const handleEdit = (plant) => {
     setSelectedPlant(plant)
@@ -127,19 +200,93 @@ const CentrosDeCosto = () => {
     setSelectedPlant(null)
   }
 
-  const handleSave = () => {
-    setDialogOpen(false)
+  const handleDeleteCostCenter = (costCenter) => {
+    setDialogWarningOpen(true)
+    setSelectedCostCenter(costCenter)
+  }
+
+  const handleCloseDialogWarning = () => {
+    setDialogWarningOpen(false)
+  }
+
+  const handleConfirmDeletion = async () => {
+    setWaiting(true)
+    try {
+      await deleteCostCenter(selectedPlant[0], selectedCostCenter)
+      setWaiting(false)
+    } catch (error) {
+      console.error('Error eliminando Centro de Costo:', error)
+      setWaiting(false)
+    }
+    setDialogWarningOpen(false)
+  }
+
+  const handleCloseCircularProgress = () => {
+    setWaiting(null)
+    window.location.reload() // Recarga la página
+  }
+
+  const handleModifyCostCenter = (index, costCenter) => {
+    setDialogModifyOpen(true)
+    setSelectedCostCenterIndex(index)
+    setSelectedCostCenter(costCenter)
+  }
+
+  const handleCloseDialogModify = () => {
+    setDialogModifyOpen(false)
+  }
+
+  const handleConfirmModification = async () => {
+    setWaiting(true)
+    try {
+      await modifyCostCenter(selectedPlant[0], selectedCostCenterIndex, newCostCenterValue)
+      setWaiting(false)
+    } catch (error) {
+      console.error('Error modificando Centro de Costo:', error)
+      setWaiting(false)
+    }
+    setDialogWarningOpen(false)
+  }
+
+  const handleCreateCostCenter = (costCenter) => {
+    setDialogCreateCostCenterOpen(true)
+  }
+
+  const handleCloseDialogCreateCostCenter = () => {
+    setDialogCreateCostCenterOpen(false)
+  }
+
+  const handleConfirmCreate = async () => {
+    setWaiting(true)
+    try {
+      await createCostCenter(selectedPlant[0], newCostCenterValue)
+      setWaiting(false)
+    } catch (error) {
+      console.error('Error Agregando Centro de Costo:', error)
+      setWaiting(false)
+    }
+    setDialogWarningOpen(false)
   }
 
   const handleCheckboxChange = (index) => {
     setSelectedCheckboxIndex(index)
+    setDialogDefaultCostCenterOpen(true)
   }
 
-  const handleDeleteCostCenter = () => {
-    setDialogWarningOpen(true)
+  const handleCloseDialoDefaultCostCenter = () => {
+    setSelectedCheckboxIndex(0)
+    setDialogDefaultCostCenterOpen(false)
   }
 
-  const handleCloseDialogWarning = () => {
+  const handleConfirmDefaultCostCenter = async () => {
+    setWaiting(true)
+    try {
+      await setDefaultCostCenter(selectedPlant[0], selectedCostCenterIndex)
+      setWaiting(false)
+    } catch (error) {
+      console.error('Error modificando Centro de Costo por defecto:', error)
+      setWaiting(false)
+    }
     setDialogWarningOpen(false)
   }
 
@@ -175,9 +322,49 @@ const CentrosDeCosto = () => {
         <Typography variant="body1">Cargando usuarios...</Typography>
       )}
 
-      <DialogEditCostCenters dialogOpen={dialogOpen} handleDialogClose={handleDialogClose} selectedPlant={selectedPlant} setSelectedPlant={setSelectedPlant} selectedCheckboxIndex={selectedCheckboxIndex} handleCheckboxChange={handleCheckboxChange} handleDeleteCostCenter={handleDeleteCostCenter} handleSave={handleSave}/>
+      <DialogEditCostCenters
+        dialogOpen={dialogOpen}
+        handleDialogClose={handleDialogClose}
+        selectedPlant={selectedPlant}
+        setSelectedPlant={setSelectedPlant}
+        selectedCheckboxIndex={selectedCheckboxIndex}
+        handleCheckboxChange={handleCheckboxChange}
+        handleModifyCostCenter={handleModifyCostCenter}
+        handleDeleteCostCenter={handleDeleteCostCenter}
+        handleCreateCostCenter={handleCreateCostCenter}
+      />
 
-      <DialogDeleteWarning open={dialogWarningOpen} onClose={handleCloseDialogWarning} onAccept={deleteCostCenter()}/>
+      <DialogCreateCostCenter
+        open={dialogCreateCostCenterOpen}
+        onClose={handleCloseDialogCreateCostCenter}
+        onAccept={handleConfirmCreate}
+        onChange={(event) => {setNewCostCenterValue(event.target.value)}}
+      />
+
+      <DialogModify
+        index={selectedCostCenterIndex}
+        costCenter={selectedCostCenter}
+        open={dialogModifyOpen}
+        onClose={handleCloseDialogModify}
+        onAccept={handleConfirmModification}
+        onChange={(event) => {setNewCostCenterValue(event.target.value)}}
+      />
+
+      <DialogDeleteWarning
+        open={dialogWarningOpen}
+        onClose={handleCloseDialogWarning}
+        onAccept={handleConfirmDeletion}
+      />
+
+      <DialogDefaultCostCenter
+        open={dialogDefaultCostCenterOpen}
+        onClose={handleCloseDialoDefaultCostCenter}
+        onAccept={handleConfirmDefaultCostCenter}
+      />
+
+      {waiting !== null && (
+        <DialogWaiting loading={waiting} handleClose={handleCloseCircularProgress} />
+      )}
 
     </Grid>
   )

@@ -37,6 +37,7 @@ import {
   generateTransmittalCounter,
   modifyCostCenter,
   newDoc,
+  setDefaultCostCenter,
   updateBlueprint,
   updateDocs,
   updateSelectedDocuments,
@@ -180,7 +181,8 @@ const FirebaseContextProvider = props => {
     updateWeekHoursWithPlant,
     createCostCenter,
     modifyCostCenter,
-    deleteCostCenter
+    deleteCostCenter,
+    setDefaultCostCenter
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
