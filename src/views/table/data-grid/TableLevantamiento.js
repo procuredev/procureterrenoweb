@@ -186,7 +186,6 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             placement='bottom-end'
             key={row.title}
             leaveTouchDelay={0}
-            //TransitionComponent={Fade}
             TransitionProps={{ timeout: 0 }}
           >
             <Box sx={{ overflow: 'hidden', display: 'flex', alignItems: 'center' }}>

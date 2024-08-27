@@ -494,7 +494,6 @@ const TableGabinete = ({
                 placement='bottom-end'
                 key={row.id}
                 leaveTouchDelay={0}
-                //TransitionComponent={Fade}
                 TransitionProps={{ timeout: 0 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
