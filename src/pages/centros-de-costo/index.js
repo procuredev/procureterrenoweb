@@ -52,7 +52,8 @@ const AppCard = ({ plant, onEdit }) => {
 const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, selectedCheckboxIndex, handleCheckboxChange, handleModifyCostCenter, handleDeleteCostCenter, handleCreateCostCenter}) => {
   return (
     <Dialog open={dialogOpen} onClose={handleDialogClose}>
-      <DialogTitle>Editar {selectedPlant[0]}</DialogTitle>
+      {console.log(selectedPlant)}
+      <DialogTitle>Editar Planta</DialogTitle>
       <DialogContent>
 
         {/* Encabezados de las columnas */}
@@ -384,7 +385,8 @@ const CentrosDeCosto = () => {
       )}
 
       {/* Dialog de Edición de Una Planta. */}
-      <DialogEditCostCenters
+      {dialogOpen && (
+        <DialogEditCostCenters
         dialogOpen={dialogOpen}
         handleDialogClose={handleDialogClose}
         selectedPlant={selectedPlant}
@@ -395,6 +397,7 @@ const CentrosDeCosto = () => {
         handleDeleteCostCenter={handleDeleteCostCenter}
         handleCreateCostCenter={handleCreateCostCenter}
       />
+      )}
 
       {/* Dialog de Creación de un Centro de Costo. */}
       <DialogCreateCostCenter
