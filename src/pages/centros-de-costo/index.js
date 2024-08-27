@@ -52,7 +52,6 @@ const AppCard = ({ plant, onEdit }) => {
 const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, selectedCheckboxIndex, handleCheckboxChange, handleModifyCostCenter, handleDeleteCostCenter, handleCreateCostCenter}) => {
   return (
     <Dialog open={dialogOpen} onClose={handleDialogClose}>
-      {console.log(selectedPlant)}
       <DialogTitle>Editar Planta</DialogTitle>
       <DialogContent>
 
