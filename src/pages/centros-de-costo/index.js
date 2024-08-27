@@ -54,22 +54,37 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
     <Dialog open={dialogOpen} onClose={handleDialogClose}>
       <DialogTitle>Editar Centros de Costo</DialogTitle>
       <DialogContent>
+        {/* Encabezados de las columnas */}
+        <Grid container alignItems="center" sx={{ mb: 2 }}>
+          <Grid item sx={{ minWidth: 85, maxWidth: 85 }}>
+            <Typography variant="subtitle1">Principal</Typography>
+          </Grid>
+          <Grid item sx={{ minWidth: 140, maxWidth: 140 }}>
+            <Typography variant="subtitle1">Centro de Costo</Typography>
+          </Grid>
+          <Grid item sx={{ minWidth: 60, maxWidth: 60 }}>
+            <Typography variant="subtitle1">Editar</Typography>
+          </Grid>
+          <Grid item sx={{ minWidth: 50, maxWidth: 50 }}>
+            <Typography variant="subtitle1">Eliminar</Typography>
+          </Grid>
+        </Grid>
         {selectedPlant && selectedPlant[1].map((costCenter, index) => (
           <Grid container alignItems="center" key={`${costCenter}-${index}`}>
-            <Grid>
-              <Checkbox sx={{mb: 4}} checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
+            <Grid sx={{minWidth: 85, maxWidth: 85, mb: 4}}>
+              <Checkbox checked={selectedCheckboxIndex === index} onChange={() => handleCheckboxChange(index)} />
             </Grid>
-            <Grid sx={{ minWidth: 200, maxWidth: 200 , mb:4}}>
+            <Grid sx={{ minWidth: 140, maxWidth: 140 , mb:4}}>
               {costCenter}
             </Grid>
-            <Grid>
+            <Grid sx={{minWidth: 60, maxWidth: 60, mb:4}}>
               <IconButton onClick={() => handleModifyCostCenter(index, costCenter)}>
-                <EditIcon sx={{mb:4}} />
+                <EditIcon/>
               </IconButton>
             </Grid>
-            <Grid>
+            <Grid sx={{minWidth: 50, maxWidth: 50, mb:4}}>
               <IconButton onClick={() => handleDeleteCostCenter(costCenter)}>
-                <DeleteIcon sx={{mb:4}} />
+                <DeleteIcon/>
               </IconButton>
             </Grid>
           </Grid>
@@ -77,7 +92,7 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
       </DialogContent>
       <DialogActions>
         <Button onClick={handleDialogClose}>Cancelar</Button>
-        <Button onClick={handleCreateCostCenter} variant="contained">Agregar</Button>
+        <Button onClick={handleCreateCostCenter} variant="contained">Agregar CC</Button>
       </DialogActions>
     </Dialog>
   )
@@ -281,7 +296,7 @@ const CentrosDeCosto = () => {
   const handleConfirmDefaultCostCenter = async () => {
     setWaiting(true)
     try {
-      await setDefaultCostCenter(selectedPlant[0], selectedCostCenterIndex)
+      await setDefaultCostCenter(selectedPlant[0], selectedCheckboxIndex)
       setWaiting(false)
     } catch (error) {
       console.error('Error modificando Centro de Costo por defecto:', error)

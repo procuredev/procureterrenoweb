@@ -1406,63 +1406,96 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
   }
 }
 
+// Función para crear un nuevo Centro de Costo para una Planta específica.
 const createCostCenter = async (plant, costCenter) => {
-  const docRef = doc(db, 'domain', 'costCenters')
+  try {
+    // Referencia al documento en Firestore
+    const docRef = doc(db, 'domain', 'costCenters')
 
-  await updateDoc(docRef, {
-    [plant]: arrayUnion(costCenter)
-  })
+    // Actualiza el documento agregando el nuevo Centro de Costo al array correspondiente a la Planta.
+    await updateDoc(docRef, {
+      [plant]: arrayUnion(costCenter)
+    })
 
-}
-
-const modifyCostCenter = async (plant, index, newCostCenterValue) => {
-
-  const docRef = doc(db, 'domain', 'costCenters')
-  const querySnapshot = await getDoc(docRef)
-  const docSnapshot = querySnapshot.data()
-
-  var plantCostCenters = docSnapshot[plant]
-  plantCostCenters[index] = newCostCenterValue
-
-  await updateDoc(docRef, {
-    [plant]: plantCostCenters
-  })
-
-}
-
-const deleteCostCenter = async (plant, costCenter) => {
-
-  const docRef = doc(db, 'domain', 'costCenters')
-
-  await updateDoc(docRef, {
-    [plant]: arrayRemove(costCenter)
-  })
-
-}
-
-const setDefaultCostCenter = async (plant, oldIndex) => {
-
-  const docRef = doc(db, 'domain', 'costCenters')
-  const querySnapshot = await getDoc(docRef)
-  const docSnapshot = querySnapshot.data()
-
-  var plantCostCenters = docSnapshot[plant]
-
-  if (0 >= plantCostCenters.length) {
-    var k = 0 - plantCostCenters.length + 1
-    while (k--) {
-        plantCostCenters.push(undefined)
-    }
+  } catch (error) {
+    // Manejo de errores.
+    console.error('Error al crear el Centro de Costo:', error)
+    throw error
   }
+}
 
-  plantCostCenters.splice(0, 0, plantCostCenters.splice(oldIndex, 1)[0])
+// Función para modificar un Centro de Costo existente en una Planta.
+const modifyCostCenter = async (plant, index, newCostCenterValue) => {
+  try {
+    // Referencia al documento en Firestore.
+    const docRef = doc(db, 'domain', 'costCenters')
 
-  console.log(plantCostCenters)
+    // Obtiene el snapshot del documento
+    const querySnapshot = await getDoc(docRef)
+    const docSnapshot = querySnapshot.data()
 
-  await updateDoc(docRef, {
-    [plant]: plantCostCenters
-  })
+    // Modifica el valor del Centro de Costo en el índice especificado.
+    var plantCostCenters = docSnapshot[plant]
+    plantCostCenters[index] = newCostCenterValue
 
+    // Actualiza el documento con el array modificado.
+    await updateDoc(docRef, {
+      [plant]: plantCostCenters
+    })
+
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al modificar el Centro de Costo:', error)
+    throw error
+  }
+}
+
+// Función para eliminar un Centro de Costo específico de una Planta.
+const deleteCostCenter = async (plant, costCenter) => {
+  try {
+    // Referencia al documento en Firestore.
+    const docRef = doc(db, 'domain', 'costCenters')
+
+    // Actualiza el documento eliminando el Centro de Costo del array correspondiente a la Planta.
+    await updateDoc(docRef, {
+      [plant]: arrayRemove(costCenter)
+    })
+
+  } catch (error) {
+    // Manejo de errores.
+    console.error('Error al eliminar el Centro de Costo:', error)
+    throw error
+  }
+}
+
+// Función para establecer un Centro de Costo como predeterminado, intercambiando posiciones en el array.
+const setDefaultCostCenter = async (plant, oldIndex) => {
+  try {
+    // Referencia al documento en Firestore.
+    const docRef = doc(db, 'domain', 'costCenters')
+
+    // Obtiene el snapshot del documento.
+    const querySnapshot = await getDoc(docRef)
+    const docSnapshot = querySnapshot.data()
+
+    // Se intercambia el Centro de costo en oldIndex con el de la posición 0.
+    var plantCostCenters = docSnapshot[plant]
+    const prevPositionZero = plantCostCenters[0]
+    const prevPositionOldIndex = plantCostCenters[oldIndex]
+
+    plantCostCenters[0] = prevPositionOldIndex
+    plantCostCenters[oldIndex] = prevPositionZero
+
+    // Actualiza el documento con el array modificado.
+    await updateDoc(docRef, {
+      [plant]: plantCostCenters
+    })
+
+  } catch (error) {
+    // Manejo de errores.
+    console.error('Error al establecer el Centro de Costo predeterminado:', error)
+    throw error
+  }
 }
 
 export {
