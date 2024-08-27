@@ -4,13 +4,7 @@ import { makeStyles } from '@mui/styles'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import {
-  GridToolbar,
-  DataGridPremium,
-  esES,
-  useGridApiRef,
-  useKeepGroupedColumnsHidden
-} from '@mui/x-data-grid-premium'
+import { DataGridPremium, esES } from '@mui/x-data-grid-premium'
 
 import { Container } from '@mui/system'
 import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew } from '@mui/icons-material'
@@ -29,11 +23,9 @@ import {
   IconButton,
   Dialog,
   DialogActions,
-  DialogContent,
-  Checkbox
+  DialogContent
 } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
-import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 
@@ -50,7 +42,6 @@ const TableGabinete = ({
   apiRef,
   selectedRows,
   setSelectedRows,
-  checkedTypes,
   showReasignarSection
 }) => {
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
@@ -66,13 +57,6 @@ const TableGabinete = ({
   const [openDialog, setOpenDialog] = useState(false)
   const [error, setError] = useState('')
   const [expandedRows, setExpandedRows] = useState(new Set())
-
-  /*  const [drawingTimeSelected, setDrawingTimeSelected] = useState({
-    start: null,
-    end: null,
-    hours: 0,
-    minutes: 0
-  }) */
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -117,9 +101,9 @@ const TableGabinete = ({
     const remarks = remarksState.length > 0 ? remarksState : false
 
     authUser.role === 8
-      ? await updateBlueprint(petitionId, doc, approve, authUser, false /* drawingTimeSelected.investedHours */)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, false)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true) /* , setDrawingTimeSelected('') */
+            setOpenAlert(false), setBlueprintGenerated(true)
           })
           .catch(err => console.error(err), setOpenAlert(false))
       : authUser.role === 9
@@ -130,7 +114,7 @@ const TableGabinete = ({
           .catch(err => console.error(err), setOpenAlert(false))
       : await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('') /* , setDrawingTimeSelected('') */
+            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
   }
@@ -149,7 +133,7 @@ const TableGabinete = ({
   const useStyles = makeStyles({
     root: {
       '& .MuiDataGrid-columnHeaderTitle': {
-        fontSize: lg ? '0.5rem' : '0.8rem' // Cambia esto al tamaño de fuente que desees
+        fontSize: lg ? '0.5rem' : '0.8rem'
       }
     }
   })
@@ -387,71 +371,6 @@ const TableGabinete = ({
     )
   }
 
-  /* useEffect(() => {
-    if (drawingTimeSelected.start && drawingTimeSelected.end) {
-      const workStartHour = 8 // Hora de inicio de la jornada laboral
-      const workEndHour = 20 // Hora de finalización de la jornada laboral
-      const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
-
-      let startDate = drawingTimeSelected.start.clone()
-      let endDate = drawingTimeSelected.end.clone()
-
-      // Asegurarse de que las fechas estén dentro de las horas de trabajo
-      if (startDate.hour() < workStartHour) {
-        startDate.hour(workStartHour).minute(0).second(0).millisecond(0)
-      }
-      if (endDate.hour() > workEndHour) {
-        endDate.hour(workEndHour).minute(0).second(0).millisecond(0)
-      } else if (endDate.hour() < workStartHour) {
-        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0)
-      }
-
-      let totalHoursWithinWorkingDays = 0
-      let totalMinutes = 0
-
-      while (startDate.isBefore(endDate)) {
-        const currentDayEnd = startDate.clone().hour(workEndHour)
-
-        if (currentDayEnd.isAfter(endDate)) {
-          const durationMillis = endDate.diff(startDate)
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000))
-        } else {
-          const durationMillis = currentDayEnd.diff(startDate)
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-        }
-
-        startDate.add(1, 'day').hour(workStartHour)
-      }
-
-      if (totalMinutes >= 60) {
-        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60)
-        totalMinutes %= 60
-      }
-
-      if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
-        setError('La hora de término debe ser superior a la hora de inicio.')
-
-        return
-      } else {
-        setError(null) // Para limpiar cualquier error previo.
-      }
-
-      const startDateAsDate = drawingTimeSelected.start.toDate()
-      const endDateAsDate = drawingTimeSelected.end.toDate()
-
-      setDrawingTimeSelected(prevHours => ({
-        ...prevHours,
-        investedHours: {
-          hours: totalHoursWithinWorkingDays,
-          minutes: totalMinutes,
-          selectedStartDate: startDateAsDate,
-          selectedEndDate: endDateAsDate
-        }
-      }))
-    }
-  }, [drawingTimeSelected.start, drawingTimeSelected.end]) */
-
   useEffect(() => {
     // Primera parte: obtener los nombres de los planos
     rows.map(async row => {
@@ -496,7 +415,7 @@ const TableGabinete = ({
 
       return fileName
     } else {
-      // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+      // Si content no es una cadena, devuelve un valor por defecto.
       return ''
     }
   }
@@ -630,7 +549,7 @@ const TableGabinete = ({
         let revisionContent
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Para las filas de revisión, muestra la descripción de la revisión
+          // Para las filas de revisión, muestra el registro de la revisión a modo de historial
           revisionContent = row.newRevision
 
           return (
@@ -641,7 +560,7 @@ const TableGabinete = ({
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra la el estado de la revisión actual
           revisionContent = row.revision
 
           return (
@@ -664,7 +583,7 @@ const TableGabinete = ({
         let userNameContent
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Para las filas de revisión, muestra la descripción de la revisión
+          // Para las filas de revisión, muestra el autor de la revisión
           userNameContent = row.userName
 
           return (
@@ -675,7 +594,7 @@ const TableGabinete = ({
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra el responsable actual del blueprint
           userNameContent = row.userName
 
           return (
@@ -698,7 +617,7 @@ const TableGabinete = ({
         let lastTransmittalContent
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Para las filas de revisión, muestra la descripción de la revisión
+          // Para las filas de revisión, muestra el identificador del transmittal de la revisión en caso que la revision lo incluya
           lastTransmittalContent = row.lastTransmittal
 
           return (
@@ -709,7 +628,7 @@ const TableGabinete = ({
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra el último transmital generado en ese blueprint
           lastTransmittalContent = row.lastTransmittal
 
           return (
@@ -756,7 +675,7 @@ const TableGabinete = ({
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra la descripción del blueprint recien cargado
           descriptionContent = row.description
 
           return (
@@ -1037,7 +956,6 @@ const TableGabinete = ({
           let dateContent
 
           if (row.isRevision && expandedRows.has(params.row.parentId)) {
-            // Asegúrate de que seconds es un número.
             const seconds = Number(row.date.seconds)
             if (!isNaN(seconds)) {
               const date = new Date(seconds * 1000)
@@ -1061,8 +979,6 @@ const TableGabinete = ({
               </Box>
             )
           } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-            // Para las filas principales, muestra la descripción general
-            // Asegúrate de que row.date.seconds es un número.
             const seconds = Number(row.date?.seconds)
             if (!isNaN(seconds)) {
               const date = new Date(seconds * 1000)
@@ -1104,7 +1020,6 @@ const TableGabinete = ({
         const buttons = renderButtons(row, flexDirection, canApprove, canReject)
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Renderiza la descripción para una fila de revisión
           return (
             <Box
               sx={{
@@ -1184,7 +1099,6 @@ const TableGabinete = ({
         const disabled = petition?.otFinished
 
         const buttons = renderButtons(row, flexDirection, canApprove, canReject, disabled, canResume)
-        //const buttons = renderButtons(row, flexDirection, canApprove, canReject)
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
           return ''
@@ -1344,7 +1258,7 @@ const TableGabinete = ({
                 margin: '0rem'
               },
               '& .MuiCheckbox-root': {
-                // Asegúrate de no aplicar estilos que podrían ocultar el checkbox si es necesario
+                // No aplicar estilos que podrían ocultar el checkbox si es necesario
               }
             }
           }
@@ -1356,10 +1270,10 @@ const TableGabinete = ({
         isRowSelectable={isRowSelectable}
         getRowId={row => row.id}
         getRowClassName={params => {
-          // Aquí puedes verificar si la fila es una revisión y aplicar una clase condicional
+          // Verificamos si la fila es una revisión y aplica una clase condicional
           const row = apiRef.current.getRow(params.id)
           if (row && row.isRevision) {
-            return 'no-checkbox' // Asume que tienes una clase CSS que oculta el checkbox
+            return 'no-checkbox' // clase CSS que oculta el checkbox
           }
 
           return ''
@@ -1385,8 +1299,6 @@ const TableGabinete = ({
         authUser={authUser}
         setRemarksState={setRemarksState}
         blueprint={doc && doc}
-        //drawingTimeSelected={drawingTimeSelected}
-        //setDrawingTimeSelected={setDrawingTimeSelected}
         error={error}
         setError={setError}
       ></AlertDialogGabinete>

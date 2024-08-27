@@ -653,20 +653,6 @@ const consultDocs = async (type, options = {}) => {
   }
 }
 
-/* const fetchPlaneProperties = async () => {
-  const docRef = doc(db, 'domain', 'blueprintProcureProperties')
-  const docSnap = await getDoc(docRef)
-
-  if (docSnap.exists()) {
-    const resDeliverables = await docSnap.data().deliverables
-    const resDisciplines = await docSnap.data().disciplines
-
-    return { resDeliverables, resDisciplines }
-  } else {
-    console.log('El documento no existe')
-  }
-} */
-
 const fetchDisciplineProperties = async () => {
   const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
   const docSnapshot = await getDoc(propsRef)
@@ -690,60 +676,6 @@ const fetchDeliverablesByDiscipline = async discipline => {
     throw new Error('No matching discipline found in the database.')
   }
 }
-
-/* const fetchMelDisciplines = async () => {
-  const docRef = doc(db, 'domain', 'blueprintMelProperties')
-  const docSnap = await getDoc(docRef)
-
-  if (docSnap.exists()) {
-    const resDisciplines = await docSnap.data().disciplines
-
-    return resDisciplines
-  } else {
-    console.log('El documento no existe')
-  }
-}
-
-const fetchMelDeliverableType = async discipline => {
-  const shortDeliverableType = ['AR', 'BS', 'CL', 'EL', 'GN', 'IC', 'ME', 'PP', 'PR', 'ST', 'TC', 'VE']
-
-  const longDeliverableType = [
-    'arquitectura',
-    'hvca',
-    'civil',
-    'electrica',
-    'multi-disciplina',
-    'instrumentacion y control',
-    'mecanica',
-    'cañeria',
-    'proceso',
-    'estructura',
-    'comunicaciones',
-    'vendor'
-  ]
-
-  function getLongDefinition(item) {
-    const index = shortDeliverableType.indexOf(item)
-    if (index !== -1) {
-      return longDeliverableType[index]
-    } else {
-      return 'No se encontró definición corta para este tipo'
-    }
-  }
-
-  const deliverableType = getLongDefinition(discipline)
-
-  const docRef = doc(db, 'domain', 'blueprintMelProperties')
-  const docSnap = await getDoc(docRef)
-
-  if (docSnap.exists() && discipline) {
-    const resDeliverableType = await docSnap.data()[deliverableType]
-
-    return resDeliverableType
-  } else {
-    console.log('El documento no existe')
-  }
-} */
 
 const fetchPetitionById = async id => {
   const docRef = doc(db, 'solicitudes', id)
@@ -1005,9 +937,6 @@ export {
   consultObjetives,
   getUsersWithSolicitudes,
   fetchPetitionById,
-  //fetchPlaneProperties,
-  //fetchMelDisciplines,
-  //fetchMelDeliverableType,
   consultBluePrints,
   subscribeToPetition,
   consultOT,

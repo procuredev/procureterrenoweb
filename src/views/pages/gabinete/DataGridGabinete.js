@@ -78,7 +78,6 @@ const DataGridGabinete = () => {
     )
   }
 
-  //let blueprints = useBlueprints(currentPetition?.id)
   const [blueprints, projectistData, setBlueprints] = useBlueprints(currentPetition?.id)
 
   const theme = useTheme()
@@ -157,7 +156,7 @@ const DataGridGabinete = () => {
   }
 
   const handleOpenTransmittalDialog = () => {
-    // Obtén los documentos seleccionados del apiRef de DataGrid
+    // Obtiene los documentos seleccionados del apiRef de DataGrid
     const selectedDocuments = apiRef.current.getSelectedRows()
     setSelectedDocs(Array.from(selectedDocuments.values()))
     console.log(selectedDocuments)
@@ -237,7 +236,7 @@ const DataGridGabinete = () => {
     }
   }, [currentPetition])
 
-  // Actualizar el ref cuando `currentPetition` cambie
+  // Actualiza el ref cuando `currentPetition` cambie
   useEffect(() => {
     currentPetitionRef.current = currentPetition
   }, [currentPetition])
@@ -246,7 +245,7 @@ const DataGridGabinete = () => {
     if (currentPetition) {
       const fetchRoleAndProyectistas = async () => {
         if (authUser) {
-          // Cargar los proyectistas
+          // Carga los proyectistas
           const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
           setProyectistas(resProyectistas)
         }
@@ -258,9 +257,6 @@ const DataGridGabinete = () => {
 
   useEffect(() => {
     if (transmittalGenerated) {
-      // Aquí puedes realizar las operaciones necesarias para actualizar la interfaz de usuario
-      // ...
-
       // Actualiza 'blueprints'.
       setBlueprints([...blueprints])
 
@@ -294,13 +290,13 @@ const DataGridGabinete = () => {
         let updatedRows
 
         if (updatedCheckedTypes[key]) {
-          // Si se selecciona el checkbox grupal, agregar todos los documentos relacionados
+          // Si se selecciona el checkbox grupal, agrega todos los documentos relacionados
           updatedRows = [
             ...prevSelectedRows,
             ...filteredDocs.filter(doc => !prevSelectedRows.some(row => row.id === doc.id))
           ]
         } else {
-          // Si se deselecciona el checkbox grupal, eliminar todos los documentos relacionados
+          // Si se deselecciona el checkbox grupal, elimina todos los documentos relacionados
           updatedRows = prevSelectedRows.filter(row => !filteredDocs.some(doc => doc.id === row.id))
         }
 
@@ -310,8 +306,6 @@ const DataGridGabinete = () => {
       return updatedCheckedTypes
     })
   }
-
-  console.log('selectedRows', selectedRows)
 
   const renderProjectistSummary = () => {
     return Object.entries(projectistData).map(([projectist, types]) => {
@@ -345,9 +339,6 @@ const DataGridGabinete = () => {
       return !prevState
     })
   }
-
-  console.log('checkedTypes', checkedTypes)
-  console.log('isDeleteDialogOpen', isDeleteDialogOpen)
 
   return (
     <Box id='main' sx={{ display: 'flex', width: '100%', flexDirection: 'column' }}>
@@ -437,17 +428,7 @@ const DataGridGabinete = () => {
               Finalizar OT
             </Button>
           )
-        ) : /* authUser.role === 8 ? (
-          <Button
-            sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
-            variant='contained'
-            disabled={currentPetition?.otFinished}
-            onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
-          >
-            Generar nuevo documento
-          </Button>
-        ) : */ authUser.role ===
-          7 ? (
+        ) : authUser.role === 7 ? (
           <>
             <Button
               sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
@@ -471,11 +452,7 @@ const DataGridGabinete = () => {
           ''
         )}
 
-        {authUser.role ===
-        7 /*  &&
-        currentPetition &&
-        currentPetition.gabineteDraftmen &&
-        currentPetition.gabineteDraftmen.find(user => user.userId === authUser.uid) */ ? (
+        {authUser.role === 7 ? (
           <Button
             sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
@@ -519,7 +496,6 @@ const DataGridGabinete = () => {
           apiRef={apiRef}
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
-          checkedTypes={checkedTypes}
           showReasignarSection={showReasignarSection}
         />
       </Box>

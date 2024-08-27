@@ -42,7 +42,6 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
   const [selectedDraftman, setSelectedDraftman] = useState(null)
 
   // ** Hooks
-  //const { updateDocs, authUser, generateBlueprint, fetchPlaneProperties, generateCodes } = useFirebase()
   const { fetchDisciplineProperties, fetchDeliverablesByDiscipline, generateBlueprintCodes, authUser } = useFirebase()
 
   useEffect(() => {
@@ -129,7 +128,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
             >
               {doc.gabineteDraftmen.map(draftman => (
                 <MenuItem key={draftman.userId} value={draftman.name}>
-                  {draftman.name} {/* Asumiendo que 'name' es el atributo del nombre del proyectista */}
+                  {draftman.name}
                 </MenuItem>
               ))}
             </Select>

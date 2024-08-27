@@ -15,9 +15,7 @@ import Select from '@mui/material/Select'
 import Tooltip from '@mui/material/Tooltip'
 import { Container } from '@mui/system'
 import { esES } from '@mui/x-data-grid'
-import {
-  DataGridPremium
-} from '@mui/x-data-grid-premium'
+import { DataGridPremium } from '@mui/x-data-grid-premium'
 import { DialogDoneProject } from 'src/@core/components/dialog-doneProject'
 import { FullScreenDialog } from 'src/@core/components/dialog-fullsize'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -135,8 +133,6 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const md = useMediaQuery(theme.breakpoints.up('md'))
   const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
-  //const resultProyectistas = getUserProyectistas(authUser.shift)
-
   useEffect(() => {
     // Busca el documento actualizado en rows
     const updatedDoc = rows.find(row => row.id === doc.id)
@@ -150,7 +146,10 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   useEffect(() => {
     const fetchProyectistas = async () => {
       const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
-      const filteredProyectistas = resProyectistas.filter((user) => user.enabled === true && user.shift.includes(authUser.shift[0]))
+
+      const filteredProyectistas = resProyectistas.filter(
+        user => user.enabled === true && user.shift.includes(authUser.shift[0])
+      )
       setProyectistas(filteredProyectistas)
       setLoadingProyectistas(false)
     }
@@ -323,7 +322,13 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         const { row } = params
         localStorage.setItem('daysToDeadLineLevantamientosWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.deadline ? Math.round((row.deadline.toDate().getTime()-today.toDate().getTime())/(1000*24*60*60)) : 'Pendiente'}</div>
+        return (
+          <div>
+            {row.deadline
+              ? Math.round((row.deadline.toDate().getTime() - today.toDate().getTime()) / (1000 * 24 * 60 * 60))
+              : 'Pendiente'}
+          </div>
+        )
       }
     },
     {
@@ -518,7 +523,15 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
             canComment={authUser.role === 7}
           />
         )}
-        {openDone && <DialogDoneProject open={openDone} handleClose={handleCloseDone} doc={doc} roleData={roleData} proyectistas={proyectistas} />}
+        {openDone && (
+          <DialogDoneProject
+            open={openDone}
+            handleClose={handleCloseDone}
+            doc={doc}
+            roleData={roleData}
+            proyectistas={proyectistas}
+          />
+        )}
       </Box>
     </Card>
   )
