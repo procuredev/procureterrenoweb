@@ -633,7 +633,7 @@ const useBlueprints = id => {
         const { userName, id } = docData
 
         // Actualización de agrupación de datos
-        if (userName && id) {
+        if (!docData.deleted && userName && id) {
           const documentType = `${id.split('-')[1]}-${id.split('-')[2]}` // Ej: "500-PL"
           if (!projectistDataTemp[userName]) {
             projectistDataTemp[userName] = {}

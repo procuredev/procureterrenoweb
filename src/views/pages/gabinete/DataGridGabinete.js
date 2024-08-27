@@ -270,7 +270,7 @@ const DataGridGabinete = () => {
 
     // Filtra los documentos correspondientes al `projectist` y `type`
     const filteredDocs = blueprints.filter(
-      doc => doc.userName === projectist && `${doc.id.split('-')[1]}-${doc.id.split('-')[2]}` === type
+      doc => !doc.deleted && doc.userName === projectist && `${doc.id.split('-')[1]}-${doc.id.split('-')[2]}` === type
     )
 
     // Guardamos el estado actual antes de actualizar
