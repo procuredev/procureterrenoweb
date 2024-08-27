@@ -19,7 +19,6 @@ import Typography from '@mui/material/Typography'
 
 // ** Hooks
 import { CircularProgress, TextField } from '@mui/material'
-import { useRouter } from 'next/router'
 import { useFirebase } from 'src/context/useFirebase'
 
 // Función que llenará los datos de cada card
@@ -38,7 +37,7 @@ const AppCard = ({ plant, onEdit }) => {
           </Box>
           {plant[1].map(costCenter => (
             <Box key={costCenter} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant='h6' sx={{ mb: 1 }}>
+              <Typography variant='h8' sx={{ mb: 1 }}>
                 {costCenter}
               </Typography>
             </Box>
@@ -188,8 +187,7 @@ const DialogWaiting = ({loading, handleClose}) => {
 
 const CentrosDeCosto = () => {
   // ** Hooks
-  const { authUser, getDomainData, createCostCenter, modifyCostCenter, deleteCostCenter, setDefaultCostCenter } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
-  const router = useRouter() // Importación de router... no sé que utlidad le daré
+  const { getDomainData, createCostCenter, modifyCostCenter, deleteCostCenter, setDefaultCostCenter } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
 
   // ** States
   const [costCentersData, setCostCentersData] = useState([]) // declaración de constante donde se almacenan los datos de los usuarios de procure
