@@ -21,7 +21,7 @@ import Typography from '@mui/material/Typography'
 import { CircularProgress, TextField } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
 
-// Función que llenará los datos de cada card
+// Función que llenará los datos de cada Card con las Plantas y sus respectivos Centros de Costo.
 const AppCard = ({ plant, onEdit }) => {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -48,11 +48,13 @@ const AppCard = ({ plant, onEdit }) => {
   )
 }
 
+// Dialog que mostrará los Centros de Costo de una Planta y aparacerán los botones para Editar, Borrar, Agregar o Marcar como Principal.
 const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, selectedCheckboxIndex, handleCheckboxChange, handleModifyCostCenter, handleDeleteCostCenter, handleCreateCostCenter}) => {
   return (
     <Dialog open={dialogOpen} onClose={handleDialogClose}>
       <DialogTitle>Editar Centros de Costo</DialogTitle>
       <DialogContent>
+
         {/* Encabezados de las columnas */}
         <Grid container alignItems="center" sx={{ mb: 2 }}>
           <Grid item sx={{ minWidth: 85, maxWidth: 85 }}>
@@ -68,6 +70,8 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
             <Typography variant="subtitle1">Eliminar</Typography>
           </Grid>
         </Grid>
+
+        {/* Datos, Botones y Checkbox */}
         {selectedPlant && selectedPlant[1].map((costCenter, index) => (
           <Grid container alignItems="center" key={`${costCenter}-${index}`}>
             <Grid sx={{minWidth: 85, maxWidth: 85, mb: 4}}>
@@ -97,14 +101,13 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
   )
 }
 
+// Dialog para Agregar un Centro de Costo.
 const DialogCreateCostCenter = ({open, onClose, onAccept, onChange}) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Agregar Centro de Costo</DialogTitle>
       <DialogContent>
         <TextField
-          // key={index}
-          // defaultValue={costCenter}
           fullWidth
           sx={{ mb: 4 }}
           onChange={onChange}
@@ -118,6 +121,7 @@ const DialogCreateCostCenter = ({open, onClose, onAccept, onChange}) => {
   )
 }
 
+// Dialog para modificar un Centro de Costo.
 const DialogModify = ({index, costCenter, open, onClose, onAccept, onChange}) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -139,6 +143,7 @@ const DialogModify = ({index, costCenter, open, onClose, onAccept, onChange}) =>
   )
 }
 
+// Dialog para Eliminar un Centro de Costo.
 const DialogDeleteWarning = ({open, onClose, onAccept}) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -152,6 +157,7 @@ const DialogDeleteWarning = ({open, onClose, onAccept}) => {
   )
 }
 
+// Dialog para definir un Centro de Costo como el Principal.
 const DialogDefaultCostCenter = ({open, onClose, onAccept}) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -165,6 +171,7 @@ const DialogDefaultCostCenter = ({open, onClose, onAccept}) => {
   )
 }
 
+// Dialog de espera mientras se ejecuta alguna acción de modificación a los Centros de Costo.
 const DialogWaiting = ({loading, handleClose}) => {
   return (
     <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={loading !== null} maxWidth={false}>
@@ -185,6 +192,7 @@ const DialogWaiting = ({loading, handleClose}) => {
 }
 
 
+// Función principal de módulo de Centros de Costo.
 const CentrosDeCosto = () => {
   // ** Hooks
   const { getDomainData, createCostCenter, modifyCostCenter, deleteCostCenter, setDefaultCostCenter } = useFirebase() // Importación de todos los usuarios que pertenezcan a Procure
@@ -203,25 +211,36 @@ const CentrosDeCosto = () => {
   const [dialogCreateCostCenterOpen, setDialogCreateCostCenterOpen] = useState(false)
   const [dialogDefaultCostCenterOpen, setDialogDefaultCostCenterOpen] = useState(false)
 
+  // Función para manejar la edición de una Planta.
+  // Se activa al hacer click en Botón Editar "Lápiz" en una Planta.
   const handleEdit = (plant) => {
     setSelectedPlant(plant)
     setDialogOpen(true)
   }
 
+  // Función para manejar el cierre del Dialog de una Planta.
+  // Se activa al hacer click en Botón "Cancelar".
   const handleDialogClose = () => {
     setDialogOpen(false)
     setSelectedPlant(null)
   }
 
+  // Función para eliminar un Centro de Costo.
+  // Se activa al hacer click en Botón "Basura".
+  // Sólo hará que se abra un nuevo Dialog de Confirmación
   const handleDeleteCostCenter = (costCenter) => {
     setDialogWarningOpen(true)
     setSelectedCostCenter(costCenter)
   }
 
+  // Función para manejar el cierre del Dialog de Eliminación de un Centro de Costo.
+  // Se activa al hacer click en Botón "No".
   const handleCloseDialogWarning = () => {
     setDialogWarningOpen(false)
   }
 
+  // Función que maneja la confirmación de eliminación del Centro de Costo.
+  // Esta llama a Firebase para su eliminación.
   const handleConfirmDeletion = async () => {
     setWaiting(true)
     try {
@@ -234,21 +253,30 @@ const CentrosDeCosto = () => {
     setDialogWarningOpen(false)
   }
 
+  // Función que maneja la aparición del Dialog de espera / Spinner  mientras se ejecuta alguna acción.
+  // Las acciones pueden ser: agregar, eliminar, modificar o marcar como principal.
   const handleCloseCircularProgress = () => {
     setWaiting(null)
     window.location.reload() // Recarga la página
   }
 
+  // Función para modificar un Centro de Costo.
+  // Se activa al hacer click en Botón Editar "Lápiz".
+  // Sólo hará que se abra un nuevo Dialog de Confirmación
   const handleModifyCostCenter = (index, costCenter) => {
     setDialogModifyOpen(true)
     setSelectedCostCenterIndex(index)
     setSelectedCostCenter(costCenter)
   }
 
+  // Función para manejar el cierre del Dialog de Modificación de un Centro de Costo.
+  // Se activa al hacer click en Botón "Cancelar".
   const handleCloseDialogModify = () => {
     setDialogModifyOpen(false)
   }
 
+  // Función que maneja la confirmación de modificación del Centro de Costo.
+  // Esta llama a Firebase para su modificación.
   const handleConfirmModification = async () => {
     setWaiting(true)
     try {
@@ -261,14 +289,21 @@ const CentrosDeCosto = () => {
     setDialogWarningOpen(false)
   }
 
-  const handleCreateCostCenter = (costCenter) => {
+  // Función para Crear un Centro de Costo.
+  // Se activa al hacer click en Botón "Crear CC".
+  // Sólo hará que se abra un nuevo Dialog de Confirmación
+  const handleCreateCostCenter = () => {
     setDialogCreateCostCenterOpen(true)
   }
 
+  // Función para manejar el cierre del Dialog de Agregar un Centro de Costo.
+  // Se activa al hacer click en Botón "Cancelar".
   const handleCloseDialogCreateCostCenter = () => {
     setDialogCreateCostCenterOpen(false)
   }
 
+  // Función que maneja la confirmación de Crear un Centro de Costo.
+  // Esta llama a Firebase para su Creación.
   const handleConfirmCreate = async () => {
     setWaiting(true)
     try {
@@ -281,16 +316,22 @@ const CentrosDeCosto = () => {
     setDialogWarningOpen(false)
   }
 
+  // Función que maneja la selección de un ceckbox (Marcar como Principal).
+  // Además, hará que se abra un nuevo Dialog de Confirmación.
   const handleCheckboxChange = (index) => {
     setSelectedCheckboxIndex(index)
     setDialogDefaultCostCenterOpen(true)
   }
 
+  // Función para manejar el cierre del Dialog de "Marcar como Principal" a un Centro de Costo.
+  // Se activa al hacer click en Botón "No".
   const handleCloseDialoDefaultCostCenter = () => {
     setSelectedCheckboxIndex(0)
     setDialogDefaultCostCenterOpen(false)
   }
 
+  // Función que maneja la confirmación de "Marcar como Principal" a un Centro de Costo.
+  // Esta llama a Firebase para la modificación del Array de Centros de Costo de esa Planta.
   const handleConfirmDefaultCostCenter = async () => {
     setWaiting(true)
     try {
@@ -303,7 +344,8 @@ const CentrosDeCosto = () => {
     setDialogWarningOpen(false)
   }
 
-  // useEffect para almacenar dentro de costCentersData
+  // useEffect para almacenar dentro de costCentersData los datos de Centros de Costos de cada Planta.
+  // Se actualiza al entrar al módulo o recargar la página.
   useEffect(() => {
     const fetchCostCenters = async () => {
       try {
@@ -323,8 +365,14 @@ const CentrosDeCosto = () => {
   }, [])
 
 
+  // Return con Cards y Dialogs
+
   return (
+
+    //Grid que Contendrá los Cards y los Dialogs.
     <Grid container spacing={2}>
+
+      {/* Cards con cada una de las Plantas y sus Centros de Costos. */}
       {costCentersData.length > 0 ? (
         costCentersData.map((plant, index) => (
           <Grid item xs={12} sm={12} md={6} key={index}>
@@ -335,6 +383,7 @@ const CentrosDeCosto = () => {
         <Typography variant="body1">Cargando usuarios...</Typography>
       )}
 
+      {/* Dialog de Edición de Una Planta. */}
       <DialogEditCostCenters
         dialogOpen={dialogOpen}
         handleDialogClose={handleDialogClose}
@@ -347,6 +396,7 @@ const CentrosDeCosto = () => {
         handleCreateCostCenter={handleCreateCostCenter}
       />
 
+      {/* Dialog de Creación de un Centro de Costo. */}
       <DialogCreateCostCenter
         open={dialogCreateCostCenterOpen}
         onClose={handleCloseDialogCreateCostCenter}
@@ -354,6 +404,7 @@ const CentrosDeCosto = () => {
         onChange={(event) => {setNewCostCenterValue(event.target.value)}}
       />
 
+      {/* Dialog de Modificación de un Centro de Costo. */}
       <DialogModify
         index={selectedCostCenterIndex}
         costCenter={selectedCostCenter}
@@ -363,23 +414,27 @@ const CentrosDeCosto = () => {
         onChange={(event) => {setNewCostCenterValue(event.target.value)}}
       />
 
+      {/* Dialog de Eliminación de un Centro de Costo. */}
       <DialogDeleteWarning
         open={dialogWarningOpen}
         onClose={handleCloseDialogWarning}
         onAccept={handleConfirmDeletion}
       />
 
+      {/* Dialog de "Marcar como Principal" un Centro de Costo. */}
       <DialogDefaultCostCenter
         open={dialogDefaultCostCenterOpen}
         onClose={handleCloseDialoDefaultCostCenter}
         onAccept={handleConfirmDefaultCostCenter}
       />
 
+      {/* Dialog de espera (spinner) mientras se ejecuta alguna acción. */}
       {waiting !== null && (
         <DialogWaiting loading={waiting} handleClose={handleCloseCircularProgress} />
       )}
 
     </Grid>
+
   )
 }
 
