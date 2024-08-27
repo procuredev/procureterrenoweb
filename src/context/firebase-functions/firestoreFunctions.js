@@ -981,10 +981,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
 
     // Obtiene la subcolección 'blueprints'
     const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints')
+
     // Obtiene todos los documentos de la subcolección
     const blueprintsSnapshot = await getDocs(blueprintsCollection)
+    const filteredBlueprints = blueprintsSnapshot.docs.filter(doc => doc.data().deleted !== true)
     // Obtiene la cantidad de documentos en la subcolección
-    const numBlueprints = blueprintsSnapshot.size
+    const numBlueprints = filteredBlueprints.length
 
     // Lee el documento de la 'solicitud posterior al incremento de counterBlueprintCompleted'
     const solicitudDocAfter = await getDoc(solicitudRef)
@@ -1391,6 +1393,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
         userId: userParam.userId,
         userName: userParam.name,
         revision: 'iniciado',
+        otFinished: false,
         userEmail: userParam.email,
         sentByDesigner: false,
         sentBySupervisor: false,

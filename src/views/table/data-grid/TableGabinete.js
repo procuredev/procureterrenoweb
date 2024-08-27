@@ -78,7 +78,7 @@ const TableGabinete = ({
   }
 
   const handleSelectionChange = selection => {
-    if (showReasignarSection) {
+    if (showReasignarSection || authUser.role === 9) {
       setSelectedRows(prevSelectedRows => {
         const newSelection = selection.map(id => rows.find(row => row.id === id))
 
