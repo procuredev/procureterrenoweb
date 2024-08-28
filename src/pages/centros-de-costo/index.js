@@ -86,7 +86,7 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
               </IconButton>
             </Grid>
             <Grid sx={{minWidth: 50, maxWidth: 50, mb:4}}>
-              <IconButton onClick={() => handleDeleteCostCenter(costCenter)}>
+              <IconButton onClick={() => handleDeleteCostCenter(costCenter)} disabled={selectedPlant[1].length<=1}>
                 <DeleteIcon/>
               </IconButton>
             </Grid>
