@@ -1208,7 +1208,11 @@ const TableGabinete = ({
       const selectableRows = getSelectableRows()
 
       return selectableRows.some(
-        selectableRow => selectableRow.id === params.row.id && params.row.revision === 'iniciado'
+        selectableRow =>
+          selectableRow.id === params.row.id &&
+          (params.row.revision === 'iniciado' ||
+            params.row.revision === 'A' ||
+            (params.row.revision === 'B' && !params.row.lastTransmittal))
       )
     }
 

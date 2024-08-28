@@ -925,7 +925,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : null,
             resumeBlueprint:
               (isApprovedByClient && blueprint.blueprintCompleted) ||
-              (blueprint.resumeBlueprint && blueprint.approvedByDocumentaryControl)
+              (blueprint.resumeBlueprint && !blueprint.approvedByDocumentaryControl)
                 ? true
                 : false,
             blueprintCompleted:
@@ -996,6 +996,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     } else {
       await updateDoc(solicitudRef, { otReadyToFinish: false })
     }
+  } else if (
+    userParam.role === 9 &&
+    blueprint.approvedByDocumentaryControl === true &&
+    !blueprintDoc.data().blueprintCompleted &&
+    blueprintDoc.data().resumeBlueprint === true
+  ) {
+    await updateDoc(solicitudRef, { counterBlueprintCompleted: increment(-1), otReadyToFinish: false })
   }
 }
 
@@ -1323,6 +1330,9 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
   const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
   const melCounterRef = doc(db, 'solicitudes', docData.id, 'clientCodeGeneratorCount', melCounterDocId)
 
+  // Crea la referencia al documento de la solicitud
+  const solicitudRef = doc(db, 'solicitudes', docData.id)
+
   // Función para formatear el contador MEL
   function formatCountMEL(count) {
     return String(count).padStart(5, '0')
@@ -1357,6 +1367,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
   await runTransaction(db, async transaction => {
     const procureCounterDoc = await transaction.get(procureCounterRef)
     const melCounterDoc = await transaction.get(melCounterRef)
+    const solicitudDoc = await transaction.get(solicitudRef)
 
     // Manejo de la situación cuando el documento de MEL no existe
     let melCounter
@@ -1375,6 +1386,16 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
     }
     let procureCounter = Number(procureCounterData.count)
     melCounter = Number(melCounter)
+
+    // Verificar y actualizar el campo otReadyToFinish en la solicitud
+    if (solicitudDoc.exists()) {
+      const solicitudData = solicitudDoc.data()
+      if (solicitudData.otReadyToFinish === true) {
+        transaction.update(solicitudRef, { otReadyToFinish: false })
+      } else if (solicitudData.otReadyToFinish === undefined) {
+        transaction.update(solicitudRef, { otReadyToFinish: false })
+      }
+    }
 
     const newDocs = []
 
@@ -1488,8 +1509,21 @@ const deleteBlueprintAndDecrementCounters = async (
   // Referencia al documento de la subcolección "blueprints" que se eliminará
   const blueprintDocRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
 
+  // Referencia a la subcolección "revisions"
+  const revisionsCollectionRef = collection(blueprintDocRef, 'revisions')
+
   await runTransaction(db, async transaction => {
-    // Elimina el documento de 'blueprints'
+    // Verifica si la subcolección 'revisions' tiene documentos
+    const revisionsSnapshot = await getDocs(revisionsCollectionRef)
+
+    if (!revisionsSnapshot.empty) {
+      // Si existen documentos en la subcolección, se eliminan uno por uno
+      revisionsSnapshot.forEach(doc => {
+        transaction.delete(doc.ref)
+      })
+    }
+
+    // Después de eliminar los documentos de la subcolección 'revisions', elimina el documento 'blueprints'
     transaction.delete(blueprintDocRef)
 
     // Disminuye los contadores
