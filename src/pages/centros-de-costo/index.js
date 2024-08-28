@@ -110,7 +110,7 @@ const DialogCreateCostCenter = ({open, value, onClose, onAccept, onChange}) => {
         <TextField
           fullWidth
           type='text'
-          inputProps={{inputMode: 'numeric'}}
+          inputProps={{inputMode: 'numeric', maxLength: 25}}
           value={value}
           sx={{ mb: 4 }}
           onChange={onChange}
@@ -135,7 +135,7 @@ const DialogModify = ({index, value, costCenter, open, onClose, onAccept, onChan
           defaultValue={costCenter}
           fullWidth
           type='text'
-          inputProps={{inputMode: 'numeric'}}
+          inputProps={{inputMode: 'numeric', maxLength: 25}}
           value={value}
           sx={{ mb: 4 }}
           onChange={onChange}
