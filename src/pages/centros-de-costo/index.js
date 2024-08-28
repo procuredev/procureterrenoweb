@@ -398,7 +398,7 @@ const CentrosDeCosto = () => {
           </Grid>
         ))
       ) : (
-        <Typography variant="body1">Cargando usuarios...</Typography>
+        <Typography variant="body1">Cargando Plantas y Centros de Costo...</Typography>
       )}
 
       {/* Dialog de Edición de Una Planta. */}
