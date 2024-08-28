@@ -102,7 +102,7 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
 }
 
 // Dialog para Agregar un Centro de Costo.
-const DialogCreateCostCenter = ({open, value, onClose, onAccept, onChange}) => {
+const DialogCreateCostCenter = ({open,value, onClose, onAccept, onChange}) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Agregar Centro de Costo</DialogTitle>
@@ -117,9 +117,9 @@ const DialogCreateCostCenter = ({open, value, onClose, onAccept, onChange}) => {
         />
       </DialogContent>
       <DialogActions>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button onClick={onAccept} variant="contained">Guardar</Button>
-        </DialogActions>
+        <Button onClick={onClose}>Cancelar</Button>
+        <Button onClick={onAccept} variant="contained" disabled={value === ''}>Guardar</Button>
+      </DialogActions>
   </Dialog>
   )
 }
@@ -143,7 +143,7 @@ const DialogModify = ({index, value, costCenter, open, onClose, onAccept, onChan
       </DialogContent>
       <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button onClick={onAccept} variant="contained">Guardar</Button>
+          <Button onClick={onAccept} variant="contained" disabled={value === ''}>Guardar</Button>
         </DialogActions>
   </Dialog>
   )
@@ -213,7 +213,7 @@ const CentrosDeCosto = () => {
   const [selectedCostCenterIndex, setSelectedCostCenterIndex] = useState(null)
   const [waiting, setWaiting] = useState(null)
   const [dialogModifyOpen, setDialogModifyOpen] = useState(false)
-  const [newCostCenterValue, setNewCostCenterValue] = useState(null)
+  const [newCostCenterValue, setNewCostCenterValue] = useState('')
   const [dialogCreateCostCenterOpen, setDialogCreateCostCenterOpen] = useState(false)
   const [dialogDefaultCostCenterOpen, setDialogDefaultCostCenterOpen] = useState(false)
 
@@ -270,7 +270,7 @@ const CentrosDeCosto = () => {
   // Se activa al hacer click en Botón Editar "Lápiz".
   // Sólo hará que se abra un nuevo Dialog de Confirmación
   const handleModifyCostCenter = (index, costCenter) => {
-    setNewCostCenterValue('')
+    setNewCostCenterValue(costCenter)
     setDialogModifyOpen(true)
     setSelectedCostCenterIndex(index)
     setSelectedCostCenter(costCenter)
@@ -279,6 +279,7 @@ const CentrosDeCosto = () => {
   // Función para manejar el cierre del Dialog de Modificación de un Centro de Costo.
   // Se activa al hacer click en Botón "Cancelar".
   const handleCloseDialogModify = () => {
+    setNewCostCenterValue('')
     setDialogModifyOpen(false)
   }
 
@@ -307,6 +308,7 @@ const CentrosDeCosto = () => {
   // Función para manejar el cierre del Dialog de Agregar un Centro de Costo.
   // Se activa al hacer click en Botón "Cancelar".
   const handleCloseDialogCreateCostCenter = () => {
+    setNewCostCenterValue('')
     setDialogCreateCostCenterOpen(false)
   }
 
