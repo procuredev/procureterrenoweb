@@ -102,13 +102,16 @@ const DialogEditCostCenters = ({dialogOpen, handleDialogClose, selectedPlant, se
 }
 
 // Dialog para Agregar un Centro de Costo.
-const DialogCreateCostCenter = ({open, onClose, onAccept, onChange}) => {
+const DialogCreateCostCenter = ({open, value, onClose, onAccept, onChange}) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Agregar Centro de Costo</DialogTitle>
       <DialogContent>
         <TextField
           fullWidth
+          type='text'
+          inputProps={{inputMode: 'numeric'}}
+          value={value}
           sx={{ mb: 4 }}
           onChange={onChange}
         />
@@ -122,7 +125,7 @@ const DialogCreateCostCenter = ({open, onClose, onAccept, onChange}) => {
 }
 
 // Dialog para modificar un Centro de Costo.
-const DialogModify = ({index, costCenter, open, onClose, onAccept, onChange}) => {
+const DialogModify = ({index, value, costCenter, open, onClose, onAccept, onChange}) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Modificar Centro de Costo</DialogTitle>
@@ -131,6 +134,9 @@ const DialogModify = ({index, costCenter, open, onClose, onAccept, onChange}) =>
           key={index}
           defaultValue={costCenter}
           fullWidth
+          type='text'
+          inputProps={{inputMode: 'numeric'}}
+          value={value}
           sx={{ mb: 4 }}
           onChange={onChange}
         />
@@ -264,6 +270,7 @@ const CentrosDeCosto = () => {
   // Se activa al hacer click en Botón Editar "Lápiz".
   // Sólo hará que se abra un nuevo Dialog de Confirmación
   const handleModifyCostCenter = (index, costCenter) => {
+    setNewCostCenterValue('')
     setDialogModifyOpen(true)
     setSelectedCostCenterIndex(index)
     setSelectedCostCenter(costCenter)
@@ -293,6 +300,7 @@ const CentrosDeCosto = () => {
   // Se activa al hacer click en Botón "Crear CC".
   // Sólo hará que se abra un nuevo Dialog de Confirmación
   const handleCreateCostCenter = () => {
+    setNewCostCenterValue('')
     setDialogCreateCostCenterOpen(true)
   }
 
@@ -342,6 +350,14 @@ const CentrosDeCosto = () => {
       setWaiting(false)
     }
     setDialogWarningOpen(false)
+  }
+
+  // Función que maneja el cambio de newCostCenterValue.
+  const handleInputChange = (event) => {
+    var value = event.target.value
+    value = value.replace(/\D/g,'')
+
+    setNewCostCenterValue(value)
   }
 
   // useEffect para almacenar dentro de costCentersData los datos de Centros de Costos de cada Planta.
@@ -401,9 +417,10 @@ const CentrosDeCosto = () => {
       {/* Dialog de Creación de un Centro de Costo. */}
       <DialogCreateCostCenter
         open={dialogCreateCostCenterOpen}
+        value={newCostCenterValue}
         onClose={handleCloseDialogCreateCostCenter}
         onAccept={handleConfirmCreate}
-        onChange={(event) => {setNewCostCenterValue(event.target.value)}}
+        onChange={handleInputChange}
       />
 
       {/* Dialog de Modificación de un Centro de Costo. */}
@@ -411,9 +428,10 @@ const CentrosDeCosto = () => {
         index={selectedCostCenterIndex}
         costCenter={selectedCostCenter}
         open={dialogModifyOpen}
+        value={newCostCenterValue}
         onClose={handleCloseDialogModify}
         onAccept={handleConfirmModification}
-        onChange={(event) => {setNewCostCenterValue(event.target.value)}}
+        onChange={handleInputChange}
       />
 
       {/* Dialog de Eliminación de un Centro de Costo. */}
