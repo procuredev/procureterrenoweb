@@ -155,7 +155,7 @@ export const useGoogleDriveFolder = () => {
     try {
       const metadata = {
         name: fileName,
-        parents: [parentFolderId]
+        parents: [parentFolderId] // Especifica la carpeta padre en la que se guardará el archivo
       }
 
       const formData = new FormData()
@@ -167,7 +167,7 @@ export const useGoogleDriveFolder = () => {
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}` // Incluye el token de acceso para la autenticación
           },
           body: formData
         }
@@ -175,16 +175,17 @@ export const useGoogleDriveFolder = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          await refreshAccessToken()
+          // Si el token de acceso ha expirado
+          await refreshAccessToken() // Intenta refrescar el token de acceso
 
-          return uploadFile(fileName, file, parentFolderId)
+          return uploadFile(fileName, file, parentFolderId) // Reintenta subir el archivo con el nuevo token
         }
         throw new Error('Failed to upload file')
       }
 
-      const data = await response.json()
+      const data = await response.json() // Parsea la respuesta del servidor para obtener los datos del archivo
 
-      return data
+      return data // Retorna el objeto con la información del archivo, que incluye el ID
     } catch (error) {
       setError(error.message)
       throw error

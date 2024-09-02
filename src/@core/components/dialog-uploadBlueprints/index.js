@@ -24,13 +24,13 @@ import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
 import Icon from 'src/@core/components/icon'
 import { useFirebase } from 'src/context/useFirebase'
+import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
 
 import 'moment/locale/es'
 
 import { InputAdornment } from '@mui/material'
 import DateListItem from 'src/@core/components/custom-date'
 import CustomListItem from 'src/@core/components/custom-list'
-import { DialogClientCodeGenerator } from '../dialog-clientCodeGenerator'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -167,9 +167,6 @@ export const UploadBlueprintsDialog = ({
   petition,
   checkRoleAndApproval
 }) => {
-  /*  let isPlanner = roleData && roleData.id === '5' */
-
-  //let { id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments } = doc
   let id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments
 
   if (doc) {
@@ -192,16 +189,16 @@ export const UploadBlueprintsDialog = ({
   const [values, setValues] = useState({})
   const [message, setMessage] = useState('')
 
-  /*   const [editable, setEditable] = useState(isPlanner) */
   const [openAlert, setOpenAlert] = useState(false)
-  const [files, setFiles] = useState([])
-  const [hlcDocuments, setHlcDocuments] = useState([])
+  const [files, setFiles] = useState(null)
+  const [hlcDocuments, setHlcDocuments] = useState(null)
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const [errorDialog, setErrorDialog] = useState(false)
-  const [generateClientCode, setGenerateClientCode] = useState(false)
 
   const [isDescriptionSaved, setIsDescriptionSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [uploadedFileLink, setUploadedFileLink] = useState(null)
+  const [uploadedFileName, setUploadedFileName] = useState('')
 
   const theme = useTheme()
   const { updateDocs, authUser, addDescription, uploadFilesToFirebaseStorage } = useFirebase()
@@ -209,6 +206,8 @@ export const UploadBlueprintsDialog = ({
 
   // Verifica estado
   revision = typeof revision === 'string' ? revision : 100
+
+  //console.log('files', files)
 
   const initialValues = {
     id,
@@ -228,41 +227,7 @@ export const UploadBlueprintsDialog = ({
     setValues(initialValues)
   }, [doc])
 
-  // Handlea dialog
-
-  const handleOpenAlert = async () => {
-    const hasFormChanges = Object.values(hasChanges).some(hasChange => hasChange)
-    if (roleData.id === '5') {
-      // Agrega end y ot
-      if (!end && hasChanges.end && !ot && hasChanges.ot) {
-        setOpenAlert(true)
-
-        // Ya viene con end u ot
-      } else if (end && ot && state === 4) {
-        await updateDocs(id, true, authUser)
-          .then(handleClose())
-          .catch(error => {
-            alert(error), console.log(error)
-          })
-
-        //No trae ni agrega end/ot
-      } else if ((!end && !hasChanges.end) || (!ot && !hasChanges.ot)) {
-        setMessage('Debes ingresar ot y fecha de término')
-      } else {
-        setOpenAlert(true)
-      }
-
-      // Planificador cambia start pero no end
-    } else if (roleData.id === '6' && hasChanges.start && !hasChanges.end) {
-      setMessage('Debes modificar la fecha de término')
-
-      // Planificador cambia cualquier otro campo
-    } else if (hasFormChanges) {
-      setOpenAlert(true)
-    } else {
-      setMessage('No has realizado cambios en el formulario.')
-    }
-  }
+  const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
 
   const writeCallback = () => {
     const newData = {}
@@ -291,7 +256,6 @@ export const UploadBlueprintsDialog = ({
   const handleInputChange = field => event => {
     const fieldValue = event.target.value
     setValues({ ...values, [field]: fieldValue })
-    //setHasChanges({ ...hasChanges, [field]: fieldValue !== initialValues[field] })
   }
 
   const validateFiles = acceptedFiles => {
@@ -365,7 +329,7 @@ export const UploadBlueprintsDialog = ({
 
       if (authUser.role === 9 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
         //setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
-        setHlcDocuments([acceptedFiles[0]])
+        setHlcDocuments(acceptedFiles[0])
       }
 
       if (
@@ -376,28 +340,38 @@ export const UploadBlueprintsDialog = ({
       ) {
         // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
         //setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
-        setFiles([acceptedFiles[0]])
+        setFiles(acceptedFiles[0])
       }
     },
     multiple: false // Esto limita a los usuarios a seleccionar solo un archivo a la vez
   })
 
   const handleRemoveFile = file => {
-    const uploadedFiles = files
-    const filtered = uploadedFiles.filter(i => i.name !== file.name)
-    setFiles([...filtered])
+    setFiles(null)
   }
 
-  const handleRemoveHLC = file => {
-    const uploadedFiles = hlcDocuments
-    const filtered = uploadedFiles.filter(i => i.name !== file.name)
-    setHlcDocuments([...filtered])
+  const handleRemoveHLC = hlc => {
+    setHlcDocuments(null)
+  }
+
+  const getPlantAbbreviation = plantName => {
+    const plantMap = {
+      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
+      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
+      'Instalaciones Escondida Water Supply': 'IEWS',
+      'Planta Concentradora Los Colorados': 'PCLC',
+      'Instalaciones Cátodo': 'ICAT',
+      'Chancado y Correas': 'CHCO',
+      'Puerto Coloso': 'PCOL'
+    }
+
+    return plantMap[plantName] || ''
   }
 
   const fileList = (
     <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
-      {files.map(file => (
-        <Grid item key={file.name}>
+      {files && (
+        <Grid item key={files.name}>
           <Paper
             elevation={0}
             sx={{
@@ -407,24 +381,24 @@ export const UploadBlueprintsDialog = ({
               border: `4px solid ${theme.palette.primary.main}`,
               borderRadius: '4px',
               width: '220px',
-              position: 'relative' // Agregamos esta propiedad para posicionar el icono correctamente
+              position: 'relative' // esta propiedad posiciona el icono correctamente
             }}
           >
-            {file.type.startsWith('image') ? (
-              <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
+            {files.type.startsWith('image') ? (
+              <img width={50} height={50} alt={files.name} src={URL.createObjectURL(files)} />
             ) : (
-              <Icon icon={getFileIcon(file.type)} fontSize={50} />
+              <Icon icon={getFileIcon(files.type)} fontSize={50} />
             )}
             <Typography
               variant='body2'
               sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
             >
-              {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
+              {`... ${files.name.slice(files.name.length - 15, files.name.length)}`}
             </Typography>
             <IconButton
-              onClick={() => handleRemoveFile(file)}
+              onClick={handleRemoveFile}
               sx={{
-                position: 'absolute', // Posicionamos el icono en relación al Paper
+                position: 'absolute', // Posiciona el icono en relación al Paper
                 top: '0px', // Ajusta el valor según la posición vertical deseada
                 right: '0px' // Ajusta el valor según la posición horizontal deseada
               }}
@@ -433,14 +407,14 @@ export const UploadBlueprintsDialog = ({
             </IconButton>
           </Paper>
         </Grid>
-      ))}
+      )}
     </Grid>
   )
 
   const hlcList = (
     <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
-      {hlcDocuments.map(file => (
-        <Grid item key={file.name}>
+      {hlcDocuments && (
+        <Grid item key={hlcDocuments.name}>
           <Paper
             elevation={0}
             sx={{
@@ -453,19 +427,19 @@ export const UploadBlueprintsDialog = ({
               position: 'relative' // Agregamos esta propiedad para posicionar el icono correctamente
             }}
           >
-            {file.type.startsWith('image') ? (
-              <img width={50} height={50} alt={file.name} src={URL.createObjectURL(file)} />
+            {hlcDocuments.type.startsWith('image') ? (
+              <img width={50} height={50} alt={hlcDocuments.name} src={URL.createObjectURL(hlcDocuments)} />
             ) : (
-              <Icon icon={getFileIcon(file.type)} fontSize={50} />
+              <Icon icon={getFileIcon(hlcDocuments.type)} fontSize={50} />
             )}
             <Typography
               variant='body2'
               sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
             >
-              {`... ${file.name.slice(file.name.length - 15, file.name.length)}`}
+              {`... ${hlcDocuments.name.slice(hlcDocuments.name.length - 15, hlcDocuments.name.length)}`}
             </Typography>
             <IconButton
-              onClick={() => handleRemoveFile(file)}
+              onClick={handleRemoveHLC}
               sx={{
                 position: 'absolute', // Posicionamos el icono en relación al Paper
                 top: '0px', // Ajusta el valor según la posición vertical deseada
@@ -476,35 +450,231 @@ export const UploadBlueprintsDialog = ({
             </IconButton>
           </Paper>
         </Grid>
-      ))}
+      )}
     </Grid>
   )
+
+  const getNextRevisionFolderName = (doc, authUser) => {
+    let newRevision = doc.revision
+
+    const nextCharCode = doc.revision.charCodeAt(0) + 1
+    const nextChar = String.fromCharCode(nextCharCode)
+
+    const isRole8 = authUser.role === 8
+    const isRole7 = authUser.role === 7
+
+    if (isRole8) {
+      // Lógica para el role 8
+      const actions = {
+        keepRevision: {
+          condition: () =>
+            doc.revision.charCodeAt(0) >= 48 &&
+            doc.approvedByClient === true &&
+            doc.approvedByDocumentaryControl === false,
+          action: () => (newRevision = doc.revision)
+        },
+        resetRevision: {
+          condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
+          action: () => (newRevision = '0')
+        },
+        incrementRevision: {
+          condition: () =>
+            (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
+            doc.approvedByClient === false &&
+            doc.approvedByDocumentaryControl === true,
+          action: () => (newRevision = nextChar)
+        },
+        startRevision: {
+          condition: () => doc.revision === 'iniciado',
+          action: () => (newRevision = 'A')
+        },
+        incrementRevisionInA: {
+          condition: () => doc.revision === 'A',
+          action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
+        }
+      }
+
+      Object.values(actions).forEach(({ condition, action }) => {
+        if (condition()) {
+          action()
+        }
+      })
+    } else if (isRole7 && doc.userId === authUser.uid) {
+      // Lógica para role 7 cuando el userId coincide con el uid del usuario
+      const actions = {
+        keepRevision: {
+          condition: () =>
+            doc.revision.charCodeAt(0) >= 48 &&
+            doc.approvedByClient === true &&
+            doc.approvedByDocumentaryControl === false,
+          action: () => (newRevision = doc.revision)
+        },
+        resetRevision: {
+          condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
+          action: () => (newRevision = '0')
+        },
+        incrementRevision: {
+          condition: () =>
+            (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
+            doc.approvedByClient === false &&
+            doc.approvedByDocumentaryControl === true,
+          action: () => (newRevision = nextChar)
+        },
+        startRevision: {
+          condition: () => doc.revision === 'iniciado',
+          action: () => (newRevision = 'A')
+        },
+        incrementRevisionInA: {
+          condition: () => doc.revision === 'A',
+          action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
+        }
+      }
+
+      Object.values(actions).forEach(({ condition, action }) => {
+        if (condition()) {
+          action()
+        }
+      })
+    }
+
+    return newRevision
+  }
 
   const handleSubmitAllFiles = async () => {
     try {
       await uploadFilesToFirebaseStorage(files, doc.id, 'blueprints', petitionId)
+
+      // Busca la carpeta de la planta.
+      const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+      const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+
+      if (plantFolder) {
+        // Busca la carpeta del área.
+        const areaFolders = await fetchFolders(plantFolder.id)
+        const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+
+        if (areaFolder) {
+          const projectFolderName = `OT N${petition.ot} - ${petition.title}`
+          const existingProjectFolders = await fetchFolders(areaFolder.id)
+          const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+
+          if (projectFolder) {
+            // Ubica la carpeta "EN TRABAJO"
+            const trabajoFolders = await fetchFolders(projectFolder.id)
+            const trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
+
+            if (trabajoFolder) {
+              // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
+              const revisionFolderName = `REV_${await getNextRevisionFolderName(doc, authUser)}`
+
+              const revisionFolders = await fetchFolders(trabajoFolder.id)
+              let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
+
+              if (!revisionFolder) {
+                revisionFolder = await createFolder(revisionFolderName, trabajoFolder.id)
+              }
+
+              if (revisionFolder) {
+                // Crear o encontrar la carpeta "PLANOS" dentro de la revisión
+                const planosFolderName = 'PLANOS'
+                const planosFolders = await fetchFolders(revisionFolder.id)
+                let planosFolder = planosFolders.files.find(folder => folder.name === planosFolderName)
+
+                if (!planosFolder) {
+                  planosFolder = await createFolder(planosFolderName, revisionFolder.id)
+                }
+
+                // Subir archivos a la carpeta "PLANOS"
+                if (planosFolder) {
+                  const fileData = await uploadFile(files.name, files, planosFolder.id)
+
+                  if (fileData && fileData.id) {
+                    const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
+                    setUploadedFileLink(fileLink) // Almacena el enlace en la variable de estado
+                    setUploadedFileName(fileData.name)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       setBlueprintGenerated(true)
-      setFiles([])
-      setHlcDocuments([])
+      setFiles(null)
+      setHlcDocuments(null)
     } catch (error) {
       console.log(error)
     }
   }
 
+  console.log('uploadedFileLink', uploadedFileLink)
+  console.log('uploadedFileName', uploadedFileName)
+
   const handleSubmitHlcDocuments = async () => {
     try {
       await uploadFilesToFirebaseStorage(hlcDocuments, doc.id, 'hlcDocuments', petitionId)
+
+      // Busca la carpeta de la planta.
+      const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+      const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+
+      if (plantFolder) {
+        // Busca la carpeta del área.
+        const areaFolders = await fetchFolders(plantFolder.id)
+        const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+
+        if (areaFolder) {
+          const projectFolderName = `OT N${petition.ot} - ${petition.title}`
+          const existingProjectFolders = await fetchFolders(areaFolder.id)
+          const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+
+          if (projectFolder) {
+            // Ubica la carpeta "EN TRABAJO"
+            const trabajoFolders = await fetchFolders(projectFolder.id)
+            const trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
+
+            if (trabajoFolder) {
+              // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
+              const revisionFolderName = `REV_${doc.revision}`
+              const revisionFolders = await fetchFolders(trabajoFolder.id)
+              let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
+
+              if (!revisionFolder) {
+                revisionFolder = await createFolder(revisionFolderName, trabajoFolder.id)
+              }
+
+              if (revisionFolder) {
+                // Crear o encontrar la carpeta "DOCUMENTOS" dentro de la revisión
+                const documentosFolderName = 'DOCUMENTOS'
+                const documentosFolders = await fetchFolders(revisionFolder.id)
+                let documentosFolder = documentosFolders.files.find(folder => folder.name === documentosFolderName)
+
+                if (!documentosFolder) {
+                  documentosFolder = await createFolder(documentosFolderName, revisionFolder.id)
+                }
+
+                // Subir archivos a la carpeta "DOCUMENTOS"
+                if (documentosFolder) {
+                  await uploadFile(hlcDocuments.name, hlcDocuments, documentosFolder.id)
+                }
+              }
+            }
+          }
+        }
+      }
+
       setBlueprintGenerated(true)
-      setFiles([])
-      setHlcDocuments([])
+      setFiles(null)
+      setHlcDocuments(null)
     } catch (error) {
       console.log(error)
     }
   }
 
   const handleRemoveAllFiles = () => {
-    setFiles([])
-    setHlcDocuments([])
+    setFiles(null)
+    setHlcDocuments(null)
   }
 
   const handleLinkClick = event => {
@@ -525,15 +695,6 @@ export const UploadBlueprintsDialog = ({
           </Typography>
         </Box>
       </DialogTitle>
-
-      {/* {generateClientCode ? (
-        <DialogClientCodeGenerator
-          petition={petition}
-          blueprint={currentRow}
-          setBlueprintGenerated={setBlueprintGenerated}
-          handleClose={() => setGenerateClientCode(false)}
-        />
-      ) : null} */}
       <Box sx={{ margin: 'auto' }}>
         {
           <Box>
@@ -546,9 +707,6 @@ export const UploadBlueprintsDialog = ({
                   shrink: true
                 }}
                 id='description'
-                //defaultValue='Agregue la descripción del documento'
-                //labelClassName='Agregue la descripción del documento'
-                //labelClassName={this.props.classes['input-label']}
                 initialValue={description}
                 value={values.description}
                 onChange={e => {
@@ -661,15 +819,15 @@ export const UploadBlueprintsDialog = ({
                       ) : (
                         ''
                       )}
-                      {files.length > 0 && (
+                      {files && (
                         <Fragment>
                           <List>{fileList}</List>
                           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                             <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
-                              Quitar todo
+                              Quitar
                             </Button>
                             <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
-                              Subir archivos
+                              Subir archivo
                             </Button>
                           </Box>
                         </Fragment>
@@ -713,26 +871,19 @@ export const UploadBlueprintsDialog = ({
                       ) : (
                         ''
                       )}
-                      {hlcDocuments.length > 0 &&
-                        doc.approvedByDocumentaryControl &&
-                        !checkRoleAndApproval(authUser.role, doc) && (
-                          <Fragment>
-                            <List>{hlcList}</List>
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
-                                Quitar todo
-                              </Button>
-                              <Button
-                                color='primary'
-                                sx={{ m: 2 }}
-                                variant='outlined'
-                                onClick={handleSubmitHlcDocuments}
-                              >
-                                Subir archivos HLC
-                              </Button>
-                            </Box>
-                          </Fragment>
-                        )}
+                      {hlcDocuments && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc) && (
+                        <Fragment>
+                          <List>{hlcList}</List>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                            <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
+                              Quitar
+                            </Button>
+                            <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitHlcDocuments}>
+                              Subir archivo HLC
+                            </Button>
+                          </Box>
+                        </Fragment>
+                      )}
                     </Fragment>
                   </FormControl>
                 </ListItem>

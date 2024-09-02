@@ -837,8 +837,6 @@ const getNextRevision = async (
     userId: uid,
     date: Timestamp.fromDate(new Date()),
     remarks: remarks || 'sin observaciones'
-    //drawingHours: hours ? hours : null,
-    //investedHours: investedHours || null
   }
 
   return nextRevision
@@ -854,15 +852,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const latestRevision = await getLatestRevision(petitionID, blueprint.id)
 
   // Calcula la próxima revisión del plano
-  const nextRevision = await getNextRevision(
-    approves,
-    latestRevision,
-    userParam,
-    blueprint,
-    remarks
-    //hours,
-    //investedHours
-  )
+  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks)
 
   // Comprueba varias condiciones sobre el plano
   const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
