@@ -1,6 +1,7 @@
 import { Download } from '@mui/icons-material'
 import BorderColorIcon from '@mui/icons-material/BorderColor'
 import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -31,6 +32,7 @@ import 'moment/locale/es'
 import { InputAdornment } from '@mui/material'
 import DateListItem from 'src/@core/components/custom-date'
 import CustomListItem from 'src/@core/components/custom-list'
+import { auto } from '@popperjs/core'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -162,7 +164,6 @@ export const UploadBlueprintsDialog = ({
   doc,
   roleData,
   petitionId,
-  setBlueprintGenerated,
   currentRow,
   petition,
   checkRoleAndApproval
@@ -197,11 +198,17 @@ export const UploadBlueprintsDialog = ({
 
   const [isDescriptionSaved, setIsDescriptionSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [uploadedFileLink, setUploadedFileLink] = useState(null)
-  const [uploadedFileName, setUploadedFileName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const theme = useTheme()
-  const { updateDocs, authUser, addDescription, uploadFilesToFirebaseStorage } = useFirebase()
+
+  const {
+    updateDocs,
+    authUser,
+    addDescription,
+    uploadFilesToFirebaseStorage,
+    updateBlueprintsWithStorageOrHlc
+  } = useFirebase()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
 
   // Verifica estado
@@ -258,6 +265,60 @@ export const UploadBlueprintsDialog = ({
     setValues({ ...values, [field]: fieldValue })
   }
 
+  const validateFileName = acceptedFiles => {
+    const expectedClientCode = values.clientCode
+    console.log('authUser', authUser)
+
+    const expectedRevision = getNextRevisionFolderName(doc, authUser)
+
+    let expectedFileName = null
+
+    if (authUser.role === 8 || (authUser.role === 7 && doc.userId === authUser.uid)) {
+      expectedFileName = `${expectedClientCode}_REV_${expectedRevision}`
+    } else if (authUser.role === 9 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
+      expectedFileName = `${expectedClientCode}_REV_${expectedRevision}_HLC`
+    } else {
+      const currentName = authUser.displayName
+
+      const initials = currentName
+        .toUpperCase()
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+
+      expectedFileName = `${expectedClientCode}_REV_${expectedRevision}_${initials}`
+    }
+
+    const validationResults = acceptedFiles.map(file => {
+      const fileNameWithoutExtension = file.name.split('.').slice(0, -1).join('.') // Quita la extensión del archivo
+
+      const isValid = fileNameWithoutExtension === expectedFileName
+
+      return {
+        name: file.name,
+        isValid,
+        msj: isValid ? (
+          `${file.name}`
+        ) : (
+          <Typography variant='body2'>
+            El nombre del archivo debe ser:{' '}
+            <Typography variant='body2' component='span' color='primary'>
+              {expectedFileName}
+            </Typography>
+            <br />
+            <br />
+            El nombre del archivo que intentó subir es:{' '}
+            <Typography variant='body2' component='span' color='error'>
+              {fileNameWithoutExtension}
+            </Typography>
+          </Typography>
+        )
+      }
+    })
+
+    return validationResults
+  }
+
   const validateFiles = acceptedFiles => {
     const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
     const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
@@ -305,11 +366,9 @@ export const UploadBlueprintsDialog = ({
       await addDescription(petitionId, currentRow, values.description)
         .then(() => {
           setIsDescriptionSaved(true)
-          setBlueprintGenerated(true)
         })
         .catch(err => console.error(err))
       setIsDescriptionSaved(true)
-      setBlueprintGenerated(true)
     } catch (err) {
       console.error(err)
     }
@@ -318,6 +377,7 @@ export const UploadBlueprintsDialog = ({
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
+      // Valida los archivos con base en el tamaño y tipo
       const invalidFiles = validateFiles(acceptedFiles).filter(file => !file.isValid)
       if (invalidFiles.length > 0) {
         const res = validateFiles(invalidFiles)
@@ -325,6 +385,16 @@ export const UploadBlueprintsDialog = ({
         handleOpenErrorDialog(msj)
 
         return invalidFiles
+      }
+
+      // Valida los archivos con base en el nombre
+      const invalidFileNames = validateFileName(acceptedFiles).filter(file => !file.isValid)
+      if (invalidFileNames.length > 0) {
+        const res = validateFileName(invalidFileNames)
+        const msj = res[0].msj
+        handleOpenErrorDialog(msj)
+
+        return invalidFileNames
       }
 
       if (authUser.role === 9 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
@@ -346,11 +416,11 @@ export const UploadBlueprintsDialog = ({
     multiple: false // Esto limita a los usuarios a seleccionar solo un archivo a la vez
   })
 
-  const handleRemoveFile = file => {
+  const handleRemoveFile = () => {
     setFiles(null)
   }
 
-  const handleRemoveHLC = hlc => {
+  const handleRemoveHLC = () => {
     setHlcDocuments(null)
   }
 
@@ -463,44 +533,8 @@ export const UploadBlueprintsDialog = ({
     const isRole8 = authUser.role === 8
     const isRole7 = authUser.role === 7
 
-    if (isRole8) {
+    if (isRole8 || (isRole7 && doc.userId === authUser.uid)) {
       // Lógica para el role 8
-      const actions = {
-        keepRevision: {
-          condition: () =>
-            doc.revision.charCodeAt(0) >= 48 &&
-            doc.approvedByClient === true &&
-            doc.approvedByDocumentaryControl === false,
-          action: () => (newRevision = doc.revision)
-        },
-        resetRevision: {
-          condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
-          action: () => (newRevision = '0')
-        },
-        incrementRevision: {
-          condition: () =>
-            (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
-            doc.approvedByClient === false &&
-            doc.approvedByDocumentaryControl === true,
-          action: () => (newRevision = nextChar)
-        },
-        startRevision: {
-          condition: () => doc.revision === 'iniciado',
-          action: () => (newRevision = 'A')
-        },
-        incrementRevisionInA: {
-          condition: () => doc.revision === 'A',
-          action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
-        }
-      }
-
-      Object.values(actions).forEach(({ condition, action }) => {
-        if (condition()) {
-          action()
-        }
-      })
-    } else if (isRole7 && doc.userId === authUser.uid) {
-      // Lógica para role 7 cuando el userId coincide con el uid del usuario
       const actions = {
         keepRevision: {
           condition: () =>
@@ -542,8 +576,8 @@ export const UploadBlueprintsDialog = ({
 
   const handleSubmitAllFiles = async () => {
     try {
-      await uploadFilesToFirebaseStorage(files, doc.id, 'blueprints', petitionId)
-
+      //await uploadFilesToFirebaseStorage(files, doc.id, 'blueprints', petitionId)
+      setIsLoading(true)
       // Busca la carpeta de la planta.
       const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
       const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
@@ -590,8 +624,9 @@ export const UploadBlueprintsDialog = ({
 
                   if (fileData && fileData.id) {
                     const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
-                    setUploadedFileLink(fileLink) // Almacena el enlace en la variable de estado
-                    setUploadedFileName(fileData.name)
+
+                    // Actualiza el campo storageBlueprints del blueprint en Firestore
+                    await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'storage')
                   }
                 }
               }
@@ -600,21 +635,17 @@ export const UploadBlueprintsDialog = ({
         }
       }
 
-      setBlueprintGenerated(true)
       setFiles(null)
-      setHlcDocuments(null)
+      setIsLoading(false)
     } catch (error) {
       console.log(error)
     }
   }
 
-  console.log('uploadedFileLink', uploadedFileLink)
-  console.log('uploadedFileName', uploadedFileName)
-
   const handleSubmitHlcDocuments = async () => {
     try {
-      await uploadFilesToFirebaseStorage(hlcDocuments, doc.id, 'hlcDocuments', petitionId)
-
+      //await uploadFilesToFirebaseStorage(hlcDocuments, doc.id, 'hlcDocuments', petitionId)
+      setIsLoading(true)
       // Busca la carpeta de la planta.
       const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
       const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
@@ -656,7 +687,14 @@ export const UploadBlueprintsDialog = ({
 
                 // Subir archivos a la carpeta "DOCUMENTOS"
                 if (documentosFolder) {
-                  await uploadFile(hlcDocuments.name, hlcDocuments, documentosFolder.id)
+                  const fileData = await uploadFile(hlcDocuments.name, hlcDocuments, documentosFolder.id)
+
+                  if (fileData && fileData.id) {
+                    const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
+
+                    // Actualiza el campo storageBlueprints del blueprint en Firestore
+                    await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'hlc')
+                  }
                 }
               }
             }
@@ -664,9 +702,8 @@ export const UploadBlueprintsDialog = ({
         }
       }
 
-      setBlueprintGenerated(true)
-      setFiles(null)
       setHlcDocuments(null)
+      setIsLoading(false)
     } catch (error) {
       console.log(error)
     }
@@ -759,147 +796,159 @@ export const UploadBlueprintsDialog = ({
               />
               {doc && doc.storageBlueprints && doc.storageBlueprints.length > 0 && (
                 <ListItem>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <Box sx={{ display: 'flex', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>
                       Plano adjunto
                     </Typography>
-                    <PhotoGallery photos={storageBlueprints} />
+                    <Box>
+                      {doc.storageBlueprints.map(file => (
+                        <Fragment key={file.url}>
+                          <Link href={file.url} target='_blank' rel='noreferrer'>
+                            {file.name}
+                          </Link>
+                          <br />
+                        </Fragment>
+                      ))}
+                    </Box>
+
+                    {/* <PhotoGallery photos={storageBlueprints} /> */}
                   </Box>
                 </ListItem>
               )}
 
               {doc && doc.storageHlcDocuments && doc.storageHlcDocuments.length > 0 && (
                 <ListItem>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <Box sx={{ display: 'flex', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>
                       HLC adjunto
                     </Typography>
-                    <PhotoGallery photos={storageHlcDocuments} />
+                    <Box>
+                      <Link href={doc.storageHlcDocuments[0].url} target='_blank' rel='noreferrer'>
+                        {doc.storageHlcDocuments[0].name}
+                      </Link>
+                    </Box>
+                    {/* <PhotoGallery photos={storageHlcDocuments} /> */}
                   </Box>
                 </ListItem>
               )}
-              {/* Aquí true debe reemplazarse por el permiso para subir archivos */}
-              {true && (
-                <ListItem>
-                  <FormControl fullWidth>
-                    <Fragment>
-                      {(doc && authUser.uid === doc.userId && !doc.sentByDesigner) ||
-                      (doc &&
-                        (authUser.role === 6 || authUser.role === 7) &&
-                        doc.sentByDesigner &&
-                        !doc.approvedByDocumentaryControl &&
-                        !doc.approvedBySupervisor &&
-                        !doc.approvedByContractAdmin) ||
-                      (doc &&
-                        authUser.role === 9 &&
-                        (doc.approvedBySupervisor || doc.approvedByContractAdmin) &&
-                        !checkRoleAndApproval(authUser.role, doc)) ? (
-                        <div {...getRootProps({ className: 'dropzone' })}>
-                          <input {...getInputProps()} />
-                          <Box
-                            sx={{
-                              my: 5,
-                              mx: 'auto',
-                              p: 5,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: ['center'],
-                              backdropFilter: 'contrast(0.8)',
-                              width: '100%',
-                              borderRadius: '10px',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <Icon icon='mdi:file-document-outline' />
-                            <Typography sx={{ mt: 5 }} color='textSecondary'>
-                              <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar Plano.
-                            </Typography>
-                          </Box>
-                        </div>
-                      ) : (
-                        ''
-                      )}
-                      {files && (
-                        <Fragment>
-                          <List>{fileList}</List>
-                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                            <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
-                              Quitar
-                            </Button>
-                            <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
-                              Subir archivo
-                            </Button>
-                          </Box>
-                        </Fragment>
-                      )}
-                    </Fragment>
-                  </FormControl>
-                </ListItem>
-              )}
 
-              {/* HLC */}
-              {true && (
-                <ListItem>
-                  <FormControl fullWidth>
-                    <Fragment>
-                      {authUser.role === 9 &&
-                      (doc.sentByDesigner || doc.sentBySupervisor) &&
-                      doc.approvedByDocumentaryControl &&
-                      !checkRoleAndApproval(authUser.role, doc) ? (
-                        <div {...getRootProps({ className: 'dropzone' })}>
-                          <input {...getInputProps()} />
-                          <Box
-                            sx={{
-                              my: 5,
-                              mx: 'auto',
-                              p: 5,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: ['center'],
-                              backdropFilter: 'contrast(0.8)',
-                              width: '100%',
-                              borderRadius: '10px',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <Icon icon='mdi:file-document-outline' />
-                            <Typography sx={{ mt: 5 }} color='textSecondary'>
-                              <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivo HLC.
-                            </Typography>
-                          </Box>
-                        </div>
-                      ) : (
-                        ''
-                      )}
-                      {hlcDocuments && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc) && (
-                        <Fragment>
-                          <List>{hlcList}</List>
-                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                            <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
-                              Quitar
-                            </Button>
-                            <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitHlcDocuments}>
-                              Subir archivo HLC
-                            </Button>
-                          </Box>
-                        </Fragment>
-                      )}
-                    </Fragment>
-                  </FormControl>
-                </ListItem>
+              {/* Aquí true debe reemplazarse por el permiso para subir archivos */}
+              {isLoading === false ? (
+                <Fragment>
+                  <ListItem>
+                    <FormControl fullWidth>
+                      <Fragment>
+                        {(doc && authUser.uid === doc.userId && !doc.sentByDesigner) ||
+                        (doc &&
+                          (authUser.role === 6 || authUser.role === 7) &&
+                          doc.sentByDesigner &&
+                          !doc.approvedByDocumentaryControl &&
+                          !doc.approvedBySupervisor &&
+                          !doc.approvedByContractAdmin) ||
+                        (doc &&
+                          authUser.role === 9 &&
+                          (doc.approvedBySupervisor || doc.approvedByContractAdmin) &&
+                          !checkRoleAndApproval(authUser.role, doc)) ? (
+                          <div {...getRootProps({ className: 'dropzone' })}>
+                            <input {...getInputProps()} />
+                            <Box
+                              sx={{
+                                my: 5,
+                                mx: 'auto',
+                                p: 5,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: ['center'],
+                                backdropFilter: 'contrast(0.8)',
+                                width: '100%',
+                                borderRadius: '10px',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <Icon icon='mdi:file-document-outline' />
+                              <Typography sx={{ mt: 5 }} color='textSecondary'>
+                                <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar Plano.
+                              </Typography>
+                            </Box>
+                          </div>
+                        ) : (
+                          ''
+                        )}
+                        {files && (
+                          <Fragment>
+                            <List>{fileList}</List>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
+                                Quitar
+                              </Button>
+                              <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleSubmitAllFiles}>
+                                Subir archivo
+                              </Button>
+                            </Box>
+                          </Fragment>
+                        )}
+                      </Fragment>
+                    </FormControl>
+                  </ListItem>
+
+                  <ListItem>
+                    <FormControl fullWidth>
+                      <Fragment>
+                        {authUser.role === 9 &&
+                        (doc.sentByDesigner || doc.sentBySupervisor) &&
+                        doc.approvedByDocumentaryControl &&
+                        !checkRoleAndApproval(authUser.role, doc) ? (
+                          <div {...getRootProps({ className: 'dropzone' })}>
+                            <input {...getInputProps()} />
+                            <Box
+                              sx={{
+                                my: 5,
+                                mx: 'auto',
+                                p: 5,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: ['center'],
+                                backdropFilter: 'contrast(0.8)',
+                                width: '100%',
+                                borderRadius: '10px',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <Icon icon='mdi:file-document-outline' />
+                              <Typography sx={{ mt: 5 }} color='textSecondary'>
+                                <Link onClick={() => handleLinkClick}>Haz click acá</Link> para adjuntar archivo HLC.
+                              </Typography>
+                            </Box>
+                          </div>
+                        ) : (
+                          ''
+                        )}
+                        {hlcDocuments && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc) && (
+                          <Fragment>
+                            <List>{hlcList}</List>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
+                                Quitar
+                              </Button>
+                              <Button
+                                color='primary'
+                                sx={{ m: 2 }}
+                                variant='outlined'
+                                onClick={handleSubmitHlcDocuments}
+                              >
+                                Subir archivo HLC
+                              </Button>
+                            </Box>
+                          </Fragment>
+                        )}
+                      </Fragment>
+                    </FormControl>
+                  </ListItem>
+                </Fragment>
+              ) : (
+                <CircularProgress sx={{ m: 5 }} />
               )}
             </List>
-
-            {/* {editable ? (
-              <Button
-                sx={{ mt: 3, mb: 5 }}
-                disabled={!Object.values(hasChanges).some(hasChange => hasChange)}
-                onClick={() => handleOpenAlert()}
-                variant='contained'
-              >
-                {isPlanner && state <= 4 ? 'Aprobar y guardar' : 'Guardar'}
-              </Button>
-            ) : null} */}
           </Box>
         }
       </Box>

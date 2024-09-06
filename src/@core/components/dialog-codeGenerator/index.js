@@ -28,7 +28,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenerated }) => {
+export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
@@ -78,7 +78,6 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
       try {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
         await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
-        setBlueprintGenerated(true)
         handleClose()
       } catch (error) {
         console.error(error)
@@ -145,11 +144,13 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
               value={typeOfDiscipline}
               onChange={handleChangeTypeOfDiscipline}
             >
-              {disciplines.map((discipline, index) => (
-                <MenuItem key={index} value={discipline}>
-                  {discipline}
-                </MenuItem>
-              ))}
+              {disciplines
+                .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente las disciplinas
+                .map((discipline, index) => (
+                  <MenuItem key={index} value={discipline}>
+                    {discipline}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
         </Box>
@@ -164,11 +165,13 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
               value={typeOfDocument}
               onChange={handleChangeTypeOfDocument}
             >
-              {deliverables.map((deliverable, index) => (
-                <MenuItem key={index} value={deliverable}>
-                  {deliverable}
-                </MenuItem>
-              ))}
+              {deliverables
+                .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente los Tipo de documentos
+                .map((deliverable, index) => (
+                  <MenuItem key={index} value={deliverable}>
+                    {deliverable}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
         </Box>

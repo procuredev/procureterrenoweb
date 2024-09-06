@@ -15,7 +15,8 @@ import {
   setDoc,
   updateDoc,
   where,
-  writeBatch
+  writeBatch,
+  arrayUnion
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
@@ -1527,6 +1528,35 @@ const deleteBlueprintAndDecrementCounters = async (
   })
 }
 
+const updateBlueprintsWithStorageOrHlc = async (petitionId, blueprintId, fileLink, fileName, destination) => {
+  try {
+    // Referencia al documento del blueprint dentro de la colección "blueprints" de una "solicitud"
+    const blueprintRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
+
+    // Crea el objeto que se va a agregar al campo storageBlueprints
+    const blueprintData = {
+      url: fileLink,
+      name: fileName
+    }
+
+    if (destination === 'storage') {
+      // Actualiza el documento en Firestore, añadiendo el nuevo archivo al array `storageBlueprints`
+      await updateDoc(blueprintRef, {
+        storageBlueprints: arrayUnion(blueprintData)
+      })
+    } else if (destination === 'hlc') {
+      // Actualiza el documento en Firestore, añadiendo el nuevo archivo al array `storageBlueprints`
+      await updateDoc(blueprintRef, {
+        storageHlcDocuments: arrayUnion(blueprintData)
+      })
+    }
+
+    console.log('Blueprint actualizado con éxito:', blueprintData)
+  } catch (error) {
+    console.error('Error al actualizar el blueprint:', error)
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1551,5 +1581,6 @@ export {
   updateBlueprintAssignment,
   getProcureCounter,
   markBlueprintAsDeleted,
-  deleteBlueprintAndDecrementCounters
+  deleteBlueprintAndDecrementCounters,
+  updateBlueprintsWithStorageOrHlc
 }

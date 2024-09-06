@@ -44,7 +44,8 @@ import {
   updateBlueprintAssignment,
   getProcureCounter,
   markBlueprintAsDeleted,
-  deleteBlueprintAndDecrementCounters
+  deleteBlueprintAndDecrementCounters,
+  updateBlueprintsWithStorageOrHlc
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -190,7 +191,8 @@ const FirebaseContextProvider = props => {
     updateBlueprintAssignment,
     getProcureCounter,
     markBlueprintAsDeleted,
-    deleteBlueprintAndDecrementCounters
+    deleteBlueprintAndDecrementCounters,
+    updateBlueprintsWithStorageOrHlc
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

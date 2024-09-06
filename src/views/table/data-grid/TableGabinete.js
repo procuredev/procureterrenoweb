@@ -38,7 +38,6 @@ const TableGabinete = ({
   roleData,
   petitionId,
   petition,
-  setBlueprintGenerated,
   apiRef,
   selectedRows,
   setSelectedRows,
@@ -103,18 +102,18 @@ const TableGabinete = ({
     authUser.role === 8
       ? await updateBlueprint(petitionId, doc, approve, authUser, false)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true)
+            setOpenAlert(false)
           })
           .catch(err => console.error(err), setOpenAlert(false))
       : authUser.role === 9
       ? await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
+            setOpenAlert(false), setRemarksState('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
       : await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
+            setOpenAlert(false), setRemarksState('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
   }
@@ -462,14 +461,27 @@ const TableGabinete = ({
     })
   }
 
+  const idLocalWidth = Number(localStorage.getItem('idGabineteWidthColumn'))
+  const revisionLocalWidth = Number(localStorage.getItem('revisionGabineteWidthColumn'))
+  const userNameLocalWidth = Number(localStorage.getItem('userNameGabineteWidthColumn'))
+  const lastTransmittalLocalWidth = Number(localStorage.getItem('lastTransmittalGabineteWidthColumn'))
+  const descriptionLocalWidth = Number(localStorage.getItem('descriptionGabineteWidthColumn'))
+  const filesLocalWidth = Number(localStorage.getItem('filesGabineteWidthColumn'))
+  const hlcLocalWidth = Number(localStorage.getItem('hlcGabineteWidthColumn'))
+  const dateLocalWidth = Number(localStorage.getItem('dateGabineteWidthColumn'))
+  const remarksLocalWidth = Number(localStorage.getItem('remarksGabineteWidthColumn'))
+  const clientLocalWidth = Number(localStorage.getItem('clientGabineteWidthColumn'))
+
   const columns = [
     {
       field: 'id',
-      width: role === 9 && !lg ? 355 : role !== 9 && !lg ? 360 : role !== 9 ? 300 : 300,
+      width: idLocalWidth ? idLocalWidth : role === 9 && !lg ? 355 : role !== 9 && !lg ? 360 : role !== 9 ? 300 : 300,
       headerName: 'Código Procure / MEL',
 
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('idGabineteWidthColumn', params.colDef.computedWidth)
 
         const isGroupedRow = !params.row.treeDataGroupingField
 
@@ -541,9 +553,19 @@ const TableGabinete = ({
     {
       field: 'revision',
       headerName: 'REVISION',
-      width: role === 9 && !lg ? 95 : role !== 9 && !lg ? 95 : role !== 9 ? 80 : 80,
+      width: revisionLocalWidth
+        ? revisionLocalWidth
+        : role === 9 && !lg
+        ? 95
+        : role !== 9 && !lg
+        ? 95
+        : role !== 9
+        ? 80
+        : 80,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('revisionGabineteWidthColumn', params.colDef.computedWidth)
 
         let revisionContent
 
@@ -575,9 +597,19 @@ const TableGabinete = ({
     {
       field: 'userName',
       headerName: 'CREADO POR',
-      width: role === 9 && !lg ? 190 : role !== 9 && !lg ? 190 : role !== 9 ? 155 : 160,
+      width: userNameLocalWidth
+        ? userNameLocalWidth
+        : role === 9 && !lg
+        ? 190
+        : role !== 9 && !lg
+        ? 190
+        : role !== 9
+        ? 155
+        : 160,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('userNameGabineteWidthColumn', params.colDef.computedWidth)
 
         let userNameContent
 
@@ -609,9 +641,19 @@ const TableGabinete = ({
     {
       field: 'lastTransmittal',
       headerName: 'Ultimo Transmittal',
-      width: role === 9 && !lg ? 180 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 160,
+      width: lastTransmittalLocalWidth
+        ? lastTransmittalLocalWidth
+        : role === 9 && !lg
+        ? 180
+        : role !== 9 && !lg
+        ? 70
+        : role !== 9
+        ? 120
+        : 160,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('lastTransmittalGabineteWidthColumn', params.colDef.computedWidth)
 
         let lastTransmittalContent
 
@@ -643,9 +685,19 @@ const TableGabinete = ({
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      width: role === 9 && !lg ? 200 : role !== 9 && !lg ? 200 : role !== 9 ? 170 : 190,
+      width: descriptionLocalWidth
+        ? descriptionLocalWidth
+        : role === 9 && !lg
+        ? 200
+        : role !== 9 && !lg
+        ? 200
+        : role !== 9
+        ? 170
+        : 190,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('descriptionGabineteWidthColumn', params.colDef.computedWidth)
 
         let descriptionContent
 
@@ -703,9 +755,19 @@ const TableGabinete = ({
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      width: role === 9 && !lg ? 450 : role !== 9 && !lg ? 460 : role !== 9 ? 365 : 365,
+      width: filesLocalWidth
+        ? filesLocalWidth
+        : role === 9 && !lg
+        ? 450
+        : role !== 9 && !lg
+        ? 460
+        : role !== 9
+        ? 365
+        : 365,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('filesGabineteWidthColumn', params.colDef.computedWidth)
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
           return (
@@ -723,14 +785,14 @@ const TableGabinete = ({
                 <Typography>
                   <Link
                     color='inherit'
-                    href={row.storageBlueprints}
+                    href={row.storageBlueprints.url}
                     target='_blank'
                     rel='noreferrer'
                     variant='body1'
                     noWrap
                     sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                   >
-                    {getFileName(row.storageBlueprints)}
+                    {row.storageBlueprints.name}
                   </Link>
                 </Typography>
               </Box>
@@ -755,14 +817,14 @@ const TableGabinete = ({
                       <Link
                         color='inherit'
                         key={index}
-                        href={content}
+                        href={content.url}
                         target='_blank'
                         rel='noreferrer'
                         variant='body1'
                         noWrap
                         sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                       >
-                        {getFileName(content, index)}
+                        {content.name}
                       </Link>
                     </Typography>
                   ))
@@ -819,9 +881,11 @@ const TableGabinete = ({
     {
       field: 'storageHlcDocuments',
       headerName: 'HLC',
-      width: role === 9 && !lg ? 120 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
+      width: hlcLocalWidth ? hlcLocalWidth : role === 9 && !lg ? 120 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('hlcGabineteWidthColumn', params.colDef.computedWidth)
 
         const canUploadHlc = row => {
           if (row.revision && typeof params.row.revision === 'string' && row.revisions.length > 0) {
@@ -858,14 +922,14 @@ const TableGabinete = ({
                 <Typography>
                   <Link
                     color='inherit'
-                    href={row.storageBlueprints}
+                    href={row.storageBlueprints.url}
                     target='_blank'
                     rel='noreferrer'
                     variant='body1'
                     noWrap
                     sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                   >
-                    {getFileName(row.storageHlcDocuments)}
+                    {row.storageHlcDocuments?.name}
                   </Link>
                 </Typography>
               </Box>
@@ -884,20 +948,20 @@ const TableGabinete = ({
               }}
             >
               <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
-                {row.storageHlcDocuments && Array.isArray(row.storageHlcDocuments) ? (
+                {row.storageHlcDocuments?.length > 0 && Array.isArray(row.storageHlcDocuments) ? (
                   row.storageHlcDocuments.map((content, index) => (
                     <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
                       <Link
                         color='inherit'
                         key={index}
-                        href={content}
+                        href={content.url}
                         target='_blank'
                         rel='noreferrer'
                         variant='body1'
                         noWrap
                         sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                       >
-                        {getFileName(content, index)}
+                        {content?.name}
                       </Link>
                     </Typography>
                   ))
@@ -947,10 +1011,20 @@ const TableGabinete = ({
     {
       field: 'date',
       headerName: 'Fecha de Creación',
-      width: role === 9 && !lg ? 120 : role !== 9 && !lg ? 120 : role !== 9 ? 110 : 120,
+      width: dateLocalWidth
+        ? dateLocalWidth
+        : role === 9 && !lg
+        ? 120
+        : role !== 9 && !lg
+        ? 120
+        : role !== 9
+        ? 110
+        : 120,
       renderCell: params => {
         if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
           const { row } = params
+
+          localStorage.setItem('dateGabineteWidthColumn', params.colDef.computedWidth)
 
           let dateContent
 
@@ -1007,9 +1081,18 @@ const TableGabinete = ({
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      width: role === 9 && !lg ? 195 : role !== 9 && !lg ? 195 : role !== 9 ? 165 : 180,
+      width: remarksLocalWidth
+        ? remarksLocalWidth
+        : role === 9 && !lg
+        ? 195
+        : role !== 9 && !lg
+        ? 195
+        : role !== 9
+        ? 165
+        : 180,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('remarksGabineteWidthColumn', params.colDef.computedWidth)
         const permissionsData = permissions(row, role, authUser)
         const canApprove = permissionsData?.approve
         const canReject = permissionsData?.reject
@@ -1084,9 +1167,19 @@ const TableGabinete = ({
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-      width: role === 9 && !lg ? 160 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
+      width: clientLocalWidth
+        ? clientLocalWidth
+        : role === 9 && !lg
+        ? 160
+        : role !== 9 && !lg
+        ? 70
+        : role !== 9
+        ? 120
+        : 120,
       renderCell: params => {
         const { row, currentPetition } = params
+
+        localStorage.setItem('clientGabineteWidthColumn', params.colDef.computedWidth)
 
         const canApprove = checkRoleAndApproval(authUser.role, row)
         const canReject = checkRoleAndApproval(authUser.role, row)
@@ -1313,7 +1406,6 @@ const TableGabinete = ({
             doc={doc}
             roleData={roleData}
             petitionId={petitionId}
-            setBlueprintGenerated={setBlueprintGenerated}
             currentRow={currentRow}
             petition={petition}
             checkRoleAndApproval={checkRoleAndApproval}
