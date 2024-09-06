@@ -47,7 +47,7 @@ export const DialogAssignGabineteDraftmen = ({ open, handleClose, doc, proyectis
 
   const filterOptions = options => {
     // Convierte las opciones seleccionadas y las existentes en doc.gabineteDraftmen en arrays de nombres
-    const selectedNamesFromState = gabineteDraftmenState.map(GabineteDraftmen => GabineteDraftmen.name)
+    const selectedNamesFromState = gabineteDraftmenState.map(gabineteDraftmen => gabineteDraftmen.name)
 
     let selectedNamesFromDoc = []
     if (doc && doc.gabineteDraftmen) {
@@ -78,7 +78,7 @@ export const DialogAssignGabineteDraftmen = ({ open, handleClose, doc, proyectis
 
   const handleListItemClick = option => {
     // Verificamos si el option ya existe en el array draftmen
-    if (!gabineteDraftmenState.some(gabineteDraftmen => GabineteDraftmen.name === option.name)) {
+    if (!gabineteDraftmenState.some(gabineteDraftmen => gabineteDraftmen.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
       setGabineteDraftmenState(prevGabineteDraftmen => [...prevGabineteDraftmen, option])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
@@ -92,14 +92,14 @@ export const DialogAssignGabineteDraftmen = ({ open, handleClose, doc, proyectis
     //si está en el doc y no está en el state, lo borramos
     //si está en el state y no está en el doc, lo agregamos
     //si está en ambos, dejamos el que está en el doc
-    const gabineteDraftmen = gabineteDraftmenState.map(GabineteDraftmen => {
-      const GabineteDraftmenInDoc = doc.gabineteDraftmen?.find(item => item.userId === GabineteDraftmen.userId)
-      if (GabineteDraftmenInDoc) {
-        return GabineteDraftmenInDoc
+    const gabineteDraftmen = gabineteDraftmenState.map(gabineteDraftmen => {
+      const gabineteDraftmenInDoc = doc.gabineteDraftmen?.find(item => item.userId === gabineteDraftmen.userId)
+      if (gabineteDraftmenInDoc) {
+        return gabineteDraftmenInDoc
       } else {
-        GabineteDraftmen.allocationTime = new Date().getTime()
+        gabineteDraftmen.allocationTime = new Date().getTime()
 
-        return GabineteDraftmen
+        return gabineteDraftmen
       }
     })
     console.log(gabineteDraftmen)
@@ -176,10 +176,10 @@ export const DialogAssignGabineteDraftmen = ({ open, handleClose, doc, proyectis
         />
         <Typography variant='h6'>{`${gabineteDraftmenState.length} Seleccionados`}</Typography>
         <List dense sx={{ py: 4 }}>
-          {gabineteDraftmenState.map(GabineteDraftmen => {
+          {gabineteDraftmenState.map(gabineteDraftmen => {
             return (
               <ListItem
-                key={GabineteDraftmen.name}
+                key={gabineteDraftmen.name}
                 sx={{
                   p: 0,
                   display: 'flex',
@@ -188,8 +188,8 @@ export const DialogAssignGabineteDraftmen = ({ open, handleClose, doc, proyectis
                 }}
               >
                 <ListItemAvatar>
-                  {GabineteDraftmen.avatar ? (
-                    <Avatar src={`/images/avatars/${GabineteDraftmen.avatar}`} alt={GabineteDraftmen.name} />
+                  {gabineteDraftmen.avatar ? (
+                    <Avatar src={`/images/avatars/${gabineteDraftmen.avatar}`} alt={gabineteDraftmen.name} />
                   ) : (
                     <CustomAvatar
                       skin='light'
@@ -203,20 +203,20 @@ export const DialogAssignGabineteDraftmen = ({ open, handleClose, doc, proyectis
                         fontSize: '.8rem'
                       }}
                     >
-                      {getInitials(GabineteDraftmen.name ? GabineteDraftmen.name : 'John Doe')}
+                      {getInitials(gabineteDraftmen.name ? gabineteDraftmen.name : 'John Doe')}
                     </CustomAvatar>
                   )}
                 </ListItemAvatar>
                 <ListItemText
-                  primary={GabineteDraftmen.name}
-                  secondary={GabineteDraftmen.email}
+                  primary={gabineteDraftmen.name}
+                  secondary={gabineteDraftmen.email}
                   sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
                 />
                 <ListItemSecondaryAction sx={{ right: 0 }}>
                   <IconButton
                     size='small'
                     aria-haspopup='true'
-                    onClick={() => handleClickDelete(GabineteDraftmen.name)}
+                    onClick={() => handleClickDelete(gabineteDraftmen.name)}
                     aria-controls='modal-share-examples'
                   >
                     <Icon icon='mdi:delete-forever' fontSize={20} color='#f44336' />
