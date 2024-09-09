@@ -726,7 +726,8 @@ const getNextRevision = async (
     approvedByDocumentaryControl,
     resumeBlueprint,
     userId,
-    storageHlcDocuments
+    storageHlcDocuments,
+    blueprintPercent
   },
   remarks
   //hours,
@@ -734,6 +735,7 @@ const getNextRevision = async (
 ) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision
+  let newBlueprintPercent = blueprintPercent
 
   // Calcula el código de carácter de la próxima letra en el alfabeto
   const nextCharCode = revision.charCodeAt(0) + 1
@@ -774,6 +776,10 @@ const getNextRevision = async (
       incrementRevisionInA: {
         condition: () => revision === 'A',
         action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
+      },
+      incrementBlueprintPercent: {
+        condition: () => revision === 'A',
+        action: () => (newBlueprintPercent = 60)
       }
     }
 
@@ -815,7 +821,11 @@ const getNextRevision = async (
       },
       incrementRevisionInA: {
         condition: () => revision === 'A',
-        action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
+        action: () => ((newRevision = approvedByDocumentaryControl ? nextChar : revision), (newBlueprintPercent = 60))
+      },
+      incrementBlueprintPercent: {
+        condition: () => revision === 'A',
+        action: () => (newBlueprintPercent = 60)
       }
     }
 
@@ -837,7 +847,8 @@ const getNextRevision = async (
     userName: displayName,
     userId: uid,
     date: Timestamp.fromDate(new Date()),
-    remarks: remarks || 'sin observaciones'
+    remarks: remarks || 'sin observaciones',
+    newBlueprintPercent
   }
 
   return nextRevision
@@ -870,7 +881,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     approvedByContractAdmin: false,
     approvedBySupervisor: false,
     approvedByDocumentaryControl: false,
-    sentTime: Timestamp.fromDate(new Date())
+    sentTime: Timestamp.fromDate(new Date()),
+    blueprintPercent: nextRevision.newBlueprintPercent
   }
 
   // Define las acciones a realizar en función del rol del usuario
@@ -887,7 +899,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         ? {
             ...updateData,
             sentBySupervisor: approves,
-            approvedByContractAdmin: approves && blueprint.revision === 'iniciado'
+            approvedByContractAdmin: approves && blueprint.revision === 'iniciado',
+            blueprintPercent: blueprint.revision === 'iniciado' ? 20 : updateData.blueprintPercent
           }
         : {
             ...updateData,
@@ -899,6 +912,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
+      blueprintPercent: blueprint.revision === 'iniciado' ? 20 : updateData.blueprintPercent,
       approvedBySupervisor:
         (approves && blueprint.revision === 'iniciado') ||
         (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl)
@@ -928,7 +942,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentByDesigner: false,
             sentBySupervisor: false,
             remarks: remarks ? true : false,
-            storageHlcDocuments: null
+            storageHlcDocuments: null,
+            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient ? 100 : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -944,6 +959,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             approvedByDocumentaryControl: approves,
             sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentByDesigner,
             sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentBySupervisor,
+            blueprintPercent: blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
             storageBlueprints:
               approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
           }
@@ -1036,7 +1052,10 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
     // Actualiza el campo lastTransmittal en cada uno de los documentos seleccionados
     for (const id of selected) {
       const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0])
-      await updateDoc(docRef, { lastTransmittal: newCode })
+      await updateDoc(docRef, {
+        lastTransmittal: newCode,
+        blueprintPercent: id[1].revision === 'B' ? 80 : id[1].blueprintPercent
+      })
 
       const nextRevision = {
         prevRevision: id[1].revision,
@@ -1409,7 +1428,8 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
         userEmail: userParam.email,
         sentByDesigner: false,
         sentBySupervisor: false,
-        date: Timestamp.fromDate(new Date())
+        date: Timestamp.fromDate(new Date()),
+        blueprintPercent: 5
       })
     }
 
