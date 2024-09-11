@@ -57,6 +57,7 @@ const DataGridGabinete = () => {
   const [checkedTypes, setCheckedTypes] = useState({})
   const [showReasignarSection, setShowReasignarSection] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [gabineteDraftmenState, setGabineteDraftmenState] = useState([])
 
   const apiRef = useGridApiRef()
 
@@ -83,7 +84,7 @@ const DataGridGabinete = () => {
     )
   }
 
-  const [blueprints, projectistData, setBlueprints] = useBlueprints(currentPetition?.id)
+  const [blueprints, projectistData, otPercent, setBlueprints] = useBlueprints(currentPetition?.id)
 
   const theme = useTheme()
   const smDown = useMediaQuery(theme.breakpoints.down('sm'))
@@ -139,6 +140,8 @@ const DataGridGabinete = () => {
   }
 
   const handleClose = () => {
+    const doc = petitions.find(petition => petition.ot == currentOT)
+    setGabineteDraftmenState(doc.gabineteDraftmen)
     setOpen(false)
   }
 
@@ -362,29 +365,38 @@ const DataGridGabinete = () => {
         <Autocomplete
           options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
           getOptionLabel={option => option.value + ' ' + option.title + ' '}
-          sx={{ mx: 6.5, flexGrow: '8' }}
+          sx={{ mx: 6.5, flexGrow: '9' }}
           onChange={(event, value) => handleChange(value)}
           onInputChange={(event, value) => setCurrentAutoComplete(value)}
           isOptionEqualToValue={(option, value) => option.value === value.value}
           renderInput={params => <TextField {...params} label='OT' />}
         />
 
+        <TextField
+          sx={{ mr: 6.5, flexGrow: '0.2' }}
+          label='Avance en Gabinete'
+          value={otPercent ? `${otPercent} %` : ''}
+          id='form-props-read-only-input'
+          InputProps={{ readOnly: true }}
+        />
+
         {authUser.role === 7 && (
           <>
-            <Checkbox checked={showReasignarSection} onChange={handleReasignarToggle} color='info' />
-            <Typography sx={{ alignContent: 'center' }}>REASIGNAR</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'row', m: 0, p: 0 }}>
+              <Checkbox checked={showReasignarSection} onChange={handleReasignarToggle} color='info' />
+              <Typography sx={{ alignContent: 'center' }}>REASIGNAR</Typography>
+            </Box>
+
+            <Button
+              variant='contained'
+              color='error'
+              sx={{ mx: 6.5, flexGrow: '1' }}
+              onClick={handleDeleteClick}
+              disabled={selectedRows.length === 0 || (selectedRows.length > 0 && showReasignarSection)}
+            >
+              Borrar
+            </Button>
           </>
-        )}
-        {authUser.role === 7 && (
-          <Button
-            variant='contained'
-            color='error'
-            sx={{ mx: 6.5, flexGrow: '1' }}
-            onClick={handleDeleteClick}
-            disabled={selectedRows.length === 0 || (selectedRows.length > 0 && showReasignarSection)}
-          >
-            Borrar
-          </Button>
         )}
       </Box>
       <Box sx={{ m: 4, display: 'flex' }}>
@@ -520,6 +532,8 @@ const DataGridGabinete = () => {
         handleClose={handleClose}
         doc={petitions.find(petition => petition.ot == currentOT)}
         proyectistas={proyectistas}
+        gabineteDraftmenState={gabineteDraftmenState}
+        setGabineteDraftmenState={setGabineteDraftmenState}
       />
       <Dialog
         open={openTransmittalDialog}
@@ -538,17 +552,17 @@ const DataGridGabinete = () => {
               </DialogContentText>
               <List>
                 {Array.from(selectedDocs.values()).map(doc => (
-                  <>
+                  <Box key={doc.name}>
                     <ListItem key={doc.id}>
                       <ListItemText primary={doc.id} secondary={doc.clientCode} />
                     </ListItem>
                     {doc.storageHlcDocuments &&
                       doc.storageHlcDocuments.map(hlc => (
                         <ListItem key={hlc.index}>
-                          <ListItemText primary={getFileName(hlc)} />
+                          <ListItemText primary={hlc.name} />
                         </ListItem>
                       ))}
-                  </>
+                  </Box>
                 ))}
               </List>
             </DialogContent>
@@ -565,7 +579,6 @@ const DataGridGabinete = () => {
               setIsLoading(true)
             }}
             color='primary'
-            autoFocus
           >
             Confirmar
           </Button>

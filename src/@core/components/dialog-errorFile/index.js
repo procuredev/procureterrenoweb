@@ -17,7 +17,7 @@ export default function DialogErrorFile({ open, handleClose, msj }) {
     >
       <DialogTitle id='alert-dialog-title'>Tipo de archivo invalido</DialogTitle>
       <DialogContent>
-        <DialogContentText id='alert-dialog-description'>{msj}</DialogContentText>
+        <div id='alert-dialog-description'>{msj}</div>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cerrar</Button>

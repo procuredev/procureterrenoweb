@@ -30,10 +30,17 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogAssignGabineteDraftmen = ({ open, handleClose, doc, proyectistas }) => {
+export const DialogAssignGabineteDraftmen = ({
+  open,
+  handleClose,
+  doc,
+  proyectistas,
+  gabineteDraftmenState,
+  setGabineteDraftmenState
+}) => {
   //TODO: Evaluar la foto del proyectista
   // ** States
-  const [gabineteDraftmenState, setGabineteDraftmenState] = useState([])
+
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
 
   // ** Hooks

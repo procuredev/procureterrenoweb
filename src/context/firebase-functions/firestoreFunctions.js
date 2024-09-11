@@ -608,9 +608,9 @@ const blockDayInDatabase = async (date, cause = '') => {
 
 // Maneja la obtención de datos de planos asociados a una solicitud y devuelve un array de datos y una función para actualizarlos.
 const useBlueprints = id => {
-  const [data, setData] = useState([])
-  const [projectistData, setProjectistData] = useState({})
-
+  const [data, setData] = useState([]) // Estado que guarda los documentos de blueprints y sus revisiones
+  const [projectistData, setProjectistData] = useState({}) // Estado para la agrupación de datos por usuario y tipo de documento
+  const [otPercent, setOtPercent] = useState(null) // Estado para el porcentaje calculado
   useEffect(() => {
     if (!id) return undefined
 
@@ -618,32 +618,41 @@ const useBlueprints = id => {
 
     const blueprintsRef = collection(db, `solicitudes/${id}/blueprints`)
 
+    // Suscribirse a cambios en la subcolección 'blueprints'
     const unsubscribeBlueprints = onSnapshot(blueprintsRef, docSnapshot => {
       if (docSnapshot.docs.length === 0) {
         setData([])
         setProjectistData({})
+        setOtPercent(null) // Si no hay documentos, el porcentaje es nulo
 
         return
       }
 
       let allDocs = []
       let projectistDataTemp = {}
+      let totalPercent = 0 // Acumulador de porcentajes
+      let totalDocuments = 0 // Contador de documentos válidos (sin eliminar)
 
       docSnapshot.docs.forEach(doc => {
         const docData = doc.data()
-        const { userName, id } = docData
+        const { userName, id, blueprintPercent, deleted } = docData
 
         // Actualización de agrupación de datos
-        if (!docData.deleted && userName && id) {
-          const documentType = `${id.split('-')[1]}-${id.split('-')[2]}` // Ej: "500-PL"
-          if (!projectistDataTemp[userName]) {
-            projectistDataTemp[userName] = {}
-          }
-          if (!projectistDataTemp[userName][documentType]) {
-            projectistDataTemp[userName][documentType] = 0
-          }
+        if (!deleted) {
+          totalDocuments++ // Aumenta el contador de documentos válidos
+          totalPercent += blueprintPercent || 0 // Suma el valor de 'blueprintPercent', o 0 si no existe
 
-          projectistDataTemp[userName][documentType] += 1
+          // Agrupación de datos por usuario y tipo de documento
+          if (userName && id) {
+            const documentType = `${id.split('-')[1]}-${id.split('-')[2]}` // Ej: "500-PL"
+            if (!projectistDataTemp[userName]) {
+              projectistDataTemp[userName] = {}
+            }
+            if (!projectistDataTemp[userName][documentType]) {
+              projectistDataTemp[userName][documentType] = 0
+            }
+            projectistDataTemp[userName][documentType] += 1
+          }
         }
         const revisionsRef = collection(doc.ref, 'revisions')
 
@@ -671,6 +680,11 @@ const useBlueprints = id => {
 
         unsubscribeAll.push(unsubscribeRevisions)
       })
+
+      // Calcular 'otPercent' solo si hay documentos válidos
+      /* Después de procesar todos los documentos, se calcula el promedio de los valores de blueprintPercent (sumatoria de los porcentajes dividida por la cantidad de documentos). */
+      const calculatedOtPercent = totalDocuments > 0 ? (totalPercent / totalDocuments).toFixed(1) : null
+      setOtPercent(calculatedOtPercent)
     })
 
     unsubscribeAll.push(unsubscribeBlueprints)
@@ -679,7 +693,7 @@ const useBlueprints = id => {
     return () => unsubscribeAll.forEach(unsubscribe => unsubscribe())
   }, [id])
 
-  return [data, projectistData, setData]
+  return [data, projectistData, otPercent, setData]
 }
 
 function formatCount(count) {
@@ -943,7 +957,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentBySupervisor: false,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
-            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient ? 100 : updateData.blueprintPercent
+            blueprintPercent:
+              blueprint.blueprintCompleted && isRevisionAtLeast0 && isApprovedByClient
+                ? 80
+                : (isRevisionAtLeast0 && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)
+                ? 100
+                : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -972,6 +991,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   await updateDoc(blueprintRef, updateData)
 
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
+  nextRevision.newBlueprintPercent = updateData.blueprintPercent
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 
   // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
@@ -1061,6 +1081,7 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
         prevRevision: id[1].revision,
         newRevision: id[1].revision,
         description: id[1].description,
+        newBlueprintPercent: 80,
         storageBlueprints: id[1].storageBlueprints[0],
         userEmail: authUser.email,
         userName: authUser.displayName,

@@ -463,6 +463,7 @@ const TableGabinete = ({
 
   const idLocalWidth = Number(localStorage.getItem('idGabineteWidthColumn'))
   const revisionLocalWidth = Number(localStorage.getItem('revisionGabineteWidthColumn'))
+  const percentLocalWidth = Number(localStorage.getItem('percentGabineteWidthColumn'))
   const userNameLocalWidth = Number(localStorage.getItem('userNameGabineteWidthColumn'))
   const lastTransmittalLocalWidth = Number(localStorage.getItem('lastTransmittalGabineteWidthColumn'))
   const descriptionLocalWidth = Number(localStorage.getItem('descriptionGabineteWidthColumn'))
@@ -588,6 +589,50 @@ const TableGabinete = ({
             <Box sx={{ overflow: 'hidden' }}>
               <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {revisionContent || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        }
+      }
+    },
+    {
+      field: 'percent',
+      headerName: 'PORCENTAJE',
+      width: percentLocalWidth
+        ? percentLocalWidth
+        : role === 9 && !lg
+        ? 95
+        : role !== 9 && !lg
+        ? 95
+        : role !== 9
+        ? 80
+        : 80,
+      renderCell: params => {
+        const { row } = params
+
+        localStorage.setItem('percentGabineteWidthColumn', params.colDef.computedWidth)
+
+        let percentContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra el registro de la revisión a modo de historial
+          percentContent = row.newBlueprintPercent
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {`${percentContent} %` || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la el estado de la revisión actual
+          percentContent = row.blueprintPercent
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {`${percentContent} %` || 'N/A'}
               </Typography>
             </Box>
           )

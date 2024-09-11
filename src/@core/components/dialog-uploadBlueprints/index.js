@@ -1,21 +1,23 @@
 import { Download } from '@mui/icons-material'
 import BorderColorIcon from '@mui/icons-material/BorderColor'
-import Button from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
-import FormControl from '@mui/material/FormControl'
-import Grid from '@mui/material/Grid'
-import IconButton from '@mui/material/IconButton'
-import Link from '@mui/material/Link'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import Paper from '@mui/material/Paper'
-import Slide from '@mui/material/Slide'
-import Typography from '@mui/material/Typography'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControl,
+  Grid,
+  IconButton,
+  Link,
+  List,
+  ListItem,
+  Paper,
+  Slide,
+  Typography,
+  CircularProgress
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import Box from '@mui/system/Box'
@@ -39,26 +41,26 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 })
 
 //esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
-function getIconForFileType(filePath) {
-  const urlWithoutParams = filePath.split('?')[0]
-  const extension = urlWithoutParams.split('.').pop().toLowerCase()
+// function getIconForFileType(filePath) {
+//   const urlWithoutParams = filePath.split('?')[0]
+//   const extension = urlWithoutParams.split('.').pop().toLowerCase()
 
-  switch (extension) {
-    case 'pdf':
-      return '/icons/pdf.png'
-    case 'ppt':
-    case 'pptx':
-      return '/icons/ppt.png'
-    case 'doc':
-    case 'docx':
-      return '/icons/doc.png'
-    case 'xls':
-    case 'xlsx':
-      return '/icons/xls.png'
-    default:
-      return '/icons/default.png'
-  }
-}
+//   switch (extension) {
+//     case 'pdf':
+//       return '/icons/pdf.png'
+//     case 'ppt':
+//     case 'pptx':
+//       return '/icons/ppt.png'
+//     case 'doc':
+//     case 'docx':
+//       return '/icons/doc.png'
+//     case 'xls':
+//     case 'xlsx':
+//       return '/icons/xls.png'
+//     default:
+//       return '/icons/default.png'
+//   }
+// }
 
 //esta función se usa para establecer los iconos de los documentos que se van a adjuntar al documento, previo a cargarlos.
 const getFileIcon = fileType => {
@@ -77,87 +79,87 @@ const getFileIcon = fileType => {
   }
 }
 
-const getFileName = (content, index) => {
-  if (typeof content === 'string') {
-    const urlSegments = content.split('%2F')
-    const encodedFileName = urlSegments[urlSegments.length - 1]
-    const fileNameSegments = encodedFileName.split('?')
-    const fileName = decodeURIComponent(fileNameSegments[0])
+// const getFileName = (content, index) => {
+//   if (typeof content === 'string') {
+//     const urlSegments = content.split('%2F')
+//     const encodedFileName = urlSegments[urlSegments.length - 1]
+//     const fileNameSegments = encodedFileName.split('?')
+//     const fileName = decodeURIComponent(fileNameSegments[0])
 
-    return fileName
-  } else {
-    // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
-    return ''
-  }
-}
+//     return fileName
+//   } else {
+//     // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+//     return ''
+//   }
+// }
 
 // función que renderiza cada elemento adjunto y renderiza la variable 'displaySrc' que usa un condicional en caso que el elemento sea una image muestra el thumbnail, caso contrario muestra el icono según el tipo de archivo
-const PhotoItem = ({ photoUrl }) => {
-  const urlWithoutParams = photoUrl.split('?')[0]
-  const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase())
-  const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl)
+// const PhotoItem = ({ photoUrl }) => {
+//   const urlWithoutParams = photoUrl.split('?')[0]
+//   const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase())
+//   const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl)
 
-  const onError = () => {
-    const imageRef = document.getElementById(photoUrl)
-    imageRef.src = 'https://fonts.gstatic.com/s/i/materialiconsoutlined/error/v20/24px.svg'
-    imageRef.style.filter = 'contrast(0.5) invert(1)'
-    imageRef.style.height = '30px'
-    imageRef.style.marginRight = '5px'
-    imageRef.nextSibling.style.display = 'none'
-    imageRef.parentElement.parentElement.style.height = '30px'
-    imageRef.parentElement.style.display = 'flex'
-    imageRef.parentElement.style.alignItems = 'center'
-    imageRef.parentElement.append('Error al cargar imagen')
-  }
+//   const onError = () => {
+//     const imageRef = document.getElementById(photoUrl)
+//     imageRef.src = 'https://fonts.gstatic.com/s/i/materialiconsoutlined/error/v20/24px.svg'
+//     imageRef.style.filter = 'contrast(0.5) invert(1)'
+//     imageRef.style.height = '30px'
+//     imageRef.style.marginRight = '5px'
+//     imageRef.nextSibling.style.display = 'none'
+//     imageRef.parentElement.parentElement.style.height = '30px'
+//     imageRef.parentElement.style.display = 'flex'
+//     imageRef.parentElement.style.alignItems = 'center'
+//     imageRef.parentElement.append('Error al cargar imagen')
+//   }
 
-  return (
-    <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
-      <Typography variant='body2' color='textPrimary' sx={{ mb: 2, pl: 2 }}>
-        {getFileName(photoUrl)} {/* Aquí se muestra el nombre del archivo */}
-      </Typography>
-      <Box
-        component='img'
-        id={photoUrl}
-        src={displaySrc}
-        onClick={() => window.open(photoUrl, '_blank')}
-        alt='Photo'
-        style={{ height: 90, cursor: 'pointer' }}
-        onError={onError}
-      />
-      <IconButton
-        href={photoUrl}
-        target='_blank'
-        rel='noopener noreferrer'
-        sx={{
-          position: 'absolute',
-          bottom: '10px',
-          right: '10px',
-          backgroundColor: 'rgba(220, 220, 220, 0.1)'
-        }}
-      >
-        <Download />
-      </IconButton>
-    </Box>
-  )
-}
+//   return (
+//     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
+//       <Typography variant='body2' color='textPrimary' sx={{ mb: 2, pl: 2 }}>
+//         {getFileName(photoUrl)} {/* Aquí se muestra el nombre del archivo */}
+//       </Typography>
+//       <Box
+//         component='img'
+//         id={photoUrl}
+//         src={displaySrc}
+//         onClick={() => window.open(photoUrl, '_blank')}
+//         alt='Photo'
+//         style={{ height: 90, cursor: 'pointer' }}
+//         onError={onError}
+//       />
+//       <IconButton
+//         href={photoUrl}
+//         target='_blank'
+//         rel='noopener noreferrer'
+//         sx={{
+//           position: 'absolute',
+//           bottom: '10px',
+//           right: '10px',
+//           backgroundColor: 'rgba(220, 220, 220, 0.1)'
+//         }}
+//       >
+//         <Download />
+//       </IconButton>
+//     </Box>
+//   )
+// }
 
-const PhotoGallery = ({ photos }) => (
-  <Box
-    sx={{
-      display: 'flex',
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      overflow: 'auto',
-      height: '140px',
-      width: '70%',
-      justifyContent: 'space-evently'
-    }}
-  >
-    {photos.map((fotoUrl, index) => (
-      <PhotoItem key={index} photoUrl={fotoUrl} />
-    ))}
-  </Box>
-)
+// const PhotoGallery = ({ photos }) => (
+//   <Box
+//     sx={{
+//       display: 'flex',
+//       flexDirection: 'row',
+//       flexWrap: 'wrap',
+//       overflow: 'auto',
+//       height: '140px',
+//       width: '70%',
+//       justifyContent: 'space-evently'
+//     }}
+//   >
+//     {photos.map((fotoUrl, index) => (
+//       <PhotoItem key={index} photoUrl={fotoUrl} />
+//     ))}
+//   </Box>
+// )
 
 export const UploadBlueprintsDialog = ({
   handleClose,
@@ -744,8 +746,7 @@ export const UploadBlueprintsDialog = ({
                   shrink: true
                 }}
                 id='description'
-                initialValue={description}
-                value={values.description}
+                value={values?.description || ''}
                 onChange={e => {
                   handleInputChange('description')(e)
                   setIsDescriptionSaved(false) // Restablecer el estado al cambiar la descripción
