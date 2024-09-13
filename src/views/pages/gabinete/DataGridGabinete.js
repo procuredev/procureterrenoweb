@@ -364,7 +364,7 @@ const DataGridGabinete = () => {
       <Box sx={{ display: 'flex' }}>
         <Autocomplete
           options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
-          getOptionLabel={option => option.value + ' ' + option.title + ' '}
+          getOptionLabel={option => option.value + ' - ' + option.title + ' '}
           sx={{ mx: 6.5, flexGrow: '9' }}
           onChange={(event, value) => handleChange(value)}
           onInputChange={(event, value) => setCurrentAutoComplete(value)}
@@ -552,13 +552,13 @@ const DataGridGabinete = () => {
               </DialogContentText>
               <List>
                 {Array.from(selectedDocs.values()).map(doc => (
-                  <Box key={doc.name}>
-                    <ListItem key={doc.id}>
+                  <Box key={doc.clientCode}>
+                    <ListItem key={doc.clientCode}>
                       <ListItemText primary={doc.id} secondary={doc.clientCode} />
                     </ListItem>
                     {doc.storageHlcDocuments &&
                       doc.storageHlcDocuments.map(hlc => (
-                        <ListItem key={hlc.index}>
+                        <ListItem key={hlc.name}>
                           <ListItemText primary={hlc.name} />
                         </ListItem>
                       ))}

@@ -683,7 +683,12 @@ const useBlueprints = id => {
 
       // Calcular 'otPercent' solo si hay documentos válidos
       /* Después de procesar todos los documentos, se calcula el promedio de los valores de blueprintPercent (sumatoria de los porcentajes dividida por la cantidad de documentos). */
-      const calculatedOtPercent = totalDocuments > 0 ? (totalPercent / totalDocuments).toFixed(1) : null
+      const calculatedOtPercent =
+        totalDocuments > 0
+          ? Number.isInteger(totalPercent / totalDocuments)
+            ? totalPercent / totalDocuments
+            : (totalPercent / totalDocuments).toFixed(1)
+          : null
       setOtPercent(calculatedOtPercent)
     })
 
@@ -958,11 +963,11 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
             blueprintPercent:
-              blueprint.blueprintCompleted && isRevisionAtLeast0 && isApprovedByClient
-                ? 80
-                : (isRevisionAtLeast0 && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)
-                ? 100
-                : updateData.blueprintPercent
+              // blueprint.blueprintCompleted && isRevisionAtLeast0 && isApprovedByClient
+              //  ? 80
+              //  :  (isRevisionAtLeast0 && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)
+
+              isRevisionAtLeast0 && isApprovedByClient ? 100 : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -1081,7 +1086,7 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
         prevRevision: id[1].revision,
         newRevision: id[1].revision,
         description: id[1].description,
-        newBlueprintPercent: 80,
+        newBlueprintPercent: id[1].revision === 'B' || id[1].revision === '0' ? 80 : id[1].blueprintPercent,
         storageBlueprints: id[1].storageBlueprints[0],
         userEmail: authUser.email,
         userName: authUser.displayName,

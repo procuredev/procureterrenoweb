@@ -795,7 +795,7 @@ export const UploadBlueprintsDialog = ({
                 onChange={handleInputChange('userEmail')}
                 required={false}
               />
-              {doc && doc.storageBlueprints && doc.storageBlueprints.length > 0 && (
+              {doc && doc.storageBlueprints && doc.storageBlueprints.length > 0 && !isLoading && (
                 <ListItem>
                   <Box sx={{ display: 'flex', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>
@@ -817,7 +817,7 @@ export const UploadBlueprintsDialog = ({
                 </ListItem>
               )}
 
-              {doc && doc.storageHlcDocuments && doc.storageHlcDocuments.length > 0 && (
+              {doc && doc.storageHlcDocuments && doc.storageHlcDocuments.length > 0 && !isLoading && (
                 <ListItem>
                   <Box sx={{ display: 'flex', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>

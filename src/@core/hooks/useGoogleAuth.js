@@ -23,7 +23,20 @@ export const useGoogleAuth = () => {
             setRefreshToken(storedParams.refresh_token)
             setIsLoading(false)
           } else {
-            //oauth2SignIn()
+            // Si el token es inválido, intentamos refrescar el access_token
+            if (storedParams.refresh_token) {
+              refreshAccessToken(storedParams.refresh_token)
+                .then(() => {
+                  setIsLoading(false) // Token refrescado, ya no estamos cargando
+                })
+                .catch(() => {
+                  console.error('Error refreshing access token, redirecting to OAuth login')
+                  oauth2SignIn() // Redirigimos al usuario a iniciar sesión si falla el refresco
+                })
+            } else {
+              console.error('No refresh token available, redirecting to OAuth login')
+              oauth2SignIn() // Redirigimos al inicio de sesión si no hay refresh_token
+            }
           }
         })
         .catch(() => {
@@ -33,6 +46,8 @@ export const useGoogleAuth = () => {
       parseQueryString()
     }
   }, [])
+
+  //expires_in: 3599
 
   const validateAccessToken = async token => {
     try {

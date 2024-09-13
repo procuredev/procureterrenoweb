@@ -271,7 +271,9 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
           <Typography variant='body2'>Establece el total de horas</Typography>
         </Box>
         {loading ? (
-          <CircularProgress />
+          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+            <CircularProgress /> <Typography sx={{ ml: 3 }}>Creando estructura de carpetas...</Typography>
+          </Box>
         ) : (
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             {/* Horas invertidas en Levantamiento */}
