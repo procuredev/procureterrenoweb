@@ -53,7 +53,8 @@ const defineRulesFor = (role, subject) => {
       'documentos',
       'gabinete',
       'carga-de-horas',
-      'centros-de-costo'
+      'centros-de-costo',
+      'firma'
     ])
   } else if (role === 6) {
     can('manage', [
@@ -66,7 +67,8 @@ const defineRulesFor = (role, subject) => {
       'documentos',
       'gabinete',
       'carga-de-horas',
-      'centros-de-costo'
+      'centros-de-costo',
+      'firma'
     ])
   } else if (role === 7) {
     can('manage', [
@@ -80,7 +82,8 @@ const defineRulesFor = (role, subject) => {
       'levantamientos',
       'documentos',
       'gabinete',
-      'carga-de-horas'
+      'carga-de-horas',
+      'firma'
     ])
   } else if (role === 8) {
     can('manage', [
@@ -93,7 +96,8 @@ const defineRulesFor = (role, subject) => {
       'documentos',
       'levantamientos',
       'gabinete',
-      'carga-de-horas'
+      'carga-de-horas',
+      'firma'
     ])
   } else if (role === 9) {
     can('manage', [
@@ -105,7 +109,8 @@ const defineRulesFor = (role, subject) => {
       'documentos',
       'solicitudes',
       'gabinete',
-      'carga-de-horas'
+      'carga-de-horas',
+      'firma'
     ])
   } else if (role === 10) {
     can('manage', [
@@ -119,12 +124,13 @@ const defineRulesFor = (role, subject) => {
       'levantamientos',
       'gabinete',
       'carga-de-horas',
-      'centros-de-costo'
+      'centros-de-costo',
+      'firma'
     ])
   } else if (role === 11) {
-    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'carga-de-horas'])
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'carga-de-horas', 'firma'])
   } else if (role === 12) {
-    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'carga-de-horas'])
+    can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'carga-de-horas', 'firma'])
   }else {
     can('manage', subject)
   }

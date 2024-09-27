@@ -88,6 +88,13 @@ const Navigation = () => {
       authorizedRoles: [1, 5, 6, 10]
     },
     {
+      title: 'Firma',
+      path: '/firma',
+      icon: 'mdi:sign',
+      subject: 'firma',
+      authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
       title: 'Administración',
       icon: 'mdi:shield-account-outline',
       children: [

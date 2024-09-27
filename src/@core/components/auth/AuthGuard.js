@@ -6,7 +6,6 @@ import { useRouter } from 'next/router'
 
 // ** Hooks Import
 import { useFirebase } from 'src/context/useFirebase'
-import { Dialog, DialogContent, DialogTitle, Typography } from '@mui/material'
 
 const AuthGuard = props => {
   const { children, fallback } = props
