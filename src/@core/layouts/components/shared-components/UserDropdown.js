@@ -89,16 +89,11 @@ const UserDropdown = props => {
     const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
 
     if (storedParams) {
-      const { access_token, refresh_token } = storedParams
+      const { access_token } = storedParams
 
       // Revoca el access_token si existe
       if (access_token) {
         await revokeToken(access_token)
-      }
-
-      // Revoca el refresh_token si existe
-      if (refresh_token) {
-        await revokeToken(refresh_token)
       }
     }
 

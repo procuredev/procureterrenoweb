@@ -164,7 +164,7 @@ export const useGoogleAuth = () => {
     if (storedParams && storedParams['access_token']) {
       return storedParams['access_token']
     } else {
-      setIsDialogOpen(true) // Si el token no es válido, mostrar el diálogo
+      oauth2SignIn()
     }
   }
 
