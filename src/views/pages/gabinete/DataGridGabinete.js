@@ -376,7 +376,7 @@ const DataGridGabinete = () => {
 
         <TextField
           sx={{ mr: 6.5, flexGrow: '0.2' }}
-          label='Avance en Gabinete'
+          label=' Porcentaje Promedio de Avance'
           value={otPercent ? `${otPercent} %` : ''}
           id='form-props-read-only-input'
           InputProps={{ readOnly: true }}

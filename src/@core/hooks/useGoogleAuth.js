@@ -183,9 +183,6 @@ export const useGoogleAuth = () => {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCloseDialog} color='error'>
-          Cancelar
-        </Button>
         <Button
           onClick={() => {
             oauth2SignIn()
