@@ -1,5 +1,3 @@
-import { Download } from '@mui/icons-material'
-import BorderColorIcon from '@mui/icons-material/BorderColor'
 import {
   Button,
   Dialog,
@@ -16,8 +14,10 @@ import {
   Paper,
   Slide,
   Typography,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material'
+import FileCopyIcon from '@mui/icons-material/FileCopy'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import Box from '@mui/system/Box'
@@ -34,33 +34,6 @@ import 'moment/locale/es'
 import { InputAdornment } from '@mui/material'
 import DateListItem from 'src/@core/components/custom-date'
 import CustomListItem from 'src/@core/components/custom-list'
-import { auto } from '@popperjs/core'
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction='up' ref={ref} {...props} />
-})
-
-//esta función se usa para establecer los iconos de los documentos que ya se han adjuntado al documento
-// function getIconForFileType(filePath) {
-//   const urlWithoutParams = filePath.split('?')[0]
-//   const extension = urlWithoutParams.split('.').pop().toLowerCase()
-
-//   switch (extension) {
-//     case 'pdf':
-//       return '/icons/pdf.png'
-//     case 'ppt':
-//     case 'pptx':
-//       return '/icons/ppt.png'
-//     case 'doc':
-//     case 'docx':
-//       return '/icons/doc.png'
-//     case 'xls':
-//     case 'xlsx':
-//       return '/icons/xls.png'
-//     default:
-//       return '/icons/default.png'
-//   }
-// }
 
 //esta función se usa para establecer los iconos de los documentos que se van a adjuntar al documento, previo a cargarlos.
 const getFileIcon = fileType => {
@@ -78,88 +51,6 @@ const getFileIcon = fileType => {
       return 'mdi:file-document-outline'
   }
 }
-
-// const getFileName = (content, index) => {
-//   if (typeof content === 'string') {
-//     const urlSegments = content.split('%2F')
-//     const encodedFileName = urlSegments[urlSegments.length - 1]
-//     const fileNameSegments = encodedFileName.split('?')
-//     const fileName = decodeURIComponent(fileNameSegments[0])
-
-//     return fileName
-//   } else {
-//     // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
-//     return ''
-//   }
-// }
-
-// función que renderiza cada elemento adjunto y renderiza la variable 'displaySrc' que usa un condicional en caso que el elemento sea una image muestra el thumbnail, caso contrario muestra el icono según el tipo de archivo
-// const PhotoItem = ({ photoUrl }) => {
-//   const urlWithoutParams = photoUrl.split('?')[0]
-//   const isImage = /\.(jpeg|jpg|gif|png)$/.test(urlWithoutParams.toLowerCase())
-//   const displaySrc = isImage ? photoUrl : getIconForFileType(photoUrl)
-
-//   const onError = () => {
-//     const imageRef = document.getElementById(photoUrl)
-//     imageRef.src = 'https://fonts.gstatic.com/s/i/materialiconsoutlined/error/v20/24px.svg'
-//     imageRef.style.filter = 'contrast(0.5) invert(1)'
-//     imageRef.style.height = '30px'
-//     imageRef.style.marginRight = '5px'
-//     imageRef.nextSibling.style.display = 'none'
-//     imageRef.parentElement.parentElement.style.height = '30px'
-//     imageRef.parentElement.style.display = 'flex'
-//     imageRef.parentElement.style.alignItems = 'center'
-//     imageRef.parentElement.append('Error al cargar imagen')
-//   }
-
-//   return (
-//     <Box sx={{ position: 'relative', height: '-webkit-fill-available', p: 2 }}>
-//       <Typography variant='body2' color='textPrimary' sx={{ mb: 2, pl: 2 }}>
-//         {getFileName(photoUrl)} {/* Aquí se muestra el nombre del archivo */}
-//       </Typography>
-//       <Box
-//         component='img'
-//         id={photoUrl}
-//         src={displaySrc}
-//         onClick={() => window.open(photoUrl, '_blank')}
-//         alt='Photo'
-//         style={{ height: 90, cursor: 'pointer' }}
-//         onError={onError}
-//       />
-//       <IconButton
-//         href={photoUrl}
-//         target='_blank'
-//         rel='noopener noreferrer'
-//         sx={{
-//           position: 'absolute',
-//           bottom: '10px',
-//           right: '10px',
-//           backgroundColor: 'rgba(220, 220, 220, 0.1)'
-//         }}
-//       >
-//         <Download />
-//       </IconButton>
-//     </Box>
-//   )
-// }
-
-// const PhotoGallery = ({ photos }) => (
-//   <Box
-//     sx={{
-//       display: 'flex',
-//       flexDirection: 'row',
-//       flexWrap: 'wrap',
-//       overflow: 'auto',
-//       height: '140px',
-//       width: '70%',
-//       justifyContent: 'space-evently'
-//     }}
-//   >
-//     {photos.map((fotoUrl, index) => (
-//       <PhotoItem key={index} photoUrl={fotoUrl} />
-//     ))}
-//   </Box>
-// )
 
 export const UploadBlueprintsDialog = ({
   handleClose,
@@ -215,8 +106,6 @@ export const UploadBlueprintsDialog = ({
 
   // Verifica estado
   revision = typeof revision === 'string' ? revision : 100
-
-  //console.log('files', files)
 
   const initialValues = {
     id,
@@ -291,6 +180,17 @@ export const UploadBlueprintsDialog = ({
       expectedFileName = `${expectedClientCode}_REV_${expectedRevision}_${initials}`
     }
 
+    const handleCopyToClipboard = text => {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          console.log('Texto copiado al portapapeles:', text)
+        })
+        .catch(err => {
+          console.error('Error al copiar al portapapeles:', err)
+        })
+    }
+
     const validationResults = acceptedFiles.map(file => {
       const fileNameWithoutExtension = file.name.split('.').slice(0, -1).join('.') // Quita la extensión del archivo
 
@@ -306,6 +206,17 @@ export const UploadBlueprintsDialog = ({
             El nombre del archivo debe ser:{' '}
             <Typography variant='body2' component='span' color='primary'>
               {expectedFileName}
+              <Tooltip title='Copiar'>
+                <IconButton
+                  sx={{ ml: 3 }}
+                  size='small'
+                  onClick={() => handleCopyToClipboard(expectedFileName)}
+                  aria-label='copiar'
+                >
+                  <FileCopyIcon fontSize='small' />
+                  <Typography>copiar</Typography>
+                </IconButton>
+              </Tooltip>
             </Typography>
             <br />
             <br />
@@ -400,7 +311,6 @@ export const UploadBlueprintsDialog = ({
       }
 
       if (authUser.role === 9 && doc.approvedByDocumentaryControl && !checkRoleAndApproval(authUser.role, doc)) {
-        //setHlcDocuments(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
         setHlcDocuments(acceptedFiles[0])
       }
 
@@ -410,8 +320,6 @@ export const UploadBlueprintsDialog = ({
         (authUser.role === 9 && (doc.approvedBySupervisor || doc.approvedByContractAdmin)) ||
         (doc.approvedByDocumentaryControl && checkRoleAndApproval(authUser.role, doc))
       ) {
-        // Agregar los nuevos archivos a los archivos existentes en lugar de reemplazarlos
-        //setFiles(prevFiles => [...prevFiles, ...acceptedFiles.map(file => Object.assign(file))])
         setFiles(acceptedFiles[0])
       }
     },
@@ -532,11 +440,13 @@ export const UploadBlueprintsDialog = ({
     const nextCharCode = doc.revision.charCodeAt(0) + 1
     const nextChar = String.fromCharCode(nextCharCode)
 
+    // Verifica si el id contiene "M3D" antes del último guion
+    const isM3D = doc.id.split('-').slice(-2, -1)[0] === 'M3D'
+
     const isRole8 = authUser.role === 8
     const isRole7 = authUser.role === 7
 
     if (isRole8 || (isRole7 && doc.userId === authUser.uid)) {
-      // Lógica para el role 8
       const actions = {
         keepRevision: {
           condition: () =>
@@ -557,12 +467,18 @@ export const UploadBlueprintsDialog = ({
           action: () => (newRevision = nextChar)
         },
         startRevision: {
-          condition: () => doc.revision === 'iniciado',
+          condition: () => doc.revision === 'iniciado' && !isM3D,
           action: () => (newRevision = 'A')
         },
         incrementRevisionInA: {
           condition: () => doc.revision === 'A',
           action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
+        },
+        dotCloud: {
+          condition: () => doc.revision === 'iniciado' && isM3D,
+          action: () => {
+            newRevision = '0'
+          }
         }
       }
 
@@ -578,7 +494,6 @@ export const UploadBlueprintsDialog = ({
 
   const handleSubmitAllFiles = async () => {
     try {
-      //await uploadFilesToFirebaseStorage(files, doc.id, 'blueprints', petitionId)
       setIsLoading(true)
       // Busca la carpeta de la planta.
       const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
@@ -646,7 +561,6 @@ export const UploadBlueprintsDialog = ({
 
   const handleSubmitHlcDocuments = async () => {
     try {
-      //await uploadFilesToFirebaseStorage(hlcDocuments, doc.id, 'hlcDocuments', petitionId)
       setIsLoading(true)
       // Busca la carpeta de la planta.
       const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
@@ -811,8 +725,6 @@ export const UploadBlueprintsDialog = ({
                         </Fragment>
                       ))}
                     </Box>
-
-                    {/* <PhotoGallery photos={storageBlueprints} /> */}
                   </Box>
                 </ListItem>
               )}
@@ -828,12 +740,10 @@ export const UploadBlueprintsDialog = ({
                         {doc.storageHlcDocuments[0].name}
                       </Link>
                     </Box>
-                    {/* <PhotoGallery photos={storageHlcDocuments} /> */}
                   </Box>
                 </ListItem>
               )}
 
-              {/* Aquí true debe reemplazarse por el permiso para subir archivos */}
               {isLoading === false ? (
                 <Fragment>
                   <ListItem>

@@ -64,7 +64,10 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
   }
 
   const handleQuantityChange = event => {
-    setQuantity(event.target.value)
+    const value = parseInt(event.target.value, 10) // Convertir el valor a entero
+    if (value >= 1) {
+      setQuantity(value) // Solo actualiza el estado si el valor es mayor o igual a 1
+    }
   }
 
   const handleChangeDraftman = event => {
@@ -177,7 +180,14 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
         </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-          <TextField label='Cantidad' type='number' value={quantity} onChange={handleQuantityChange} fullWidth />
+          <TextField
+            label='Cantidad'
+            type='number'
+            value={quantity}
+            inputProps={{ min: 1 }}
+            onChange={handleQuantityChange}
+            fullWidth
+          />
         </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>

@@ -73,8 +73,8 @@ import {
 
 import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
 
-// ** Importa funciones de GoogleAuth
-import { handleGoogleDriveAuthorization } from 'src/googleAuth'
+// ** Importamos el hook `useGoogleAuth`
+import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
@@ -91,6 +91,9 @@ const FirebaseContextProvider = props => {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [domainDictionary, setDomainDictionary] = useState({})
   const [domainRoles, setDomainRoles] = useState({})
+
+  // ** Llamamos al hook `useGoogleAuth` para manejar la autenticación de Google
+  const { handleGoogleDriveAuthorization } = useGoogleAuth()
 
   // ** Variables
   const auth = getAuth(app)

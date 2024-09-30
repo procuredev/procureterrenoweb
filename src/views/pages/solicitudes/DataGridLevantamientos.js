@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
+import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
 
 // ** MUI Imports
 import TabContext from '@mui/lab/TabContext'
@@ -22,6 +23,7 @@ const DataGridLevantamientos = () => {
   const [roleData, setRoleData] = useState({ name: 'admin' })
 
   const { useSnapshot, authUser, getDomainData } = useFirebase()
+  const { renderDialog } = useGoogleAuth()
   const data = useSnapshot(true, authUser)
 
   useEffect(() => {
@@ -96,6 +98,8 @@ const DataGridLevantamientos = () => {
           </Grid>
         ))}
       </TabContext>
+      {/* Renderiza el diálogo de recondección a Google Drive, en caso de que expire el access token */}
+      {renderDialog()}
     </Box>
   )
 }

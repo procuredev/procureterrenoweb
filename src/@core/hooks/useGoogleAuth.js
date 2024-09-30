@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material'
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_ID
 const CLIENT_SECRET = process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_SECRET
@@ -10,9 +11,11 @@ export const useGoogleAuth = () => {
   const [refreshToken, setRefreshToken] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   useEffect(() => {
     const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
+
     if (storedParams && storedParams.access_token) {
       console.log('storedParams.access_token', storedParams.access_token)
       validateAccessToken(storedParams.access_token)
@@ -20,30 +23,20 @@ export const useGoogleAuth = () => {
           console.log('isValid', isValid)
           if (isValid) {
             setAccessToken(storedParams.access_token)
-            setRefreshToken(storedParams.refresh_token)
             setIsLoading(false)
+
+            // Programar la re-autenticación antes de que expire el access_token
+            const expiresIn = storedParams.expires_in
+            scheduleTokenRefresh(expiresIn) // Automáticamente refresca el token antes de que expire
           } else {
-            // Si el token es inválido, intentamos refrescar el access_token
-            if (storedParams.refresh_token) {
-              refreshAccessToken(storedParams.refresh_token)
-                .then(() => {
-                  setIsLoading(false) // Token refrescado, ya no estamos cargando
-                })
-                .catch(() => {
-                  console.error('Error refreshing access token, redirecting to OAuth login')
-                  oauth2SignIn() // Redirigimos al usuario a iniciar sesión si falla el refresco
-                })
-            } else {
-              console.error('No refresh token available, redirecting to OAuth login')
-              oauth2SignIn() // Redirigimos al inicio de sesión si no hay refresh_token
-            }
+            setIsDialogOpen(true) // Si el token no es válido, mostrar el diálogo
           }
         })
         .catch(() => {
-          oauth2SignIn()
+          setIsDialogOpen(true) // Si el token no es válido, mostrar el diálogo
         })
     } else {
-      parseQueryString()
+      parseQueryString() // Si no hay tokens, parsear la URL para obtenerlos
     }
   }, [])
 
@@ -72,6 +65,8 @@ export const useGoogleAuth = () => {
       response_type: 'token'
     }
 
+    localStorage.removeItem('oauth2-test-params')
+
     const form = document.createElement('form')
     form.setAttribute('method', 'GET')
     form.setAttribute('action', oauth2Endpoint)
@@ -86,6 +81,7 @@ export const useGoogleAuth = () => {
 
     document.body.appendChild(form)
     form.submit()
+    parseQueryString()
   }
 
   const refreshAccessToken = async refreshToken => {
@@ -110,16 +106,32 @@ export const useGoogleAuth = () => {
 
       const data = await response.json()
       const newAccessToken = data.access_token
+      const expiresIn = data.expires_in
 
-      const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
-      storedParams.access_token = newAccessToken
+      const storedParams1 = JSON.parse(localStorage.getItem('oauth2-test-params'))
+      storedParams1.access_token = newAccessToken
+      storedParams1.expires_in = expiresIn
 
-      localStorage.setItem('oauth2-test-params', JSON.stringify(storedParams))
+      localStorage.removeItem('oauth2-test-params')
+
+      localStorage.setItem('oauth2-test-params', JSON.stringify(storedParams1))
       setAccessToken(newAccessToken)
+
+      return expiresIn
     } catch (error) {
       setError(error.message)
       throw error
     }
+  }
+
+  // Programa el refresco del token antes de que expire
+  const scheduleTokenRefresh = expiresIn => {
+    // Refresca el token 5 minutos antes de que expire
+    const refreshTime = (expiresIn - 300) * 1000 // 5 minutos en milisegundos
+    setTimeout(() => {
+      console.log('EJECUCIÓN DEL setTimeout en scheduleTokenRefresh')
+      setIsDialogOpen(true) // Si el token no es válido, mostrar el diálogo
+    }, refreshTime)
   }
 
   const parseQueryString = () => {
@@ -138,6 +150,8 @@ export const useGoogleAuth = () => {
       if (params.state && params.state === 'try_sample_request') {
         setAccessToken(params.access_token)
         setRefreshToken(params.refresh_token)
+        scheduleTokenRefresh(params.expires_in) // Programa el refresco automático
+        window.location.href = '/home'
       }
       setIsLoading(false)
     } else {
@@ -145,12 +159,55 @@ export const useGoogleAuth = () => {
     }
   }
 
+  const handleGoogleDriveAuthorization = async () => {
+    const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
+    if (storedParams && storedParams['access_token']) {
+      return storedParams['access_token']
+    } else {
+      setIsDialogOpen(true) // Si el token no es válido, mostrar el diálogo
+    }
+  }
+
+  // Función para cerrar el diálogo
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false)
+  }
+
+  // Diálogo de reconexión
+  const renderDialog = () => (
+    <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+      <DialogTitle>Conexión expirada</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Tu conexión con Google Drive ha expirado. <br /> Haz clic en "Conectar" para volver a autenticarse.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCloseDialog} color='error'>
+          Cancelar
+        </Button>
+        <Button
+          onClick={() => {
+            oauth2SignIn()
+            handleCloseDialog()
+          }}
+          color='primary'
+          autoFocus
+        >
+          Conectar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+
   return {
     accessToken,
     refreshToken,
     isLoading,
     error,
     oauth2SignIn,
-    refreshAccessToken
+    refreshAccessToken,
+    handleGoogleDriveAuthorization,
+    renderDialog // Devuelve el diálogo para que pueda ser utilizado en otros componentes
   }
 }

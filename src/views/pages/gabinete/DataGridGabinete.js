@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
 import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
+import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
 
 // ** MUI Imports
 import { useGridApiRef } from '@mui/x-data-grid'
@@ -62,6 +63,7 @@ const DataGridGabinete = () => {
   const apiRef = useGridApiRef()
 
   const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
+  const { renderDialog } = useGoogleAuth()
 
   const currentPetitionRef = useRef()
 
@@ -512,7 +514,6 @@ const DataGridGabinete = () => {
           </Box>
         </Box>
       )}
-
       <Box sx={{ m: 6.5, height: '100%' }}>
         <TableGabinete
           rows={blueprints ? blueprints : []}
@@ -526,7 +527,6 @@ const DataGridGabinete = () => {
           showReasignarSection={showReasignarSection}
         />
       </Box>
-
       <DialogAssignGabineteDraftmen
         open={open}
         handleClose={handleClose}
@@ -615,6 +615,8 @@ const DataGridGabinete = () => {
         setSelectedRows={setSelectedRows}
       />
       {errorTransmittal && <DialogErrorTransmittal open={errorTransmittal} handleClose={handleCloseErrorTransmittal} />}
+      {/* Renderiza el diálogo de recondección a Google Drive, en caso de que expire el access token */}
+      {renderDialog()}
     </Box>
   )
 }

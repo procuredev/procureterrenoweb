@@ -736,6 +736,7 @@ const getNextRevision = async (
   latestRevision,
   { role, email, displayName, uid },
   {
+    id,
     revision,
     description,
     storageBlueprints,
@@ -760,6 +761,11 @@ const getNextRevision = async (
   const nextCharCode = revision.charCodeAt(0) + 1
 
   const nextChar = String.fromCharCode(nextCharCode)
+
+  // Verifica si el id contiene "M3D" antes del último guion
+  const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
+
+  console.log('isM3D', isM3D)
 
   // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
   if (role === 8 && approve) {
@@ -789,7 +795,7 @@ const getNextRevision = async (
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => revision === 'iniciado',
+        condition: () => revision === 'iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
@@ -799,6 +805,12 @@ const getNextRevision = async (
       incrementBlueprintPercent: {
         condition: () => revision === 'A',
         action: () => (newBlueprintPercent = 60)
+      },
+      dotCloud: {
+        condition: () => revision === 'iniciado' && isM3D,
+        action: () => {
+          newRevision = '0'
+        }
       }
     }
 
@@ -835,7 +847,7 @@ const getNextRevision = async (
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => revision === 'iniciado',
+        condition: () => revision === 'iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
@@ -845,6 +857,12 @@ const getNextRevision = async (
       incrementBlueprintPercent: {
         condition: () => revision === 'A',
         action: () => (newBlueprintPercent = 60)
+      },
+      dotCloud: {
+        condition: () => revision === 'iniciado' && isM3D,
+        action: () => {
+          newRevision = '0'
+        }
       }
     }
 
@@ -893,6 +911,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const isApprovedByClient = blueprint.approvedByClient
   const isOverResumable = isRevisionAtLeast1 && blueprint.resumeBlueprint && blueprint.blueprintCompleted
 
+  const isM3D = blueprint.id.split('-').slice(-2, -1)[0] === 'M3D'
+
   // Inicializa los datos que se van a actualizar
   let updateData = {
     revision: nextRevision.newRevision,
@@ -918,8 +938,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         ? {
             ...updateData,
             sentBySupervisor: approves,
-            approvedByContractAdmin: approves && blueprint.revision === 'iniciado',
-            blueprintPercent: blueprint.revision === 'iniciado' ? 20 : updateData.blueprintPercent
+            approvedByContractAdmin: approves && blueprint.revision === 'iniciado' && !isM3D,
+            blueprintPercent:
+              blueprint.revision === 'iniciado' && !isM3D
+                ? 20
+                : blueprint.revision === 'iniciado' && isM3D
+                ? 60
+                : updateData.blueprintPercent
           }
         : {
             ...updateData,
@@ -931,9 +956,14 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
-      blueprintPercent: blueprint.revision === 'iniciado' ? 20 : updateData.blueprintPercent,
+      blueprintPercent:
+        blueprint.revision === 'iniciado' && !isM3D
+          ? 20
+          : blueprint.revision === 'iniciado' && isM3D
+          ? 60
+          : updateData.blueprintPercent,
       approvedBySupervisor:
-        (approves && blueprint.revision === 'iniciado') ||
+        (approves && blueprint.revision === 'iniciado' && !isM3D) ||
         (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl)
     }),
     9: () =>
@@ -962,12 +992,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentBySupervisor: false,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
-            blueprintPercent:
-              // blueprint.blueprintCompleted && isRevisionAtLeast0 && isApprovedByClient
-              //  ? 80
-              //  :  (isRevisionAtLeast0 && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)
-
-              isRevisionAtLeast0 && isApprovedByClient ? 100 : updateData.blueprintPercent
+            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient ? 100 : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -1077,9 +1102,11 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
     // Actualiza el campo lastTransmittal en cada uno de los documentos seleccionados
     for (const id of selected) {
       const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0])
+      const isM3D = id[0].split('-').slice(-2, -1)[0] === 'M3D'
       await updateDoc(docRef, {
         lastTransmittal: newCode,
-        blueprintPercent: id[1].revision === 'B' ? 80 : id[1].blueprintPercent
+        blueprintPercent: id[1].revision === 'B' || id[1].revision === '0' ? 80 : id[1].blueprintPercent,
+        ...(isM3D && { approvedByClient: true })
       })
 
       const nextRevision = {
