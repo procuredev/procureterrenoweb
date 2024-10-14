@@ -185,7 +185,8 @@ export const generateTransmittal = async (
   const pdfBlob = doc.output('blob') // Genera el blob del documento PDF
 
   // Lógica de carga a Google Drive
-  const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+  //const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
+  const plantFolders = await fetchFolders('1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
   const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
 
   if (plantFolder) {

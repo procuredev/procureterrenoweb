@@ -167,13 +167,15 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       setLoading(true)
       try {
         // Busca la carpeta de la planta.
-        const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+        //const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
+        const plantFolders = await fetchFolders('1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
         let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
 
         // Si no existe la carpeta de la planta, se crea
         if (!plantFolder) {
           const plantName = getPlantAbbreviation(doc.plant)
-          plantFolder = await createFolder(plantName, '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
+          // plantFolder = await createFolder(plantName, '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
+          plantFolder = await createFolder(plantName, '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
         }
 
         if (plantFolder) {
