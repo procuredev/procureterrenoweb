@@ -16,7 +16,6 @@ import {
 import 'moment/locale/es'
 import { Fragment, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { createAgreement, downloadSignedDocument } from 'src/adobe/adobeSign'
 import { useFirebase } from 'src/context/useFirebase'
 
 import { HeadingTypography } from 'src/@core/components/custom-form/index'
@@ -76,21 +75,30 @@ const FormLayoutsDocViewer = () => {
   })
 
   const handleSign = async () => {
-    setIsSigning(true)
+    setIsSigning(true);
     try {
-      // Creas el acuerdo
-      const signerEmail = 'test@example.com' // Cambia esto por el email del firmante
-      const agreement = await createAgreement(file, signerEmail)
-      setAgreementId(agreement.id)
+      // Solicitud para obtener el nuevo token de acceso
+      const response = await fetch('/api/adobeSign', {
+        method: 'GET',
+      });
 
-      // Descargas el documento firmado
-      await downloadSignedDocument(agreement.id)
+      if (!response.ok) {
+        throw new Error('Error al refrescar el token');
+      }
+
+      const { accessToken } = await response.json(); // Extraer el token de la respuesta
+
+      // Imprimir el nuevo token en la consola
+      console.log('Nuevo token de acceso:', accessToken);
+
     } catch (error) {
-      console.error('Error al firmar el documento:', error)
+      console.error('Error al obtener el token de acceso:', error);
     } finally {
-      setIsSigning(false)
+      setIsSigning(false);
     }
-  }
+  };
+
+
 
   return (
     <Card>

@@ -1,7 +1,6 @@
-const path = require('path')
+const path = require('path');
 
 /** @type {import('next').NextConfig} */
-
 const nextConfig = {
   transpilePackages: [
     '@fullcalendar/common',
@@ -15,14 +14,13 @@ const nextConfig = {
   experimental: {
     esmExternals: false
   },
-  webpack: config => {
+  webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       apexcharts: path.resolve(__dirname, './node_modules/apexcharts-clevision')
-    }
-
-    return config
-  }
+    };
+    return config;
+  },
 }
 
-module.exports = nextConfig
+module.exports = nextConfig;

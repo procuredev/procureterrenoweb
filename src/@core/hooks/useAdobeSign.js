@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createAgreement, getAgreementStatus } from '../../adobe/adobeSign';
+import { createAgreement } from 'src/adobe/adobeSign';
 
 export const useAdobeSign = () => {
   const [loading, setLoading] = useState(false);
@@ -7,10 +7,10 @@ export const useAdobeSign = () => {
   const [agreement, setAgreement] = useState(null);
 
   // Hook para crear un acuerdo
-  const handleCreateAgreement = async (documentId, signerEmail) => {
+  const handleCreateAgreement = async (documentId) => {
     setLoading(true);
     try {
-      const agreementData = await createAgreement(documentId, signerEmail);
+      const agreementData = await createAgreement(documentId);
       setAgreement(agreementData);
       setLoading(false);
     } catch (err) {
@@ -19,24 +19,11 @@ export const useAdobeSign = () => {
     }
   };
 
-  // Hook para obtener el estado de un acuerdo
-  const handleGetAgreementStatus = async (agreementId) => {
-    setLoading(true);
-    try {
-      const statusData = await getAgreementStatus(agreementId);
-      setAgreement(statusData);
-      setLoading(false);
-    } catch (err) {
-      setError(err);
-      setLoading(false);
-    }
-  };
 
   return {
     loading,
     error,
     agreement,
-    handleCreateAgreement,
-    handleGetAgreementStatus
+    handleCreateAgreement
   };
 };

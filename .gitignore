@@ -37,3 +37,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# Claves SSL y certificados para desarrollo local
+server.key
+server.cert
