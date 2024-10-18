@@ -710,6 +710,30 @@ const consultBluePrints = async (type, options = {}) => {
         return count
       }
       break
+    case 'last30daysRevisions':
+      const thirtyDaysAgo = Timestamp.fromDate(moment().subtract(30, 'days').toDate())
+      const solicitudesRef = collection(db, 'solicitudes')
+
+      const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8), where('date', '>=', thirtyDaysAgo))
+
+      const solicitudesSnapshot = await getDocs(solicitudesQuery)
+
+      // array de Promises para obtener los blueprints de cada solicitud simultáneamente
+      const blueprintsPromises = solicitudesSnapshot.docs.map(async solicitudDoc => {
+        const blueprintsRef = collection(db, `solicitudes/${solicitudDoc.id}/blueprints`)
+        const blueprintsSnapshot = await getDocs(blueprintsRef)
+
+        return blueprintsSnapshot.docs.map(blueprintDoc => blueprintDoc.data())
+      })
+
+      // Se espera a que todas las promesas se resuelvan y "aplanamos" el resultado
+      const blueprintsData = (await Promise.all(blueprintsPromises)).flat()
+
+      console.log('blueprintsData', blueprintsData)
+
+      return blueprintsData
+
+      break
     default:
       // Lanzar un error si el tipo no es válido
       throw new Error(`Invalid type: ${type}`)

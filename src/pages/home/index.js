@@ -1,6 +1,8 @@
 // ** React Imports
 import { useState, useEffect } from 'react'
 
+import moment from 'moment'
+
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
@@ -19,6 +21,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Demo Components Imports
 import ChartDonutObjetivesLast30days from 'src/views/charts/apex-charts/ChartDonutObjetivesLast30days'
+import ChartDonutBlueprintsLast30daysByShift from 'src/views/charts/apex-charts/ChartDonutBlueprintsLast30daysByShift'
 import ChartDonutDocsLast30days from 'src/views/charts/apex-charts/ChartDonutDocsLast30days'
 import Top10UsersWihitMostDocs from 'src/views/dashboard/ecommerce/Top10UsersWihitMostDocs'
 import TopPositionCharts from 'src/views/dashboard/ecommerce/TopPositionCharts'
@@ -50,6 +53,8 @@ const Home = () => {
   const [objetivesByState, setObjetivesByState] = useState([0, 0, 0])
   const [top10, setTop10] = useState([])
   const [loading, setLoading] = useState(true)
+  const [revisionDataInBlueprintA, setRevisionDataInBlueprintA] = useState([0, 0, 0, 0, 0, 0])
+  const [revisionDataInBlueprintB, setRevisionDataInBlueprintB] = useState([0, 0, 0, 0, 0, 0])
 
   const plants = [
     'Planta Concentradora Los Colorados',
@@ -72,7 +77,8 @@ const Home = () => {
           byStateDocs,
           byPlantsDocs,
           byPlantsObj,
-          resTop10
+          resTop10,
+          blueprintsLast30days
         ] = await Promise.all([
           consultDocs('all'),
           consultBluePrints('finished'),
@@ -82,8 +88,10 @@ const Home = () => {
           consultDocs('byState'),
           consultDocs('byPlants', { plants }),
           consultObjetives('byPlants', { plants }),
-          getUsersWithSolicitudes()
+          getUsersWithSolicitudes(),
+          consultBluePrints('last30daysRevisions')
         ])
+        console.log('blueprintsLast30days', blueprintsLast30days)
 
         const [monthArray, cantArray] = lastSixMonthsObjetives.reduce(
           (acc, item) => {
@@ -100,7 +108,6 @@ const Home = () => {
           [6, 9],
           [0, 0]
         ]
-        const statesObj = [6, [7, 8], 9]
 
         const filteredByStateDocs = statesDoc.map(([start, end]) => {
           const filteredDocs = byStateDocs.filter(doc => {
@@ -111,6 +118,8 @@ const Home = () => {
 
           return filteredDocs.length
         })
+
+        const statesObj = [6, 7, 8] // valor previo delcarado: [6, [7, 8], 9] - Es el motivo por el que 'filteredByStateObj' implementa: Array.isArray(state)
 
         const filteredByStateObj = statesObj.map(state => {
           let filteredDocs
@@ -125,6 +134,42 @@ const Home = () => {
           return filteredDocs.length
         })
 
+        // Función para determinar si una fecha es turno A o turno B
+        const determineShift = date => {
+          // el inicio de semana comienza el martes y termine el lunes
+          const adjustedDate = moment(date).subtract(1, 'day')
+          // Obtener el número de la semana ISO
+          const week = moment(adjustedDate).isoWeek()
+          // Turno A para semanas pares, Turno B para semanas impares
+
+          return week % 2 === 0 ? 'A' : 'B'
+        }
+
+        // Separar los blueprints por turno
+        const blueprintsShiftA = blueprintsLast30days.filter(doc => {
+          const docDate = doc.date.toDate() // Convierte el timestamp de Firestore a objeto Date
+
+          return determineShift(docDate) === 'A'
+        })
+
+        const blueprintsShiftB = blueprintsLast30days.filter(doc => {
+          const docDate = doc.date.toDate() // Convierte el timestamp de Firestore a objeto Date
+
+          return determineShift(docDate) === 'B'
+        })
+
+        // Filtrar por revisión para turno A
+        const revisions = ['iniciado', 'A', 'B', 'C', '0', '1']
+
+        const filteredByRevisionA = revisions.map(revision => {
+          return blueprintsShiftA.filter(doc => doc.revision === revision).length
+        })
+
+        // Filtrar por revisión para turno B
+        const filteredByRevisionB = revisions.map(revision => {
+          return blueprintsShiftB.filter(doc => doc.revision === revision).length
+        })
+
         setAllDocs(allDocsCount)
         setAllObjetives(allObjCount)
         setAllBlueprintsFinished(allBlueprintsFinished)
@@ -136,7 +181,12 @@ const Home = () => {
         setDocsByPlants(byPlantsDocs)
         setDocsByState(filteredByStateDocs)
         setObjetivesByState(filteredByStateObj)
+        //setRevisionDataInBlueprint(filteredByRevision)
         setTop10(resTop10)
+        // Datos para los gráficos por turno
+        setRevisionDataInBlueprintA(filteredByRevisionA)
+        setRevisionDataInBlueprintB(filteredByRevisionB)
+
         setLoading(false)
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -144,7 +194,7 @@ const Home = () => {
     }
 
     fetchData()
-  }, [loading])
+  }, [])
 
   return (
     <Grid container spacing={6} alignItems='stretch' className='match-height' sx={{ display: 'flex' }}>
@@ -188,7 +238,7 @@ const Home = () => {
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
                       {allBlueprintsFinished}
                     </Typography>
-                    <Typography variant='caption'> Trabajos de Gabinete</Typography>
+                    <Typography variant='caption'> Trabajos de Gabinete Finalizados</Typography>
                   </Box>
                 </Box>
               </Grid>
@@ -205,6 +255,22 @@ const Home = () => {
         <ObjetivesByMonth
           objetivesOfLastSixMonths={objetivesOfLastSixMonths}
           monthsOfLastSixMonths={monthsOfLastSixMonths}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <ChartDonutBlueprintsLast30daysByShift
+          filteredByRevisionBlueprint={revisionDataInBlueprintA}
+          shift='A'
+          loading={loading}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <ChartDonutBlueprintsLast30daysByShift
+          filteredByRevisionBlueprint={revisionDataInBlueprintB}
+          shift='B'
+          loading={loading}
         />
       </Grid>
 
