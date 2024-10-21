@@ -38,6 +38,7 @@ const Home = () => {
   const [docsByState, setDocsByState] = useState([0, 0, 0])
   const [allObjetives, setAllObjetives] = useState(null)
   const [allBlueprintsFinished, setAllBlueprintsFinished] = useState(null)
+  const [allBlueprintsExisting, setAllBlueprintsExisting] = useState(null)
   const [objetivesOfActualWeek, setObjetivesOfActualWeek] = useState([0, 0, 0, 0, 0, 0, 0])
   const [objetivesOfLastSixMonths, setObjetivesOfLastSixMonths] = useState([0, 0, 0, 0, 0, 0])
   const [monthsOfLastSixMonths, setMonthssOfLastSixMonths] = useState(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
@@ -71,6 +72,7 @@ const Home = () => {
         const [
           allDocsCount,
           allBlueprintsFinished,
+          allBlueprintsExisting,
           allObjCount,
           weekObj,
           lastSixMonthsObjetives,
@@ -82,6 +84,7 @@ const Home = () => {
         ] = await Promise.all([
           consultDocs('all'),
           consultBluePrints('finished'),
+          consultBluePrints('existingBlueprints'),
           consultObjetives('all'),
           consultObjetives('week'),
           consultObjetives('lastSixMonths'),
@@ -91,7 +94,6 @@ const Home = () => {
           getUsersWithSolicitudes(),
           consultBluePrints('last30daysRevisions')
         ])
-        console.log('blueprintsLast30days', blueprintsLast30days)
 
         const [monthArray, cantArray] = lastSixMonthsObjetives.reduce(
           (acc, item) => {
@@ -173,6 +175,7 @@ const Home = () => {
         setAllDocs(allDocsCount)
         setAllObjetives(allObjCount)
         setAllBlueprintsFinished(allBlueprintsFinished)
+        setAllBlueprintsExisting(allBlueprintsExisting)
         setObjetivesOfActualWeek(weekObj)
         setObjetivesOfLastSixMonths(lastSixMonthsObjetives)
         setObjetivesOfLastSixMonths(cantArray)
@@ -203,7 +206,7 @@ const Home = () => {
           <CardHeader sx={{ pb: 3.25 }} title='Resumen Estadístico' titleTypographyProps={{ variant: 'h6' }} />
           <CardContent>
             <Grid container spacing={4}>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='primary' sx={{ mr: 4 }}>
                     <Icon icon='mdi:text-box-outline' />
@@ -216,7 +219,7 @@ const Home = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='warning' sx={{ mr: 4 }}>
                     <Icon icon='mdi:progress-upload' />
@@ -229,16 +232,29 @@ const Home = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CustomAvatar skin='light' variant='rounded' color='info' sx={{ mr: 4 }}>
                     <Icon icon='mdi:tooltip-edit-outline' />
                   </CustomAvatar>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                      {allBlueprintsExisting}
+                    </Typography>
+                    <Typography variant='caption'> Entregables Existentes</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <CustomAvatar skin='light' variant='rounded' color='success' sx={{ mr: 4 }}>
+                    <Icon icon='mdi:file-cad' />
+                  </CustomAvatar>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant='h6' sx={{ fontWeight: 600 }}>
                       {allBlueprintsFinished}
                     </Typography>
-                    <Typography variant='caption'> Trabajos de Gabinete Finalizados</Typography>
+                    <Typography variant='caption'> Entregables Finalizados</Typography>
                   </Box>
                 </Box>
               </Grid>

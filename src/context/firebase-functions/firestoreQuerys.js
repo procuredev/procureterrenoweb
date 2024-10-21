@@ -697,17 +697,16 @@ const consultBluePrints = async (type, options = {}) => {
       queryFunc = async () => {
         const solicitudesRef = collection(db, 'solicitudes')
         const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8))
-        let count = 0
 
         const solicitudesSnapshot = await getDocs(solicitudesQuery)
 
-        solicitudesSnapshot.forEach(doc => {
-          if (doc.data().counterBlueprintCompleted > 0) {
-            count += doc.data().counterBlueprintCompleted
-          }
-        })
+        const totalBlueprintsCompleted = solicitudesSnapshot.docs.reduce((acc, doc) => {
+          const data = doc.data()
 
-        return count
+          return acc + (data.counterBlueprintCompleted || 0) // Sumamos solo si existe
+        }, 0)
+
+        return totalBlueprintsCompleted
       }
       break
     case 'last30daysRevisions':
@@ -734,6 +733,39 @@ const consultBluePrints = async (type, options = {}) => {
       return blueprintsData
 
       break
+
+    // Case para contar los blueprints existentes, excluyendo los que tienen "deleted: true"
+    case 'existingBlueprints':
+      queryFunc = async () => {
+        const solicitudesRef = collection(db, 'solicitudes')
+        const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8))
+
+        const solicitudesSnapshot = await getDocs(solicitudesQuery)
+
+        // Promesas para obtener y contar los blueprints, excluyendo los que están eliminados (deleted: true)
+        const blueprintCountPromises = solicitudesSnapshot.docs.map(async solicitudDoc => {
+          const blueprintsRef = collection(db, `solicitudes/${solicitudDoc.id}/blueprints`)
+
+          // Consultamos los documentos de la subcolección "blueprints"
+          const blueprintsSnapshot = await getDocs(blueprintsRef)
+
+          // Filtramos y contamos solo los que no tienen "deleted: true"
+          const validBlueprints = blueprintsSnapshot.docs.filter(blueprintDoc => {
+            const data = blueprintDoc.data()
+
+            return !data.deleted // Excluimos los que tienen "deleted" como true
+          })
+
+          return validBlueprints.length // Retornamos la cantidad de blueprints válidos
+        })
+
+        // Sumamos todos los conteos de blueprints
+        const totalBlueprintCount = (await Promise.all(blueprintCountPromises)).reduce((acc, count) => acc + count, 0)
+
+        return totalBlueprintCount
+      }
+      break
+
     default:
       // Lanzar un error si el tipo no es válido
       throw new Error(`Invalid type: ${type}`)
