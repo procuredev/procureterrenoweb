@@ -117,6 +117,8 @@ export const DialogAssignGabineteDraftmen = ({
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
+  const emptyFields = gabineteDraftmenState.length === 0
+
   return (
     <Dialog
       fullWidth
@@ -234,7 +236,11 @@ export const DialogAssignGabineteDraftmen = ({
           })}
         </List>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
+          <Button
+            sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
+            disabled={emptyFields}
+            onClick={() => onsubmit(doc.id)}
+          >
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar Proyectistas
           </Button>

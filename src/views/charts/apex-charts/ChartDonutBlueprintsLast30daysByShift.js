@@ -23,7 +23,6 @@ const ChartDonutBlueprintsLast30daysByShift = ({ filteredByRevisionBlueprint = [
 
   const totalBlueprints = filteredByRevisionBlueprint.reduce((total, count) => total + count, 0)
   const total = `Total: ${totalBlueprints}`
-  console.log('filteredByRevisionBlueprint', filteredByRevisionBlueprint)
 
   const options = {
     stroke: { width: 0 },

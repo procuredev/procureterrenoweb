@@ -13,7 +13,8 @@ import {
   Select,
   MenuItem,
   IconButton,
-  TextField
+  TextField,
+  CircularProgress
 } from '@mui/material'
 import Fade from '@mui/material/Fade'
 import EngineeringIcon from '@mui/icons-material/Engineering'
@@ -40,6 +41,8 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
   const [deliverables, setDeliverables] = useState([])
   const [quantity, setQuantity] = useState(1)
   const [selectedDraftman, setSelectedDraftman] = useState(null)
+
+  console.log('selectedDraftman', selectedDraftman)
 
   // ** Hooks
   const { fetchDisciplineProperties, fetchDeliverablesByDiscipline, generateBlueprintCodes, authUser } = useFirebase()
@@ -93,6 +96,8 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
     }
   }
 
+  const emptyFields = typeOfDiscipline.length === 0 || typeOfDocument.length === 0 || selectedDraftman === null
+
   return (
     <Dialog
       fullWidth
@@ -115,91 +120,100 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
           <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
             Generar nuevo documento
           </Typography>
-          <Typography variant='body2'>Establece parámetros para crear el código</Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-          <FormControl fullWidth>
-            <InputLabel id='draftman-select-label'>Seleccionar Proyectista</InputLabel>
-            <Select
-              label='Seleccionar Proyectista'
-              labelId='draftman-select-label'
-              id='draftman-select'
-              value={selectedDraftman ? selectedDraftman.name : ''}
-              onChange={handleChangeDraftman}
-            >
-              {doc.gabineteDraftmen.map(draftman => (
-                <MenuItem key={draftman.userId} value={draftman.name}>
-                  {draftman.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+        {isSubmitDisabled ? (
+          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+            <CircularProgress /> <Typography sx={{ ml: 3 }}>Creando el código ID...</Typography>
+          </Box>
+        ) : (
+          <Box>
+            <Typography variant='body2'>Establece parámetros para crear el código</Typography>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-          <FormControl fullWidth>
-            <InputLabel id='demo-select-small-label'>Tipo de disciplina</InputLabel>
-            <Select
-              label='Tipo de disciplina'
-              labelId='controlled-select-label'
-              id='controlled-select'
-              value={typeOfDiscipline}
-              onChange={handleChangeTypeOfDiscipline}
-            >
-              {disciplines
-                .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente las disciplinas
-                .map((discipline, index) => (
-                  <MenuItem key={index} value={discipline}>
-                    {discipline}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
-        </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', my: 5 }}>
+              <FormControl fullWidth>
+                <InputLabel id='draftman-select-label'>Seleccionar Proyectista</InputLabel>
+                <Select
+                  label='Seleccionar Proyectista'
+                  labelId='draftman-select-label'
+                  id='draftman-select'
+                  value={selectedDraftman ? selectedDraftman.name : ''}
+                  onChange={handleChangeDraftman}
+                >
+                  {doc.gabineteDraftmen.map(draftman => (
+                    <MenuItem key={draftman.userId} value={draftman.name}>
+                      {draftman.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-          <FormControl fullWidth>
-            <InputLabel id='demo-select-small-label'>Tipo de documento</InputLabel>
-            <Select
-              label='Tipo de documento'
-              id='controlled-select'
-              labelId='controlled-select-label'
-              value={typeOfDocument}
-              onChange={handleChangeTypeOfDocument}
-            >
-              {deliverables
-                .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente los Tipo de documentos
-                .map((deliverable, index) => (
-                  <MenuItem key={index} value={deliverable}>
-                    {deliverable}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
-        </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <FormControl fullWidth>
+                <InputLabel id='demo-select-small-label'>Tipo de disciplina</InputLabel>
+                <Select
+                  label='Tipo de disciplina'
+                  labelId='controlled-select-label'
+                  id='controlled-select'
+                  value={typeOfDiscipline}
+                  onChange={handleChangeTypeOfDiscipline}
+                >
+                  {disciplines
+                    .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente las disciplinas
+                    .map((discipline, index) => (
+                      <MenuItem key={index} value={discipline}>
+                        {discipline}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-          <TextField
-            label='Cantidad'
-            type='number'
-            value={quantity}
-            inputProps={{ min: 1 }}
-            onChange={handleQuantityChange}
-            fullWidth
-          />
-        </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <FormControl fullWidth>
+                <InputLabel id='demo-select-small-label'>Tipo de documento</InputLabel>
+                <Select
+                  label='Tipo de documento'
+                  id='controlled-select'
+                  labelId='controlled-select-label'
+                  value={typeOfDocument}
+                  onChange={handleChangeTypeOfDocument}
+                >
+                  {deliverables
+                    .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente los Tipo de documentos
+                    .map((deliverable, index) => (
+                      <MenuItem key={index} value={deliverable}>
+                        {deliverable}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button
-            sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
-            disabled={isSubmitDisabled}
-            onClick={() => onsubmit(doc.id)}
-          >
-            <EngineeringIcon sx={{ fontSize: 18 }} />
-            Crear código
-          </Button>
-        </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <TextField
+                label='Cantidad'
+                type='number'
+                value={quantity}
+                inputProps={{ min: 1 }}
+                onChange={handleQuantityChange}
+                fullWidth
+              />
+            </Box>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+              <Button
+                sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
+                disabled={emptyFields}
+                onClick={() => onsubmit(doc.id)}
+              >
+                <EngineeringIcon sx={{ fontSize: 18 }} />
+                Crear código
+              </Button>
+            </Box>
+          </Box>
+        )}
       </DialogContent>
     </Dialog>
   )

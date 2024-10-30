@@ -59,13 +59,13 @@ const Navigation = () => {
       subject: 'gabinete',
       authorizedRoles: [1, 4, 5, 6, 7, 8, 9, 10]
     },
-    {
-      title: 'Documentos',
-      path: '/documentos',
-      icon: 'mdi:file-document-outline',
-      subject: 'documentos',
-      authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11, 12]
-    },
+    // {
+    //   title: 'Documentos',
+    //   path: '/documentos',
+    //   icon: 'mdi:file-document-outline',
+    //   subject: 'documentos',
+    //   authorizedRoles: [1, 5, 6, 7, 8, 9, 10, 11, 12]
+    // },
     {
       title: 'Mapa',
       path: '/mapa',

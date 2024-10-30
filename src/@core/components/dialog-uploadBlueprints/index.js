@@ -506,7 +506,7 @@ export const UploadBlueprintsDialog = ({
         const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
 
         if (areaFolder) {
-          const projectFolderName = `OT N${petition.ot} - ${petition.title}`
+          const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
           const existingProjectFolders = await fetchFolders(areaFolder.id)
           const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
 
@@ -516,8 +516,17 @@ export const UploadBlueprintsDialog = ({
             const trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
 
             if (trabajoFolder) {
+              const fileData = await uploadFile(files.name, files, trabajoFolder.id)
+
+              if (fileData && fileData.id) {
+                const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
+
+                // Actualiza el campo storageBlueprints del blueprint en Firestore
+                await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'storage')
+              }
+
               // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
-              const revisionFolderName = `REV_${await getNextRevisionFolderName(doc, authUser)}`
+              /* const revisionFolderName = `REV_${await getNextRevisionFolderName(doc, authUser)}`
 
               const revisionFolders = await fetchFolders(trabajoFolder.id)
               let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
@@ -547,7 +556,7 @@ export const UploadBlueprintsDialog = ({
                     await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'storage')
                   }
                 }
-              }
+              } */
             }
           }
         }
@@ -574,28 +583,37 @@ export const UploadBlueprintsDialog = ({
         const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
 
         if (areaFolder) {
-          const projectFolderName = `OT N${petition.ot} - ${petition.title}`
+          const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
           const existingProjectFolders = await fetchFolders(areaFolder.id)
           const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
 
           if (projectFolder) {
-            // Ubica la carpeta "EN TRABAJO"
-            const trabajoFolders = await fetchFolders(projectFolder.id)
-            const trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
+            // Ubica la carpeta "EMITIDOS"
+            const issuedFolders = await fetchFolders(projectFolder.id)
+            const issuedFolder = issuedFolders.files.find(folder => folder.name === 'EMITIDOS')
 
-            if (trabajoFolder) {
+            if (issuedFolder) {
               // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
               const revisionFolderName = `REV_${doc.revision}`
-              const revisionFolders = await fetchFolders(trabajoFolder.id)
+              const revisionFolders = await fetchFolders(issuedFolder.id)
               let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
 
               if (!revisionFolder) {
-                revisionFolder = await createFolder(revisionFolderName, trabajoFolder.id)
+                revisionFolder = await createFolder(revisionFolderName, issuedFolder.id)
               }
 
               if (revisionFolder) {
+                const fileData = await uploadFile(hlcDocuments.name, hlcDocuments, revisionFolder.id)
+
+                if (fileData && fileData.id) {
+                  const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
+
+                  // Actualiza el campo storageBlueprints del blueprint en Firestore
+                  await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'hlc')
+                }
+
                 // Crear o encontrar la carpeta "DOCUMENTOS" dentro de la revisión
-                const documentosFolderName = 'DOCUMENTOS'
+                /* const documentosFolderName = 'DOCUMENTOS'
                 const documentosFolders = await fetchFolders(revisionFolder.id)
                 let documentosFolder = documentosFolders.files.find(folder => folder.name === documentosFolderName)
 
@@ -613,7 +631,7 @@ export const UploadBlueprintsDialog = ({
                     // Actualiza el campo storageBlueprints del blueprint en Firestore
                     await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'hlc')
                   }
-                }
+                } */
               }
             }
           }
@@ -639,7 +657,7 @@ export const UploadBlueprintsDialog = ({
   return (
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} onSubmit={() => writeCallback()}></AlertDialog>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      {/* <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='h5'>Revisión: {values.revision}</Typography>
           <Typography variant='h5' sx={{ lineHeight: 3 }}>
@@ -649,11 +667,69 @@ export const UploadBlueprintsDialog = ({
             Código MEL: {values.clientCode}
           </Typography>
         </Box>
-      </DialogTitle>
+      </DialogTitle> */}
       <Box sx={{ margin: 'auto' }}>
         {
           <Box>
             <List>
+              {values && values.revision && (
+                <ListItem divider={true}>
+                  <Box sx={{ display: 'flex', width: '100%' }}>
+                    <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      Revisión
+                    </Typography>
+                    <Box>{values.revision}</Box>
+                  </Box>
+                </ListItem>
+              )}
+
+              <DateListItem
+                editable={false}
+                label='Fecha de Creación'
+                id='date'
+                initialValue={date}
+                value={values.date}
+                onChange={handleInputChange('date')}
+                required={false}
+              />
+              <CustomListItem
+                editable={false}
+                label='Encargado'
+                id='userName'
+                initialValue={userName}
+                value={values.userName}
+                onChange={handleInputChange('userName')}
+                required={false}
+              />
+              <CustomListItem
+                editable={false}
+                label='Contacto'
+                id='userEmail'
+                initialValue={userEmail}
+                value={values.userEmail}
+                onChange={handleInputChange('userEmail')}
+                required={false}
+              />
+              {values && values.id && (
+                <ListItem divider={true}>
+                  <Box sx={{ display: 'flex', width: '100%' }}>
+                    <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      Código Procure
+                    </Typography>
+                    <Box>{values.id}</Box>
+                  </Box>
+                </ListItem>
+              )}
+              {values && values.clientCode && (
+                <ListItem divider={true}>
+                  <Box sx={{ display: 'flex', width: '100%' }}>
+                    <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      Código MEL
+                    </Typography>
+                    <Box>{values.clientCode}</Box>
+                  </Box>
+                </ListItem>
+              )}
               <CustomListItem
                 editable={doc && authUser.uid === doc.userId}
                 label='Descripción'
@@ -683,33 +759,6 @@ export const UploadBlueprintsDialog = ({
                     </InputAdornment>
                   )
                 }}
-              />
-              <DateListItem
-                editable={false}
-                label='Fecha'
-                id='date'
-                initialValue={date}
-                value={values.date}
-                onChange={handleInputChange('date')}
-                required={false}
-              />
-              <CustomListItem
-                editable={false}
-                label='Creado por'
-                id='userName'
-                initialValue={userName}
-                value={values.userName}
-                onChange={handleInputChange('userName')}
-                required={false}
-              />
-              <CustomListItem
-                editable={false}
-                label='Contacto'
-                id='userEmail'
-                initialValue={userEmail}
-                value={values.userEmail}
-                onChange={handleInputChange('userEmail')}
-                required={false}
               />
               {doc && doc.storageBlueprints && doc.storageBlueprints.length > 0 && !isLoading && (
                 <ListItem>

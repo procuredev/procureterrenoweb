@@ -58,7 +58,7 @@ const ReasignarDialog = ({ open, onClose, selectedRows, doc }) => {
         <DialogTitle>Reasignar entregables</DialogTitle>
         <DialogContent>
           <FormControl sx={{ my: 2 }} fullWidth>
-            <InputLabel>Seleccionar Usuario</InputLabel>
+            <InputLabel>Seleccionar el nuevo encargado</InputLabel>
             <Select value={selectedUser?.userId || ''} onChange={handleUserChange} label='Seleccionar Usuario'>
               {doc.gabineteDraftmen
                 .filter(user => selectedRows.every(row => row.userId !== user.userId)) // Filtramos para excluir usuarios ya asignados

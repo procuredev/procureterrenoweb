@@ -299,14 +299,16 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
                 avatar: doc.data().urlFoto,
                 enabled: doc.data().enabled,
                 shift: doc.data().shift,
-                email: doc.data().email
+                email: doc.data().email,
+                role: doc.data().role
               }
             : {
                 userId: doc.id,
                 name: doc.data().name,
                 enabled: doc.data().enabled,
                 shift: doc.data().shift,
-                email: doc.data().email
+                email: doc.data().email,
+                role: doc.data().role
               }
           : type === 'getReceiverUsers'
           ? {
@@ -727,8 +729,6 @@ const consultBluePrints = async (type, options = {}) => {
 
       // Se espera a que todas las promesas se resuelvan y "aplanamos" el resultado
       const blueprintsData = (await Promise.all(blueprintsPromises)).flat()
-
-      console.log('blueprintsData', blueprintsData)
 
       return blueprintsData
 

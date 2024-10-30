@@ -194,23 +194,31 @@ export const generateTransmittal = async (
     const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
 
     if (areaFolder) {
-      const projectFolderName = `OT N${petition.ot} - ${petition.title}`
+      const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
       const existingProjectFolders = await fetchFolders(areaFolder.id)
       const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
 
       if (projectFolder) {
-        const trabajoFolders = await fetchFolders(projectFolder.id)
-        const trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
+        const issuedFolders = await fetchFolders(projectFolder.id)
+        const issuedFolder = issuedFolders.files.find(folder => folder.name === 'EMITIDOS')
 
-        if (trabajoFolder) {
+        if (issuedFolder) {
+          const fileData = await uploadFile(`${newCode}.pdf`, pdfBlob, issuedFolder.id)
+
+          if (fileData && fileData.id) {
+            const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
+
+            console.log('Transmittal almacenado en Google Drive con éxito:', fileLink)
+          }
+
           // Obtiene el primer valor del Map para la revisión
-          const firstSelectedValue = Array.from(selected.values())[0]
+          /* const firstSelectedValue = Array.from(selected.values())[0]
           const revisionFolderName = `REV_${firstSelectedValue.revision}`
-          const revisionFolders = await fetchFolders(trabajoFolder.id)
+          const revisionFolders = await fetchFolders(issuedFolder.id)
           let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
 
           if (!revisionFolder) {
-            revisionFolder = await createFolder(revisionFolderName, trabajoFolder.id)
+            revisionFolder = await createFolder(revisionFolderName, issuedFolder.id)
           }
 
           if (revisionFolder) {
@@ -231,7 +239,7 @@ export const generateTransmittal = async (
                 console.log('Transmittal almacenado en Google Drive con éxito:', fileLink)
               }
             }
-          }
+          } */
         }
       }
     }

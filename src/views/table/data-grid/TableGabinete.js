@@ -132,7 +132,7 @@ const TableGabinete = ({
   const useStyles = makeStyles({
     root: {
       '& .MuiDataGrid-columnHeaderTitle': {
-        fontSize: lg ? '0.5rem' : '0.8rem'
+        fontSize: lg ? '0.8rem' : '1rem'
       }
     }
   })
@@ -244,12 +244,15 @@ const TableGabinete = ({
       row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
     'Aprobado por Cliente sin comentarios': row =>
       (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
-    'Rechazado con Observaciones': row =>
+    'Aprobado por Control Documental con comentarios': row =>
+      row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A' && row.remarks,
+    'Rechazado por Cliente con Observaciones': row =>
       !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
     'Aprobado por Control Documental': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
+
     Iniciado: row => !row.sentTime,
-    Rechazado: row =>
+    'Rechazado con Observaciones': row =>
       (!row.sentByDesigner &&
         (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
       (row.approvedByDocumentaryControl &&
@@ -461,6 +464,22 @@ const TableGabinete = ({
     })
   }
 
+  const roleMap = {
+    'Contract Owner': row => row.attentive === 4,
+    'Contract Admin': row => row.attentive === 6,
+    Supervisor: row => row.attentive === 7,
+    Proyectista: row => row.attentive === 8,
+    'Control Documental': row => row.attentive === 9
+  }
+
+  const renderRole = row => {
+    for (const role in roleMap) {
+      if (roleMap[role](row)) {
+        return role
+      }
+    }
+  }
+
   const idLocalWidth = Number(localStorage.getItem('idGabineteWidthColumn'))
   const revisionLocalWidth = Number(localStorage.getItem('revisionGabineteWidthColumn'))
   const percentLocalWidth = Number(localStorage.getItem('percentGabineteWidthColumn'))
@@ -641,7 +660,7 @@ const TableGabinete = ({
     },
     {
       field: 'userName',
-      headerName: 'CREADO POR',
+      headerName: 'ENCARGADO',
       width: userNameLocalWidth
         ? userNameLocalWidth
         : role === 9 && !lg
@@ -677,6 +696,50 @@ const TableGabinete = ({
             <Box sx={{ overflow: 'hidden' }}>
               <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {userNameContent || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        }
+      }
+    },
+    {
+      field: 'attentive',
+      headerName: 'EN ESPERA DE REVISIÓN POR',
+      width: userNameLocalWidth
+        ? userNameLocalWidth
+        : role === 9 && !lg
+        ? 190
+        : role !== 9 && !lg
+        ? 190
+        : role !== 9
+        ? 155
+        : 160,
+      renderCell: params => {
+        const { row } = params
+
+        localStorage.setItem('userNameGabineteWidthColumn', params.colDef.computedWidth)
+
+        let userNameContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra el autor de la revisión
+          userNameContent = row.userName
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {renderRole(row) || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra el responsable actual del blueprint
+          // userNameContent = row.userName
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {renderRole(row) || 'N/A'}
               </Typography>
             </Box>
           )
@@ -932,6 +995,8 @@ const TableGabinete = ({
 
         localStorage.setItem('hlcGabineteWidthColumn', params.colDef.computedWidth)
 
+        const canGenerateBlueprint = checkRoleAndGenerateTransmittal(authUser.role, row)
+
         const canUploadHlc = row => {
           if (row.revision && typeof params.row.revision === 'string' && row.revisions.length > 0) {
             const sortedRevisions = [...row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -1019,7 +1084,10 @@ const TableGabinete = ({
                   </Typography>
                 )}
 
-                {(authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner) ||
+                {(canGenerateBlueprint &&
+                  authUser.role === 9 &&
+                  row.approvedByDocumentaryControl &&
+                  row.sentByDesigner) ||
                 (authUser.role === 9 && row.approvedByDocumentaryControl && row.sentBySupervisor) ? (
                   <IconButton
                     sx={{
@@ -1439,6 +1507,7 @@ const TableGabinete = ({
         approves={approve}
         authUser={authUser}
         setRemarksState={setRemarksState}
+        remarksState={remarksState}
         blueprint={doc && doc}
         error={error}
         setError={setError}

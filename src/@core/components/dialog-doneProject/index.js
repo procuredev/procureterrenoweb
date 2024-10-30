@@ -111,7 +111,14 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
       setDraftmen(prevDraftmen => [
         ...prevDraftmen,
-        { name: option.name, userId: option.userId, shift: option.shift, enabled: option.enabled, email: option.email }
+        {
+          name: option.name,
+          userId: option.userId,
+          shift: option.shift,
+          enabled: option.enabled,
+          email: option.email,
+          role: option.role
+        }
       ])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
@@ -189,7 +196,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
           }
 
           if (areaFolder) {
-            const projectFolderName = `OT N${doc.ot} - ${doc.title}`
+            const projectFolderName = `OT N°${doc.ot} - ${doc.title}`
             const existingProjectFolders = await fetchFolders(areaFolder.id)
             let projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
 

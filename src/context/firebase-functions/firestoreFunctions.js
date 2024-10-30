@@ -20,6 +20,8 @@ import {
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
+//import { getData } from 'src/contex/firebase-functions/firestoreQuerys'
+
 // ** Imports Propios
 import { getUnixTime } from 'date-fns'
 import { useEffect, useState } from 'react'
@@ -747,7 +749,8 @@ const getNextRevision = async (
     resumeBlueprint,
     userId,
     storageHlcDocuments,
-    blueprintPercent
+    blueprintPercent,
+    attentive
   },
   remarks
   //hours,
@@ -803,7 +806,7 @@ const getNextRevision = async (
         action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
       },
       incrementBlueprintPercent: {
-        condition: () => revision === 'A',
+        condition: () => revision === 'A' && approvedByDocumentaryControl,
         action: () => (newBlueprintPercent = 60)
       },
       dotCloud: {
@@ -885,7 +888,8 @@ const getNextRevision = async (
     userId: uid,
     date: Timestamp.fromDate(new Date()),
     remarks: remarks || 'sin observaciones',
-    newBlueprintPercent
+    newBlueprintPercent,
+    attentive: attentive
   }
 
   return nextRevision
@@ -924,11 +928,25 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     blueprintPercent: nextRevision.newBlueprintPercent
   }
 
+  const roleUser = async idUser => {
+    const docRef = doc(db, 'users', idUser)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+      return docSnap.data().role
+    } else {
+      return undefined
+    }
+  }
+
+  const autorRole = await roleUser(blueprint.userId)
+
   // Define las acciones a realizar en función del rol del usuario
   const roleActions = {
     6: () => ({
       ...updateData,
       sentByDesigner: approves,
+      attentive: approves ? 9 : 7,
       sentBySupervisor: approves,
       approvedByContractAdmin: approves,
       storageBlueprints: approves ? blueprint.storageBlueprints : null
@@ -939,6 +957,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             ...updateData,
             sentBySupervisor: approves,
             approvedByContractAdmin: approves && blueprint.revision === 'iniciado' && !isM3D,
+            attentive: blueprint.revision === 'iniciado' ? 9 : 6,
             blueprintPercent:
               blueprint.revision === 'iniciado' && !isM3D
                 ? 20
@@ -949,6 +968,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         : {
             ...updateData,
             sentByDesigner: approves,
+            attentive: approves ? 9 : 8,
             approvedBySupervisor: approves,
             storageBlueprints: approves ? blueprint.storageBlueprints : null
           }
@@ -956,6 +976,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
+      attentive: blueprint.revision === 'iniciado' ? 9 : 7,
       blueprintPercent:
         blueprint.revision === 'iniciado' && !isM3D
           ? 20
@@ -990,9 +1011,10 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : false,
             sentByDesigner: false,
             sentBySupervisor: false,
+            attentive: autorRole,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
-            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient ? 100 : updateData.blueprintPercent
+            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient && approves ? 100 : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -1006,16 +1028,18 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         : {
             ...updateData,
             approvedByDocumentaryControl: approves,
+            attentive: approves && blueprint.revision === 'A' ? autorRole : approves ? 4 : autorRole,
             sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentByDesigner,
             sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentBySupervisor,
-            blueprintPercent: blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
+            blueprintPercent: approves && blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
+            remarks: remarks ? true : false,
             storageBlueprints:
               approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
           }
   }
 
   // Aplica la acción correspondiente al rol del usuario
-  updateData = roleActions[userParam.role] ? roleActions[userParam.role](blueprint, userParam) : updateData
+  updateData = roleActions[userParam.role] ? await roleActions[userParam.role](blueprint, userParam) : updateData
 
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
@@ -1063,23 +1087,46 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   }
 }
 
+async function increaseGetNewOTValue() {
+  const counterRef = doc(db, 'counters', 'otCounter')
+
+  try {
+    // Utilizamos una transacción para garantizar la consistencia de los datos.
+    const newOTValue = await runTransaction(db, async transaction => {
+      const counterSnapshot = await transaction.get(counterRef)
+
+      const newCounter = counterSnapshot.exists ? counterSnapshot.data().counter + 1 : 1
+
+      transaction.set(counterRef, { counter: newCounter })
+
+      return newCounter
+    })
+
+    return newOTValue
+  } catch (error) {
+    console.error('Error:', error)
+    throw error
+  }
+}
+
 const generateTransmittalCounter = async currentPetition => {
   try {
     // Referencia al documento de contador para la combinación específica dentro de la subcolección transmittals
-    const counterDocID = `${currentPetition.ot}-counter`
-    const counterRef = doc(db, 'counters', 'transmittal_CounterByOt')
+    /*  const counterDocID = `${currentPetition.ot}-counter`
+    const counterRef = doc(db, 'counters', 'transmittal_CounterByOt') */
+    const counterRef = doc(db, 'counters', 'transmittal_Counter')
 
     // Incrementa el contador dentro de una transacción
     const incrementedCount = await runTransaction(db, async transaction => {
       const counterSnapshot = await transaction.get(counterRef)
 
       let currentCount
-      if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
+      if (!counterSnapshot.exists() || !counterSnapshot.data().counter) {
         currentCount = formatCount(1)
-        transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true })
+        transaction.set(counterRef, { counter: currentCount }, { merge: true })
       } else {
-        currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1)
-        transaction.update(counterRef, { [counterDocID]: { count: currentCount } })
+        currentCount = formatCount(Number(counterSnapshot.data().counter) + 1)
+        transaction.update(counterRef, { counter: currentCount })
       }
 
       return currentCount // Retorna el nuevo contador para usarlo fuera de la transacción
@@ -1121,7 +1168,8 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
         date: Timestamp.fromDate(new Date()),
         remarks: 'transmittal generado',
         lastTransmittal: newCode,
-        storageHlcDocuments: id[1].storageHlcDocuments ? id[1].storageHlcDocuments[0] : null
+        storageHlcDocuments: id[1].storageHlcDocuments ? id[1].storageHlcDocuments[0] : null,
+        attentive: 9
       }
 
       // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
@@ -1482,7 +1530,8 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
         sentByDesigner: false,
         sentBySupervisor: false,
         date: Timestamp.fromDate(new Date()),
-        blueprintPercent: 5
+        blueprintPercent: 5,
+        attentive: userParam.role
       })
     }
 
