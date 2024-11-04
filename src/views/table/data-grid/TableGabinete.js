@@ -469,7 +469,8 @@ const TableGabinete = ({
     'Contract Admin': row => row.attentive === 6,
     Supervisor: row => row.attentive === 7,
     Proyectista: row => row.attentive === 8,
-    'Control Documental': row => row.attentive === 9
+    'Control Documental': row => row.attentive === 9,
+    Finalizado: row => row.attentive === 10
   }
 
   const renderRole = row => {

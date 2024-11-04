@@ -1011,7 +1011,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : false,
             sentByDesigner: false,
             sentBySupervisor: false,
-            attentive: autorRole,
+            attentive:
+              approves &&
+              (((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient) ||
+                (!isApprovedByClient && isRevisionAtLeast1))
+                ? 10
+                : autorRole,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
             blueprintPercent: isRevisionAtLeast0 && isApprovedByClient && approves ? 100 : updateData.blueprintPercent
