@@ -734,7 +734,7 @@ const getLatestRevision = async (petitionID, blueprintID) => {
 
 // getNextRevision calcula la próxima revisión basándose en una serie de condiciones
 const getNextRevision = async (
-  approve,
+  approves,
   latestRevision,
   { role, email, displayName, uid },
   {
@@ -771,7 +771,7 @@ const getNextRevision = async (
   console.log('isM3D', isM3D)
 
   // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
-  if (role === 8 && approve) {
+  if (role === 8 && approves) {
     // Define las acciones posibles
     const actions = {
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
@@ -882,7 +882,10 @@ const getNextRevision = async (
     prevRevision: latestRevision && Object.keys(latestRevision).length === 0 ? latestRevision.newRevision : revision,
     newRevision,
     description,
-    storageBlueprints: storageBlueprints[storageBlueprints.length - 1],
+    storageBlueprints:
+      approves && (remarks === false || !remarks)
+        ? storageBlueprints[0]
+        : storageBlueprints[storageBlueprints.length - 1],
     userEmail: email,
     userName: displayName,
     userId: uid,
@@ -970,7 +973,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentByDesigner: approves,
             attentive: approves ? 9 : 8,
             approvedBySupervisor: approves,
-            storageBlueprints: approves ? blueprint.storageBlueprints : null
+            storageBlueprints:
+              approves && remarks === false
+                ? blueprint.storageBlueprints[0]
+                : approves
+                ? blueprint.storageBlueprints
+                : null
           }
     },
     8: () => ({
@@ -1684,6 +1692,19 @@ const updateBlueprintsWithStorageOrHlc = async (petitionId, blueprintId, fileLin
   }
 }
 
+const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId) => {
+  const blueprintRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
+
+  const querySnapshot = await getDoc(blueprintRef)
+  const docSnapshot = querySnapshot.data()
+
+  console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
+
+  await updateDoc(blueprintRef, {
+    storageBlueprints: [docSnapshot.storageBlueprints[0]]
+  })
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1709,5 +1730,6 @@ export {
   getProcureCounter,
   markBlueprintAsDeleted,
   deleteBlueprintAndDecrementCounters,
-  updateBlueprintsWithStorageOrHlc
+  updateBlueprintsWithStorageOrHlc,
+  deleteReferenceOfLastDocumentAttached
 }

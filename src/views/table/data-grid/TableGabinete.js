@@ -1439,6 +1439,14 @@ const TableGabinete = ({
     return false
   }
 
+  // Función para actualizar `doc` con un nuevo archivo en storageBlueprints
+  const handleFileUpload = (fileLink, fileName) => {
+    setDoc(prevDoc => ({
+      ...prevDoc,
+      storageBlueprints: [...(prevDoc.storageBlueprints || []), { url: fileLink, name: fileName }]
+    }))
+  }
+
   return (
     <Card sx={{ height: 'inherit' }}>
       <DataGridPremium
@@ -1510,8 +1518,13 @@ const TableGabinete = ({
         setRemarksState={setRemarksState}
         remarksState={remarksState}
         blueprint={doc && doc}
+        petition={petition}
+        petitionId={petitionId}
         error={error}
         setError={setError}
+        onFileUpload={handleFileUpload}
+        setDoc={setDoc}
+        checkRoleAndApproval={checkRoleAndApproval}
       ></AlertDialogGabinete>
 
       <Dialog sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width: '100%' } }} open={openDialog}>

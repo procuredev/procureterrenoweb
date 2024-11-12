@@ -524,39 +524,6 @@ export const UploadBlueprintsDialog = ({
                 // Actualiza el campo storageBlueprints del blueprint en Firestore
                 await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'storage')
               }
-
-              // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
-              /* const revisionFolderName = `REV_${await getNextRevisionFolderName(doc, authUser)}`
-
-              const revisionFolders = await fetchFolders(trabajoFolder.id)
-              let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
-
-              if (!revisionFolder) {
-                revisionFolder = await createFolder(revisionFolderName, trabajoFolder.id)
-              }
-
-              if (revisionFolder) {
-                // Crear o encontrar la carpeta "PLANOS" dentro de la revisión
-                const planosFolderName = 'PLANOS'
-                const planosFolders = await fetchFolders(revisionFolder.id)
-                let planosFolder = planosFolders.files.find(folder => folder.name === planosFolderName)
-
-                if (!planosFolder) {
-                  planosFolder = await createFolder(planosFolderName, revisionFolder.id)
-                }
-
-                // Subir archivos a la carpeta "PLANOS"
-                if (planosFolder) {
-                  const fileData = await uploadFile(files.name, files, planosFolder.id)
-
-                  if (fileData && fileData.id) {
-                    const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
-
-                    // Actualiza el campo storageBlueprints del blueprint en Firestore
-                    await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'storage')
-                  }
-                }
-              } */
             }
           }
         }
@@ -730,37 +697,50 @@ export const UploadBlueprintsDialog = ({
                   </Box>
                 </ListItem>
               )}
-              <CustomListItem
-                editable={doc && authUser.uid === doc.userId}
-                label='Descripción'
-                placeholder='Agregue la descripción del documento'
-                InputLabelProps={{
-                  shrink: true
-                }}
-                id='description'
-                value={values?.description || ''}
-                onChange={e => {
-                  handleInputChange('description')(e)
-                  setIsDescriptionSaved(false) // Restablecer el estado al cambiar la descripción
-                }}
-                required={false}
-                inputProps={{
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      {!isDescriptionSaved && (
-                        <Button
-                          onClick={submitDescription}
-                          disabled={isSaving}
-                          color={storageBlueprints?.length > 0 && !description ? 'error' : 'primary'}
-                        >
-                          {isSaving ? 'Guardando...' : 'Guardar descripción'}
-                        </Button>
-                      )}
-                    </InputAdornment>
-                  )
-                }}
-              />
-              {doc && doc.storageBlueprints && doc.storageBlueprints.length > 0 && !isLoading && (
+
+              {doc && authUser.uid === doc.userId ? (
+                <CustomListItem
+                  editable={doc && authUser.uid === doc.userId}
+                  label='Descripción'
+                  placeholder='Agregue la descripción del documento'
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                  id='description'
+                  value={values?.description || ''}
+                  onChange={e => {
+                    handleInputChange('description')(e)
+                    setIsDescriptionSaved(false) // Restablecer el estado al cambiar la descripción
+                  }}
+                  required={false}
+                  inputProps={{
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        {!isDescriptionSaved && (
+                          <Button
+                            onClick={submitDescription}
+                            disabled={isSaving}
+                            color={storageBlueprints?.length > 0 && !description ? 'error' : 'primary'}
+                          >
+                            {isSaving ? 'Guardando...' : 'Guardar descripción'}
+                          </Button>
+                        )}
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              ) : (
+                <ListItem divider={true}>
+                  <Box sx={{ display: 'flex', width: '100%' }}>
+                    <Typography component='div' sx={{ width: '30%', pr: 2 }}>
+                      Descripción
+                    </Typography>
+                    <Box>{values.description}</Box>
+                  </Box>
+                </ListItem>
+              )}
+
+              {!isSaving && doc && doc.storageBlueprints && doc.storageBlueprints.length > 0 && !isLoading && (
                 <ListItem>
                   <Box sx={{ display: 'flex', width: '100%' }}>
                     <Typography component='div' sx={{ width: '30%', pr: 2 }}>
@@ -800,16 +780,22 @@ export const UploadBlueprintsDialog = ({
                   <ListItem>
                     <FormControl fullWidth>
                       <Fragment>
-                        {(doc && authUser.uid === doc.userId && !doc.sentByDesigner) ||
+                        {(!doc.storageBlueprints &&
+                          !files &&
+                          doc &&
+                          authUser.uid === doc.userId &&
+                          !doc.sentByDesigner) ||
                         (doc &&
                           (authUser.role === 6 || authUser.role === 7) &&
                           doc.sentByDesigner &&
                           !doc.approvedByDocumentaryControl &&
+                          doc.storageBlueprints?.length < 2 &&
                           !doc.approvedBySupervisor &&
                           !doc.approvedByContractAdmin) ||
                         (doc &&
                           authUser.role === 9 &&
                           (doc.approvedBySupervisor || doc.approvedByContractAdmin) &&
+                          doc.storageBlueprints?.length < 2 &&
                           !checkRoleAndApproval(authUser.role, doc)) ? (
                           <div {...getRootProps({ className: 'dropzone' })}>
                             <input {...getInputProps()} />

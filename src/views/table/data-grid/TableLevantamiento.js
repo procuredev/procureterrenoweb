@@ -148,7 +148,10 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
       const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
 
       const filteredProyectistas = resProyectistas.filter(
-        user => user.enabled === true && user.shift.includes(authUser.shift[0])
+        user =>
+          user.enabled === true &&
+          (user.role === 7 || user.role === 8) &&
+          (user.shift.includes(authUser.shift[0]) || user.shift.includes(authUser.shift[1]))
       )
       setProyectistas(filteredProyectistas)
       setLoadingProyectistas(false)
