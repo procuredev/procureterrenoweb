@@ -498,22 +498,44 @@ export const UploadBlueprintsDialog = ({
       // Busca la carpeta de la planta.
       //const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
       const plantFolders = await fetchFolders('1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
-      const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+      let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+
+      // Si no existe la carpeta de la planta, se crea
+      if (!plantFolder) {
+        let plantName = getPlantAbbreviation(doc.plant)
+        // plantFolder = await createFolder(plantName, '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
+        plantFolder = await createFolder(plantName, '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
+      }
 
       if (plantFolder) {
         // Busca la carpeta del área.
         const areaFolders = await fetchFolders(plantFolder.id)
-        const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+        let areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+
+        // Si no existe la carpeta del área, se crea
+        if (!areaFolder) {
+          areaFolder = await createFolder(doc.area, plantFolder.id)
+        }
 
         if (areaFolder) {
           const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
           const existingProjectFolders = await fetchFolders(areaFolder.id)
-          const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+          let projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+
+          // Si no existe la carpeta de la OT, se crea
+          if (!projectFolder) {
+            projectFolder = await createFolder(projectFolderName, areaFolder.id)
+          }
 
           if (projectFolder) {
             // Ubica la carpeta "EN TRABAJO"
             const trabajoFolders = await fetchFolders(projectFolder.id)
-            const trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
+            let trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
+
+            // Si no existe la carpeta 'EN TRABAJO', se crea
+            if (!trabajoFolder) {
+              trabajoFolder = await createFolder('EN TRABAJO', projectFolder.id)
+            }
 
             if (trabajoFolder) {
               const fileData = await uploadFile(files.name, files, trabajoFolder.id)
@@ -542,22 +564,44 @@ export const UploadBlueprintsDialog = ({
       // Busca la carpeta de la planta.
       //const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
       const plantFolders = await fetchFolders('1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
-      const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+      let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+
+      // Si no existe la carpeta de la planta, se crea
+      if (!plantFolder) {
+        const plantName = getPlantAbbreviation(doc.plant)
+        // plantFolder = await createFolder(plantName, '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
+        plantFolder = await createFolder(plantName, '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
+      }
 
       if (plantFolder) {
         // Busca la carpeta del área.
         const areaFolders = await fetchFolders(plantFolder.id)
-        const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+        let areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+
+        // Si no existe la carpeta del área, se crea
+        if (!areaFolder) {
+          areaFolder = await createFolder(doc.area, plantFolder.id)
+        }
 
         if (areaFolder) {
           const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
           const existingProjectFolders = await fetchFolders(areaFolder.id)
-          const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+          let projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+
+          // Si no existe la carpeta de la OT, se crea
+          if (!projectFolder) {
+            projectFolder = await createFolder(projectFolderName, areaFolder.id)
+          }
 
           if (projectFolder) {
             // Ubica la carpeta "EMITIDOS"
             const issuedFolders = await fetchFolders(projectFolder.id)
-            const issuedFolder = issuedFolders.files.find(folder => folder.name === 'EMITIDOS')
+            let issuedFolder = issuedFolders.files.find(folder => folder.name === 'EMITIDOS')
+
+            // Si no existe la carpeta 'EMITIDOS', se crea
+            if (!issuedFolder) {
+              trabajoFolder = await createFolder('EMITIDOS', projectFolder.id)
+            }
 
             if (issuedFolder) {
               // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
