@@ -488,8 +488,6 @@ export default function AlertDialogGabinete({
     }
   }
 
-  console.log('toggleRemarks', toggleRemarks)
-
   return (
     <Dialog
       open={open}
