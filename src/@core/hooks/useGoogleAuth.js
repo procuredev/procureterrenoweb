@@ -1,10 +1,33 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material'
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_ID
-const CLIENT_SECRET = process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_SECRET
+// Configuración de autenticación de Google para producción y desarrollo
+const googleAuthConfigProduction = {
+  CLIENT_ID: process.env.NEXT_PUBLIC_PROD_GOOGLE_CLIENT_ID,
+  CLIENT_SECRET: process.env.NEXT_PUBLIC_PROD_GOOGLE_CLIENT_SECRET,
+  REDIRECT_URI: 'https://www.prosite.cl/home' // URL de producción
+}
+
+const googleAuthConfigDevelopment = {
+  CLIENT_ID: process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_ID,
+  CLIENT_SECRET: process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_SECRET,
+  REDIRECT_URI: 'http://localhost:3000/home' // URL de desarrollo
+}
+
+// Selecciona la configuración de autenticación según el hostname
+let googleAuthConfig
+
+if (typeof window !== 'undefined') {
+  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
+    googleAuthConfig = googleAuthConfigProduction
+  } else {
+    googleAuthConfig = googleAuthConfigDevelopment
+  }
+} else {
+  googleAuthConfig = googleAuthConfigDevelopment
+}
+
 const SCOPES = 'https://www.googleapis.com/auth/drive'
-const REDIRECT_URI = 'http://localhost:3000/home'
 
 export const useGoogleAuth = () => {
   const [accessToken, setAccessToken] = useState(null)
@@ -57,8 +80,8 @@ export const useGoogleAuth = () => {
     const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth'
 
     const params = {
-      client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI,
+      client_id: googleAuthConfig.CLIENT_ID,
+      redirect_uri: googleAuthConfig.REDIRECT_URI,
       scope: SCOPES,
       state: 'try_sample_request',
       include_granted_scopes: 'true',
@@ -86,8 +109,8 @@ export const useGoogleAuth = () => {
 
   const refreshAccessToken = async refreshToken => {
     const params = new URLSearchParams()
-    params.append('client_id', CLIENT_ID)
-    params.append('client_secret', CLIENT_SECRET)
+    params.append('client_id', googleAuthConfig.CLIENT_ID)
+    params.append('client_secret', googleAuthConfig.CLIENT_SECRET)
     params.append('refresh_token', refreshToken)
     params.append('grant_type', 'refresh_token')
 
