@@ -47,6 +47,18 @@ const getFileIcon = fileType => {
   }
 }
 
+let rootFolder
+
+if (typeof window !== 'undefined') {
+  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
+    rootFolder = '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' //* carpeta original "72336"
+  } else {
+    rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+  }
+} else {
+  rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+}
+
 export default function AlertDialogGabinete({
   open,
   handleClose,
@@ -370,7 +382,7 @@ export default function AlertDialogGabinete({
       setIsUploading(true)
       try {
         // Paso 1: Buscar la carpeta correspondiente en Google Drive
-        const plantFolders = await fetchFolders('1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') // Carpeta raíz de prueba
+        const plantFolders = await fetchFolders(rootFolder)
 
         const plantFolder = plantFolders.files.find(folder =>
           folder.name.includes(getPlantAbbreviation(petition.plant))

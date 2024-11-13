@@ -6,6 +6,18 @@ import base64MEL from 'src/views/pages/gabinete/base64MEL'
 const callAddRegular = require('public/fonts/calibri-normal.js')
 const callAddBold = require('public/fonts/calibri-bold.js')
 
+let rootFolder
+
+if (typeof window !== 'undefined') {
+  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
+    rootFolder = '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' //* carpeta original "72336"
+  } else {
+    rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+  }
+} else {
+  rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+}
+
 export const generateTransmittal = async (
   tableElement,
   selected,
@@ -185,8 +197,7 @@ export const generateTransmittal = async (
   const pdfBlob = doc.output('blob') // Genera el blob del documento PDF
 
   // Lógica de carga a Google Drive
-  //const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
-  const plantFolders = await fetchFolders('1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
+  const plantFolders = await fetchFolders(rootFolder)
   const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
 
   if (plantFolder) {

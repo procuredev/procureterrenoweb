@@ -52,6 +52,18 @@ const getFileIcon = fileType => {
   }
 }
 
+let rootFolder
+
+if (typeof window !== 'undefined') {
+  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
+    rootFolder = '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' //* carpeta original "72336"
+  } else {
+    rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+  }
+} else {
+  rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+}
+
 export const UploadBlueprintsDialog = ({
   handleClose,
   doc,
@@ -562,15 +574,13 @@ export const UploadBlueprintsDialog = ({
     try {
       setIsLoading(true)
       // Busca la carpeta de la planta.
-      //const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
-      const plantFolders = await fetchFolders('1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
+      const plantFolders = await fetchFolders(rootFolder)
       let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
 
       // Si no existe la carpeta de la planta, se crea
       if (!plantFolder) {
         const plantName = getPlantAbbreviation(doc.plant)
-        // plantFolder = await createFolder(plantName, '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt') //* carpeta original "72336"
-        plantFolder = await createFolder(plantName, '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw') //* carpeta TEST
+        plantFolder = await createFolder(plantName, rootFolder)
       }
 
       if (plantFolder) {
@@ -622,27 +632,6 @@ export const UploadBlueprintsDialog = ({
                   // Actualiza el campo storageBlueprints del blueprint en Firestore
                   await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'hlc')
                 }
-
-                // Crear o encontrar la carpeta "DOCUMENTOS" dentro de la revisión
-                /* const documentosFolderName = 'DOCUMENTOS'
-                const documentosFolders = await fetchFolders(revisionFolder.id)
-                let documentosFolder = documentosFolders.files.find(folder => folder.name === documentosFolderName)
-
-                if (!documentosFolder) {
-                  documentosFolder = await createFolder(documentosFolderName, revisionFolder.id)
-                }
-
-                // Subir archivos a la carpeta "DOCUMENTOS"
-                if (documentosFolder) {
-                  const fileData = await uploadFile(hlcDocuments.name, hlcDocuments, documentosFolder.id)
-
-                  if (fileData && fileData.id) {
-                    const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
-
-                    // Actualiza el campo storageBlueprints del blueprint en Firestore
-                    await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'hlc')
-                  }
-                } */
               }
             }
           }
@@ -668,17 +657,6 @@ export const UploadBlueprintsDialog = ({
   return (
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} onSubmit={() => writeCallback()}></AlertDialog>
-      {/* <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography variant='h5'>Revisión: {values.revision}</Typography>
-          <Typography variant='h5' sx={{ lineHeight: 3 }}>
-            {`Código Procure: ${values.id}` || 'Sin código Procure'}
-          </Typography>
-          <Typography variant='h6' sx={{ my: 2, display: 'flex', alignItems: 'center' }}>
-            Código MEL: {values.clientCode}
-          </Typography>
-        </Box>
-      </DialogTitle> */}
       <Box sx={{ margin: 'auto' }}>
         {
           <Box>
