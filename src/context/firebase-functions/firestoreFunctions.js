@@ -17,8 +17,7 @@ import {
   setDoc,
   updateDoc,
   where,
-  writeBatch,
-  arrayUnion
+  writeBatch
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
@@ -1717,7 +1716,6 @@ const createCostCenter = async (plant, costCenter) => {
     await updateDoc(docRef, {
       [plant]: arrayUnion(costCenter)
     })
-
   } catch (error) {
     // Manejo de errores.
     console.error('Error al crear el Centro de Costo:', error)
@@ -1743,7 +1741,6 @@ const modifyCostCenter = async (plant, index, newCostCenterValue) => {
     await updateDoc(docRef, {
       [plant]: plantCostCenters
     })
-
   } catch (error) {
     // Manejo de errores
     console.error('Error al modificar el Centro de Costo:', error)
@@ -1761,7 +1758,6 @@ const deleteCostCenter = async (plant, costCenter) => {
     await updateDoc(docRef, {
       [plant]: arrayRemove(costCenter)
     })
-
   } catch (error) {
     // Manejo de errores.
     console.error('Error al eliminar el Centro de Costo:', error)
@@ -1791,7 +1787,6 @@ const setDefaultCostCenter = async (plant, oldIndex) => {
     await updateDoc(docRef, {
       [plant]: plantCostCenters
     })
-
   } catch (error) {
     // Manejo de errores.
     console.error('Error al establecer el Centro de Costo predeterminado:', error)
@@ -1825,7 +1820,7 @@ export {
   markBlueprintAsDeleted,
   deleteBlueprintAndDecrementCounters,
   updateBlueprintsWithStorageOrHlc,
-  deleteReferenceOfLastDocumentAttached
+  deleteReferenceOfLastDocumentAttached,
   createCostCenter,
   modifyCostCenter,
   deleteCostCenter,

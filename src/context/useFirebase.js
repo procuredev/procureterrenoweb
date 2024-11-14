@@ -42,9 +42,6 @@ import {
   updateUserData,
   updateUserPhone,
   updateWeekHoursByType,
-  deleteWeekHoursByType,
-  fetchSolicitudes,
-  fetchUserList,
   updateWeekHoursWithPlant,
   generateBlueprintCodes,
   updateBlueprintAssignment,
@@ -52,8 +49,7 @@ import {
   markBlueprintAsDeleted,
   deleteBlueprintAndDecrementCounters,
   updateBlueprintsWithStorageOrHlc,
-  deleteReferenceOfLastDocumentAttached
-  updateWeekHoursWithPlant,
+  deleteReferenceOfLastDocumentAttached,
   useBlueprints
 } from 'src/context/firebase-functions/firestoreFunctions'
 
@@ -205,7 +201,7 @@ const FirebaseContextProvider = props => {
     markBlueprintAsDeleted,
     deleteBlueprintAndDecrementCounters,
     updateBlueprintsWithStorageOrHlc,
-    deleteReferenceOfLastDocumentAttached
+    deleteReferenceOfLastDocumentAttached,
     createCostCenter,
     modifyCostCenter,
     deleteCostCenter,
