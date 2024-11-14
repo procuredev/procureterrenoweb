@@ -81,6 +81,13 @@ const Navigation = () => {
       authorizedRoles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
+      title: 'Centros de Costo',
+      path: '/centros-de-costo',
+      icon: 'mdi:currency-usd',
+      subject: 'centros-de-costo',
+      authorizedRoles: [1, 5, 6, 10]
+    },
+    {
       title: 'Administración',
       icon: 'mdi:shield-account-outline',
       children: [

@@ -52,7 +52,8 @@ const defineRulesFor = (role, subject) => {
       'user-profile',
       'documentos',
       'gabinete',
-      'carga-de-horas'
+      'carga-de-horas',
+      'centros-de-costo'
     ])
   } else if (role === 6) {
     can('manage', [
@@ -64,7 +65,8 @@ const defineRulesFor = (role, subject) => {
       'user-profile',
       'documentos',
       'gabinete',
-      'carga-de-horas'
+      'carga-de-horas',
+      'centros-de-costo'
     ])
   } else if (role === 7) {
     can('manage', [
@@ -116,7 +118,8 @@ const defineRulesFor = (role, subject) => {
       'solicitudes',
       'levantamientos',
       'gabinete',
-      'carga-de-horas'
+      'carga-de-horas',
+      'centros-de-costo'
     ])
   } else if (role === 11) {
     can('manage', ['calendario', 'home', 'mapa', 'nuestro-equipo', 'user-profile', 'carga-de-horas'])
