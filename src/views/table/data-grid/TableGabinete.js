@@ -481,8 +481,67 @@ const TableGabinete = ({
     }
   }
 
+  const getNextRevisionFolderName = (doc, authUser) => {
+    let newRevision = doc.revision
+
+    const nextCharCode = doc.revision.charCodeAt(0) + 1
+    const nextChar = String.fromCharCode(nextCharCode)
+
+    // Verifica si el id contiene "M3D" antes del último guion
+    const isM3D = doc.id.split('-').slice(-2, -1)[0] === 'M3D'
+
+    const isRole8 = authUser.role === 8
+    const isRole7 = authUser.role === 7
+
+    if (isRole8 || (isRole7 && doc.userId === authUser.uid)) {
+      const actions = {
+        keepRevision: {
+          condition: () =>
+            doc.revision.charCodeAt(0) >= 48 &&
+            doc.approvedByClient === true &&
+            doc.approvedByDocumentaryControl === false,
+          action: () => (newRevision = doc.revision)
+        },
+        resetRevision: {
+          condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
+          action: () => (newRevision = '0')
+        },
+        incrementRevision: {
+          condition: () =>
+            (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
+            doc.approvedByClient === false &&
+            doc.approvedByDocumentaryControl === true,
+          action: () => (newRevision = nextChar)
+        },
+        startRevision: {
+          condition: () => doc.revision === 'iniciado' && !isM3D,
+          action: () => (newRevision = 'A')
+        },
+        incrementRevisionInA: {
+          condition: () => doc.revision === 'A',
+          action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
+        },
+        dotCloud: {
+          condition: () => doc.revision === 'iniciado' && isM3D,
+          action: () => {
+            newRevision = '0'
+          }
+        }
+      }
+
+      Object.values(actions).forEach(({ condition, action }) => {
+        if (condition()) {
+          action()
+        }
+      })
+    }
+
+    return newRevision
+  }
+
   const idLocalWidth = Number(localStorage.getItem('idGabineteWidthColumn'))
   const revisionLocalWidth = Number(localStorage.getItem('revisionGabineteWidthColumn'))
+  const nextRevisionLocalWidth = Number(localStorage.getItem('nextRevisionGabineteWidthColumn'))
   const percentLocalWidth = Number(localStorage.getItem('percentGabineteWidthColumn'))
   const userNameLocalWidth = Number(localStorage.getItem('userNameGabineteWidthColumn'))
   const lastTransmittalLocalWidth = Number(localStorage.getItem('lastTransmittalGabineteWidthColumn'))
@@ -573,7 +632,7 @@ const TableGabinete = ({
     },
     {
       field: 'revision',
-      headerName: 'REVISION',
+      headerName: 'REVISION APROBADA',
       width: revisionLocalWidth
         ? revisionLocalWidth
         : role === 9 && !lg
@@ -609,6 +668,52 @@ const TableGabinete = ({
             <Box sx={{ overflow: 'hidden' }}>
               <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
                 {revisionContent || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        }
+      }
+    },
+    {
+      field: 'nextRevision',
+      headerName: 'REVISION SIGUIENTE',
+      width: nextRevisionLocalWidth
+        ? nextRevisionLocalWidth
+        : role === 9 && !lg
+        ? 95
+        : role !== 9 && !lg
+        ? 95
+        : role !== 9
+        ? 80
+        : 80,
+      renderCell: params => {
+        const { row } = params
+
+        localStorage.setItem('nextRevisionGabineteWidthColumn', params.colDef.computedWidth)
+
+        let revisionContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra el registro de la revisión a modo de historial
+          revisionContent = row.newRevision
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {''}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la el estado de la revisión actual
+          revisionContent = row.revision
+
+          let nextRevision = row && getNextRevisionFolderName(row, authUser)
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {nextRevision || 'N/A'}
               </Typography>
             </Box>
           )
