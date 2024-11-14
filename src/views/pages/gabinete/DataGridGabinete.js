@@ -3,33 +3,41 @@ import { useState, useEffect, useRef } from 'react'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
+import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
+import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
 import { useGridApiRef } from '@mui/x-data-grid'
-import { Autocomplete, ListItemText, ListItem, List } from '@mui/material'
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  ListItemText,
+  ListItem,
+  List,
+  Typography,
+  TextField,
+  Checkbox,
+  CircularProgress
+} from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-
-// ** Custom Components Imports
-
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
 
 // ** Demo Components Imports
 import tableBody from 'public/html/table.js'
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
 import { generateTransmittal } from 'src/@core/utils/generate-transmittal'
-import { DialogAssignDesigner } from 'src/@core/components/dialog-assignDesigner'
+import { DialogAssignGabineteDraftmen } from 'src/@core/components/dialog-assignGabineteDraftmen'
 import { DialogCodeGenerator } from 'src/@core/components/dialog-codeGenerator'
 import DialogErrorTransmittal from 'src/@core/components/dialog-errorTransmittal'
 import DialogFinishOt from 'src/@core/components/dialog-finishOt'
-import { el } from 'date-fns/locale'
+import ReasignarDialog from 'src/@core/components/dialog-deliverableReassign'
+import DialogDeleteBlueprint from 'src/@core/components/dialog-deleteBlueprint'
 
 const DataGridGabinete = () => {
   const [currentPetition, setCurrentPetition] = useState(null)
@@ -40,15 +48,22 @@ const DataGridGabinete = () => {
   const [proyectistas, setProyectistas] = useState([])
   const [openCodeGenerator, setOpenCodeGenerator] = useState(false)
   const [openFinishOt, setOpenFinishOt] = useState(false)
-  const [blueprintGenerated, setBlueprintGenerated] = useState(false)
-  const [designerAssigned, setDesignerAssigned] = useState(false)
   const [transmittalGenerated, setTransmittalGenerated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorTransmittal, setErrorTransmittal] = useState(false)
   const [openTransmittalDialog, setOpenTransmittalDialog] = useState(false)
   const [selectedDocs, setSelectedDocs] = useState([])
+  const [selectedRows, setSelectedRows] = useState([])
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [checkedTypes, setCheckedTypes] = useState({})
+  const [showReasignarSection, setShowReasignarSection] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [gabineteDraftmenState, setGabineteDraftmenState] = useState([])
 
   const apiRef = useGridApiRef()
+
+  const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
+  const { renderDialog } = useGoogleAuth()
 
   const currentPetitionRef = useRef()
 
@@ -67,12 +82,11 @@ const DataGridGabinete = () => {
 
   if (authUser.role === 8) {
     petitions = petitions.filter(petition =>
-      petition.designerReview?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
+      petition.gabineteDraftmen?.find(item => item.hasOwnProperty('userId') && item['userId'] === authUser.uid)
     )
   }
 
-  //let blueprints = useBlueprints(currentPetition?.id)
-  const [blueprints, setBlueprints] = useBlueprints(currentPetition?.id)
+  const [blueprints, projectistData, otPercent, setBlueprints] = useBlueprints(currentPetition?.id)
 
   const theme = useTheme()
   const smDown = useMediaQuery(theme.breakpoints.down('sm'))
@@ -97,6 +111,20 @@ const DataGridGabinete = () => {
       })
   }
 
+  // Abre el diálogo de eliminación
+  const handleDeleteClick = () => {
+    if (selectedRows.length === 1) {
+      setIsDeleteDialogOpen(true)
+    } else {
+      alert('Por favor, selecciona una única fila para borrar.')
+    }
+  }
+
+  // Cierra el diálogo de eliminación
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false)
+  }
+
   const handleCloseCodeGenerator = () => {
     setOpenCodeGenerator(false)
   }
@@ -114,7 +142,13 @@ const DataGridGabinete = () => {
   }
 
   const handleClose = () => {
+    const doc = petitions.find(petition => petition.ot == currentOT)
+    setGabineteDraftmenState(doc.gabineteDraftmen)
     setOpen(false)
+  }
+
+  const handleReasignarClick = () => {
+    setDialogOpen(true)
   }
 
   const handleChange = value => {
@@ -128,11 +162,22 @@ const DataGridGabinete = () => {
   }
 
   const handleGenerateTransmittal = (tableElement, selected, newCode) => {
-    generateTransmittal(tableElement, selected, setTransmittalGenerated, newCode)
+    generateTransmittal(
+      tableElement,
+      selected,
+      setTransmittalGenerated,
+      newCode,
+      currentPetition,
+      uploadFile,
+      createFolder,
+      fetchFolders,
+      setIsLoading,
+      setOpenTransmittalDialog
+    )
   }
 
   const handleOpenTransmittalDialog = () => {
-    // Obtén los documentos seleccionados del apiRef de DataGrid
+    // Obtiene los documentos seleccionados del apiRef de DataGrid
     const selectedDocuments = apiRef.current.getSelectedRows()
     setSelectedDocs(Array.from(selectedDocuments.values()))
     console.log(selectedDocuments)
@@ -212,7 +257,7 @@ const DataGridGabinete = () => {
     }
   }, [currentPetition])
 
-  // Actualizar el ref cuando `currentPetition` cambie
+  // Actualiza el ref cuando `currentPetition` cambie
   useEffect(() => {
     currentPetitionRef.current = currentPetition
   }, [currentPetition])
@@ -221,7 +266,7 @@ const DataGridGabinete = () => {
     if (currentPetition) {
       const fetchRoleAndProyectistas = async () => {
         if (authUser) {
-          // Cargar los proyectistas
+          // Carga los proyectistas
           const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
           setProyectistas(resProyectistas)
         }
@@ -233,9 +278,6 @@ const DataGridGabinete = () => {
 
   useEffect(() => {
     if (transmittalGenerated) {
-      // Aquí puedes realizar las operaciones necesarias para actualizar la interfaz de usuario
-      // ...
-
       // Actualiza 'blueprints'.
       setBlueprints([...blueprints])
 
@@ -244,17 +286,121 @@ const DataGridGabinete = () => {
     }
   }, [transmittalGenerated, setBlueprints])
 
+  const handleCheckboxChange = (projectist, type) => {
+    const key = `${projectist}-${type}`
+
+    // Filtra los documentos correspondientes al `projectist` y `type`
+    const filteredDocs = blueprints.filter(
+      doc => !doc.deleted && doc.userName === projectist && `${doc.id.split('-')[1]}-${doc.id.split('-')[2]}` === type
+    )
+
+    // Guardamos el estado actual antes de actualizar
+    setCheckedTypes(prevCheckedTypes => {
+      const updatedCheckedTypes = { ...prevCheckedTypes }
+
+      // Si el checkbox está marcado, lo agregamos o lo mantenemos en el estado
+      if (!updatedCheckedTypes[key]) {
+        updatedCheckedTypes[key] = true
+      } else {
+        // Si el checkbox está desmarcado, lo eliminamos del estado
+        delete updatedCheckedTypes[key]
+      }
+
+      // Actualiza la selección de filas en la tabla
+      setSelectedRows(prevSelectedRows => {
+        let updatedRows
+
+        if (updatedCheckedTypes[key]) {
+          // Si se selecciona el checkbox grupal, agrega todos los documentos relacionados
+          updatedRows = [
+            ...prevSelectedRows,
+            ...filteredDocs.filter(doc => !prevSelectedRows.some(row => row.id === doc.id))
+          ]
+        } else {
+          // Si se deselecciona el checkbox grupal, elimina todos los documentos relacionados
+          updatedRows = prevSelectedRows.filter(row => !filteredDocs.some(doc => doc.id === row.id))
+        }
+
+        return updatedRows
+      })
+
+      return updatedCheckedTypes
+    })
+  }
+
+  const renderProjectistSummary = () => {
+    return Object.entries(projectistData).map(([projectist, types]) => {
+      return (
+        <Box key={projectist} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography>{projectist}:</Typography>
+          {Object.entries(types).map(([type, count]) => (
+            <Box key={type} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Checkbox
+                checked={!!checkedTypes[`${projectist}-${type}`]}
+                onChange={() => handleCheckboxChange(projectist, type)}
+              />
+              <Typography>
+                {type} ({count} doc{count > 1 ? 's' : ''})
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )
+    })
+  }
+
+  const handleReasignarToggle = () => {
+    setShowReasignarSection(prevState => {
+      if (prevState) {
+        // Si se está desmarcando el checkbox, limpia la variables de estado: `selectedRows` y `checkedTypes`
+        setSelectedRows([])
+        setCheckedTypes({})
+      }
+
+      return !prevState
+    })
+  }
+
   return (
     <Box id='main' sx={{ display: 'flex', width: '100%', flexDirection: 'column' }}>
-      <Autocomplete
-        options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
-        getOptionLabel={option => option.value + ' ' + option.title + ' '}
-        sx={{ mx: 6.5 }}
-        onChange={(event, value) => handleChange(value)}
-        onInputChange={(event, value) => setCurrentAutoComplete(value)}
-        isOptionEqualToValue={(option, value) => option.value === value.value}
-        renderInput={params => <TextField {...params} label='OT' />}
-      />
+      <Box sx={{ display: 'flex' }}>
+        <Autocomplete
+          options={petitions.map(doc => ({ value: doc.ot, title: doc.title }))}
+          getOptionLabel={option => option.value + ' - ' + option.title + ' '}
+          sx={{ mx: 6.5, flexGrow: '9' }}
+          onChange={(event, value) => handleChange(value)}
+          onInputChange={(event, value) => setCurrentAutoComplete(value)}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          renderInput={params => <TextField {...params} label='OT' />}
+        />
+
+        <TextField
+          sx={{ mr: 6.5, flexGrow: '0.2' }}
+          label={otPercent ? 'Porcentaje Promedio de Avance' : ''}
+          value={otPercent ? `${otPercent} %` : ''}
+          id='form-props-read-only-input'
+          InputProps={{ readOnly: true }}
+        />
+
+        {authUser.role === 7 && (
+          <>
+            <Box sx={{ display: 'flex', flexDirection: 'row', m: 0, p: 0 }}>
+              <Checkbox checked={showReasignarSection} onChange={handleReasignarToggle} color='info' />
+              <Typography sx={{ alignContent: 'center' }}>REASIGNAR</Typography>
+            </Box>
+
+            <Button
+              variant='contained'
+              color='error'
+              sx={{ mx: 6.5, flexGrow: '1' }}
+              onClick={handleDeleteClick}
+              disabled={selectedRows.length === 0 || (selectedRows.length > 0 && showReasignarSection)}
+            >
+              Borrar
+            </Button>
+          </>
+        )}
+      </Box>
       <Box sx={{ m: 4, display: 'flex' }}>
         <TextField
           sx={{ m: 2.5, width: '50%' }}
@@ -275,7 +421,7 @@ const DataGridGabinete = () => {
           readOnly
           sx={{ m: 2.5, width: '100%' }}
           value={
-            (currentOT && petitions.find(doc => doc.ot == currentOT)?.designerReview?.map(item => item.name)) || []
+            (currentOT && petitions.find(doc => doc.ot == currentOT)?.gabineteDraftmen?.map(item => item.name)) || []
           }
           options={[]}
           renderInput={params => (
@@ -312,15 +458,6 @@ const DataGridGabinete = () => {
               Finalizar OT
             </Button>
           )
-        ) : authUser.role === 8 ? (
-          <Button
-            sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
-            variant='contained'
-            disabled={currentPetition?.otFinished}
-            onClick={() => currentPetition && handleClickOpenCodeGenerator(currentPetition)}
-          >
-            Generar nuevo documento
-          </Button>
         ) : authUser.role === 7 ? (
           <>
             <Button
@@ -329,7 +466,7 @@ const DataGridGabinete = () => {
               disabled={currentPetition?.otFinished}
               onClick={() => currentPetition && handleClickOpen(currentPetition)}
             >
-              Asignar proyectista
+              Modificar proyectista
             </Button>
           </>
         ) : authUser.role === 9 ? (
@@ -345,10 +482,7 @@ const DataGridGabinete = () => {
           ''
         )}
 
-        {authUser.role === 7 &&
-        currentPetition &&
-        currentPetition.designerReview &&
-        currentPetition.designerReview.find(user => user.userId === authUser.uid) ? (
+        {authUser.role === 7 ? (
           <Button
             sx={{ width: '50%', m: 2.5, fontSize: xlDown ? '0.7rem' : '0.8rem' }}
             variant='contained'
@@ -361,24 +495,45 @@ const DataGridGabinete = () => {
           ''
         )}
       </Box>
-      <Box sx={{ m: 4, height: '100%' }}>
+      {authUser.role === 7 && currentPetition && showReasignarSection && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, ml: 6.5 }}>{renderProjectistSummary()}</Box>
+          <Box sx={{ mr: 6.5 }}>
+            <Button
+              variant='contained'
+              color='info'
+              disabled={
+                selectedRows.length === 0 ||
+                (currentOT && petitions.find(doc => doc.ot == currentOT)?.gabineteDraftmen.length < 2)
+              }
+              sx={{ flexGrow: '1' }}
+              onClick={handleReasignarClick}
+            >
+              Reasignar
+            </Button>
+          </Box>
+        </Box>
+      )}
+      <Box sx={{ m: 6.5, height: '100%' }}>
         <TableGabinete
           rows={blueprints ? blueprints : []}
           roleData={roleData}
           role={authUser.role}
           petitionId={currentPetition ? currentPetition.id : null}
           petition={currentPetition ? currentPetition : null}
-          setBlueprintGenerated={setBlueprintGenerated}
           apiRef={apiRef}
+          selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
+          showReasignarSection={showReasignarSection}
         />
       </Box>
-
-      <DialogAssignDesigner
+      <DialogAssignGabineteDraftmen
         open={open}
         handleClose={handleClose}
         doc={petitions.find(petition => petition.ot == currentOT)}
         proyectistas={proyectistas}
-        setDesignerAssigned={setDesignerAssigned}
+        gabineteDraftmenState={gabineteDraftmenState}
+        setGabineteDraftmenState={setGabineteDraftmenState}
       />
       <Dialog
         open={openTransmittalDialog}
@@ -387,26 +542,33 @@ const DataGridGabinete = () => {
         aria-describedby='alert-dialog-description'
       >
         <DialogTitle id='alert-dialog-title'>{'Generar Transmittal'}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id='alert-dialog-description'>
-            ¿Está seguro de que desea generar un transmittal para los siguientes documentos?
-          </DialogContentText>
-          <List>
-            {Array.from(selectedDocs.values()).map(doc => (
-              <>
-                <ListItem key={doc.id}>
-                  <ListItemText primary={doc.id} secondary={doc.clientCode} />
-                </ListItem>
-                {doc.storageHlcDocuments &&
-                  doc.storageHlcDocuments.map(hlc => (
-                    <ListItem key={hlc.index}>
-                      <ListItemText primary={getFileName(hlc)} />
+        <Box width={600}>
+          {isLoading ? (
+            <CircularProgress sx={{ m: 5 }} />
+          ) : (
+            <DialogContent>
+              <DialogContentText id='alert-dialog-description'>
+                ¿Está seguro de que desea generar un transmittal para los siguientes documentos?
+              </DialogContentText>
+              <List>
+                {Array.from(selectedDocs.values()).map(doc => (
+                  <Box key={doc.clientCode}>
+                    <ListItem key={doc.clientCode}>
+                      <ListItemText primary={doc.id} secondary={doc.clientCode} />
                     </ListItem>
-                  ))}
-              </>
-            ))}
-          </List>
-        </DialogContent>
+                    {doc.storageHlcDocuments &&
+                      doc.storageHlcDocuments.map(hlc => (
+                        <ListItem key={hlc.name}>
+                          <ListItemText primary={hlc.name} />
+                        </ListItem>
+                      ))}
+                  </Box>
+                ))}
+              </List>
+            </DialogContent>
+          )}
+        </Box>
+
         <DialogActions>
           <Button onClick={() => setOpenTransmittalDialog(false)} color='primary'>
             Cancelar
@@ -414,10 +576,9 @@ const DataGridGabinete = () => {
           <Button
             onClick={() => {
               handleClickTransmittalGenerator(currentPetition)
-              setOpenTransmittalDialog(false)
+              setIsLoading(true)
             }}
             color='primary'
-            autoFocus
           >
             Confirmar
           </Button>
@@ -429,7 +590,6 @@ const DataGridGabinete = () => {
           handleClose={handleCloseCodeGenerator}
           doc={currentPetition}
           roleData={roleData}
-          setBlueprintGenerated={setBlueprintGenerated}
         />
       )}
       {openFinishOt && (
@@ -441,7 +601,22 @@ const DataGridGabinete = () => {
           petitionFinished={petitionFinished}
         />
       )}
+      <ReasignarDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        selectedRows={selectedRows}
+        doc={petitions && currentOT && petitions.find(petition => petition.ot == currentOT)}
+      />
+      <DialogDeleteBlueprint
+        open={isDeleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        selectedRows={selectedRows}
+        doc={petitions && currentOT && petitions.find(petition => petition.ot == currentOT)}
+        setSelectedRows={setSelectedRows}
+      />
       {errorTransmittal && <DialogErrorTransmittal open={errorTransmittal} handleClose={handleCloseErrorTransmittal} />}
+      {/* Renderiza el diálogo de recondección a Google Drive, en caso de que expire el access token */}
+      {renderDialog()}
     </Box>
   )
 }

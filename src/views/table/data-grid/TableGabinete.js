@@ -4,16 +4,11 @@ import { makeStyles } from '@mui/styles'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import {
-  GridToolbar,
-  DataGridPremium,
-  esES,
-  useGridApiRef,
-  useKeepGroupedColumnsHidden
-} from '@mui/x-data-grid-premium'
+import { DataGridPremium, esES } from '@mui/x-data-grid-premium'
 
 import { Container } from '@mui/system'
-import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew, AutorenewOutlined } from '@mui/icons-material'
+import { Upload, CheckCircleOutline, CancelOutlined, OpenInNew } from '@mui/icons-material'
+import SyncIcon from '@mui/icons-material/Sync'
 
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp'
 import KeyboardArrowRightSharpIcon from '@mui/icons-material/KeyboardArrowRightSharp'
@@ -28,18 +23,26 @@ import {
   IconButton,
   Dialog,
   DialogActions,
-  DialogContent,
-  Checkbox
+  DialogContent
 } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
-import { unixToDate } from 'src/@core/components/unixToDate'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 
 // TODO: Move to firebase-functions
 import { getStorage, ref, list } from 'firebase/storage'
 
-const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprintGenerated, apiRef }) => {
+const TableGabinete = ({
+  rows,
+  role,
+  roleData,
+  petitionId,
+  petition,
+  apiRef,
+  selectedRows,
+  setSelectedRows,
+  showReasignarSection
+}) => {
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
   const [doc, setDoc] = useState({})
@@ -53,13 +56,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const [openDialog, setOpenDialog] = useState(false)
   const [error, setError] = useState('')
   const [expandedRows, setExpandedRows] = useState(new Set())
-
-  const [drawingTimeSelected, setDrawingTimeSelected] = useState({
-    start: null,
-    end: null,
-    hours: 0,
-    minutes: 0
-  })
 
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
@@ -80,24 +76,44 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     setApprove(isApproved)
   }
 
+  const handleSelectionChange = selection => {
+    if (showReasignarSection || authUser.role === 9) {
+      setSelectedRows(prevSelectedRows => {
+        const newSelection = selection.map(id => rows.find(row => row.id === id))
+
+        // Filtra duplicados y combina selecciones
+        const combinedSelection = [
+          ...prevSelectedRows.filter(row => selection.includes(row.id)),
+          ...newSelection.filter(row => !prevSelectedRows.some(prevRow => prevRow.id === row.id))
+        ]
+
+        return combinedSelection
+      })
+    } else {
+      // En modo selección única, permite solo una selección a la vez
+      const selectedRow = rows.find(row => row.id === selection[0])
+      setSelectedRows(selectedRow ? [selectedRow] : [])
+    }
+  }
+
   const writeCallback = async () => {
     const remarks = remarksState.length > 0 ? remarksState : false
 
     authUser.role === 8
-      ? await updateBlueprint(petitionId, doc, approve, authUser, false, drawingTimeSelected.investedHours)
+      ? await updateBlueprint(petitionId, doc, approve, authUser, false)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setDrawingTimeSelected('')
+            setOpenAlert(false)
           })
           .catch(err => console.error(err), setOpenAlert(false))
       : authUser.role === 9
       ? await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState('')
+            setOpenAlert(false), setRemarksState('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
       : await updateBlueprint(petitionId, doc, approve, authUser, remarks)
           .then(() => {
-            setOpenAlert(false), setBlueprintGenerated(true), setRemarksState(''), setDrawingTimeSelected('')
+            setOpenAlert(false), setRemarksState('')
           })
           .catch(err => console.error(err), setOpenAlert(false))
   }
@@ -116,7 +132,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   const useStyles = makeStyles({
     root: {
       '& .MuiDataGrid-columnHeaderTitle': {
-        fontSize: lg ? '0.5rem' : '0.8rem' // Cambia esto al tamaño de fuente que desees
+        fontSize: lg ? '0.8rem' : '1rem'
       }
     }
   })
@@ -228,12 +244,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       row.approvedByClient && row.approvedByDocumentaryControl && row.remarks,
     'Aprobado por Cliente sin comentarios': row =>
       (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
-    'Rechazado con Observaciones': row =>
+    'Aprobado por Control Documental con comentarios': row =>
+      row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A' && row.remarks,
+    'Rechazado por Cliente con Observaciones': row =>
       !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
     'Aprobado por Control Documental': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
+
     Iniciado: row => !row.sentTime,
-    Rechazado: row =>
+    'Rechazado con Observaciones': row =>
       (!row.sentByDesigner &&
         (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
       (row.approvedByDocumentaryControl &&
@@ -286,7 +305,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       >
         {canApprove && renderButton(row, true, 'success', CheckCircleOutline)}
         {canReject && renderButton(row, false, 'error', CancelOutlined)}
-        {canResume && renderButton(row, true, 'info', AutorenewOutlined, disabled, true)}
+        {canResume && renderButton(row, true, 'info', SyncIcon, disabled, true)}
       </Container>
     )
   }
@@ -355,71 +374,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
   }
 
   useEffect(() => {
-    if (drawingTimeSelected.start && drawingTimeSelected.end) {
-      const workStartHour = 8 // Hora de inicio de la jornada laboral
-      const workEndHour = 20 // Hora de finalización de la jornada laboral
-      const millisecondsPerHour = 60 * 60 * 1000 // Milisegundos por hora
-
-      let startDate = drawingTimeSelected.start.clone()
-      let endDate = drawingTimeSelected.end.clone()
-
-      // Asegurarse de que las fechas estén dentro de las horas de trabajo
-      if (startDate.hour() < workStartHour) {
-        startDate.hour(workStartHour).minute(0).second(0).millisecond(0)
-      }
-      if (endDate.hour() > workEndHour) {
-        endDate.hour(workEndHour).minute(0).second(0).millisecond(0)
-      } else if (endDate.hour() < workStartHour) {
-        endDate.subtract(1, 'day').hour(workEndHour).minute(0).second(0).millisecond(0)
-      }
-
-      let totalHoursWithinWorkingDays = 0
-      let totalMinutes = 0
-
-      while (startDate.isBefore(endDate)) {
-        const currentDayEnd = startDate.clone().hour(workEndHour)
-
-        if (currentDayEnd.isAfter(endDate)) {
-          const durationMillis = endDate.diff(startDate)
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-          totalMinutes += Math.floor((durationMillis % millisecondsPerHour) / (60 * 1000))
-        } else {
-          const durationMillis = currentDayEnd.diff(startDate)
-          totalHoursWithinWorkingDays += Math.floor(durationMillis / millisecondsPerHour)
-        }
-
-        startDate.add(1, 'day').hour(workStartHour)
-      }
-
-      if (totalMinutes >= 60) {
-        totalHoursWithinWorkingDays += Math.floor(totalMinutes / 60)
-        totalMinutes %= 60
-      }
-
-      if (totalHoursWithinWorkingDays === 0 && totalMinutes === 0) {
-        setError('La hora de término debe ser superior a la hora de inicio.')
-
-        return
-      } else {
-        setError(null) // Para limpiar cualquier error previo.
-      }
-
-      const startDateAsDate = drawingTimeSelected.start.toDate()
-      const endDateAsDate = drawingTimeSelected.end.toDate()
-
-      setDrawingTimeSelected(prevHours => ({
-        ...prevHours,
-        investedHours: {
-          hours: totalHoursWithinWorkingDays,
-          minutes: totalMinutes,
-          selectedStartDate: startDateAsDate,
-          selectedEndDate: endDateAsDate
-        }
-      }))
-    }
-  }, [drawingTimeSelected.start, drawingTimeSelected.end])
-
-  useEffect(() => {
     // Primera parte: obtener los nombres de los planos
     rows.map(async row => {
       const blueprintName = await getBlueprintName(row.id)
@@ -444,6 +398,16 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     fetchProyectistas()
   }, [authUser.shift])
 
+  useEffect(() => {
+    // Sincroniza el estado de selección del DataGrid con selectedRows
+    const selectedIds = selectedRows.map(row => row.id)
+
+    // Evita actualizar si no hay cambios en la selección
+    if (apiRef.current.getSelectedRows().size !== selectedIds.length) {
+      apiRef.current.setRowSelectionModel(selectedIds)
+    }
+  }, [selectedRows, apiRef])
+
   const getFileName = (content, index) => {
     if (typeof content === 'string') {
       const urlSegments = content.split('%2F')
@@ -453,9 +417,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
 
       return fileName
     } else {
-      // Si content no es una cadena, devuelve un valor por defecto o maneja el caso como consideres necesario.
+      // Si content no es una cadena, devuelve un valor por defecto.
       return ''
     }
+  }
+
+  // Filtra las filas eliminadas
+  const filterDeletedRows = rows => {
+    return rows.filter(row => !row.deleted)
   }
 
   const transformDataForGrouping = rows => {
@@ -474,8 +443,9 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       .flat()
   }
 
-  // En el cuerpo del componente TableGabinete
-  const transformedRows = transformDataForGrouping(rows)
+  // Filtra y transforma las filas en una sola operación
+  const filteredAndTransformedRows = filterDeletedRows(rows)
+  const transformedRows = transformDataForGrouping(filteredAndTransformedRows)
 
   const filteredRows = transformedRows.filter(row => {
     return !row.isRevision || expandedRows.has(row.parentId)
@@ -494,14 +464,99 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     })
   }
 
+  const roleMap = {
+    'Contract Owner': row => row.attentive === 4,
+    'Contract Admin': row => row.attentive === 6,
+    Supervisor: row => row.attentive === 7,
+    Proyectista: row => row.attentive === 8,
+    'Control Documental': row => row.attentive === 9,
+    Finalizado: row => row.attentive === 10
+  }
+
+  const renderRole = row => {
+    for (const role in roleMap) {
+      if (roleMap[role](row)) {
+        return role
+      }
+    }
+  }
+
+  const getNextRevisionFolderName = (doc, authUser) => {
+    let newRevision = doc.revision
+
+    const nextCharCode = doc.revision.charCodeAt(0) + 1
+    const nextChar = String.fromCharCode(nextCharCode)
+
+    // Verifica si el id contiene "M3D" antes del último guion
+    const isM3D = doc.id.split('-').slice(-2, -1)[0] === 'M3D'
+
+    const actions = {
+      keepRevision: {
+        condition: () =>
+          doc.revision.charCodeAt(0) >= 48 &&
+          doc.approvedByClient === true &&
+          doc.approvedByDocumentaryControl === false,
+        action: () => (newRevision = doc.revision)
+      },
+      resetRevision: {
+        condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
+        action: () => (newRevision = '0')
+      },
+      incrementRevision: {
+        condition: () =>
+          (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
+          doc.approvedByClient === false &&
+          doc.approvedByDocumentaryControl === true,
+        action: () => (newRevision = nextChar)
+      },
+      startRevision: {
+        condition: () => doc.revision === 'iniciado' && !isM3D,
+        action: () => (newRevision = 'A')
+      },
+      incrementRevisionInA: {
+        condition: () => doc.revision === 'A',
+        action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
+      },
+      dotCloud: {
+        condition: () => doc.revision === 'iniciado' && isM3D,
+        action: () => {
+          newRevision = '0'
+        }
+      }
+    }
+
+    Object.values(actions).forEach(({ condition, action }) => {
+      if (condition()) {
+        action()
+      }
+    })
+
+    return newRevision
+  }
+
+  const idLocalWidth = Number(localStorage.getItem('idGabineteWidthColumn'))
+  const revisionLocalWidth = Number(localStorage.getItem('revisionGabineteWidthColumn'))
+  const nextRevisionLocalWidth = Number(localStorage.getItem('nextRevisionGabineteWidthColumn'))
+  const percentLocalWidth = Number(localStorage.getItem('percentGabineteWidthColumn'))
+  const userNameLocalWidth = Number(localStorage.getItem('userNameGabineteWidthColumn'))
+  const lastTransmittalLocalWidth = Number(localStorage.getItem('lastTransmittalGabineteWidthColumn'))
+  const descriptionLocalWidth = Number(localStorage.getItem('descriptionGabineteWidthColumn'))
+  const filesLocalWidth = Number(localStorage.getItem('filesGabineteWidthColumn'))
+  const hlcLocalWidth = Number(localStorage.getItem('hlcGabineteWidthColumn'))
+  const dateLocalWidth = Number(localStorage.getItem('dateGabineteWidthColumn'))
+  const remarksLocalWidth = Number(localStorage.getItem('remarksGabineteWidthColumn'))
+  const clientLocalWidth = Number(localStorage.getItem('clientGabineteWidthColumn'))
+
   const columns = [
     {
       field: 'id',
-      width: role === 9 && !lg ? 355 : role !== 9 && !lg ? 360 : role !== 9 ? 290 : 285,
+      width: idLocalWidth ? idLocalWidth : role === 9 && !lg ? 355 : role !== 9 && !lg ? 360 : role !== 9 ? 300 : 300,
       headerName: 'Código Procure / MEL',
 
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('idGabineteWidthColumn', params.colDef.computedWidth)
 
         const isGroupedRow = !params.row.treeDataGroupingField
 
@@ -526,13 +581,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 placement='bottom-end'
                 key={row.id}
                 leaveTouchDelay={0}
-                //TransitionComponent={Fade}
                 TransitionProps={{ timeout: 0 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', width: 'inherit' }}>
                   {toggleIcon}
                   <IconButton
-                    sx={{ p: 0 }}
+                    sx={{ p: 0, mr: 2 }}
+                    color={row.storageBlueprints?.length > 0 && !row.description ? 'error' : 'secondary'}
                     id={row.id}
                     onClick={() => {
                       handleOpenUploadDialog(row)
@@ -572,15 +627,25 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     },
     {
       field: 'revision',
-      headerName: 'REVISION',
-      width: role === 9 && !lg ? 95 : role !== 9 && !lg ? 95 : role !== 9 ? 80 : 80,
+      headerName: 'REVISION APROBADA',
+      width: revisionLocalWidth
+        ? revisionLocalWidth
+        : role === 9 && !lg
+        ? 95
+        : role !== 9 && !lg
+        ? 95
+        : role !== 9
+        ? 80
+        : 80,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('revisionGabineteWidthColumn', params.colDef.computedWidth)
 
         let revisionContent
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Para las filas de revisión, muestra la descripción de la revisión
+          // Para las filas de revisión, muestra el registro de la revisión a modo de historial
           revisionContent = row.newRevision
 
           return (
@@ -591,7 +656,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra la el estado de la revisión actual
           revisionContent = row.revision
 
           return (
@@ -605,16 +670,116 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     },
     {
-      field: 'userName',
-      headerName: 'CREADO POR',
-      width: role === 9 && !lg ? 190 : role !== 9 && !lg ? 190 : role !== 9 ? 155 : 160,
+      field: 'nextRevision',
+      headerName: 'REVISION SIGUIENTE',
+      width: nextRevisionLocalWidth
+        ? nextRevisionLocalWidth
+        : role === 9 && !lg
+        ? 95
+        : role !== 9 && !lg
+        ? 95
+        : role !== 9
+        ? 80
+        : 80,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('nextRevisionGabineteWidthColumn', params.colDef.computedWidth)
+
+        let revisionContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra el registro de la revisión a modo de historial
+          revisionContent = row.newRevision
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {''}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la el estado de la revisión actual
+          revisionContent = row.revision
+
+          let nextRevision = row && getNextRevisionFolderName(row, authUser)
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {nextRevision || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        }
+      }
+    },
+    {
+      field: 'percent',
+      headerName: 'PORCENTAJE',
+      width: percentLocalWidth
+        ? percentLocalWidth
+        : role === 9 && !lg
+        ? 95
+        : role !== 9 && !lg
+        ? 95
+        : role !== 9
+        ? 80
+        : 80,
+      renderCell: params => {
+        const { row } = params
+
+        localStorage.setItem('percentGabineteWidthColumn', params.colDef.computedWidth)
+
+        let percentContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra el registro de la revisión a modo de historial
+          percentContent = row.newBlueprintPercent
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {`${percentContent} %` || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra la el estado de la revisión actual
+          percentContent = row.blueprintPercent
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {`${percentContent} %` || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        }
+      }
+    },
+    {
+      field: 'userName',
+      headerName: 'ENCARGADO',
+      width: userNameLocalWidth
+        ? userNameLocalWidth
+        : role === 9 && !lg
+        ? 190
+        : role !== 9 && !lg
+        ? 190
+        : role !== 9
+        ? 155
+        : 160,
+      renderCell: params => {
+        const { row } = params
+
+        localStorage.setItem('userNameGabineteWidthColumn', params.colDef.computedWidth)
 
         let userNameContent
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Para las filas de revisión, muestra la descripción de la revisión
+          // Para las filas de revisión, muestra el autor de la revisión
           userNameContent = row.userName
 
           return (
@@ -625,7 +790,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra el responsable actual del blueprint
           userNameContent = row.userName
 
           return (
@@ -639,16 +804,70 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
       }
     },
     {
-      field: 'lastTransmittal',
-      headerName: 'Ultimo Transmittal',
-      width: role === 9 && !lg ? 180 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 160,
+      field: 'attentive',
+      headerName: 'EN ESPERA DE REVISIÓN POR',
+      width: userNameLocalWidth
+        ? userNameLocalWidth
+        : role === 9 && !lg
+        ? 190
+        : role !== 9 && !lg
+        ? 190
+        : role !== 9
+        ? 155
+        : 160,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('userNameGabineteWidthColumn', params.colDef.computedWidth)
+
+        let userNameContent
+
+        if (row.isRevision && expandedRows.has(params.row.parentId)) {
+          // Para las filas de revisión, muestra el autor de la revisión
+          userNameContent = row.userName
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {renderRole(row) || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
+          // Para las filas principales, muestra el responsable actual del blueprint
+          // userNameContent = row.userName
+
+          return (
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography noWrap sx={{ textOverflow: 'clip', fontSize: lg ? '0.8rem' : '1rem' }}>
+                {renderRole(row) || 'N/A'}
+              </Typography>
+            </Box>
+          )
+        }
+      }
+    },
+    {
+      field: 'lastTransmittal',
+      headerName: 'Ultimo Transmittal',
+      width: lastTransmittalLocalWidth
+        ? lastTransmittalLocalWidth
+        : role === 9 && !lg
+        ? 180
+        : role !== 9 && !lg
+        ? 70
+        : role !== 9
+        ? 120
+        : 160,
+      renderCell: params => {
+        const { row } = params
+
+        localStorage.setItem('lastTransmittalGabineteWidthColumn', params.colDef.computedWidth)
 
         let lastTransmittalContent
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Para las filas de revisión, muestra la descripción de la revisión
+          // Para las filas de revisión, muestra el identificador del transmittal de la revisión en caso que la revision lo incluya
           lastTransmittalContent = row.lastTransmittal
 
           return (
@@ -659,7 +878,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra el último transmital generado en ese blueprint
           lastTransmittalContent = row.lastTransmittal
 
           return (
@@ -675,9 +894,19 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'description',
       headerName: 'DESCRIPCIÓN',
-      width: role === 9 && !lg ? 200 : role !== 9 && !lg ? 200 : role !== 9 ? 170 : 190,
+      width: descriptionLocalWidth
+        ? descriptionLocalWidth
+        : role === 9 && !lg
+        ? 200
+        : role !== 9 && !lg
+        ? 200
+        : role !== 9
+        ? 170
+        : 190,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('descriptionGabineteWidthColumn', params.colDef.computedWidth)
 
         let descriptionContent
 
@@ -706,7 +935,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             </Box>
           )
         } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-          // Para las filas principales, muestra la descripción general
+          // Para las filas principales, muestra la descripción del blueprint recien cargado
           descriptionContent = row.description
 
           return (
@@ -735,9 +964,19 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'files',
       headerName: 'ENTREGABLE',
-      width: role === 9 && !lg ? 450 : role !== 9 && !lg ? 460 : role !== 9 ? 365 : 365,
+      width: filesLocalWidth
+        ? filesLocalWidth
+        : role === 9 && !lg
+        ? 450
+        : role !== 9 && !lg
+        ? 460
+        : role !== 9
+        ? 365
+        : 365,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('filesGabineteWidthColumn', params.colDef.computedWidth)
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
           return (
@@ -755,14 +994,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 <Typography>
                   <Link
                     color='inherit'
-                    href={row.storageBlueprints}
+                    href={row.storageBlueprints.url}
                     target='_blank'
                     rel='noreferrer'
                     variant='body1'
                     noWrap
                     sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                   >
-                    {getFileName(row.storageBlueprints)}
+                    {row.storageBlueprints.name}
                   </Link>
                 </Typography>
               </Box>
@@ -787,14 +1026,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                       <Link
                         color='inherit'
                         key={index}
-                        href={content}
+                        href={content.url}
                         target='_blank'
                         rel='noreferrer'
                         variant='body1'
                         noWrap
                         sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                       >
-                        {getFileName(content, index)}
+                        {content.name}
                       </Link>
                     </Typography>
                   ))
@@ -807,38 +1046,41 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Typography>
                 )}
 
-                <IconButton
-                  sx={{
-                    my: 'auto',
-                    ml: 2,
-                    p: 0
-                  }}
-                  onClick={
-                    (authUser.uid === row.userId && !row.sentByDesigner) ||
-                    ((authUser.role === 6 || authUser.role === 7) &&
-                      row.sentByDesigner &&
-                      !row.approvedByDocumentaryControl) ||
-                    (authUser.role === 9 &&
-                      (row.approvedBySupervisor ||
-                        row.approvedByContractAdmin ||
-                        (row.approvedByDocumentaryControl && row.sentByDesigner)))
-                      ? //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
-                        () => handleOpenUploadDialog(row)
-                      : null
-                  }
-                >
-                  {row.storageBlueprints ? null : (
-                    <Upload
-                      sx={{
-                        fontSize: lg ? '1rem' : '1.2rem',
-                        color:
-                          authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
-                            ? theme.palette.success
-                            : theme.palette.grey[500]
-                      }}
-                    />
-                  )}
-                </IconButton>
+                {authUser.uid === row.userId && !row.sentByDesigner && (
+                  <IconButton
+                    sx={{
+                      my: 'auto',
+                      ml: 2,
+                      p: 0
+                    }}
+                    color='primary'
+                    onClick={
+                      (authUser.uid === row.userId && !row.sentByDesigner) ||
+                      ((authUser.role === 6 || authUser.role === 7) &&
+                        row.sentByDesigner &&
+                        !row.approvedByDocumentaryControl) ||
+                      (authUser.role === 9 &&
+                        (row.approvedBySupervisor ||
+                          row.approvedByContractAdmin ||
+                          (row.approvedByDocumentaryControl && row.sentByDesigner)))
+                        ? //row.userId === authUser.uid || authUser.role === 7 || authUser.role === 9
+                          () => handleOpenUploadDialog(row)
+                        : null
+                    }
+                  >
+                    {row.storageBlueprints ? null : (
+                      <Upload
+                        sx={{
+                          fontSize: lg ? '1rem' : '1.2rem',
+                          color:
+                            authUser.uid === row.userId && (!row.sentBySupervisor || !row.sentByDesigner)
+                              ? theme.palette.success
+                              : theme.palette.grey[500]
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                )}
               </Box>
             </Box>
           )
@@ -848,9 +1090,13 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'storageHlcDocuments',
       headerName: 'HLC',
-      width: role === 9 && !lg ? 120 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
+      width: hlcLocalWidth ? hlcLocalWidth : role === 9 && !lg ? 120 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
       renderCell: params => {
         const { row } = params
+
+        localStorage.setItem('hlcGabineteWidthColumn', params.colDef.computedWidth)
+
+        const canGenerateBlueprint = checkRoleAndGenerateTransmittal(authUser.role, row)
 
         const canUploadHlc = row => {
           if (row.revision && typeof params.row.revision === 'string' && row.revisions.length > 0) {
@@ -887,14 +1133,14 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 <Typography>
                   <Link
                     color='inherit'
-                    href={row.storageBlueprints}
+                    href={row.storageBlueprints.url}
                     target='_blank'
                     rel='noreferrer'
                     variant='body1'
                     noWrap
                     sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                   >
-                    {getFileName(row.storageHlcDocuments)}
+                    {row.storageHlcDocuments?.name}
                   </Link>
                 </Typography>
               </Box>
@@ -913,20 +1159,20 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               }}
             >
               <Box display='inline-flex' sx={{ justifyContent: 'space-between', width: 'max-content' }}>
-                {row.storageHlcDocuments && Array.isArray(row.storageHlcDocuments) ? (
+                {row.storageHlcDocuments?.length > 0 && Array.isArray(row.storageHlcDocuments) ? (
                   row.storageHlcDocuments.map((content, index) => (
                     <Typography key={index} noWrap sx={{ my: 'auto', textOverflow: 'clip', width: 'inherit' }}>
                       <Link
                         color='inherit'
                         key={index}
-                        href={content}
+                        href={content.url}
                         target='_blank'
                         rel='noreferrer'
                         variant='body1'
                         noWrap
                         sx={{ fontSize: lg ? '0.8rem' : '1rem' }}
                       >
-                        {getFileName(content, index)}
+                        {content?.name}
                       </Link>
                     </Typography>
                   ))
@@ -939,7 +1185,10 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                   </Typography>
                 )}
 
-                {(authUser.role === 9 && row.approvedByDocumentaryControl && row.sentByDesigner) ||
+                {(canGenerateBlueprint &&
+                  authUser.role === 9 &&
+                  row.approvedByDocumentaryControl &&
+                  row.sentByDesigner) ||
                 (authUser.role === 9 && row.approvedByDocumentaryControl && row.sentBySupervisor) ? (
                   <IconButton
                     sx={{
@@ -959,7 +1208,7 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                     {row.storageHlcDocuments ? null : (
                       <Upload
                         sx={{
-                          fontSize: xlDown ? '1rem' : '1.2rem'
+                          fontSize: '1rem'
                         }}
                       />
                     )}
@@ -976,15 +1225,24 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'date',
       headerName: 'Fecha de Creación',
-      width: role === 9 && !lg ? 120 : role !== 9 && !lg ? 120 : role !== 9 ? 110 : 120,
+      width: dateLocalWidth
+        ? dateLocalWidth
+        : role === 9 && !lg
+        ? 120
+        : role !== 9 && !lg
+        ? 120
+        : role !== 9
+        ? 110
+        : 120,
       renderCell: params => {
         if (params.row.date && typeof params.row.date === 'object' && 'seconds' in params.row.date) {
           const { row } = params
 
+          localStorage.setItem('dateGabineteWidthColumn', params.colDef.computedWidth)
+
           let dateContent
 
           if (row.isRevision && expandedRows.has(params.row.parentId)) {
-            // Asegúrate de que seconds es un número.
             const seconds = Number(row.date.seconds)
             if (!isNaN(seconds)) {
               const date = new Date(seconds * 1000)
@@ -1008,8 +1266,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
               </Box>
             )
           } else if (!row.isRevision && !expandedRows.has(params.row.parentId)) {
-            // Para las filas principales, muestra la descripción general
-            // Asegúrate de que row.date.seconds es un número.
             const seconds = Number(row.date?.seconds)
             if (!isNaN(seconds)) {
               const date = new Date(seconds * 1000)
@@ -1039,9 +1295,18 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'remarks',
       headerName: 'Observaciones',
-      width: role === 9 && !lg ? 195 : role !== 9 && !lg ? 195 : role !== 9 ? 165 : 180,
+      width: remarksLocalWidth
+        ? remarksLocalWidth
+        : role === 9 && !lg
+        ? 195
+        : role !== 9 && !lg
+        ? 195
+        : role !== 9
+        ? 165
+        : 180,
       renderCell: params => {
         const { row } = params
+        localStorage.setItem('remarksGabineteWidthColumn', params.colDef.computedWidth)
         const permissionsData = permissions(row, role, authUser)
         const canApprove = permissionsData?.approve
         const canReject = permissionsData?.reject
@@ -1051,7 +1316,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         const buttons = renderButtons(row, flexDirection, canApprove, canReject)
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
-          // Renderiza la descripción para una fila de revisión
           return (
             <Box
               sx={{
@@ -1117,9 +1381,19 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     {
       field: 'clientApprove',
       headerName: 'Cliente',
-      width: role === 9 && !lg ? 160 : role !== 9 && !lg ? 70 : role !== 9 ? 120 : 120,
+      width: clientLocalWidth
+        ? clientLocalWidth
+        : role === 9 && !lg
+        ? 160
+        : role !== 9 && !lg
+        ? 70
+        : role !== 9
+        ? 120
+        : 120,
       renderCell: params => {
         const { row, currentPetition } = params
+
+        localStorage.setItem('clientGabineteWidthColumn', params.colDef.computedWidth)
 
         const canApprove = checkRoleAndApproval(authUser.role, row)
         const canReject = checkRoleAndApproval(authUser.role, row)
@@ -1208,18 +1482,86 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
     }
   ]
 
+  const getSelectableRows = () => {
+    if (showReasignarSection) {
+      // Si la sección de reasignación está habilitada, permite seleccionar todas las filas
+      return rows
+    }
+
+    // Crea un mapa para rastrear la fila con el contador superior para cada `type`
+    const typeMap = {}
+
+    rows.forEach(row => {
+      const type = `${row.id.split('-')[1]}-${row.id.split('-')[2]}`
+      const counter = parseInt(row.id.split('-')[3], 10)
+
+      if (!typeMap[type] || counter > typeMap[type].counter) {
+        typeMap[type] = { row, counter }
+      }
+    })
+
+    // Solo permite la selección de la fila con el contador superior para cada `type`
+    return Object.values(typeMap).map(item => item.row)
+  }
+
+  const isRowSelectable = params => {
+    if (authUser.role === 7) {
+      if (showReasignarSection) {
+        // Si la sección de reasignación está habilitada, permite seleccionar cualquier fila
+        return true
+      }
+
+      // Obtiene las filas seleccionables según el `type` y el contador superior
+      const selectableRows = getSelectableRows()
+
+      return selectableRows.some(
+        selectableRow =>
+          selectableRow.id === params.row.id &&
+          (params.row.revision === 'iniciado' ||
+            params.row.revision === 'A' ||
+            (params.row.revision === 'B' && !params.row.lastTransmittal))
+      )
+    }
+
+    if (params.row.revision && typeof params.row.revision === 'string' && params.row.revisions.length > 0) {
+      const sortedRevisions = [...params.row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
+      const lastRevision = sortedRevisions[0]
+
+      return (
+        (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
+        params.row.storageBlueprints &&
+        (params.row.sentByDesigner || params.row.sentBySupervisor) &&
+        params.row.approvedByDocumentaryControl === true &&
+        !('lastTransmittal' in lastRevision)
+      )
+    }
+
+    return false
+  }
+
+  // Función para actualizar `doc` con un nuevo archivo en storageBlueprints
+  const handleFileUpload = (fileLink, fileName) => {
+    setDoc(prevDoc => ({
+      ...prevDoc,
+      storageBlueprints: [...(prevDoc.storageBlueprints || []), { url: fileLink, name: fileName }]
+    }))
+  }
+
   return (
     <Card sx={{ height: 'inherit' }}>
       <DataGridPremium
         sx={{
-          height: '100%',
-          maxHeight: !lg ? '700px' : '400px',
+          height: 600,
+          maxHeight: lg ? '700px' : '400px',
           width: '100%',
           '& .MuiDataGrid-cell--withRenderer': {
             alignItems: 'baseline'
           },
           '& .MuiDataGrid-virtualScroller': {
             minHeight: '200px'
+          },
+          '& .no-checkbox': {
+            backgroundColor: theme.palette.mode === 'dark' ? '#666666' : '#CDCDCD'
           }
         }}
         classes={{ root: classes.root }}
@@ -1234,35 +1576,22 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
                 margin: '0rem'
               },
               '& .MuiCheckbox-root': {
-                // Asegúrate de no aplicar estilos que podrían ocultar el checkbox si es necesario
+                // No aplicar estilos que podrían ocultar el checkbox si es necesario
               }
             }
           }
         }}
         apiRef={apiRef}
-        checkboxSelection={authUser.role === 9}
-        isRowSelectable={params => {
-          if (params.row.revision && typeof params.row.revision === 'string' && params.row.revisions.length > 0) {
-            const sortedRevisions = [...params.row.revisions].sort((a, b) => new Date(b.date) - new Date(a.date))
-            const lastRevision = sortedRevisions[0]
-
-            return (
-              (params.row.revision.charCodeAt(0) >= 66 || params.row.revision.charCodeAt(0) >= 48) &&
-              params.row.storageBlueprints &&
-              (params.row.sentByDesigner || params.row.sentBySupervisor) &&
-              params.row.approvedByDocumentaryControl === true &&
-              !('lastTransmittal' in lastRevision)
-            )
-          }
-
-          return false // o alguna otra lógica por defecto si 'revision' no está disponible
-        }}
+        checkboxSelection={authUser.role === 9 || authUser.role === 7}
+        onRowSelectionModelChange={handleSelectionChange}
+        disableRowSelectionOnClick
+        isRowSelectable={isRowSelectable}
         getRowId={row => row.id}
         getRowClassName={params => {
-          // Aquí puedes verificar si la fila es una revisión y aplicar una clase condicional
+          // Verificamos si la fila es una revisión y aplica una clase condicional
           const row = apiRef.current.getRow(params.id)
           if (row && row.isRevision) {
-            return 'no-checkbox' // Asume que tienes una clase CSS que oculta el checkbox
+            return 'no-checkbox' // clase CSS que oculta el checkbox
           }
 
           return ''
@@ -1287,11 +1616,15 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
         approves={approve}
         authUser={authUser}
         setRemarksState={setRemarksState}
+        remarksState={remarksState}
         blueprint={doc && doc}
-        drawingTimeSelected={drawingTimeSelected}
-        setDrawingTimeSelected={setDrawingTimeSelected}
+        petition={petition}
+        petitionId={petitionId}
         error={error}
         setError={setError}
+        onFileUpload={handleFileUpload}
+        setDoc={setDoc}
+        checkRoleAndApproval={checkRoleAndApproval}
       ></AlertDialogGabinete>
 
       <Dialog sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width: '100%' } }} open={openDialog}>
@@ -1301,7 +1634,6 @@ const TableGabinete = ({ rows, role, roleData, petitionId, petition, setBlueprin
             doc={doc}
             roleData={roleData}
             petitionId={petitionId}
-            setBlueprintGenerated={setBlueprintGenerated}
             currentRow={currentRow}
             petition={petition}
             checkRoleAndApproval={checkRoleAndApproval}

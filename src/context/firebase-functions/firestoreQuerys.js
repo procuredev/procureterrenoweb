@@ -228,7 +228,6 @@ const getData = async id => {
 
 // Función para llamar a todos los usuarios dentro de la colección 'users'
 const getAllUsersData = async () => {
-
   try {
     // Referencia a la colección
     const usersRef = collection(db, 'users')
@@ -246,13 +245,9 @@ const getAllUsersData = async () => {
 
     // Retornar los documentos
     return usersData
-
   } catch (error) {
-
-    console.error("Error al obtener los datos de los usuarios: ", error)
-
+    console.error('Error al obtener los datos de los usuarios: ', error)
   }
-
 }
 
 // getUserData agrupa funciones relacionadas con la colección 'users'
@@ -303,13 +298,17 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
                 name: doc.data().name,
                 avatar: doc.data().urlFoto,
                 enabled: doc.data().enabled,
-                shift: doc.data().shift
+                shift: doc.data().shift,
+                email: doc.data().email,
+                role: doc.data().role
               }
             : {
                 userId: doc.id,
                 name: doc.data().name,
                 enabled: doc.data().enabled,
-                shift: doc.data().shift
+                shift: doc.data().shift,
+                email: doc.data().email,
+                role: doc.data().role
               }
           : type === 'getReceiverUsers'
           ? {
@@ -656,71 +655,27 @@ const consultDocs = async (type, options = {}) => {
   }
 }
 
-const fetchPlaneProperties = async () => {
-  const docRef = doc(db, 'domain', 'blueprintProcureProperties')
-  const docSnap = await getDoc(docRef)
+const fetchDisciplineProperties = async () => {
+  const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
+  const docSnapshot = await getDoc(propsRef)
 
-  if (docSnap.exists()) {
-    const resDeliverables = await docSnap.data().deliverables
-    const resDisciplines = await docSnap.data().disciplines
-
-    return { resDeliverables, resDisciplines }
+  if (docSnapshot.exists()) {
+    return docSnapshot.data()
   } else {
-    console.log('El documento no existe')
+    throw new Error('No matching document found in the database.')
   }
 }
 
-const fetchMelDisciplines = async () => {
-  const docRef = doc(db, 'domain', 'blueprintMelProperties')
-  const docSnap = await getDoc(docRef)
+const fetchDeliverablesByDiscipline = async discipline => {
+  const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
+  const docSnapshot = await getDoc(propsRef)
 
-  if (docSnap.exists()) {
-    const resDisciplines = await docSnap.data().disciplines
+  if (docSnapshot.exists()) {
+    const data = docSnapshot.data()
 
-    return resDisciplines
+    return data[discipline]
   } else {
-    console.log('El documento no existe')
-  }
-}
-
-const fetchMelDeliverableType = async discipline => {
-  const shortDeliverableType = ['AR', 'BS', 'CL', 'EL', 'GN', 'IC', 'ME', 'PP', 'PR', 'ST', 'TC', 'VE']
-
-  const longDeliverableType = [
-    'arquitectura',
-    'hvca',
-    'civil',
-    'electrica',
-    'multi-disciplina',
-    'instrumentacion y control',
-    'mecanica',
-    'cañeria',
-    'proceso',
-    'estructura',
-    'comunicaciones',
-    'vendor'
-  ]
-
-  function getLongDefinition(item) {
-    const index = shortDeliverableType.indexOf(item)
-    if (index !== -1) {
-      return longDeliverableType[index]
-    } else {
-      return 'No se encontró definición corta para este tipo'
-    }
-  }
-
-  const deliverableType = getLongDefinition(discipline)
-
-  const docRef = doc(db, 'domain', 'blueprintMelProperties')
-  const docSnap = await getDoc(docRef)
-
-  if (docSnap.exists() && discipline) {
-    const resDeliverableType = await docSnap.data()[deliverableType]
-
-    return resDeliverableType
-  } else {
-    console.log('El documento no existe')
+    throw new Error('No matching discipline found in the database.')
   }
 }
 
@@ -744,19 +699,73 @@ const consultBluePrints = async (type, options = {}) => {
       queryFunc = async () => {
         const solicitudesRef = collection(db, 'solicitudes')
         const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8))
-        let count = 0
 
         const solicitudesSnapshot = await getDocs(solicitudesQuery)
 
-        solicitudesSnapshot.forEach(doc => {
-          if (doc.data().counterBlueprintCompleted > 0) {
-            count += doc.data().counterBlueprintCompleted
-          }
-        })
+        const totalBlueprintsCompleted = solicitudesSnapshot.docs.reduce((acc, doc) => {
+          const data = doc.data()
 
-        return count
+          return acc + (data.counterBlueprintCompleted || 0) // Sumamos solo si existe
+        }, 0)
+
+        return totalBlueprintsCompleted
       }
       break
+    case 'last30daysRevisions':
+      const thirtyDaysAgo = Timestamp.fromDate(moment().subtract(30, 'days').toDate())
+      const solicitudesRef = collection(db, 'solicitudes')
+
+      const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8), where('date', '>=', thirtyDaysAgo))
+
+      const solicitudesSnapshot = await getDocs(solicitudesQuery)
+
+      // array de Promises para obtener los blueprints de cada solicitud simultáneamente
+      const blueprintsPromises = solicitudesSnapshot.docs.map(async solicitudDoc => {
+        const blueprintsRef = collection(db, `solicitudes/${solicitudDoc.id}/blueprints`)
+        const blueprintsSnapshot = await getDocs(blueprintsRef)
+
+        return blueprintsSnapshot.docs.map(blueprintDoc => blueprintDoc.data())
+      })
+
+      // Se espera a que todas las promesas se resuelvan y "aplanamos" el resultado
+      const blueprintsData = (await Promise.all(blueprintsPromises)).flat()
+
+      return blueprintsData
+
+      break
+
+    // Case para contar los blueprints existentes, excluyendo los que tienen "deleted: true"
+    case 'existingBlueprints':
+      queryFunc = async () => {
+        const solicitudesRef = collection(db, 'solicitudes')
+        const solicitudesQuery = query(solicitudesRef, where('state', '>=', 8))
+
+        const solicitudesSnapshot = await getDocs(solicitudesQuery)
+
+        // Promesas para obtener y contar los blueprints, excluyendo los que están eliminados (deleted: true)
+        const blueprintCountPromises = solicitudesSnapshot.docs.map(async solicitudDoc => {
+          const blueprintsRef = collection(db, `solicitudes/${solicitudDoc.id}/blueprints`)
+
+          // Consultamos los documentos de la subcolección "blueprints"
+          const blueprintsSnapshot = await getDocs(blueprintsRef)
+
+          // Filtramos y contamos solo los que no tienen "deleted: true"
+          const validBlueprints = blueprintsSnapshot.docs.filter(blueprintDoc => {
+            const data = blueprintDoc.data()
+
+            return !data.deleted // Excluimos los que tienen "deleted" como true
+          })
+
+          return validBlueprints.length // Retornamos la cantidad de blueprints válidos
+        })
+
+        // Sumamos todos los conteos de blueprints
+        const totalBlueprintCount = (await Promise.all(blueprintCountPromises)).reduce((acc, count) => acc + count, 0)
+
+        return totalBlueprintCount
+      }
+      break
+
     default:
       // Lanzar un error si el tipo no es válido
       throw new Error(`Invalid type: ${type}`)
@@ -984,12 +993,11 @@ export {
   consultObjetives,
   getUsersWithSolicitudes,
   fetchPetitionById,
-  fetchPlaneProperties,
-  fetchMelDisciplines,
-  fetchMelDeliverableType,
   consultBluePrints,
   subscribeToPetition,
   consultOT,
   subscribeToUserProfileChanges,
-  subscribeToBlockDayChanges
+  subscribeToBlockDayChanges,
+  fetchDisciplineProperties,
+  fetchDeliverablesByDiscipline
 }

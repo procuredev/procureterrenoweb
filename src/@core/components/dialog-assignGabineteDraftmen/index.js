@@ -30,28 +30,35 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, setDesignerAssigned }) => {
+export const DialogAssignGabineteDraftmen = ({
+  open,
+  handleClose,
+  doc,
+  proyectistas,
+  gabineteDraftmenState,
+  setGabineteDraftmenState
+}) => {
   //TODO: Evaluar la foto del proyectista
   // ** States
-  const [designerReviewState, setDesignerReviewState] = useState([])
+
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
 
   useEffect(() => {
-    if (doc && doc.designerReview && doc.designerReview.length > 0) {
-      setDesignerReviewState(doc.designerReview)
+    if (doc && doc.gabineteDraftmen && doc.gabineteDraftmen.length > 0) {
+      setGabineteDraftmenState(doc.gabineteDraftmen)
     }
   }, [doc])
 
   const filterOptions = options => {
-    // Convierte las opciones seleccionadas y las existentes en doc.designerReview en arrays de nombres
-    const selectedNamesFromState = designerReviewState.map(designer => designer.name)
+    // Convierte las opciones seleccionadas y las existentes en doc.gabineteDraftmen en arrays de nombres
+    const selectedNamesFromState = gabineteDraftmenState.map(gabineteDraftmen => gabineteDraftmen.name)
 
     let selectedNamesFromDoc = []
-    if (doc && doc.designerReview) {
-      selectedNamesFromDoc = doc.designerReview.map(designer => designer.name)
+    if (doc && doc.gabineteDraftmen) {
+      selectedNamesFromDoc = doc.gabineteDraftmen.map(gabineteDraftmen => gabineteDraftmen.name)
     }
 
     const allSelectedNames = [...selectedNamesFromState, ...selectedNamesFromDoc]
@@ -68,17 +75,19 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
-    const updatedDesignerReviewState = designerReviewState.filter(designer => designer.name !== name)
+    const updatedGabineteDraftmenState = gabineteDraftmenState.filter(
+      gabineteDraftmen => gabineteDraftmen.name !== name
+    )
 
     // Actualizamos el estado con el nuevo array actualizado
-    setDesignerReviewState(updatedDesignerReviewState)
+    setGabineteDraftmenState(updatedGabineteDraftmenState)
   }
 
   const handleListItemClick = option => {
     // Verificamos si el option ya existe en el array draftmen
-    if (!designerReviewState.some(designer => designer.name === option.name)) {
+    if (!gabineteDraftmenState.some(gabineteDraftmen => gabineteDraftmen.name === option.name)) {
       // Si no existe, actualizamos el estado añadiendo el nuevo valor al array
-      setDesignerReviewState(prevDesigner => [...prevDesigner, option])
+      setGabineteDraftmenState(prevGabineteDraftmen => [...prevGabineteDraftmen, option])
       document.getElementById('add-members').blur() // Oculta el componente al hacer clic en el ListItem
     }
   }
@@ -90,24 +99,25 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
     //si está en el doc y no está en el state, lo borramos
     //si está en el state y no está en el doc, lo agregamos
     //si está en ambos, dejamos el que está en el doc
-    const designerReview = designerReviewState.map(designer => {
-      const designerInDoc = doc.designerReview?.find(item => item.userId === designer.userId)
-      if (designerInDoc) {
-        return designerInDoc
+    const gabineteDraftmen = gabineteDraftmenState.map(gabineteDraftmen => {
+      const gabineteDraftmenInDoc = doc.gabineteDraftmen?.find(item => item.userId === gabineteDraftmen.userId)
+      if (gabineteDraftmenInDoc) {
+        return gabineteDraftmenInDoc
       } else {
-        designer.allocationTime = new Date().getTime()
+        gabineteDraftmen.allocationTime = new Date().getTime()
 
-        return designer
+        return gabineteDraftmen
       }
     })
-    console.log(designerReview)
-    updateDocs(id, { designerReview }, authUser)
-    setDesignerReviewState([])
-    setDesignerAssigned(true)
+    console.log(gabineteDraftmen)
+    updateDocs(id, { gabineteDraftmen }, authUser)
+    setGabineteDraftmenState([])
     handleClose()
   }
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
+
+  const emptyFields = gabineteDraftmenState.length === 0
 
   return (
     <Dialog
@@ -118,7 +128,7 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
       onClose={() => handleClose()}
       TransitionComponent={Transition}
       onBackdropClick={() => {
-        setDesignerReviewState([])
+        setGabineteDraftmenState([])
         handleClose()
       }}
     >
@@ -134,7 +144,7 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
         </IconButton>
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
-            Agregar Proyectistas
+            Modificar Proyectistas
           </Typography>
           <Typography variant='body2'>{doc.title}</Typography>
         </Box>
@@ -173,12 +183,12 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
             </ListItem>
           )}
         />
-        <Typography variant='h6'>{`${designerReviewState.length} Seleccionados`}</Typography>
+        <Typography variant='h6'>{`${gabineteDraftmenState.length} Seleccionados`}</Typography>
         <List dense sx={{ py: 4 }}>
-          {designerReviewState.map(designer => {
+          {gabineteDraftmenState.map(gabineteDraftmen => {
             return (
               <ListItem
-                key={designer.name}
+                key={gabineteDraftmen.name}
                 sx={{
                   p: 0,
                   display: 'flex',
@@ -187,8 +197,8 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
                 }}
               >
                 <ListItemAvatar>
-                  {designer.avatar ? (
-                    <Avatar src={`/images/avatars/${designer.avatar}`} alt={designer.name} />
+                  {gabineteDraftmen.avatar ? (
+                    <Avatar src={`/images/avatars/${gabineteDraftmen.avatar}`} alt={gabineteDraftmen.name} />
                   ) : (
                     <CustomAvatar
                       skin='light'
@@ -202,20 +212,20 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
                         fontSize: '.8rem'
                       }}
                     >
-                      {getInitials(designer.name ? designer.name : 'John Doe')}
+                      {getInitials(gabineteDraftmen.name ? gabineteDraftmen.name : 'John Doe')}
                     </CustomAvatar>
                   )}
                 </ListItemAvatar>
                 <ListItemText
-                  primary={designer.name}
-                  secondary={designer.email}
+                  primary={gabineteDraftmen.name}
+                  secondary={gabineteDraftmen.email}
                   sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
                 />
                 <ListItemSecondaryAction sx={{ right: 0 }}>
                   <IconButton
                     size='small'
                     aria-haspopup='true'
-                    onClick={() => handleClickDelete(designer.name)}
+                    onClick={() => handleClickDelete(gabineteDraftmen.name)}
                     aria-controls='modal-share-examples'
                   >
                     <Icon icon='mdi:delete-forever' fontSize={20} color='#f44336' />
@@ -226,7 +236,11 @@ export const DialogAssignDesigner = ({ open, handleClose, doc, proyectistas, set
           })}
         </List>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }} onClick={() => onsubmit(doc.id)}>
+          <Button
+            sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
+            disabled={emptyFields}
+            onClick={() => onsubmit(doc.id)}
+          >
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar Proyectistas
           </Button>

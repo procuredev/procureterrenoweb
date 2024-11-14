@@ -17,9 +17,12 @@ import {
   setDoc,
   updateDoc,
   where,
-  writeBatch
+  writeBatch,
+  arrayUnion
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
+
+//import { getData } from 'src/contex/firebase-functions/firestoreQuerys'
 
 // ** Imports Propios
 import { getUnixTime } from 'date-fns'
@@ -275,7 +278,6 @@ const addComment = async (id, comment, userParam) => {
 }
 
 function getNextState(role, approves, latestEvent, userRole) {
-
   const state = {
     returned: 1,
     petitioner: 2,
@@ -299,7 +301,9 @@ function getNextState(role, approves, latestEvent, userRole) {
   const modifiedBySameRole = userRole === role
   const requestMadeByPlanner = userRole === 5
   const requestMadeByMelPetitioner = userRole === 2 && (!latestEvent || (latestEvent && latestEvent.newState === 2))
-  const requestMadeByMelPetitionerAndApprovedByContractAdmin = userRole === 2 && latestEvent.newState === 3 && latestEvent.userRole === 6
+
+  const requestMadeByMelPetitionerAndApprovedByContractAdmin =
+    userRole === 2 && latestEvent.newState === 3 && latestEvent.userRole === 6
 
   const rules = new Map([
     [
@@ -379,7 +383,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           condition: approves && !state === 2 && state < 7,
           newState: state.contOperator,
           log: 'Modificado por Contract Operator'
-        },
+        }
       ]
     ],
     [
@@ -430,8 +434,9 @@ function getNextState(role, approves, latestEvent, userRole) {
         {
           condition: approves && approveWithChanges && requestMadeByMelPetitionerAndApprovedByContractAdmin,
           newState: state.contAdmin,
-          log: 'Aprobado por Planificación: Solicitud Ingresada por MEL y aprobada por Administrador de Contrato en nombre de Contract Operator'
-        },
+          log:
+            'Aprobado por Planificación: Solicitud Ingresada por MEL y aprobada por Administrador de Contrato en nombre de Contract Operator'
+        }
       ]
     ],
     [
@@ -489,7 +494,7 @@ function getNextState(role, approves, latestEvent, userRole) {
           log: 'fecha modificada por Supervisor'
         },
         {
-          condition: approves && approves.hasOwnProperty('designerReview'),
+          condition: approves && approves.hasOwnProperty('gabineteDraftmen'),
           newState: state.draftsman,
           log: 'Proyectistas agregados por Supervisor'
         },
@@ -525,7 +530,6 @@ function getNextState(role, approves, latestEvent, userRole) {
 }
 
 const updateDocs = async (id, approves, userParam) => {
-
   let canceled = approves.cancelReason ? true : false
   const hasFieldModifications = typeof approves === 'object' && !Array.isArray(approves)
   const { ref, docSnapshot } = await getDocumentAndUser(id)
@@ -608,8 +612,9 @@ const blockDayInDatabase = async (date, cause = '') => {
 
 // Maneja la obtención de datos de planos asociados a una solicitud y devuelve un array de datos y una función para actualizarlos.
 const useBlueprints = id => {
-  const [data, setData] = useState([])
-
+  const [data, setData] = useState([]) // Estado que guarda los documentos de blueprints y sus revisiones
+  const [projectistData, setProjectistData] = useState({}) // Estado para la agrupación de datos por usuario y tipo de documento
+  const [otPercent, setOtPercent] = useState(null) // Estado para el porcentaje calculado
   useEffect(() => {
     if (!id) return undefined
 
@@ -617,17 +622,42 @@ const useBlueprints = id => {
 
     const blueprintsRef = collection(db, `solicitudes/${id}/blueprints`)
 
+    // Suscribirse a cambios en la subcolección 'blueprints'
     const unsubscribeBlueprints = onSnapshot(blueprintsRef, docSnapshot => {
       if (docSnapshot.docs.length === 0) {
         setData([])
+        setProjectistData({})
+        setOtPercent(null) // Si no hay documentos, el porcentaje es nulo
 
         return
       }
 
       let allDocs = []
+      let projectistDataTemp = {}
+      let totalPercent = 0 // Acumulador de porcentajes
+      let totalDocuments = 0 // Contador de documentos válidos (sin eliminar)
 
       docSnapshot.docs.forEach(doc => {
         const docData = doc.data()
+        const { userName, id, blueprintPercent, deleted } = docData
+
+        // Actualización de agrupación de datos
+        if (!deleted) {
+          totalDocuments++ // Aumenta el contador de documentos válidos
+          totalPercent += blueprintPercent || 0 // Suma el valor de 'blueprintPercent', o 0 si no existe
+
+          // Agrupación de datos por usuario y tipo de documento
+          if (userName && id) {
+            const documentType = `${id.split('-')[1]}-${id.split('-')[2]}` // Ej: "500-PL"
+            if (!projectistDataTemp[userName]) {
+              projectistDataTemp[userName] = {}
+            }
+            if (!projectistDataTemp[userName][documentType]) {
+              projectistDataTemp[userName][documentType] = 0
+            }
+            projectistDataTemp[userName][documentType] += 1
+          }
+        }
         const revisionsRef = collection(doc.ref, 'revisions')
 
         // Suscribirse a cambios en 'revisions'
@@ -648,11 +678,22 @@ const useBlueprints = id => {
           // Actualizar el estado solo cuando se han procesado todos los documentos.
           if (allDocs.length === docSnapshot.docs.length) {
             setData([...allDocs])
+            setProjectistData(projectistDataTemp)
           }
         })
 
         unsubscribeAll.push(unsubscribeRevisions)
       })
+
+      // Calcular 'otPercent' solo si hay documentos válidos
+      /* Después de procesar todos los documentos, se calcula el promedio de los valores de blueprintPercent (sumatoria de los porcentajes dividida por la cantidad de documentos). */
+      const calculatedOtPercent =
+        totalDocuments > 0
+          ? Number.isInteger(totalPercent / totalDocuments)
+            ? totalPercent / totalDocuments
+            : (totalPercent / totalDocuments).toFixed(1)
+          : null
+      setOtPercent(calculatedOtPercent)
     })
 
     unsubscribeAll.push(unsubscribeBlueprints)
@@ -661,128 +702,11 @@ const useBlueprints = id => {
     return () => unsubscribeAll.forEach(unsubscribe => unsubscribe())
   }, [id])
 
-  return [data, setData]
+  return [data, projectistData, otPercent, setData]
 }
 
 function formatCount(count) {
   return String(count).padStart(3, '0')
-}
-
-const generateBlueprintCodeClient = async (typeOfDiscipline, typeOfDocument, petition, blueprintId, userParam) => {
-  try {
-    const idProject = '21286'
-
-    const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
-
-    const valPlant = [
-      'Planta Concentradora Los Colorados',
-      'Planta Concentradora Laguna Seca | Línea 1',
-      'Planta Concentradora Laguna Seca | Línea 2',
-      'Chancado y Correas',
-      'Puerto Coloso',
-      'Instalaciones Cátodo'
-    ]
-
-    function formatCount(count) {
-      // Convierte el conteo a un string y rellena con ceros a la izquierda hasta que la longitud sea 5
-      return String(count).padStart(5, '0')
-    }
-
-    function getShortDefinition(plantLongDef) {
-      const index = valPlant.indexOf(plantLongDef)
-      if (index !== -1) {
-        return shortPlants[index]
-      } else {
-        return 'No se encontró definición corta para esta planta'
-      }
-    }
-    const { ot, plant, area, id } = petition
-
-    const otNumber = `OT${ot}`
-    const instalacion = getShortDefinition(plant)
-    const areaNumber = area.slice(0, 4)
-
-    // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
-    const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`
-    const counterRef = doc(db, 'solicitudes', id, 'clientCodeGeneratorCount', counterDocID)
-
-    // Incrementa el contador dentro de una transacción
-
-    const incrementedCount = await runTransaction(db, async transaction => {
-      const counterSnapshot = await transaction.get(counterRef)
-      let newCount
-      if (!counterSnapshot.exists()) {
-        newCount = formatCount(1)
-        transaction.set(counterRef, { count: newCount })
-      } else {
-        newCount = formatCount(Number(counterSnapshot.data().count) + 1)
-        transaction.update(counterRef, { count: newCount })
-      }
-
-      return newCount // Retorna el nuevo contador para usarlo fuera de la transacción
-    })
-
-    // Añade el contador al final de newCode
-    const newCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
-
-    const ref = doc(db, 'solicitudes', id, 'blueprints', blueprintId)
-    updateDoc(ref, { clientCode: newCode })
-  } catch (error) {
-    console.error('Error al generar clientCode:', error)
-    throw new Error('Error al generar clientCode')
-  }
-}
-
-const generateBlueprint = async (typeOfDiscipline, typeOfDocument, petition, userParam) => {
-  try {
-    const solicitudRef = doc(db, 'solicitudes', petition.id)
-    const solicitudDoc = await getDoc(solicitudRef)
-
-    if (solicitudDoc.data().otReadyToFinish) {
-      await updateDoc(solicitudRef, { otReadyToFinish: false })
-    }
-
-    const idProject = '21286'
-
-    // Referencia al documento de contador para la combinación específica dentro de la subcolección blueprints
-    const counterDocID = `${typeOfDiscipline}-${typeOfDocument}-counter`
-    const counterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
-
-    // Incrementa el contador dentro de una transacción
-    const incrementedCount = await runTransaction(db, async transaction => {
-      const counterSnapshot = await transaction.get(counterRef)
-
-      let currentCount
-      if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
-        currentCount = formatCount(1)
-        transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true })
-      } else {
-        currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1)
-        transaction.update(counterRef, { [counterDocID]: { count: currentCount } })
-      }
-
-      return currentCount // Retorna el nuevo contador para usarlo fuera de la transacción
-    })
-
-    // Añade el contador al final de newCode
-    const newCode = `${idProject}-${typeOfDiscipline}-${typeOfDocument}-${incrementedCount}`
-
-    const docRef = doc(collection(db, 'solicitudes', petition.id, 'blueprints'), newCode)
-    await setDoc(docRef, {
-      userId: userParam.uid,
-      userName: userParam.displayName,
-      revision: 'iniciado',
-      userEmail: userParam.email,
-      sentByDesigner: false,
-      sentBySupervisor: false,
-      date: Timestamp.fromDate(new Date())
-    })
-
-    console.log('newCode:', newCode)
-  } catch (error) {
-    console.error('Error al generar Blueprint:', error)
-    throw new Error('Error al generar Blueprint')
-  }
 }
 
 const addDescription = async (petitionID, blueprint, description) => {
@@ -812,10 +736,11 @@ const getLatestRevision = async (petitionID, blueprintID) => {
 
 // getNextRevision calcula la próxima revisión basándose en una serie de condiciones
 const getNextRevision = async (
-  approve,
+  approves,
   latestRevision,
   { role, email, displayName, uid },
   {
+    id,
     revision,
     description,
     storageBlueprints,
@@ -825,22 +750,30 @@ const getNextRevision = async (
     approvedByDocumentaryControl,
     resumeBlueprint,
     userId,
-    storageHlcDocuments
+    storageHlcDocuments,
+    blueprintPercent,
+    attentive
   },
-  remarks,
-  hours,
-  investedHours
+  remarks
+  //hours,
+  //investedHours
 ) => {
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision
+  let newBlueprintPercent = blueprintPercent
 
   // Calcula el código de carácter de la próxima letra en el alfabeto
   const nextCharCode = revision.charCodeAt(0) + 1
 
   const nextChar = String.fromCharCode(nextCharCode)
 
+  // Verifica si el id contiene "M3D" antes del último guion
+  const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
+
+  console.log('isM3D', isM3D)
+
   // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
-  if (role === 8 && approve) {
+  if (role === 8 && approves) {
     // Define las acciones posibles
     const actions = {
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
@@ -867,12 +800,22 @@ const getNextRevision = async (
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => revision === 'iniciado',
+        condition: () => revision === 'iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
         condition: () => revision === 'A',
         action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
+      },
+      incrementBlueprintPercent: {
+        condition: () => revision === 'A' && approvedByDocumentaryControl,
+        action: () => (newBlueprintPercent = 60)
+      },
+      dotCloud: {
+        condition: () => revision === 'iniciado' && isM3D,
+        action: () => {
+          newRevision = '0'
+        }
       }
     }
 
@@ -909,12 +852,22 @@ const getNextRevision = async (
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => revision === 'iniciado',
+        condition: () => revision === 'iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
         condition: () => revision === 'A',
-        action: () => (newRevision = approvedByDocumentaryControl ? nextChar : revision)
+        action: () => ((newRevision = approvedByDocumentaryControl ? nextChar : revision), (newBlueprintPercent = 60))
+      },
+      incrementBlueprintPercent: {
+        condition: () => revision === 'A',
+        action: () => (newBlueprintPercent = 60)
+      },
+      dotCloud: {
+        condition: () => revision === 'iniciado' && isM3D,
+        action: () => {
+          newRevision = '0'
+        }
       }
     }
 
@@ -931,21 +884,24 @@ const getNextRevision = async (
     prevRevision: latestRevision && Object.keys(latestRevision).length === 0 ? latestRevision.newRevision : revision,
     newRevision,
     description,
-    storageBlueprints: storageBlueprints[storageBlueprints.length - 1],
+    storageBlueprints:
+      approves && (remarks === false || !remarks)
+        ? storageBlueprints[0]
+        : storageBlueprints[storageBlueprints.length - 1],
     userEmail: email,
     userName: displayName,
     userId: uid,
     date: Timestamp.fromDate(new Date()),
     remarks: remarks || 'sin observaciones',
-    drawingHours: hours ? hours : null,
-    investedHours: investedHours || null
+    newBlueprintPercent,
+    attentive: attentive
   }
 
   return nextRevision
 }
 
 // updateBlueprint() actualiza el entregable en la base de datos
-const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks, hours, investedHours) => {
+const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks /* hours, investedHours */) => {
   // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
   const solicitudRef = doc(db, 'solicitudes', petitionID)
@@ -954,15 +910,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const latestRevision = await getLatestRevision(petitionID, blueprint.id)
 
   // Calcula la próxima revisión del plano
-  const nextRevision = await getNextRevision(
-    approves,
-    latestRevision,
-    userParam,
-    blueprint,
-    remarks,
-    hours,
-    investedHours
-  )
+  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks)
 
   // Comprueba varias condiciones sobre el plano
   const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
@@ -972,6 +920,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const isApprovedByClient = blueprint.approvedByClient
   const isOverResumable = isRevisionAtLeast1 && blueprint.resumeBlueprint && blueprint.blueprintCompleted
 
+  const isM3D = blueprint.id.split('-').slice(-2, -1)[0] === 'M3D'
+
   // Inicializa los datos que se van a actualizar
   let updateData = {
     revision: nextRevision.newRevision,
@@ -979,14 +929,29 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     approvedByContractAdmin: false,
     approvedBySupervisor: false,
     approvedByDocumentaryControl: false,
-    sentTime: Timestamp.fromDate(new Date())
+    sentTime: Timestamp.fromDate(new Date()),
+    blueprintPercent: nextRevision.newBlueprintPercent
   }
+
+  const roleUser = async idUser => {
+    const docRef = doc(db, 'users', idUser)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+      return docSnap.data().role
+    } else {
+      return undefined
+    }
+  }
+
+  const autorRole = await roleUser(blueprint.userId)
 
   // Define las acciones a realizar en función del rol del usuario
   const roleActions = {
     6: () => ({
       ...updateData,
       sentByDesigner: approves,
+      attentive: approves ? 9 : 7,
       sentBySupervisor: approves,
       approvedByContractAdmin: approves,
       storageBlueprints: approves ? blueprint.storageBlueprints : null
@@ -996,20 +961,40 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         ? {
             ...updateData,
             sentBySupervisor: approves,
-            approvedByContractAdmin: approves && blueprint.revision === 'iniciado'
+            approvedByContractAdmin: approves && blueprint.revision === 'iniciado' && !isM3D,
+            attentive: blueprint.revision === 'iniciado' ? 9 : 6,
+            blueprintPercent:
+              blueprint.revision === 'iniciado' && !isM3D
+                ? 20
+                : blueprint.revision === 'iniciado' && isM3D
+                ? 60
+                : updateData.blueprintPercent
           }
         : {
             ...updateData,
             sentByDesigner: approves,
+            attentive: approves ? 9 : 8,
             approvedBySupervisor: approves,
-            storageBlueprints: approves ? blueprint.storageBlueprints : null
+            storageBlueprints:
+              approves && remarks === false
+                ? blueprint.storageBlueprints[0]
+                : approves
+                ? blueprint.storageBlueprints
+                : null
           }
     },
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
+      attentive: blueprint.revision === 'iniciado' ? 9 : 7,
+      blueprintPercent:
+        blueprint.revision === 'iniciado' && !isM3D
+          ? 20
+          : blueprint.revision === 'iniciado' && isM3D
+          ? 60
+          : updateData.blueprintPercent,
       approvedBySupervisor:
-        (approves && blueprint.revision === 'iniciado') ||
+        (approves && blueprint.revision === 'iniciado' && !isM3D) ||
         (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl)
     }),
     9: () =>
@@ -1025,7 +1010,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : null,
             resumeBlueprint:
               (isApprovedByClient && blueprint.blueprintCompleted) ||
-              (blueprint.resumeBlueprint && blueprint.approvedByDocumentaryControl)
+              (blueprint.resumeBlueprint && !blueprint.approvedByDocumentaryControl)
                 ? true
                 : false,
             blueprintCompleted:
@@ -1036,8 +1021,15 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : false,
             sentByDesigner: false,
             sentBySupervisor: false,
+            attentive:
+              approves &&
+              (((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient) ||
+                (!isApprovedByClient && isRevisionAtLeast1))
+                ? 10
+                : autorRole,
             remarks: remarks ? true : false,
-            storageHlcDocuments: null
+            storageHlcDocuments: null,
+            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient && approves ? 100 : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -1051,20 +1043,24 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         : {
             ...updateData,
             approvedByDocumentaryControl: approves,
+            attentive: approves && blueprint.revision === 'A' ? autorRole : approves ? 4 : autorRole,
             sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentByDesigner,
             sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentBySupervisor,
+            blueprintPercent: approves && blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
+            remarks: remarks ? true : false,
             storageBlueprints:
               approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
           }
   }
 
   // Aplica la acción correspondiente al rol del usuario
-  updateData = roleActions[userParam.role] ? roleActions[userParam.role](blueprint, userParam) : updateData
+  updateData = roleActions[userParam.role] ? await roleActions[userParam.role](blueprint, userParam) : updateData
 
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
 
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
+  nextRevision.newBlueprintPercent = updateData.blueprintPercent
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 
   // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
@@ -1081,10 +1077,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
 
     // Obtiene la subcolección 'blueprints'
     const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints')
+
     // Obtiene todos los documentos de la subcolección
     const blueprintsSnapshot = await getDocs(blueprintsCollection)
+    const filteredBlueprints = blueprintsSnapshot.docs.filter(doc => doc.data().deleted !== true)
     // Obtiene la cantidad de documentos en la subcolección
-    const numBlueprints = blueprintsSnapshot.size
+    const numBlueprints = filteredBlueprints.length
 
     // Lee el documento de la 'solicitud posterior al incremento de counterBlueprintCompleted'
     const solicitudDocAfter = await getDoc(solicitudRef)
@@ -1094,26 +1092,56 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     } else {
       await updateDoc(solicitudRef, { otReadyToFinish: false })
     }
+  } else if (
+    userParam.role === 9 &&
+    blueprint.approvedByDocumentaryControl === true &&
+    !blueprintDoc.data().blueprintCompleted &&
+    blueprintDoc.data().resumeBlueprint === true
+  ) {
+    await updateDoc(solicitudRef, { counterBlueprintCompleted: increment(-1), otReadyToFinish: false })
+  }
+}
+
+async function increaseGetNewOTValue() {
+  const counterRef = doc(db, 'counters', 'otCounter')
+
+  try {
+    // Utilizamos una transacción para garantizar la consistencia de los datos.
+    const newOTValue = await runTransaction(db, async transaction => {
+      const counterSnapshot = await transaction.get(counterRef)
+
+      const newCounter = counterSnapshot.exists ? counterSnapshot.data().counter + 1 : 1
+
+      transaction.set(counterRef, { counter: newCounter })
+
+      return newCounter
+    })
+
+    return newOTValue
+  } catch (error) {
+    console.error('Error:', error)
+    throw error
   }
 }
 
 const generateTransmittalCounter = async currentPetition => {
   try {
     // Referencia al documento de contador para la combinación específica dentro de la subcolección transmittals
-    const counterDocID = `${currentPetition.ot}-counter`
-    const counterRef = doc(db, 'counters', 'transmittal_CounterByOt')
+    /*  const counterDocID = `${currentPetition.ot}-counter`
+    const counterRef = doc(db, 'counters', 'transmittal_CounterByOt') */
+    const counterRef = doc(db, 'counters', 'transmittal_Counter')
 
     // Incrementa el contador dentro de una transacción
     const incrementedCount = await runTransaction(db, async transaction => {
       const counterSnapshot = await transaction.get(counterRef)
 
       let currentCount
-      if (!counterSnapshot.exists() || !counterSnapshot.data()[counterDocID]) {
+      if (!counterSnapshot.exists() || !counterSnapshot.data().counter) {
         currentCount = formatCount(1)
-        transaction.set(counterRef, { [counterDocID]: { count: currentCount } }, { merge: true })
+        transaction.set(counterRef, { counter: currentCount }, { merge: true })
       } else {
-        currentCount = formatCount(Number(counterSnapshot.data()[counterDocID].count) + 1)
-        transaction.update(counterRef, { [counterDocID]: { count: currentCount } })
+        currentCount = formatCount(Number(counterSnapshot.data().counter) + 1)
+        transaction.update(counterRef, { counter: currentCount })
       }
 
       return currentCount // Retorna el nuevo contador para usarlo fuera de la transacción
@@ -1136,12 +1164,18 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
     // Actualiza el campo lastTransmittal en cada uno de los documentos seleccionados
     for (const id of selected) {
       const docRef = doc(db, 'solicitudes', currentPetition.id, 'blueprints', id[0])
-      await updateDoc(docRef, { lastTransmittal: newCode })
+      const isM3D = id[0].split('-').slice(-2, -1)[0] === 'M3D'
+      await updateDoc(docRef, {
+        lastTransmittal: newCode,
+        blueprintPercent: id[1].revision === 'B' || id[1].revision === '0' ? 80 : id[1].blueprintPercent,
+        ...(isM3D && { approvedByClient: true })
+      })
 
       const nextRevision = {
         prevRevision: id[1].revision,
         newRevision: id[1].revision,
         description: id[1].description,
+        newBlueprintPercent: id[1].revision === 'B' || id[1].revision === '0' ? 80 : id[1].blueprintPercent,
         storageBlueprints: id[1].storageBlueprints[0],
         userEmail: authUser.email,
         userName: authUser.displayName,
@@ -1149,7 +1183,8 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
         date: Timestamp.fromDate(new Date()),
         remarks: 'transmittal generado',
         lastTransmittal: newCode,
-        storageHlcDocuments: id[1].storageHlcDocuments ? id[1].storageHlcDocuments[0] : null
+        storageHlcDocuments: id[1].storageHlcDocuments ? id[1].storageHlcDocuments[0] : null,
+        attentive: 9
       }
 
       // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
@@ -1406,6 +1441,7 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
   }
 }
 
+
 // Función para crear un nuevo Centro de Costo para una Planta específica.
 const createCostCenter = async (plant, costCenter) => {
   try {
@@ -1498,16 +1534,282 @@ const setDefaultCostCenter = async (plant, oldIndex) => {
   }
 }
 
+
+const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam) => {
+  const { melDiscipline, melDeliverable, procureDiscipline, procureDeliverable } = mappedCodes
+
+  // Parámetros adicionales
+  const idProject = '21286'
+  const { ot, plant, area } = docData
+
+  // Crea la referencia al campo específico del contador de Procure
+  const procureCounterField = `${procureDiscipline}-${procureDeliverable}-counter`
+  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+
+  // Crea la referencia al documento específico del contador MEL
+  const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
+  const melCounterRef = doc(db, 'solicitudes', docData.id, 'clientCodeGeneratorCount', melCounterDocId)
+
+  // Crea la referencia al documento de la solicitud
+  const solicitudRef = doc(db, 'solicitudes', docData.id)
+
+  // Función para formatear el contador MEL
+  function formatCountMEL(count) {
+    return String(count).padStart(5, '0')
+  }
+
+  // Función para formatear el contador Procure
+  function formatCountProcure(count) {
+    return String(count).padStart(3, '0')
+  }
+
+  // Función para obtener la definición corta de la planta
+  function getShortDefinition(plantLongDef) {
+    const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
+
+    const valPlant = [
+      'Planta Concentradora Los Colorados',
+      'Planta Concentradora Laguna Seca | Línea 1',
+      'Planta Concentradora Laguna Seca | Línea 2',
+      'Chancado y Correas',
+      'Puerto Coloso',
+      'Instalaciones Cátodo'
+    ]
+    const index = valPlant.indexOf(plantLongDef)
+
+    return index !== -1 ? shortPlants[index] : 'No se encontró definición corta para esta planta'
+  }
+
+  const instalacion = getShortDefinition(plant)
+  const areaNumber = area.slice(0, 4)
+  const otNumber = `OT${ot}`
+
+  await runTransaction(db, async transaction => {
+    const procureCounterDoc = await transaction.get(procureCounterRef)
+    const melCounterDoc = await transaction.get(melCounterRef)
+    const solicitudDoc = await transaction.get(solicitudRef)
+
+    // Manejo de la situación cuando el documento de MEL no existe
+    let melCounter
+
+    if (!melCounterDoc.exists()) {
+      melCounter = formatCountMEL(0)
+      transaction.set(melCounterRef, { count: melCounter })
+    } else {
+      melCounter = melCounterDoc.data().count
+    }
+
+    // Obtiene el valor actual del contador específico
+    const procureCounterData = procureCounterDoc.data()[procureCounterField]
+    if (!procureCounterData) {
+      throw new Error(`El campo ${procureCounterField} no existe en el documento blueprints_InternalCode-Counter.`)
+    }
+    let procureCounter = Number(procureCounterData.count)
+    melCounter = Number(melCounter)
+
+    // Verificar y actualizar el campo otReadyToFinish en la solicitud
+    if (solicitudDoc.exists()) {
+      const solicitudData = solicitudDoc.data()
+      if (solicitudData.otReadyToFinish === true) {
+        transaction.update(solicitudRef, { otReadyToFinish: false })
+      } else if (solicitudData.otReadyToFinish === undefined) {
+        transaction.update(solicitudRef, { otReadyToFinish: false })
+      }
+    }
+
+    const newDocs = []
+
+    for (let i = 0; i < quantity; i++) {
+      const procureCode = `${idProject}-${procureDiscipline}-${procureDeliverable}-${formatCountProcure(
+        procureCounter + i + 1
+      )}`
+
+      const melCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${melDiscipline}-${melDeliverable}-${formatCountMEL(
+        melCounter + i + 1
+      )}`
+
+      newDocs.push({
+        id: procureCode,
+        clientCode: melCode,
+        userId: userParam.userId,
+        userName: userParam.name,
+        revision: 'iniciado',
+        otFinished: false,
+        userEmail: userParam.email,
+        sentByDesigner: false,
+        sentBySupervisor: false,
+        date: Timestamp.fromDate(new Date()),
+        blueprintPercent: 5,
+        attentive: userParam.role
+      })
+    }
+
+    const newProcureCounter = Number(procureCounter) + Number(quantity)
+    const newMelCounter = Number(melCounter) + Number(quantity)
+
+    // Actualiza el contador específico en el documento
+    transaction.update(procureCounterRef, {
+      [`${procureCounterField}.count`]: formatCountProcure(newProcureCounter)
+    })
+    transaction.update(melCounterRef, { count: formatCountMEL(newMelCounter) })
+
+    const blueprintCollectionRef = collection(db, 'solicitudes', docData.id, 'blueprints')
+    newDocs.forEach(newDoc => {
+      const newDocRef = doc(blueprintCollectionRef, newDoc.id)
+      transaction.set(newDocRef, newDoc)
+    })
+  })
+}
+
+const updateBlueprintAssignment = async (petitionId, blueprintId, newUser) => {
+  const batch = writeBatch(db)
+
+  try {
+    // Crea una referencia al documento en la subcolección `blueprints`
+    const blueprintDocRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
+
+    // Actualiza el documento con los nuevos valores
+    batch.update(blueprintDocRef, {
+      userId: newUser.userId,
+      userName: newUser.name,
+      userEmail: newUser.email
+    })
+
+    // Ejecuta el batch
+    await batch.commit()
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating blueprint assignment:', error)
+
+    return { success: false, error: error.message }
+  }
+}
+
+const getProcureCounter = async procureCounterField => {
+  // Crea referencia a Firestore para el contador de Procure
+  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+
+  const procureCounterDoc = await getDoc(procureCounterRef)
+
+  if (!procureCounterDoc.exists()) {
+    throw new Error(`El documento blueprints_InternalCode-Counter no existe en Firestore.`)
+  }
+
+  const currentProcureCounterData = procureCounterDoc.data()[procureCounterField]
+  if (!currentProcureCounterData) {
+    throw new Error(`El campo ${procureCounterField} no existe en el documento blueprints_InternalCode-Counter.`)
+  }
+
+  const currentProcureCounter = Number(currentProcureCounterData.count)
+
+  return currentProcureCounter
+}
+
+const markBlueprintAsDeleted = async (mainDocId, procureId) => {
+  const blueprintDocRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
+
+  await updateDoc(blueprintDocRef, {
+    deleted: true
+  })
+}
+
+const deleteBlueprintAndDecrementCounters = async (
+  mainDocId,
+  procureId,
+  procureCounterField,
+  currentProcureCounter,
+  currentMelCounter,
+  melDiscipline,
+  melDeliverable
+) => {
+  // Crea referencias a Firestore para el contador de Procure y MEL
+  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+  const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
+  const melCounterRef = doc(db, 'solicitudes', mainDocId, 'clientCodeGeneratorCount', melCounterDocId)
+
+  // Referencia al documento de la subcolección "blueprints" que se eliminará
+  const blueprintDocRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
+
+  // Referencia a la subcolección "revisions"
+  const revisionsCollectionRef = collection(blueprintDocRef, 'revisions')
+
+  await runTransaction(db, async transaction => {
+    // Verifica si la subcolección 'revisions' tiene documentos
+    const revisionsSnapshot = await getDocs(revisionsCollectionRef)
+
+    if (!revisionsSnapshot.empty) {
+      // Si existen documentos en la subcolección, se eliminan uno por uno
+      revisionsSnapshot.forEach(doc => {
+        transaction.delete(doc.ref)
+      })
+    }
+
+    // Después de eliminar los documentos de la subcolección 'revisions', elimina el documento 'blueprints'
+    transaction.delete(blueprintDocRef)
+
+    // Disminuye los contadores
+    transaction.update(procureCounterRef, {
+      [`${procureCounterField}.count`]: String(currentProcureCounter - 1).padStart(3, '0')
+    })
+
+    transaction.update(melCounterRef, {
+      count: String(currentMelCounter - 1).padStart(5, '0')
+    })
+  })
+}
+
+const updateBlueprintsWithStorageOrHlc = async (petitionId, blueprintId, fileLink, fileName, destination) => {
+  try {
+    // Referencia al documento del blueprint dentro de la colección "blueprints" de una "solicitud"
+    const blueprintRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
+
+    // Crea el objeto que se va a agregar al campo storageBlueprints
+    const blueprintData = {
+      url: fileLink,
+      name: fileName
+    }
+
+    if (destination === 'storage') {
+      // Actualiza el documento en Firestore, añadiendo el nuevo archivo al array `storageBlueprints`
+      await updateDoc(blueprintRef, {
+        storageBlueprints: arrayUnion(blueprintData)
+      })
+    } else if (destination === 'hlc') {
+      // Actualiza el documento en Firestore, añadiendo el nuevo archivo al array `storageBlueprints`
+      await updateDoc(blueprintRef, {
+        storageHlcDocuments: arrayUnion(blueprintData)
+      })
+    }
+
+    console.log('Blueprint actualizado con éxito:', blueprintData)
+  } catch (error) {
+    console.error('Error al actualizar el blueprint:', error)
+  }
+}
+
+const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId) => {
+  const blueprintRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
+
+  const querySnapshot = await getDoc(blueprintRef)
+  const docSnapshot = querySnapshot.data()
+
+  console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
+
+  await updateDoc(blueprintRef, {
+    storageBlueprints: [docSnapshot.storageBlueprints[0]]
+  })
+}
+
+
 export {
   newDoc,
   updateDocs,
   updateUserPhone,
   blockDayInDatabase,
-  generateBlueprint,
   useBlueprints,
   updateBlueprint,
   addDescription,
-  generateBlueprintCodeClient,
   generateTransmittalCounter,
   updateSelectedDocuments,
   addComment,
@@ -1524,4 +1826,12 @@ export {
   modifyCostCenter,
   deleteCostCenter,
   setDefaultCostCenter
+  generateBlueprintCodes,
+  updateBlueprintAssignment,
+  getProcureCounter,
+  markBlueprintAsDeleted,
+  deleteBlueprintAndDecrementCounters,
+  updateBlueprintsWithStorageOrHlc,
+  deleteReferenceOfLastDocumentAttached
+
 }

@@ -32,8 +32,6 @@ import {
   fetchUserList,
   fetchWeekHoursByType,
   finishPetition,
-  generateBlueprint,
-  generateBlueprintCodeClient,
   generateTransmittalCounter,
   modifyCostCenter,
   newDoc,
@@ -46,6 +44,18 @@ import {
   updateWeekHoursByType,
   updateWeekHoursWithPlant,
   useBlueprints
+  deleteWeekHoursByType,
+  fetchSolicitudes,
+  fetchUserList,
+  updateWeekHoursWithPlant,
+  generateBlueprintCodes,
+  updateBlueprintAssignment,
+  getProcureCounter,
+  markBlueprintAsDeleted,
+  deleteBlueprintAndDecrementCounters,
+  updateBlueprintsWithStorageOrHlc,
+  deleteReferenceOfLastDocumentAttached
+
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -56,10 +66,7 @@ import {
   consultObjetives,
   consultSAP,
   consultUserEmailInDB,
-  fetchMelDeliverableType,
-  fetchMelDisciplines,
   fetchPetitionById,
-  fetchPlaneProperties,
   getAllUsersData,
   getData,
   getDomainData,
@@ -69,10 +76,15 @@ import {
   subscribeToPetition,
   subscribeToUserProfileChanges,
   useEvents,
-  useSnapshot
+  useSnapshot,
+  fetchDisciplineProperties,
+  fetchDeliverablesByDiscipline
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
+
+// ** Importamos el hook `useGoogleAuth`
+import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
 
 const FirebaseContextProvider = props => {
   // ** Hooks
@@ -89,6 +101,9 @@ const FirebaseContextProvider = props => {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [domainDictionary, setDomainDictionary] = useState({})
   const [domainRoles, setDomainRoles] = useState({})
+
+  // ** Llamamos al hook `useGoogleAuth` para manejar la autenticación de Google
+  const { handleGoogleDriveAuthorization } = useGoogleAuth()
 
   // ** Variables
   const auth = getAuth(app)
@@ -111,6 +126,15 @@ const FirebaseContextProvider = props => {
         const roles = await getDomainData('roles')
         setDomainRoles(roles)
         setLoading(false)
+
+        // Autorización de Google Drive
+        if ([1, 5, 6, 7, 8, 9, 10, 11].includes(databaseUserData.role)) {
+          try {
+            await handleGoogleDriveAuthorization()
+          } catch (error) {
+            console.error('Error during Google Drive authorization:', error)
+          }
+        }
       }
     })
 
@@ -151,15 +175,10 @@ const FirebaseContextProvider = props => {
     consultObjetives,
     getUsersWithSolicitudes,
     signGoogle,
-    generateBlueprint,
     useBlueprints,
     fetchPetitionById,
-    fetchPlaneProperties,
     updateBlueprint,
     addDescription,
-    fetchMelDisciplines,
-    fetchMelDeliverableType,
-    generateBlueprintCodeClient,
     generateTransmittalCounter,
     updateSelectedDocuments,
     consultBluePrints,
@@ -183,6 +202,16 @@ const FirebaseContextProvider = props => {
     modifyCostCenter,
     deleteCostCenter,
     setDefaultCostCenter
+    fetchDisciplineProperties,
+    fetchDeliverablesByDiscipline,
+    generateBlueprintCodes,
+    updateBlueprintAssignment,
+    getProcureCounter,
+    markBlueprintAsDeleted,
+    deleteBlueprintAndDecrementCounters,
+    updateBlueprintsWithStorageOrHlc,
+    deleteReferenceOfLastDocumentAttached
+
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

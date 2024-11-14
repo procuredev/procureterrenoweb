@@ -6,7 +6,30 @@ import base64MEL from 'src/views/pages/gabinete/base64MEL'
 const callAddRegular = require('public/fonts/calibri-normal.js')
 const callAddBold = require('public/fonts/calibri-bold.js')
 
-export const generateTransmittal = (tableElement, selected, setTransmittalGenerated, newCode) => {
+let rootFolder
+
+if (typeof window !== 'undefined') {
+  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
+    rootFolder = '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' //* carpeta original "72336"
+  } else {
+    rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+  }
+} else {
+  rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
+}
+
+export const generateTransmittal = async (
+  tableElement,
+  selected,
+  setTransmittalGenerated,
+  newCode,
+  petition,
+  uploadFile,
+  createFolder,
+  fetchFolders,
+  setIsLoading,
+  setOpenTransmittalDialog
+) => {
   const doc = new jsPDF('p', 'mm', 'letter', true, true)
 
   callAddRegular.call(doc)
@@ -40,17 +63,19 @@ export const generateTransmittal = (tableElement, selected, setTransmittalGenera
 
   const data = newSelected.map(([key, value], index) => {
     if (value.storageBlueprints) {
+      console.log('value.storageBlueprints', value.storageBlueprints)
       // Divide la URL en segmentos separados por '%2F'
-      const urlSegments = value.storageBlueprints[0].split('%2F')
+      //*const urlSegments = value.storageBlueprints[0].split('%2F')
 
       // Obtiene el último segmento, que debería ser el nombre del archivo
-      const encodedFileName = urlSegments[urlSegments.length - 1]
+      //*const encodedFileName = urlSegments[urlSegments.length - 1]
 
       // Divide el nombre del archivo en segmentos separados por '?'
-      const fileNameSegments = encodedFileName.split('?')
+      //*const fileNameSegments = encodedFileName.split('?')
 
       // Obtiene el primer segmento, que debería ser el nombre del archivo
-      const fileName = decodeURIComponent(fileNameSegments[0])
+      //*const fileName = decodeURIComponent(fileNameSegments[0])
+      const fileName = value.storageBlueprints[0].name
 
       rows = [index + 1, value.clientCode, value.description, value.revision]
     } else {
@@ -152,5 +177,86 @@ export const generateTransmittal = (tableElement, selected, setTransmittalGenera
 
   // Descarga el documento
   doc.save(`${newCode}.pdf`)
+
+  // ----------- NUEVO: Subir el archivo a Google Drive -----------
+
+  const getPlantAbbreviation = plantName => {
+    const plantMap = {
+      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
+      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
+      'Instalaciones Escondida Water Supply': 'IEWS',
+      'Planta Concentradora Los Colorados': 'PCLC',
+      'Instalaciones Cátodo': 'ICAT',
+      'Chancado y Correas': 'CHCO',
+      'Puerto Coloso': 'PCOL'
+    }
+
+    return plantMap[plantName] || ''
+  }
+
+  const pdfBlob = doc.output('blob') // Genera el blob del documento PDF
+
+  // Lógica de carga a Google Drive
+  const plantFolders = await fetchFolders(rootFolder)
+  const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+
+  if (plantFolder) {
+    const areaFolders = await fetchFolders(plantFolder.id)
+    const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+
+    if (areaFolder) {
+      const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
+      const existingProjectFolders = await fetchFolders(areaFolder.id)
+      const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+
+      if (projectFolder) {
+        const issuedFolders = await fetchFolders(projectFolder.id)
+        const issuedFolder = issuedFolders.files.find(folder => folder.name === 'EMITIDOS')
+
+        if (issuedFolder) {
+          const fileData = await uploadFile(`${newCode}.pdf`, pdfBlob, issuedFolder.id)
+
+          if (fileData && fileData.id) {
+            const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
+
+            console.log('Transmittal almacenado en Google Drive con éxito:', fileLink)
+          }
+
+          // Obtiene el primer valor del Map para la revisión
+          /* const firstSelectedValue = Array.from(selected.values())[0]
+          const revisionFolderName = `REV_${firstSelectedValue.revision}`
+          const revisionFolders = await fetchFolders(issuedFolder.id)
+          let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
+
+          if (!revisionFolder) {
+            revisionFolder = await createFolder(revisionFolderName, issuedFolder.id)
+          }
+
+          if (revisionFolder) {
+            const documentosFolderName = 'DOCUMENTOS'
+            const documentosFolders = await fetchFolders(revisionFolder.id)
+            let documentosFolder = documentosFolders.files.find(folder => folder.name === documentosFolderName)
+
+            if (!documentosFolder) {
+              documentosFolder = await createFolder(documentosFolderName, revisionFolder.id)
+            }
+
+            if (documentosFolder) {
+              const fileData = await uploadFile(`${newCode}.pdf`, pdfBlob, documentosFolder.id)
+
+              if (fileData && fileData.id) {
+                const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
+
+                console.log('Transmittal almacenado en Google Drive con éxito:', fileLink)
+              }
+            }
+          } */
+        }
+      }
+    }
+  }
+
   setTransmittalGenerated(true)
+  setOpenTransmittalDialog(false)
+  setIsLoading(false)
 }

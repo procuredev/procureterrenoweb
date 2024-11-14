@@ -2,19 +2,22 @@
 import { useState, forwardRef, useEffect } from 'react'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import Dialog from '@mui/material/Dialog'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  IconButton,
+  TextField,
+  CircularProgress
+} from '@mui/material'
 import Fade from '@mui/material/Fade'
-import DialogContent from '@mui/material/DialogContent'
 import EngineeringIcon from '@mui/icons-material/Engineering'
-import FormControl from '@mui/material/FormControl'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import InputLabel from '@mui/material/InputLabel'
-
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -26,55 +29,74 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenerated }) => {
+export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
   //falta evaluar la foto del proyectista
 
   // ** States
   const [error, setError] = useState('')
-  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false)
   const [typeOfDiscipline, setTypeOfDiscipline] = useState('')
   const [typeOfDocument, setTypeOfDocument] = useState('')
-  const [disciplines, setDisciplines] = useState([]);
-  const [deliverables, setDeliverables] = useState([]);
+  const [disciplines, setDisciplines] = useState([])
+  const [deliverables, setDeliverables] = useState([])
+  const [quantity, setQuantity] = useState(1)
+  const [selectedDraftman, setSelectedDraftman] = useState(null)
+
+  console.log('selectedDraftman', selectedDraftman)
 
   // ** Hooks
-  const { updateDocs, authUser, generateBlueprint, fetchPlaneProperties } = useFirebase()
-
-  const handleChangeTypeOfDiscipline = (event) => {
-    setTypeOfDiscipline(event.target.value);
-  }
-
-  const handleChangeTypeOfDocument = (event) => {
-    setTypeOfDocument(event.target.value);
-  }
-
-
-
-  const onsubmit = async id => {
-    if (typeOfDiscipline && typeOfDocument) {
-      setIsSubmitDisabled(true);
-      await generateBlueprint(typeOfDiscipline, typeOfDocument, doc, authUser).then(() => {
-        setBlueprintGenerated(true)
-        handleClose();
-        setIsSubmitDisabled(false);
-      })
-      .catch((error) => {
-        console.error(error)
-      })
-    } else {
-      setError('Por favor, indique tipo de disciplina y tipo de documento.');
-    }
-  };
+  const { fetchDisciplineProperties, fetchDeliverablesByDiscipline, generateBlueprintCodes, authUser } = useFirebase()
 
   useEffect(() => {
     const fetchData = async () => {
-      let {resDeliverables,resDisciplines} = await fetchPlaneProperties()
-      setDisciplines(resDisciplines)
-      setDeliverables(resDeliverables)
-    };
+      const properties = await fetchDisciplineProperties()
+      setDisciplines(Object.keys(properties))
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
+
+  const handleChangeTypeOfDiscipline = async event => {
+    setTypeOfDiscipline(event.target.value)
+    const deliverables = await fetchDeliverablesByDiscipline(event.target.value)
+    setDeliverables(Object.keys(deliverables))
+  }
+
+  const handleChangeTypeOfDocument = event => {
+    setTypeOfDocument(event.target.value)
+  }
+
+  const handleQuantityChange = event => {
+    const value = parseInt(event.target.value, 10) // Convertir el valor a entero
+    if (value >= 1) {
+      setQuantity(value) // Solo actualiza el estado si el valor es mayor o igual a 1
+    }
+  }
+
+  const handleChangeDraftman = event => {
+    const selected = doc.gabineteDraftmen.find(draftman => draftman.name === event.target.value)
+    setSelectedDraftman(selected)
+  }
+
+  const onsubmit = async id => {
+    if (typeOfDiscipline && typeOfDocument && quantity > 0) {
+      setIsSubmitDisabled(true)
+      try {
+        const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
+        await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
+        handleClose()
+      } catch (error) {
+        console.error(error)
+        setError('Error generating codes')
+      } finally {
+        setIsSubmitDisabled(false)
+      }
+    } else {
+      setError('Por favor, indique tipo de disciplina, tipo de documento y cantidad.')
+    }
+  }
+
+  const emptyFields = typeOfDiscipline.length === 0 || typeOfDocument.length === 0 || selectedDraftman === null
 
   return (
     <Dialog
@@ -98,73 +120,101 @@ export const DialogCodeGenerator = ({ open, handleClose, doc, setBlueprintGenera
           <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
             Generar nuevo documento
           </Typography>
-          <Typography variant='body2'>Establece parámetros para crear el código</Typography>
         </Box>
 
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-              <InputLabel id="demo-select-small-label">Tipo de disciplina</InputLabel>
-              <Select
-                value={typeOfDiscipline}
-                label='Tipo de disciplina'
-                id='controlled-select'
-                onChange={handleChangeTypeOfDiscipline}
-                labelId='controlled-select-label'
-              >
-                <MenuItem value=''>
-                    <em>None</em>
-                </MenuItem>
-
-                { Object.entries(disciplines).map(([key, value]) => (
-
-                  <MenuItem key={key} value={value}>
-                  <em>{`${value} - ${key}`}</em>
-                  </MenuItem>
-                  ))
-                }
-
-
-              </Select>
-            </FormControl>
+        {isSubmitDisabled ? (
+          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+            <CircularProgress /> <Typography sx={{ ml: 3 }}>Creando el código ID...</Typography>
           </Box>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
-            <FormControl fullWidth sx={{ '& .MuiFormControl-root': { width: '100%' } }}>
-            <InputLabel id="demo-select-small-label">Tipo de documento</InputLabel>
-              <Select
-                value={typeOfDocument}
-                label='Tipo de documento'
-                id='controlled-select'
-                onChange={handleChangeTypeOfDocument}
-                labelId='controlled-select-label'
+        ) : (
+          <Box>
+            <Typography variant='body2'>Establece parámetros para crear el código</Typography>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', my: 5 }}>
+              <FormControl fullWidth>
+                <InputLabel id='draftman-select-label'>Seleccionar Proyectista</InputLabel>
+                <Select
+                  label='Seleccionar Proyectista'
+                  labelId='draftman-select-label'
+                  id='draftman-select'
+                  value={selectedDraftman ? selectedDraftman.name : ''}
+                  onChange={handleChangeDraftman}
+                >
+                  {doc.gabineteDraftmen.map(draftman => (
+                    <MenuItem key={draftman.userId} value={draftman.name}>
+                      {draftman.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <FormControl fullWidth>
+                <InputLabel id='demo-select-small-label'>Tipo de disciplina</InputLabel>
+                <Select
+                  label='Tipo de disciplina'
+                  labelId='controlled-select-label'
+                  id='controlled-select'
+                  value={typeOfDiscipline}
+                  onChange={handleChangeTypeOfDiscipline}
+                >
+                  {disciplines
+                    .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente las disciplinas
+                    .map((discipline, index) => (
+                      <MenuItem key={index} value={discipline}>
+                        {discipline}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <FormControl fullWidth>
+                <InputLabel id='demo-select-small-label'>Tipo de documento</InputLabel>
+                <Select
+                  label='Tipo de documento'
+                  id='controlled-select'
+                  labelId='controlled-select-label'
+                  value={typeOfDocument}
+                  onChange={handleChangeTypeOfDocument}
+                >
+                  {deliverables
+                    .sort((a, b) => a.localeCompare(b)) // Ordena alfabéticamente los Tipo de documentos
+                    .map((deliverable, index) => (
+                      <MenuItem key={index} value={deliverable}>
+                        {deliverable}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 5 }}>
+              <TextField
+                label='Cantidad'
+                type='number'
+                value={quantity}
+                inputProps={{ min: 1 }}
+                onChange={handleQuantityChange}
+                fullWidth
+              />
+            </Box>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+              <Button
+                sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
+                disabled={emptyFields}
+                onClick={() => onsubmit(doc.id)}
               >
-                <MenuItem value=''>
-                    <em>None</em>
-                </MenuItem>
-                { Object.entries(deliverables).map(([key, value]) => (
-
-                  <MenuItem key={key} value={value}>
-                  <em>{`${value} - ${key}`}</em>
-                  </MenuItem>
-                  ))
-                  }
-
-              </Select>
-            </FormControl>
+                <EngineeringIcon sx={{ fontSize: 18 }} />
+                Crear código
+              </Button>
+            </Box>
           </Box>
-        </Box>
-
-
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button
-          sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
-          disabled={isSubmitDisabled} onClick={() => onsubmit(doc.id)}>
-            <EngineeringIcon sx={{ fontSize: 18 }} />
-            Crear código
-          </Button>
-        </Box>
+        )}
       </DialogContent>
     </Dialog>
   )
 }
-
