@@ -2,6 +2,8 @@
 import {
   Timestamp,
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -1705,6 +1707,98 @@ const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId) =>
   })
 }
 
+// Función para crear un nuevo Centro de Costo para una Planta específica.
+const createCostCenter = async (plant, costCenter) => {
+  try {
+    // Referencia al documento en Firestore
+    const docRef = doc(db, 'domain', 'costCenters')
+
+    // Actualiza el documento agregando el nuevo Centro de Costo al array correspondiente a la Planta.
+    await updateDoc(docRef, {
+      [plant]: arrayUnion(costCenter)
+    })
+
+  } catch (error) {
+    // Manejo de errores.
+    console.error('Error al crear el Centro de Costo:', error)
+    throw error
+  }
+}
+
+// Función para modificar un Centro de Costo existente en una Planta.
+const modifyCostCenter = async (plant, index, newCostCenterValue) => {
+  try {
+    // Referencia al documento en Firestore.
+    const docRef = doc(db, 'domain', 'costCenters')
+
+    // Obtiene el snapshot del documento
+    const querySnapshot = await getDoc(docRef)
+    const docSnapshot = querySnapshot.data()
+
+    // Modifica el valor del Centro de Costo en el índice especificado.
+    var plantCostCenters = docSnapshot[plant]
+    plantCostCenters[index] = newCostCenterValue
+
+    // Actualiza el documento con el array modificado.
+    await updateDoc(docRef, {
+      [plant]: plantCostCenters
+    })
+
+  } catch (error) {
+    // Manejo de errores
+    console.error('Error al modificar el Centro de Costo:', error)
+    throw error
+  }
+}
+
+// Función para eliminar un Centro de Costo específico de una Planta.
+const deleteCostCenter = async (plant, costCenter) => {
+  try {
+    // Referencia al documento en Firestore.
+    const docRef = doc(db, 'domain', 'costCenters')
+
+    // Actualiza el documento eliminando el Centro de Costo del array correspondiente a la Planta.
+    await updateDoc(docRef, {
+      [plant]: arrayRemove(costCenter)
+    })
+
+  } catch (error) {
+    // Manejo de errores.
+    console.error('Error al eliminar el Centro de Costo:', error)
+    throw error
+  }
+}
+
+// Función para establecer un Centro de Costo como predeterminado, intercambiando posiciones en el array.
+const setDefaultCostCenter = async (plant, oldIndex) => {
+  try {
+    // Referencia al documento en Firestore.
+    const docRef = doc(db, 'domain', 'costCenters')
+
+    // Obtiene el snapshot del documento.
+    const querySnapshot = await getDoc(docRef)
+    const docSnapshot = querySnapshot.data()
+
+    // Se intercambia el Centro de costo en oldIndex con el de la posición 0.
+    var plantCostCenters = docSnapshot[plant]
+    const prevPositionZero = plantCostCenters[0]
+    const prevPositionOldIndex = plantCostCenters[oldIndex]
+
+    plantCostCenters[0] = prevPositionOldIndex
+    plantCostCenters[oldIndex] = prevPositionZero
+
+    // Actualiza el documento con el array modificado.
+    await updateDoc(docRef, {
+      [plant]: plantCostCenters
+    })
+
+  } catch (error) {
+    // Manejo de errores.
+    console.error('Error al establecer el Centro de Costo predeterminado:', error)
+    throw error
+  }
+}
+
 export {
   newDoc,
   updateDocs,
@@ -1732,4 +1826,8 @@ export {
   deleteBlueprintAndDecrementCounters,
   updateBlueprintsWithStorageOrHlc,
   deleteReferenceOfLastDocumentAttached
+  createCostCenter,
+  modifyCostCenter,
+  deleteCostCenter,
+  setDefaultCostCenter
 }

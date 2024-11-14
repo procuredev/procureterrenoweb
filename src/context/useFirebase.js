@@ -24,17 +24,23 @@ import {
   addComment,
   addDescription,
   blockDayInDatabase,
+  createCostCenter,
+  createWeekHoursByType,
+  deleteCostCenter,
+  deleteWeekHoursByType,
+  fetchSolicitudes,
+  fetchUserList,
+  fetchWeekHoursByType,
   finishPetition,
   generateTransmittalCounter,
+  modifyCostCenter,
   newDoc,
+  setDefaultCostCenter,
   updateBlueprint,
   updateDocs,
   updateSelectedDocuments,
   updateUserData,
   updateUserPhone,
-  useBlueprints,
-  fetchWeekHoursByType,
-  createWeekHoursByType,
   updateWeekHoursByType,
   deleteWeekHoursByType,
   fetchSolicitudes,
@@ -47,6 +53,8 @@ import {
   deleteBlueprintAndDecrementCounters,
   updateBlueprintsWithStorageOrHlc,
   deleteReferenceOfLastDocumentAttached
+  updateWeekHoursWithPlant,
+  useBlueprints
 } from 'src/context/firebase-functions/firestoreFunctions'
 
 import {
@@ -198,6 +206,10 @@ const FirebaseContextProvider = props => {
     deleteBlueprintAndDecrementCounters,
     updateBlueprintsWithStorageOrHlc,
     deleteReferenceOfLastDocumentAttached
+    createCostCenter,
+    modifyCostCenter,
+    deleteCostCenter,
+    setDefaultCostCenter
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>
