@@ -490,51 +490,46 @@ const TableGabinete = ({
     // Verifica si el id contiene "M3D" antes del último guion
     const isM3D = doc.id.split('-').slice(-2, -1)[0] === 'M3D'
 
-    const isRole8 = authUser.role === 8
-    const isRole7 = authUser.role === 7
-
-    if (isRole8 || (isRole7 && doc.userId === authUser.uid)) {
-      const actions = {
-        keepRevision: {
-          condition: () =>
-            doc.revision.charCodeAt(0) >= 48 &&
-            doc.approvedByClient === true &&
-            doc.approvedByDocumentaryControl === false,
-          action: () => (newRevision = doc.revision)
-        },
-        resetRevision: {
-          condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
-          action: () => (newRevision = '0')
-        },
-        incrementRevision: {
-          condition: () =>
-            (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
-            doc.approvedByClient === false &&
-            doc.approvedByDocumentaryControl === true,
-          action: () => (newRevision = nextChar)
-        },
-        startRevision: {
-          condition: () => doc.revision === 'iniciado' && !isM3D,
-          action: () => (newRevision = 'A')
-        },
-        incrementRevisionInA: {
-          condition: () => doc.revision === 'A',
-          action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
-        },
-        dotCloud: {
-          condition: () => doc.revision === 'iniciado' && isM3D,
-          action: () => {
-            newRevision = '0'
-          }
+    const actions = {
+      keepRevision: {
+        condition: () =>
+          doc.revision.charCodeAt(0) >= 48 &&
+          doc.approvedByClient === true &&
+          doc.approvedByDocumentaryControl === false,
+        action: () => (newRevision = doc.revision)
+      },
+      resetRevision: {
+        condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
+        action: () => (newRevision = '0')
+      },
+      incrementRevision: {
+        condition: () =>
+          (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
+          doc.approvedByClient === false &&
+          doc.approvedByDocumentaryControl === true,
+        action: () => (newRevision = nextChar)
+      },
+      startRevision: {
+        condition: () => doc.revision === 'iniciado' && !isM3D,
+        action: () => (newRevision = 'A')
+      },
+      incrementRevisionInA: {
+        condition: () => doc.revision === 'A',
+        action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
+      },
+      dotCloud: {
+        condition: () => doc.revision === 'iniciado' && isM3D,
+        action: () => {
+          newRevision = '0'
         }
       }
-
-      Object.values(actions).forEach(({ condition, action }) => {
-        if (condition()) {
-          action()
-        }
-      })
     }
+
+    Object.values(actions).forEach(({ condition, action }) => {
+      if (condition()) {
+        action()
+      }
+    })
 
     return newRevision
   }
