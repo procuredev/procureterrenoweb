@@ -1,29 +1,31 @@
 // ** React Imports
-import { useState, forwardRef, useEffect } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 
 // ** MUI Imports
+import EngineeringIcon from '@mui/icons-material/Engineering'
 import {
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogContent,
-  Typography,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
-  CircularProgress
+  Typography
 } from '@mui/material'
 import Fade from '@mui/material/Fade'
-import EngineeringIcon from '@mui/icons-material/Engineering'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
+import { sendEmailAssignDeliverable } from 'src/context/firebase-functions/mailing/sendEmailAssignDeliverable'
 import { useFirebase } from 'src/context/useFirebase'
+
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -84,6 +86,10 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
       try {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
         await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
+
+        // Se envia el e-mail con toda la información de la Solicitud.
+        await sendEmailAssignDeliverable(authUser)
+
         handleClose()
       } catch (error) {
         console.error(error)
