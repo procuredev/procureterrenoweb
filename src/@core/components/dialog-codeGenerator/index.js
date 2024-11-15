@@ -87,8 +87,12 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
         await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
 
+        console.log(mappedCodes[typeOfDocument])
+        console.log(doc)
+        console.log(selectedDraftman)
+
         // Se envia el e-mail con toda la información de la Solicitud.
-        await sendEmailAssignDeliverable(authUser)
+        await sendEmailAssignDeliverable(authUser, doc, selectedDraftman)
 
         handleClose()
       } catch (error) {
