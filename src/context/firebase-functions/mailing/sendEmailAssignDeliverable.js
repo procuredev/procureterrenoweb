@@ -5,6 +5,64 @@ import { getEmailTemplate } from './assignDeliverableTemplate'
 
 const moment = require('moment')
 
+// Obtener usuarios con rol 5
+const getPlannerData = async () => {
+  // Realiza la consulta según el campo proporcionado
+  const q = query(collection(db, 'users'), where('role', '==', 5))
+
+  let plannerArray = []
+
+  try {
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) {
+      console.log(`No se encontró ningún Planificador`)
+
+      return null
+    } else {
+      const queryDocs = querySnapshot.docs
+      queryDocs.forEach(doc => {
+        plannerArray.push(doc.data())
+      })
+
+      return plannerArray
+    }
+  } catch (error) {
+    console.log('Error al buscar Planificador: ', error)
+
+    return null
+  }
+}
+
+// Obtener usuarios con rol 9 (Control Documental)
+const getDocumentControlData = async () => {
+  // Realiza la consulta según el campo proporcionado
+  const q = query(collection(db, 'users'), where('role', '==', 9))
+
+  let documentControlArray = []
+
+  try {
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) {
+      console.log(`No se encontró ningún Control Documental`)
+
+      return null
+    } else {
+      const queryDocs = querySnapshot.docs
+      queryDocs.forEach(doc => {
+        documentControlArray.push(doc.data())
+      })
+
+      return documentControlArray
+    }
+  } catch (error) {
+    console.log('Error al buscar Control Documental: ', error)
+
+    return null
+  }
+}
+
 
 // Función para enviar emails de forma automática.
 // user es el usuario conectado que efectúa el envío de la solicitud.
@@ -29,6 +87,14 @@ export const sendEmailAssignDeliverable = async (user, ot, draftman, codes) => {
 
       const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
 
+      // Se obtienen los datos de C.Owner, petitioner y Planificador
+      const usersData = await Promise.all([getPlannerData(), getDocumentControlData()])
+      const plannerData = usersData[0]
+      const documentControlData = usersData[1]
+
+      // Se definen los emails de Planificador
+      const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
+      const documentControlEmail = documentControlData.filter(doc => doc.enabled != false).map(data => data.email)
 
       // Llamada al html del email con las constantes previamente indicadads
       emailHtml = getEmailTemplate(
@@ -39,7 +105,7 @@ export const sendEmailAssignDeliverable = async (user, ot, draftman, codes) => {
       )
 
       let sendTo = draftman.email
-      let arrayCC = [user.email]
+      let arrayCC = [user.email, ...plannerEmail, ...documentControlEmail]
 
       // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
       updateDoc(docRef, {
