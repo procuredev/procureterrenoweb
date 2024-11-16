@@ -1489,7 +1489,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
   const areaNumber = area.slice(0, 4)
   const otNumber = `OT${ot}`
 
-  await runTransaction(db, async transaction => {
+  const codes = await runTransaction(db, async transaction => {
     const procureCounterDoc = await transaction.get(procureCounterRef)
     const melCounterDoc = await transaction.get(melCounterRef)
     const solicitudDoc = await transaction.get(solicitudRef)
@@ -1563,7 +1563,12 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
       const newDocRef = doc(blueprintCollectionRef, newDoc.id)
       transaction.set(newDocRef, newDoc)
     })
+
+    return newDocs
+
   })
+
+  return codes
 }
 
 const updateBlueprintAssignment = async (petitionId, blueprintId, newUser) => {
