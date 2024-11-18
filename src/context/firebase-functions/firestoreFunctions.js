@@ -769,8 +769,6 @@ const getNextRevision = async (
   // Verifica si el id contiene "M3D" antes del último guion
   const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
 
-  console.log('isM3D', isM3D)
-
   // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
   if (role === 8 && approves) {
     // Define las acciones posibles
@@ -1193,11 +1191,11 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
 // Finaliza una solicitud, actualizando su estado y detalles relacionados con la OT. Se basa en la información de la solicitud actual y el usuario autenticado.
 const finishPetition = async (currentPetition, authUser) => {
   try {
-    console.log('currentPetition:', currentPetition)
+    // console.log('currentPetition:', currentPetition)
     const petitionRef = doc(db, 'solicitudes', currentPetition.id)
     const petitionDoc = await getDoc(petitionRef)
 
-    console.log('petitionDoc:', petitionDoc.data())
+    // console.log('petitionDoc:', petitionDoc.data())
 
     const otFinished = petitionDoc.data().otFinished
     const otReadyToFinish = petitionDoc.data().otReadyToFinish
@@ -1259,7 +1257,7 @@ const createWeekHoursByType = async (userParams, creations) => {
     const weekHoursRef = collection(userDocRef, 'workedHours')
 
     creations.forEach(change => {
-      console.log('change: ', change)
+      // console.log('change: ', change)
       const newDocRef = doc(weekHoursRef)
       const dayDate = new Date(change.day)
       dayDate.setHours(0, 0, 0, 0)
@@ -1681,8 +1679,6 @@ const updateBlueprintsWithStorageOrHlc = async (petitionId, blueprintId, fileLin
         storageHlcDocuments: arrayUnion(blueprintData)
       })
     }
-
-    console.log('Blueprint actualizado con éxito:', blueprintData)
   } catch (error) {
     console.error('Error al actualizar el blueprint:', error)
   }
@@ -1694,7 +1690,7 @@ const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId) =>
   const querySnapshot = await getDoc(blueprintRef)
   const docSnapshot = querySnapshot.data()
 
-  console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
+  // console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
 
   await updateDoc(blueprintRef, {
     storageBlueprints: [docSnapshot.storageBlueprints[0]]
