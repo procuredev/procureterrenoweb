@@ -1,67 +1,67 @@
 // ** Firebase Imports
-import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
+import { addDoc, collection, doc, updateDoc } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 import { getEmailTemplate } from './assignDeliverableTemplate'
 
 const moment = require('moment')
 
-// Obtener usuarios con rol 5
-const getPlannerData = async () => {
-  // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, 'users'), where('role', '==', 5))
+// Obtener usuarios con rol 5 (Planificador)
+// const getPlannerData = async () => {
+//   // Realiza la consulta según el campo proporcionado
+//   const q = query(collection(db, 'users'), where('role', '==', 5))
 
-  let plannerArray = []
+//   let plannerArray = []
 
-  try {
-    const querySnapshot = await getDocs(q)
+//   try {
+//     const querySnapshot = await getDocs(q)
 
-    if (querySnapshot.empty) {
-      console.log(`No se encontró ningún Planificador`)
+//     if (querySnapshot.empty) {
+//       console.log(`No se encontró ningún Planificador`)
 
-      return null
-    } else {
-      const queryDocs = querySnapshot.docs
-      queryDocs.forEach(doc => {
-        plannerArray.push(doc.data())
-      })
+//       return null
+//     } else {
+//       const queryDocs = querySnapshot.docs
+//       queryDocs.forEach(doc => {
+//         plannerArray.push(doc.data())
+//       })
 
-      return plannerArray
-    }
-  } catch (error) {
-    console.log('Error al buscar Planificador: ', error)
+//       return plannerArray
+//     }
+//   } catch (error) {
+//     console.log('Error al buscar Planificador: ', error)
 
-    return null
-  }
-}
+//     return null
+//   }
+// }
 
-// Obtener usuarios con rol 9 (Control Documental)
-const getDocumentControlData = async () => {
-  // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, 'users'), where('role', '==', 9))
+// // Obtener usuarios con rol 6 (Administrador de Contrato)
+// const getContractAdministratorData = async () => {
+//   // Realiza la consulta según el campo proporcionado
+//   const q = query(collection(db, 'users'), where('role', '==', 6))
 
-  let documentControlArray = []
+//   let contractAdministratorArray = []
 
-  try {
-    const querySnapshot = await getDocs(q)
+//   try {
+//     const querySnapshot = await getDocs(q)
 
-    if (querySnapshot.empty) {
-      console.log(`No se encontró ningún Control Documental`)
+//     if (querySnapshot.empty) {
+//       console.log(`No se encontró ningún Administrador de Contrato`)
 
-      return null
-    } else {
-      const queryDocs = querySnapshot.docs
-      queryDocs.forEach(doc => {
-        documentControlArray.push(doc.data())
-      })
+//       return null
+//     } else {
+//       const queryDocs = querySnapshot.docs
+//       queryDocs.forEach(doc => {
+//         contractAdministratorArray.push(doc.data())
+//       })
 
-      return documentControlArray
-    }
-  } catch (error) {
-    console.log('Error al buscar Control Documental: ', error)
+//       return contractAdministratorArray
+//     }
+//   } catch (error) {
+//     console.log('Error al buscar al Administrador de Contrato: ', error)
 
-    return null
-  }
-}
+//     return null
+//   }
+// }
 
 
 // Función para enviar emails de forma automática.
@@ -69,7 +69,8 @@ const getDocumentControlData = async () => {
 // ot es la información del Levantamiento (en Firebase es cada documento dentro de levantamientos).
 // draftman es el Proyectista que selecciona el Supervisor para hacer ese entregable.
 // codes es un array de objetos que se genera cuando se crean los códigos de entregables. clientCode es el codigo cliente y id es el codigo Procure.
-export const sendEmailAssignDeliverable = async (user, ot, draftman, codes) => {
+export const sendEmailAssignDeliverable = async (user, ot, draftman, codes, usersOnCopy) => {
+
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
   if (user !== null) {
@@ -88,13 +89,13 @@ export const sendEmailAssignDeliverable = async (user, ot, draftman, codes) => {
       const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
 
       // Se obtienen los datos de C.Owner, petitioner y Planificador
-      const usersData = await Promise.all([getPlannerData(), getDocumentControlData()])
-      const plannerData = usersData[0]
-      const documentControlData = usersData[1]
+      // const usersData = await Promise.all([getPlannerData(), getContractAdministratorData()])
+      // const plannerData = usersData[0]
+      // const contractAdministratorData = usersData[1]
 
       // Se definen los emails de Planificador
-      const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
-      const documentControlEmail = documentControlData.filter(doc => doc.enabled != false).map(data => data.email)
+      // const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
+      // const contractAdministratorEmail = contractAdministratorData.filter(doc => doc.enabled != false).map(data => data.email)
 
       // Llamada al html del email con las constantes previamente indicadads
       emailHtml = getEmailTemplate(
@@ -105,7 +106,8 @@ export const sendEmailAssignDeliverable = async (user, ot, draftman, codes) => {
       )
 
       let sendTo = draftman.email
-      let arrayCC = [user.email, ...plannerEmail, ...documentControlEmail]
+      // En este array deberá incluirse a control.documental@procure.cl
+      let arrayCC = [user.email, ...usersOnCopy]
 
       // Se actualiza el elemento recién creado, cargando la información que debe llevar el email
       updateDoc(docRef, {
@@ -115,7 +117,7 @@ export const sendEmailAssignDeliverable = async (user, ot, draftman, codes) => {
         deliverableId: codes.id,
         emailType: 'AssignDeliverable',
         message: {
-          subject: `Entregable asignado // ${codes.id} // ${codes.clientCode}:`,
+          subject: `Entregable asignado // OT ${ot.ot} // ${codes.id} // ${codes.clientCode}:`,
           html: emailHtml
         }
       })

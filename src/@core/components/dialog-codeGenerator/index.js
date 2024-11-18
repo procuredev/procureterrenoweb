@@ -26,6 +26,10 @@ import Icon from 'src/@core/components/icon'
 import { sendEmailAssignDeliverable } from 'src/context/firebase-functions/mailing/sendEmailAssignDeliverable'
 import { useFirebase } from 'src/context/useFirebase'
 
+// ** Firebase Imports
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { db } from 'src/configs/firebase'
+
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -50,13 +54,95 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
   const { fetchDisciplineProperties, fetchDeliverablesByDiscipline, generateBlueprintCodes, authUser } = useFirebase()
 
   useEffect(() => {
+
     const fetchData = async () => {
+
       const properties = await fetchDisciplineProperties()
       setDisciplines(Object.keys(properties))
+
     }
 
     fetchData()
+
   }, [])
+
+  // Obtener usuarios con rol 5 (Planificador)
+  const getPlannerData = async () => {
+    // Realiza la consulta según el campo proporcionado
+    const q = query(collection(db, 'users'), where('role', '==', 5))
+
+    let plannerArray = []
+
+    try {
+      const querySnapshot = await getDocs(q)
+
+      if (querySnapshot.empty) {
+        console.log(`No se encontró ningún Planificador`)
+
+        return null
+      } else {
+        const queryDocs = querySnapshot.docs
+        queryDocs.forEach(doc => {
+          plannerArray.push(doc.data())
+        })
+
+        return plannerArray
+      }
+    } catch (error) {
+      console.log('Error al buscar Planificador: ', error)
+
+      return null
+    }
+  }
+
+  // Obtener usuarios con rol 6 (Administrador de Contrato)
+  const getContractAdministratorData = async () => {
+    // Realiza la consulta según el campo proporcionado
+    const q = query(collection(db, 'users'), where('role', '==', 6))
+
+    let contractAdministratorArray = []
+
+    try {
+      const querySnapshot = await getDocs(q)
+
+      if (querySnapshot.empty) {
+        console.log(`No se encontró ningún Administrador de Contrato`)
+
+        return null
+      } else {
+        const queryDocs = querySnapshot.docs
+        queryDocs.forEach(doc => {
+          contractAdministratorArray.push(doc.data())
+        })
+
+        return contractAdministratorArray
+      }
+    } catch (error) {
+      console.log('Error al buscar al Administrador de Contrato: ', error)
+
+      return null
+    }
+  }
+
+  // Función para obtener los usuarios que deben ir en copia en los e-mails de asignación.
+  const getUserEmailOnCopy = async () => {
+
+    let usersOnCopy = []
+
+    // Se obtienen los datos de C.Owner, petitioner y Planificador
+    const usersData = await Promise.all([getPlannerData(), getContractAdministratorData()])
+    const plannerData = usersData[0]
+    const contractAdministratorData = usersData[1]
+
+    // Se definen los emails de Planificador
+    const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
+    const contractAdministratorEmail = contractAdministratorData.filter(doc => doc.enabled != false).map(data => data.email)
+
+    usersOnCopy.push(...plannerEmail, ...contractAdministratorEmail)
+
+    return usersOnCopy
+
+  }
 
   const handleChangeTypeOfDiscipline = async event => {
     setTypeOfDiscipline(event.target.value)
@@ -87,9 +173,11 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
         const codes = await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
 
+        const usersOnCopy = await getUserEmailOnCopy()
+
         // Se envia el e-mail con toda la información de la Solicitud.
         for (let i = 0; i < quantity; i++) {
-          await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i])
+          await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
         }
 
         handleClose()
