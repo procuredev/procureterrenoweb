@@ -824,7 +824,7 @@ const getNextRevision = async (
         action()
       }
     })
-  } else if (role === 7 && approve && userId === uid) {
+  } else if (role === 7 && approves && userId === uid) {
     // Define las acciones posibles
     const actions = {
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
@@ -974,12 +974,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentByDesigner: approves,
             attentive: approves ? 9 : 8,
             approvedBySupervisor: approves,
-            storageBlueprints:
-              approves && remarks === false
-                ? blueprint.storageBlueprints[0]
-                : approves
-                ? blueprint.storageBlueprints
-                : null
+            storageBlueprints: approves ? blueprint.storageBlueprints : null
           }
     },
     8: () => ({
