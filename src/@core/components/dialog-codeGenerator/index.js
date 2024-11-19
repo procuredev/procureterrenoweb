@@ -124,7 +124,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
     }
   }
 
-  // Función para obtener los usuarios que deben ir en copia en los e-mails de asignación.
+  // Función para obtener los usuarios que deben ir en copia en los e-mails de asignación del Entregable.
   const getUserEmailOnCopy = async () => {
 
     let usersOnCopy = []
@@ -173,9 +173,11 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
         const codes = await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
 
+        // Se obtienen los usuarios que deben ir en copia en este e-mail.
         const usersOnCopy = await getUserEmailOnCopy()
 
         // Se envia el e-mail con toda la información de la Solicitud.
+        // Se enviarán tantos e-mails como entregables a los que fué asignado.
         for (let i = 0; i < quantity; i++) {
           await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
         }
