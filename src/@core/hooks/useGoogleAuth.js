@@ -40,10 +40,10 @@ export const useGoogleAuth = () => {
     const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
 
     if (storedParams && storedParams.access_token) {
-      console.log('storedParams.access_token', storedParams.access_token)
+      // console.log('storedParams.access_token', storedParams.access_token)
       validateAccessToken(storedParams.access_token)
         .then(isValid => {
-          console.log('isValid', isValid)
+          // console.log('isValid', isValid)
           if (isValid) {
             setAccessToken(storedParams.access_token)
             setIsLoading(false)

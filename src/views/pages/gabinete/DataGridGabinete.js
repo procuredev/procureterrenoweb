@@ -180,7 +180,7 @@ const DataGridGabinete = () => {
     // Obtiene los documentos seleccionados del apiRef de DataGrid
     const selectedDocuments = apiRef.current.getSelectedRows()
     setSelectedDocs(Array.from(selectedDocuments.values()))
-    console.log(selectedDocuments)
+    // console.log(selectedDocuments)
     if (selectedDocuments.size === 0) {
       setErrorTransmittal(true)
     } else {

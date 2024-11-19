@@ -170,7 +170,7 @@ export const UploadBlueprintsDialog = ({
 
   const validateFileName = acceptedFiles => {
     const expectedClientCode = values.clientCode
-    console.log('authUser', authUser)
+    // console.log('authUser', authUser)
 
     const expectedRevision = getNextRevisionFolderName(doc, authUser)
 
