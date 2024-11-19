@@ -12,7 +12,6 @@ import {
   Typography,
   Box,
   IconButton,
-  Tooltip,
   Link,
   CircularProgress,
   List,
@@ -24,40 +23,14 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
-import FileCopyIcon from '@mui/icons-material/FileCopy'
 import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
 import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import { useTheme } from '@mui/material/styles'
-
-// Función para obtener el ícono adecuado según el tipo de archivo
-const getFileIcon = fileType => {
-  switch (fileType) {
-    case 'application/pdf':
-      return 'mdi:file-pdf'
-    case 'application/msword':
-    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-      return 'mdi:file-word'
-    case 'application/vnd.ms-excel':
-    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-      return 'mdi:file-excel'
-    default:
-      return 'mdi:file-document-outline'
-  }
-}
-
-let rootFolder
-
-if (typeof window !== 'undefined') {
-  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
-    rootFolder = '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' //* carpeta original "72336"
-  } else {
-    rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
-  }
-} else {
-  rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
-}
+import { getRootFolder } from 'src/@core/utils/constants'
+import { validateFileName, handleFileUpload } from 'src/@core/utils/fileHandlers'
+import { validateFiles, getFileIcon } from 'src/@core/utils/fileValidation'
 
 export default function AlertDialogGabinete({
   open,
@@ -77,19 +50,19 @@ export default function AlertDialogGabinete({
   checkRoleAndApproval
 }) {
   const [values, setValues] = useState({})
-  const [toggleRemarks, setToggleRemarks] = useState(false)
-  const [toggleAttach, setToggleAttach] = useState(false)
+  const [toggleRemarks, setToggleRemarks] = useState(!approves)
+  const [toggleAttach, setToggleAttach] = useState(!approves)
   const [files, setFiles] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const [errorDialog, setErrorDialog] = useState(false)
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const previousBlueprintRef = useRef(blueprint)
 
   const theme = useTheme()
+  const rootFolder = getRootFolder()
   const { updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
-  const { uploadFile, fetchFolders } = useGoogleDriveFolder()
+  const { uploadFile, fetchFolders, createFolder } = useGoogleDriveFolder()
 
   // Condición para habilitar el botón de rechazo si hay más de un blueprint y el campo de observaciones está lleno
   const canReject = blueprint?.storageBlueprints?.length > 1 && remarksState.length > 0
@@ -104,25 +77,6 @@ export default function AlertDialogGabinete({
       : toggleAttach
       ? blueprint?.storageBlueprints?.length > 1 && remarksState.length > 0
       : approves
-
-  // Definir valores iniciales basados en blueprint
-  const initialValues = {
-    id: blueprint?.id,
-    clientCode: blueprint?.clientCode,
-    userId: blueprint?.userId,
-    userName: blueprint?.userName,
-    userEmail: blueprint?.userEmail,
-    revision: blueprint?.revision,
-    storageBlueprints: blueprint?.storageBlueprints,
-    storageHlcDocuments: blueprint?.storageHlcDocuments,
-    description: blueprint?.description,
-    date: blueprint?.date
-  }
-
-  // Actualizar el estado values cuando blueprint cambia
-  /* useEffect(() => {
-    setValues(initialValues)
-  }, [blueprint]) */
 
   useEffect(() => {
     const { storageBlueprints, ...otherBlueprintFields } = blueprint || {} // Excluye storageBlueprints
@@ -153,181 +107,11 @@ export default function AlertDialogGabinete({
     }
   }, [blueprint.storageBlueprints])
 
-  // Actualizar estados en caso de aprobación
+  // Actualiza estados en caso de aprobación
   useEffect(() => {
     setToggleRemarks(!approves)
     setToggleAttach(!approves)
   }, [approves])
-
-  const getNextRevisionFolderName = (blueprint, authUser) => {
-    let newRevision = blueprint.revision
-
-    const nextCharCode = blueprint.revision.charCodeAt(0) + 1
-    const nextChar = String.fromCharCode(nextCharCode)
-
-    // Verifica si el id contiene "M3D" antes del último guion
-    const isM3D = blueprint.id.split('-').slice(-2, -1)[0] === 'M3D'
-
-    const isRole8 = authUser.role === 8
-    const isRole7 = authUser.role === 7
-
-    if (isRole8 || (isRole7 && blueprint.userId === authUser.uid)) {
-      const actions = {
-        keepRevision: {
-          condition: () =>
-            blueprint.revision.charCodeAt(0) >= 48 &&
-            blueprint.approvedByClient === true &&
-            blueprint.approvedByDocumentaryControl === false,
-          action: () => (newRevision = blueprint.revision)
-        },
-        resetRevision: {
-          condition: () => blueprint.revision.charCodeAt(0) >= 66 && blueprint.approvedByClient === true,
-          action: () => (newRevision = '0')
-        },
-        incrementRevision: {
-          condition: () =>
-            (blueprint.revision.charCodeAt(0) >= 66 || blueprint.revision.charCodeAt(0) >= 48) &&
-            blueprint.approvedByClient === false &&
-            blueprint.approvedByDocumentaryControl === true,
-          action: () => (newRevision = nextChar)
-        },
-        startRevision: {
-          condition: () => blueprint.revision === 'iniciado' && !isM3D,
-          action: () => (newRevision = 'A')
-        },
-        incrementRevisionInA: {
-          condition: () => blueprint.revision === 'A',
-          action: () => (newRevision = blueprint.approvedByDocumentaryControl ? nextChar : blueprint.revision)
-        },
-        dotCloud: {
-          condition: () => blueprint.revision === 'iniciado' && isM3D,
-          action: () => {
-            newRevision = '0'
-          }
-        }
-      }
-
-      Object.values(actions).forEach(({ condition, action }) => {
-        if (condition()) {
-          action()
-        }
-      })
-    }
-
-    return newRevision
-  }
-
-  // Manejar validación del nombre de archivo
-  const validateFileName = acceptedFiles => {
-    const expectedClientCode = values.clientCode
-
-    const expectedRevision = getNextRevisionFolderName(blueprint, authUser)
-
-    let expectedFileName = null
-
-    if (authUser.role === 8 || (authUser.role === 7 && blueprint.userId === authUser.uid)) {
-      expectedFileName = `${expectedClientCode}_REV_${expectedRevision}`
-    } else if (
-      authUser.role === 9 &&
-      blueprint.approvedByDocumentaryControl &&
-      !checkRoleAndApproval(authUser.role, blueprint)
-    ) {
-      expectedFileName = `${expectedClientCode}_REV_${expectedRevision}_HLC`
-    } else {
-      const currentName = authUser.displayName
-
-      const initials = currentName
-        .toUpperCase()
-        .split(' ')
-        .map(word => word.charAt(0))
-        .join('')
-
-      expectedFileName = `${expectedClientCode}_REV_${expectedRevision}_${initials}`
-    }
-
-    const handleCopyToClipboard = text => {
-      navigator.clipboard
-        .writeText(text)
-        .then(() => {
-          console.log('Texto copiado al portapapeles:', text)
-        })
-        .catch(err => {
-          console.error('Error al copiar al portapapeles:', err)
-        })
-    }
-
-    const validationResults = acceptedFiles.map(file => {
-      const fileNameWithoutExtension = file.name.split('.').slice(0, -1).join('.') // Quita la extensión del archivo
-
-      const isValid = fileNameWithoutExtension === expectedFileName
-
-      return {
-        name: file.name,
-        isValid,
-        msj: isValid ? (
-          `${file.name}`
-        ) : (
-          <Typography variant='body2'>
-            El nombre del archivo debe ser:{' '}
-            <Typography variant='body2' component='span' color='primary'>
-              {expectedFileName}
-              <Tooltip title='Copiar'>
-                <IconButton
-                  sx={{ ml: 3 }}
-                  size='small'
-                  onClick={() => handleCopyToClipboard(expectedFileName)}
-                  aria-label='copiar'
-                >
-                  <FileCopyIcon fontSize='small' />
-                  <Typography>copiar</Typography>
-                </IconButton>
-              </Tooltip>
-            </Typography>
-            <br />
-            <br />
-            El nombre del archivo que intentó subir es:{' '}
-            <Typography variant='body2' component='span' color='error'>
-              {fileNameWithoutExtension}
-            </Typography>
-          </Typography>
-        )
-      }
-    })
-
-    return validationResults
-  }
-
-  const validateFiles = acceptedFiles => {
-    const imageExtensions = ['jpeg', 'jpg', 'png', 'webp', 'bmp', 'tiff', 'svg', 'heif', 'HEIF']
-    const documentExtensions = ['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'csv', 'txt']
-    const maxSizeBytes = 5 * 1024 * 1024 // 5 MB in bytes
-
-    const isValidImage = file => {
-      const extension = file.name.split('.').pop().toLowerCase()
-
-      return imageExtensions.includes(extension) && file.size <= maxSizeBytes
-    }
-
-    const isValidDocument = file => {
-      const extension = file.name.split('.').pop().toLowerCase()
-
-      return documentExtensions.includes(extension) && file.size <= maxSizeBytes
-    }
-
-    const isValidFile = file => {
-      return isValidImage(file) || isValidDocument(file)
-    }
-
-    const validationResults = acceptedFiles.map(file => {
-      return {
-        name: file.name,
-        isValid: isValidFile(file),
-        msj: isValidFile(file) ? `${file.name}` : `${file.name} - El archivo excede el tamaño máximo de 5 MB`
-      }
-    })
-
-    return validationResults
-  }
 
   // Dropzone para manejar la carga de archivos
   const { getRootProps, getInputProps } = useDropzone({
@@ -339,7 +123,13 @@ export default function AlertDialogGabinete({
         return
       }
 
-      const invalidFileNames = validateFileName(acceptedFiles).filter(file => !file.isValid)
+      const invalidFileNames = validateFileName(
+        acceptedFiles,
+        values,
+        blueprint,
+        authUser,
+        checkRoleAndApproval
+      ).filter(file => !file.isValid)
       if (invalidFileNames.length > 0) {
         handleOpenErrorDialog(invalidFileNames[0].msj)
 
@@ -360,73 +150,6 @@ export default function AlertDialogGabinete({
   const handleCloseErrorDialog = () => {
     setErrorDialog(false)
     setRemarksState('')
-  }
-
-  const getPlantAbbreviation = plantName => {
-    const plantMap = {
-      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
-      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
-      'Instalaciones Escondida Water Supply': 'IEWS',
-      'Planta Concentradora Los Colorados': 'PCLC',
-      'Instalaciones Cátodo': 'ICAT',
-      'Chancado y Correas': 'CHCO',
-      'Puerto Coloso': 'PCOL'
-    }
-
-    return plantMap[plantName] || ''
-  }
-
-  // Función para subir archivos a Google Drive y actualizar Firestore
-  const handleFileUpload = async () => {
-    if (files && blueprint.id) {
-      setIsUploading(true)
-      try {
-        // Paso 1: Buscar la carpeta correspondiente en Google Drive
-        const plantFolders = await fetchFolders(rootFolder)
-
-        const plantFolder = plantFolders.files.find(folder =>
-          folder.name.includes(getPlantAbbreviation(petition.plant))
-        )
-
-        if (plantFolder) {
-          const areaFolders = await fetchFolders(plantFolder.id)
-          const areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
-
-          if (areaFolder) {
-            const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
-            const existingProjectFolders = await fetchFolders(areaFolder.id)
-            const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
-
-            if (projectFolder) {
-              const trabajoFolders = await fetchFolders(projectFolder.id)
-              const trabajoFolder = trabajoFolders.files.find(folder => folder.name === 'EN TRABAJO')
-
-              if (trabajoFolder) {
-                // Paso 2: Subir el archivo a la carpeta "EN TRABAJO"
-                const fileData = await uploadFile(files.name, files, trabajoFolder.id)
-
-                if (fileData && fileData.id) {
-                  const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
-
-                  // Paso 3: Actualizar Firestore con el enlace al archivo en Google Drive
-
-                  await updateBlueprintsWithStorageOrHlc(petitionId, blueprint.id, fileLink, fileData.name, 'storage')
-                  setFiles(null)
-
-                  // Llamar a onFileUpload para actualizar el estado en el componente padre
-                  onFileUpload(fileLink, fileData.name)
-                  setFiles(null)
-                }
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error al cargar el archivo a Google Drive:', error)
-        setError('Error al cargar el archivo. Intente nuevamente.')
-      }
-      setIsUploading(false)
-    }
   }
 
   const handleRemoveFile = () => {
@@ -506,8 +229,8 @@ export default function AlertDialogGabinete({
       onClose={() => {
         handleClose()
         setFiles(null)
-        setToggleRemarks(false)
-        setToggleAttach(false)
+        setToggleRemarks(!approves)
+        setToggleAttach(!approves)
         setRemarksState('')
         setErrorDialog(false)
         setError('')
@@ -539,7 +262,7 @@ export default function AlertDialogGabinete({
         </DialogContentText>
 
         {(approves && authUser.role === 9 && blueprint?.approvedByDocumentaryControl === true) ||
-        (approves && authUser.role === 9 && blueprint?.revision === 'A') ? ( // Se comenta condicionales por petición de QA
+        (approves && authUser.role === 9 && blueprint?.revision === 'A') ? (
           <FormControlLabel
             control={<Checkbox onChange={() => setToggleRemarks(!toggleRemarks)} />}
             sx={{ mt: 4 }}
@@ -622,7 +345,28 @@ export default function AlertDialogGabinete({
                         color='primary'
                         sx={{ m: 2 }}
                         variant='outlined'
-                        onClick={handleFileUpload}
+                        onClick={async () => {
+                          try {
+                            setIsUploading(true)
+                            await handleFileUpload({
+                              files,
+                              blueprint,
+                              petitionId,
+                              petition,
+                              fetchFolders,
+                              uploadFile,
+                              createFolder,
+                              updateBlueprintsWithStorageOrHlc,
+                              rootFolder,
+                              onFileUpload
+                            })
+                            setFiles(null)
+                          } catch (error) {
+                            console.error('Error al subir el archivo:', error)
+                          } finally {
+                            setIsUploading(false)
+                          }
+                        }}
                         disabled={isLoading}
                       >
                         'Subir archivo'
@@ -664,8 +408,8 @@ export default function AlertDialogGabinete({
         <Button
           onClick={() => {
             setRemarksState('')
-            setToggleRemarks(false)
-            setToggleAttach(false)
+            setToggleRemarks(!approves)
+            setToggleAttach(!approves)
             setErrorDialog(false)
             setError('')
             setFiles(null)
