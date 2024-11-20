@@ -17,9 +17,7 @@ import {
   List,
   ListItem,
   ListItemSecondaryAction,
-  ListItemText,
-  Grid,
-  Paper
+  ListItemText
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
@@ -27,10 +25,10 @@ import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
 import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
-import { useTheme } from '@mui/material/styles'
 import { getRootFolder } from 'src/@core/utils/constants'
 import { validateFileName, handleFileUpload } from 'src/@core/utils/fileHandlers'
-import { validateFiles, getFileIcon } from 'src/@core/utils/fileValidation'
+import { validateFiles } from 'src/@core/utils/fileValidation'
+import FileList from 'src/@core/components/file-list'
 
 export default function AlertDialogGabinete({
   open,
@@ -59,7 +57,6 @@ export default function AlertDialogGabinete({
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const previousBlueprintRef = useRef(blueprint)
 
-  const theme = useTheme()
   const rootFolder = getRootFolder()
   const { updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
   const { uploadFile, fetchFolders, createFolder } = useGoogleDriveFolder()
@@ -155,49 +152,6 @@ export default function AlertDialogGabinete({
   const handleRemoveFile = () => {
     setFiles(null)
   }
-
-  const fileList = (
-    <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
-      {files && (
-        <Grid item key={files.name}>
-          <Paper
-            elevation={0}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '10px',
-              border: `4px solid ${theme.palette.primary.main}`,
-              borderRadius: '4px',
-              width: '220px',
-              position: 'relative' // esta propiedad posiciona el icono correctamente
-            }}
-          >
-            {files.type.startsWith('image') ? (
-              <img width={50} height={50} alt={files.name} src={URL.createObjectURL(files)} />
-            ) : (
-              <Icon icon={getFileIcon(files.type)} fontSize={50} />
-            )}
-            <Typography
-              variant='body2'
-              sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
-            >
-              {`... ${files.name.slice(files.name.length - 15, files.name.length)}`}
-            </Typography>
-            <IconButton
-              onClick={handleRemoveFile}
-              sx={{
-                position: 'absolute', // Posiciona el icono en relación al Paper
-                top: '0px', // Ajusta el valor según la posición vertical deseada
-                right: '0px' // Ajusta el valor según la posición horizontal deseada
-              }}
-            >
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Paper>
-        </Grid>
-      )}
-    </Grid>
-  )
 
   const isRole9 = authUser.role === 9 // Ctrl. Documental : C-Doc
   const isRole8 = authUser.role === 8 // Proyectista
@@ -336,7 +290,9 @@ export default function AlertDialogGabinete({
 
                 {toggleAttach && files && (
                   <Fragment>
-                    <List>{fileList}</List>
+                    <List>
+                      <FileList files={files} handleRemoveFile={handleRemoveFile} />
+                    </List>
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                       <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveFile}>
                         Quitar

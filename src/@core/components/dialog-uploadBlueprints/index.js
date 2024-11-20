@@ -1,3 +1,4 @@
+import React, { Fragment, useEffect, useState } from 'react'
 import {
   Button,
   Dialog,
@@ -17,7 +18,6 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Box from '@mui/system/Box'
-import React, { Fragment, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import AlertDialog from 'src/@core/components/dialog-warning'
@@ -31,6 +31,7 @@ import CustomListItem from 'src/@core/components/custom-list'
 import { getRootFolder } from 'src/@core/utils/constants'
 import { getPlantAbbreviation, validateFileName, handleFileUpload } from 'src/@core/utils/fileHandlers'
 import { validateFiles, getFileIcon } from 'src/@core/utils/fileValidation'
+import FileList from 'src/@core/components/file-list'
 
 export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, checkRoleAndApproval }) => {
   let id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments
@@ -66,13 +67,7 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
   const theme = useTheme()
   const rootFolder = getRootFolder()
 
-  const {
-    updateDocs,
-    authUser,
-    addDescription,
-    uploadFilesToFirebaseStorage,
-    updateBlueprintsWithStorageOrHlc
-  } = useFirebase()
+  const { updateDocs, authUser, addDescription, updateBlueprintsWithStorageOrHlc } = useFirebase()
 
   // Verifica estado
   revision = typeof revision === 'string' ? revision : 100
@@ -197,49 +192,6 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
   const handleRemoveHLC = () => {
     setHlcDocuments(null)
   }
-
-  const fileList = (
-    <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
-      {files && (
-        <Grid item key={files.name}>
-          <Paper
-            elevation={0}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '10px',
-              border: `4px solid ${theme.palette.primary.main}`,
-              borderRadius: '4px',
-              width: '220px',
-              position: 'relative' // esta propiedad posiciona el icono correctamente
-            }}
-          >
-            {files.type.startsWith('image') ? (
-              <img width={50} height={50} alt={files.name} src={URL.createObjectURL(files)} />
-            ) : (
-              <Icon icon={getFileIcon(files.type)} fontSize={50} />
-            )}
-            <Typography
-              variant='body2'
-              sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', ml: '10px' }}
-            >
-              {`... ${files.name.slice(files.name.length - 15, files.name.length)}`}
-            </Typography>
-            <IconButton
-              onClick={handleRemoveFile}
-              sx={{
-                position: 'absolute', // Posiciona el icono en relación al Paper
-                top: '0px', // Ajusta el valor según la posición vertical deseada
-                right: '0px' // Ajusta el valor según la posición horizontal deseada
-              }}
-            >
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Paper>
-        </Grid>
-      )}
-    </Grid>
-  )
 
   const hlcList = (
     <Grid container spacing={2} sx={{ justifyContent: 'center', m: 2 }}>
@@ -560,7 +512,9 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
                         )}
                         {files && (
                           <Fragment>
-                            <List>{fileList}</List>
+                            <List>
+                              <FileList files={files} handleRemoveFile={handleRemoveFile} />
+                            </List>
                             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                               <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveAllFiles}>
                                 Quitar
