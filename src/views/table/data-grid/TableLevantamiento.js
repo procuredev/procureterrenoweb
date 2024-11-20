@@ -146,14 +146,23 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   useEffect(() => {
     const fetchProyectistas = async () => {
       const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
+      const resSupervisor = await getUserData('getUserSupervisor', null, authUser)
 
       const filteredProyectistas = resProyectistas.filter(
         user =>
           user.enabled === true &&
-          (user.role === 7 || user.role === 8) &&
+          user.role === 8 &&
+          (user.shift.includes(authUser.shift[0]) || user.shift.includes(authUser.shift[1]))
+      )
+
+      const filteredSupervisor = resSupervisor.filter(
+        user =>
+          user.enabled === true &&
+          user.role === 7 &&
           (user.shift.includes(authUser.shift[0]) || user.shift.includes(authUser.shift[1]))
       )
       setProyectistas(filteredProyectistas)
+      setProyectistas([...filteredProyectistas, ...filteredSupervisor])
       setLoadingProyectistas(false)
     }
 

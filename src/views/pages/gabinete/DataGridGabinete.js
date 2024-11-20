@@ -268,7 +268,8 @@ const DataGridGabinete = () => {
         if (authUser) {
           // Carga los proyectistas
           const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
-          setProyectistas(resProyectistas)
+          const resSupervisor = await getUserData('getUserSupervisor', null, authUser)
+          setProyectistas([...resProyectistas, ...resSupervisor])
         }
       }
 
