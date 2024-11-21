@@ -27,6 +27,7 @@ import { db } from 'src/configs/firebase'
 import { getUnixTime } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
+import { sendEmailDeliverableNextRevision } from './mailing/sendEmailDeliverableNextRevision'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 
 const moment = require('moment')
@@ -1054,6 +1055,16 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   nextRevision.newBlueprintPercent = updateData.blueprintPercent
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
+
+  console.log(nextRevision)
+  console.log(updateData)
+
+  // Función para enviar emails de forma automática.
+  // userParam es el usuario conectado que ejecuta la acción.
+  // petitionID es el ID del la Solicitud/OT en Firestore.
+  // blueprint es el objeto con la información del entregable
+  // updateData es un objeto que contiene datos del siguiente revisor ("attentive" Rol del siguiente revisor , bla, bla)
+  await sendEmailDeliverableNextRevision(userParam, petitionID, blueprint, updateData)
 
   // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
   const solicitudDocBefore = await getDoc(solicitudRef)
