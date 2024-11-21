@@ -307,7 +307,7 @@ export const sendEmailDeliverableNextRevision = async (user, petitionID, bluepri
         deliverableId: blueprint.id,
         emailType: 'DeliverableNextRevisor',
         message: {
-          subject: `Revsión de Entregable // OT ${petitionData.ot} // ${blueprint.id} // ${blueprint.clientCode}:`,
+          subject: `Revisión de Entregable // OT ${petitionData.ot} // ${blueprint.id} // ${blueprint.clientCode}:`,
           html: emailHtml
         }
       })
