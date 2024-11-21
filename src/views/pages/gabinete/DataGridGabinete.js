@@ -530,6 +530,8 @@ const DataGridGabinete = () => {
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
           showReasignarSection={showReasignarSection}
+          isValidToken={isValidToken}
+          setIsDialogOpen={setIsDialogOpen}
         />
       </Box>
       <DialogAssignGabineteDraftmen

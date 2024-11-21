@@ -146,7 +146,6 @@ export default function AlertDialogGabinete({
 
   const handleCloseErrorDialog = () => {
     setErrorDialog(false)
-    setRemarksState('')
   }
 
   const handleRemoveFile = () => {
