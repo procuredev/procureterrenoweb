@@ -52,8 +52,6 @@ export const DialogAssignGabineteDraftmen = ({
     }
   }, [doc])
 
-  console.log('proyectistas', proyectistas)
-
   const filterOptions = options => {
     // Convierte las opciones seleccionadas y las existentes en doc.gabineteDraftmen en arrays de nombres
     const selectedNamesFromState = gabineteDraftmenState.map(gabineteDraftmen => gabineteDraftmen.name)

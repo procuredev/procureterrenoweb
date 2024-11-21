@@ -63,7 +63,7 @@ const DataGridGabinete = () => {
   const apiRef = useGridApiRef()
 
   const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
-  const { renderDialog } = useGoogleAuth()
+  const { renderDialog, isValidToken, setIsDialogOpen } = useGoogleAuth()
 
   const currentPetitionRef = useRef()
 
@@ -183,6 +183,10 @@ const DataGridGabinete = () => {
     // console.log(selectedDocuments)
     if (selectedDocuments.size === 0) {
       setErrorTransmittal(true)
+    } else if (!isValidToken) {
+      {
+        setIsDialogOpen(true)
+      }
     } else {
       setOpenTransmittalDialog(true)
     }
@@ -273,7 +277,7 @@ const DataGridGabinete = () => {
         }
       }
 
-      fetchRoleAndProyectistas()
+      authUser.role === 7 && fetchRoleAndProyectistas()
     }
   }, [authUser, currentPetition])
 
@@ -580,6 +584,7 @@ const DataGridGabinete = () => {
               setIsLoading(true)
             }}
             color='primary'
+            disabled={isLoading}
           >
             Confirmar
           </Button>

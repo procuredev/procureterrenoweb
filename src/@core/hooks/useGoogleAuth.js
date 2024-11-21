@@ -35,6 +35,7 @@ export const useGoogleAuth = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isValidToken, setIsValidToken] = useState(false)
 
   useEffect(() => {
     const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
@@ -44,6 +45,7 @@ export const useGoogleAuth = () => {
       validateAccessToken(storedParams.access_token)
         .then(isValid => {
           // console.log('isValid', isValid)
+          setIsValidToken(isValid)
           if (isValid) {
             setAccessToken(storedParams.access_token)
             setIsLoading(false)
@@ -228,6 +230,8 @@ export const useGoogleAuth = () => {
     oauth2SignIn,
     refreshAccessToken,
     handleGoogleDriveAuthorization,
-    renderDialog // Devuelve el diálogo para que pueda ser utilizado en otros componentes
+    renderDialog, // Devuelve el diálogo para que pueda ser utilizado en otros componentes
+    isValidToken,
+    setIsDialogOpen
   }
 }
