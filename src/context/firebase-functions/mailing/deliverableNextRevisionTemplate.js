@@ -14,8 +14,8 @@ export const getEmailTemplate = (
   return `<h2>Estimad@ ${revisorsNames}:</h2>
       <p>Es tu turno de revisar un Entregable de la OT ${petitionData.ot}:</p>
       <ul>
-        <li>Código Procure: ${blueprint.id}_REV_${updateData.revision}</li>
-        <li>Código MEL: ${blueprint.clientCode}_REV_${updateData.revision}</li>
+        <li>Código Procure: ${blueprint.id}</li>
+        <li>Código MEL: ${blueprint.clientCode}</li>
       </ul>
       <p>Para mayor información revise la información disponible en Gabinete en nuestra página web</p>
       <p>Saludos,<br><a href="https://www.prosite.cl/gabinete">Gabinete Prosite</a></p>`;

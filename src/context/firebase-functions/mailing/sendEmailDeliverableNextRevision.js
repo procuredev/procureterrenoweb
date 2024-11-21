@@ -256,7 +256,7 @@ export const sendEmailDeliverableNextRevision = async (user, petitionID, bluepri
 
   // Si attentive es 4 (Control Documental aprueba Documento para emitir a Cliente)...
   // => Se detiene la ejecución del envío de email.
-  if (updateData && updateData.attentive && updateData.attentive === 4) {
+  if (updateData && updateData.attentive && (updateData.attentive === 4 || updateData.attentive === 10 )) {
     return
   }
 
@@ -291,6 +291,7 @@ export const sendEmailDeliverableNextRevision = async (user, petitionID, bluepri
         petitionData,
         blueprint,
         updateData
+        //nextRevision
       )
 
       let sendTo = [...nextRevisorEmail]
