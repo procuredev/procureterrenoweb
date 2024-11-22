@@ -16,35 +16,6 @@ const getUserData = async id => {
   return userData
 }
 
-// Función que busca dentro de la colección indicada y según el campo/field que se indique y que el valor/value sea igual al indicado. Esto retornará el UID de la solicitud.
-const searchbyColletionAndField = async (col, field, value) => {
-  // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, col), where(field, '==', value))
-  let uid = []
-
-  try {
-    const querySnapshot = await getDocs(q)
-
-    if (querySnapshot.empty) {
-      console.log(`No se encontró ningún valor en ${col} en el campo ${field}`)
-
-      return null
-    } else {
-      // Accede al UID de la solicitud encontrada
-      const queryDocs = querySnapshot.docs
-      queryDocs.forEach(doc => {
-        uid.push(doc.id)
-      })
-
-      return uid
-    }
-  } catch (error) {
-    console.log('Error al buscar la solicitud: ', error)
-
-    return null
-  }
-}
-
 // Obtener usuarios con rol 8 según su turno
 const getSupervisorData = async shift => {
   // Realiza la consulta según el campo proporcionado
@@ -69,35 +40,6 @@ const getSupervisorData = async shift => {
     }
   } catch (error) {
     console.log('Error al buscar la solicitud: ', error)
-
-    return null
-  }
-}
-
-// Obtener usuarios con rol 5 (Planificador)
-const getPlannerData = async () => {
-  // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, 'users'), where('role', '==', 5))
-
-  let plannerArray = []
-
-  try {
-    const querySnapshot = await getDocs(q)
-
-    if (querySnapshot.empty) {
-      console.log(`No se encontró ningún Planificador`)
-
-      return null
-    } else {
-      const queryDocs = querySnapshot.docs
-      queryDocs.forEach(doc => {
-        plannerArray.push(doc.data())
-      })
-
-      return plannerArray
-    }
-  } catch (error) {
-    console.log('Error al buscar Planificador: ', error)
 
     return null
   }
@@ -132,70 +74,24 @@ const getContractAdministratorData = async () => {
   }
 }
 
-// Obtener usuarios con rol 9 (Control Documental)
-const getControlDocumentData = async () => {
-  // Realiza la consulta según el campo proporcionado
-  const q = query(collection(db, 'users'), where('role', '==', 9))
-
-  let controlDocumentArray = []
-
-  try {
-    const querySnapshot = await getDocs(q)
-
-    if (querySnapshot.empty) {
-      console.log(`No se encontró ningún Planificador`)
-
-      return null
-    } else {
-      const queryDocs = querySnapshot.docs
-      queryDocs.forEach(doc => {
-        controlDocumentArray.push(doc.data())
-      })
-
-      return controlDocumentArray
-    }
-  } catch (error) {
-    console.log('Error al buscar Planificador: ', error)
-
-    return null
-  }
-}
-
-// Función para obtener los usuarios que deben ir en copia en los e-mails de asignación del Entregable.
-const getUserEmailOnCopy = async () => {
-
-  let usersOnCopy = []
-
-  // Se obtienen los datos de C.Owner, petitioner y Planificador
-  const usersData = await Promise.all([getPlannerData(), getContractAdministratorData()])
-  const plannerData = usersData[0]
-  const contractAdministratorData = usersData[1]
-
-  // Se definen los emails de Planificador
-  const plannerEmail = plannerData.filter(doc => doc.enabled != false).map(data => data.email)
-  const contractAdministratorEmail = contractAdministratorData.filter(doc => doc.enabled != false).map(data => data.email)
-
-  usersOnCopy.push(...plannerEmail, ...contractAdministratorEmail)
-
-  return usersOnCopy
-
-}
-
-const getUserRole = async (userId) => {
-
-}
-
-
+// Función para definir quién es el siguiente Revisor luego de ejecutar una Aprobación/Rechazo de Entregable.
+// petitionData es la información de la Solicitud/OT.
+// blueprint es la información del Entregable.
+// updateData es un objeto que se genera en 'updateBlueprint' que contiene entre otras cosas a 'attentive' que es...
+// un parámetro que define el Rol del siguiente revisor
 const getNextRevisorData = async (petitionData, blueprint, updateData) => {
 
   // nextRevisorData es la data del siguiente Revisor.
-  // En el caso de Control Documental, puede haber más de un usuario para ejecutar la revisión.
+  // Dependiendo del caso puede haber más de un usuario para ejecutar la revisión; por lo que es un array.
   let nextRevisorData = []
 
   // Caso 1 - Siguiente Revisor es Rol 6 (Administrador de Contrato)
   if (updateData && updateData.attentive && updateData.attentive === 6) {
 
+    // Se obtiene los datos del Administrador de Contrato (Rodrigo Fernández)
     const contractAdmintratorData = await getContractAdministratorData()
+
+    // Se llena la información de nextRevisorDarta usando la información de los usuarios que tienen Rol 6.
     contractAdmintratorData.forEach(user => {
       if(user.enabled && user.enabled != false) {
         nextRevisorData.push({name: user.name, email: user.email})
@@ -205,15 +101,29 @@ const getNextRevisorData = async (petitionData, blueprint, updateData) => {
     // Caso 2 - Siguiente Revisor es Rol 7 (Supervisor)
   } else if (updateData && updateData.attentive && updateData.attentive === 7) {
 
+    // Se obtiene el turno de la Solicitud.
     const deliverableSupervisorShift = petitionData.supervisorShift
+
+    // Se obtiene la información del Supervisor o Supervisores del turno definido en el Levantamiento.
     const supervisorData = await getSupervisorData(deliverableSupervisorShift)
 
+    // Se obtiene la información del Autor del Entregable.
     const blueprintAuthorData = await getUserData(blueprint.userId)
+
+    // Se almacena el Rol del Autor del Entregable.
     const blueprintAuthorRole = blueprintAuthorData.role
 
+    // Si el Rol del Autor es 7 (Supervisor)
     if (blueprintAuthorRole === 7) {
+      // Sólo podrá haber 1 Revisor, que es el Autor del Entregable.
+      // Por lo tanto en este caso le corresponde al Supervisor revisar un Entregable donde él es el Autor.
       nextRevisorData.push({name: blueprint.userName, email: blueprint.userEmail})
+
+      // En cualquier otro caso (Si Rol del Autor no es 7)
+      // Por lo tanto en este caso le corresponde al Supervisor revisar un Entregable done él no es el Autor.
     } else {
+
+      // Puede haber más de 1 Supervisor si el turno tuviera más de 1 Supervisor.
       supervisorData.forEach(user => {
         if(user.enabled && user.enabled != false) {
           nextRevisorData.push({name: user.name, email: user.email})
@@ -224,11 +134,15 @@ const getNextRevisorData = async (petitionData, blueprint, updateData) => {
     // Caso 3 - Siguiente Revisor es Rol 8 (Proyectista)
   } else if (updateData && updateData.attentive && updateData.attentive === 8) {
 
+    // Se almacena la información del Autor del Entregable.
     nextRevisorData.push({name: blueprint.userName, email: blueprint.userEmail})
 
     // Caso 4 - Siguiente Revisor es Rol 9 (Control Documental)
   } else if (updateData && updateData.attentive && updateData.attentive === 9) {
 
+    // Se define el nombre y e-mail a usar para Control Documental.
+    // Para Producción será 'controldoc72336@procure.cl'
+    // Para Staging será 'cdpruebas@procure.cl'
     if (typeof window !== 'undefined') {
       if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
         nextRevisorData.push({name: 'Control Documental', email: 'controldoc72336@procure.cl'})
@@ -254,19 +168,21 @@ const getNextRevisorData = async (petitionData, blueprint, updateData) => {
 // updateData es un objeto que contiene datos del siguiente revisor ("attentive" Rol del siguiente revisor , bla, bla)
 export const sendEmailDeliverableNextRevision = async (user, petitionID, blueprint, updateData) => {
 
-  // Si attentive es 4 (Control Documental aprueba Documento para emitir a Cliente)...
+  // Si attentive es 4 (Control Documental aprueba Documento para emitir a Cliente) o 10...
   // => Se detiene la ejecución del envío de email.
   if (updateData && updateData.attentive && (updateData.attentive === 4 || updateData.attentive === 10 )) {
     return
   }
 
-  const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
+  // Se llama a la colección mail de Firestore
+  const collectionRef = collection(db, 'mail')
 
   if (user !== null) {
-    const fechaCompleta = new Date() // Constante que almacena la fecha en que se genera la solcitud
+
+    // Constante que almacena la fecha en que se genera la solcitud
+    const fechaCompleta = new Date()
 
     // Declaración de variables
-
     let emailHtml
 
     // Try Catch
@@ -277,9 +193,9 @@ export const sendEmailDeliverableNextRevision = async (user, petitionID, bluepri
 
       const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
 
-      const petitionData = await fetchPetitionById(petitionID)
+      const petitionData = await fetchPetitionById(petitionID) // Se busca la información de la Solicitud/OT
 
-      const nextRevisorData = await getNextRevisorData(petitionData, blueprint, updateData)
+      const nextRevisorData = await getNextRevisorData(petitionData, blueprint, updateData) // Se define quien es el siguiente revisor.
 
       //const filteredNextRevisorData = nextRevisorData.filter(doc => doc.enabled != false)
       const nextRevisorName = nextRevisorData.map(data => data.name)
@@ -291,7 +207,6 @@ export const sendEmailDeliverableNextRevision = async (user, petitionID, bluepri
         petitionData,
         blueprint,
         updateData
-        //nextRevision
       )
 
       let sendTo = [...nextRevisorEmail]
@@ -314,7 +229,7 @@ export const sendEmailDeliverableNextRevision = async (user, petitionID, bluepri
 
       console.log('E-mail a Siguiente Revisor enviado con éxito.')
     } catch (error) {
-      console.error('Error al enviar email de siguiente revisor de entregable:', error)
+      console.error('Error al enviar email de Siguiente Revisor de entregable:', error)
       throw error
     }
   }

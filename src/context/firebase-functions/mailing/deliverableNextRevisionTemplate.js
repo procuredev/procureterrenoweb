@@ -1,7 +1,7 @@
-// draftmanName es el Nombre del usuario seleccionado por el Supervisor para hacer el Entregable.
-// SupervisorName es el nombre del Supervisor o usuario que asigna al Proyectista a ese Entregable.
-// ot es el objeto con toda la información del Levamtamiento.
-// Codes es un objeto que contiene el Código Procure(id) y Código Cliente(clientCode) del Entregable.
+// nextRevisorName es el Nombre del siguiente Revisor.
+// petitionData es la información de la Solicitud de Levantamiento / OT.
+// blueprint es la información del Entregable.
+// updateData es un objeto que contiene datos del siguiente revisor ("attentive" Rol del siguiente revisor , bla, bla)
 export const getEmailTemplate = (
   nextRevisorName,
   petitionData,
