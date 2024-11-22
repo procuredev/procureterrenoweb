@@ -85,10 +85,13 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
     date
   }
 
-  // Actualiza el estado al cambiar de documento, sólo valores obligatorios
   useEffect(() => {
-    setValues(initialValues)
-  }, [doc])
+    const { description, ...otherValues } = initialValues
+    setValues(prevValues => ({
+      ...otherValues,
+      description: prevValues.description || description
+    }))
+  }, [id, clientCode, userId, userName, userEmail, revision, storageBlueprints, storageHlcDocuments, date])
 
   const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
 

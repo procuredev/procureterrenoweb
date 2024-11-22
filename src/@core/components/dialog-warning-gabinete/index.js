@@ -83,15 +83,15 @@ export default function AlertDialogGabinete({
       ...otherBlueprintFields // Actualiza solo si otros campos de blueprint han cambiado
     }))
   }, [
-    blueprint.id,
-    blueprint.clientCode,
-    blueprint.userId,
-    blueprint.userName,
-    blueprint.userEmail,
-    blueprint.revision,
-    blueprint.storageHlcDocuments,
-    blueprint.description,
-    blueprint.date
+    blueprint?.id,
+    blueprint?.clientCode,
+    blueprint?.userId,
+    blueprint?.userName,
+    blueprint?.userEmail,
+    blueprint?.revision,
+    blueprint?.storageHlcDocuments,
+    blueprint?.description,
+    blueprint?.date
   ])
 
   useEffect(() => {

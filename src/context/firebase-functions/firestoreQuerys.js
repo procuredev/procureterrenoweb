@@ -312,6 +312,25 @@ const getUserData = async (type, plant, userParam = { shift: '', name: '', email
                 email: doc.data().email,
                 role: doc.data().role
               }
+          : type === 'getUserSupervisor'
+          ? doc.data().urlFoto
+            ? {
+                userId: doc.id,
+                name: doc.data().name,
+                avatar: doc.data().urlFoto,
+                enabled: doc.data().enabled,
+                shift: doc.data().shift,
+                email: doc.data().email,
+                role: doc.data().role
+              }
+            : {
+                userId: doc.id,
+                name: doc.data().name,
+                enabled: doc.data().enabled,
+                shift: doc.data().shift,
+                email: doc.data().email,
+                role: doc.data().role
+              }
           : type === 'getReceiverUsers'
           ? {
               id: doc.id,
