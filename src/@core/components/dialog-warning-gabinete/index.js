@@ -62,17 +62,17 @@ export default function AlertDialogGabinete({
   const { uploadFile, fetchFolders, createFolder } = useGoogleDriveFolder()
 
   // Condición para habilitar el botón de rechazo si hay más de un blueprint y el campo de observaciones está lleno
-  const canReject = blueprint?.storageBlueprints?.length > 1 && remarksState.length > 0
+  const canReject = blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
 
   const canAprove =
     toggleRemarks && !toggleAttach
-      ? approves && remarksState.length > 0 && blueprint?.storageBlueprints?.length < 2
-      : !toggleRemarks && blueprint?.storageBlueprints?.length > 1
+      ? approves && remarksState.length > 0 && blueprint.storageBlueprints?.length < 2
+      : !toggleRemarks && blueprint.storageBlueprints?.length > 1
       ? false
-      : toggleRemarks && !toggleAttach && blueprint?.storageBlueprints?.length > 1
+      : toggleRemarks && !toggleAttach && blueprint.storageBlueprints?.length > 1
       ? false
       : toggleAttach
-      ? blueprint?.storageBlueprints?.length > 1 && remarksState.length > 0
+      ? blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
       : approves
 
   useEffect(() => {
@@ -83,15 +83,15 @@ export default function AlertDialogGabinete({
       ...otherBlueprintFields // Actualiza solo si otros campos de blueprint han cambiado
     }))
   }, [
-    blueprint?.id,
-    blueprint?.clientCode,
-    blueprint?.userId,
-    blueprint?.userName,
-    blueprint?.userEmail,
-    blueprint?.revision,
-    blueprint?.storageHlcDocuments,
-    blueprint?.description,
-    blueprint?.date
+    blueprint.id,
+    blueprint.clientCode,
+    blueprint.userId,
+    blueprint.userName,
+    blueprint.userEmail,
+    blueprint.revision,
+    blueprint.storageHlcDocuments,
+    blueprint.description,
+    blueprint.date
   ])
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function AlertDialogGabinete({
       }))
       previousBlueprintRef.current = blueprint
     }
-  }, [blueprint?.storageBlueprints])
+  }, [blueprint.storageBlueprints])
 
   // Actualiza estados en caso de aprobación
   useEffect(() => {
@@ -214,8 +214,8 @@ export default function AlertDialogGabinete({
           el entregable?
         </DialogContentText>
 
-        {(approves && authUser.role === 9 && blueprint?.approvedByDocumentaryControl === true) ||
-        (approves && authUser.role === 9 && blueprint?.revision === 'A') ? (
+        {(approves && authUser.role === 9 && blueprint.approvedByDocumentaryControl === true) ||
+        (approves && authUser.role === 9 && blueprint.revision === 'A') ? (
           <FormControlLabel
             control={<Checkbox onChange={() => setToggleRemarks(!toggleRemarks)} />}
             sx={{ mt: 4 }}

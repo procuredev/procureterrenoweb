@@ -1623,23 +1623,25 @@ const TableGabinete = ({
         getRowHeight={row => (row.id === currentRow ? 'auto' : 'auto')}
         isRowExpanded={row => expandedRows.has(row.id)}
       />
-      <AlertDialogGabinete
-        open={openAlert}
-        handleClose={handleCloseAlert}
-        callback={writeCallback}
-        approves={approve}
-        authUser={authUser}
-        setRemarksState={setRemarksState}
-        remarksState={remarksState}
-        blueprint={doc && doc}
-        petition={petition}
-        petitionId={petitionId}
-        error={error}
-        setError={setError}
-        onFileUpload={handleFileUpload}
-        setDoc={setDoc}
-        checkRoleAndApproval={checkRoleAndApproval}
-      ></AlertDialogGabinete>
+      {doc && (
+        <AlertDialogGabinete
+          open={openAlert}
+          handleClose={handleCloseAlert}
+          callback={writeCallback}
+          approves={approve}
+          authUser={authUser}
+          setRemarksState={setRemarksState}
+          remarksState={remarksState}
+          blueprint={doc}
+          petition={petition}
+          petitionId={petitionId}
+          error={error}
+          setError={setError}
+          onFileUpload={handleFileUpload}
+          setDoc={setDoc}
+          checkRoleAndApproval={checkRoleAndApproval}
+        ></AlertDialogGabinete>
+      )}
 
       <Dialog sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width: '100%' } }} open={openDialog}>
         <DialogContent>
