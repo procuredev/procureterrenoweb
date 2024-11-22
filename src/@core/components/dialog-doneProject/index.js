@@ -175,8 +175,6 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       'Puerto Coloso': 'PCOL'
     }
 
-    console.log('plantMap[plantName]', plantMap[plantName])
-
     return plantMap[plantName] || ''
   }
 

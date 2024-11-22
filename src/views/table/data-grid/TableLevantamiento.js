@@ -485,8 +485,6 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
     }
   ]
 
-  console.log('proyectistas', proyectistas)
-
   return (
     <Card>
       <Box sx={{ height: 500 }}>

@@ -67,8 +67,6 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     }
   }
 
-  console.log('draftmen', draftmen)
-
   const onSubmit = async id => {
     setLoading(true)
     if (draftmen.length > 0) {

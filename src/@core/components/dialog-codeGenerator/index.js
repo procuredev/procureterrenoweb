@@ -42,8 +42,6 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
   const [quantity, setQuantity] = useState(1)
   const [selectedDraftman, setSelectedDraftman] = useState(null)
 
-  console.log('selectedDraftman', selectedDraftman)
-
   // ** Hooks
   const { fetchDisciplineProperties, fetchDeliverablesByDiscipline, generateBlueprintCodes, authUser } = useFirebase()
 
