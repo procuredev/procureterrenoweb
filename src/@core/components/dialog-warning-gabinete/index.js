@@ -102,7 +102,7 @@ export default function AlertDialogGabinete({
       }))
       previousBlueprintRef.current = blueprint
     }
-  }, [blueprint.storageBlueprints])
+  }, [blueprint?.storageBlueprints])
 
   // Actualiza estados en caso de aprobación
   useEffect(() => {
