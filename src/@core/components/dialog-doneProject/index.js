@@ -440,7 +440,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
-            disabled={isSubmitDisabled}
+            disabled={isSubmitDisabled || loading}
             onClick={() => onSubmit(doc.id)}
           >
             <EngineeringIcon sx={{ fontSize: 18 }} />
