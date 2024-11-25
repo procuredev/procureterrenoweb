@@ -173,6 +173,7 @@ export const handleFileUpload = async ({
   createFolder,
   updateBlueprintsWithStorageOrHlc,
   rootFolder,
+  authUser,
   onFileUpload = null
 }) => {
   if (!files || !blueprint.id) return null
@@ -180,7 +181,14 @@ export const handleFileUpload = async ({
   try {
     // Utilizamos createFolderStructure para manejar toda la lógica de carpetas
     const trabajoFolder = await createFolderStructure(petition, blueprint, rootFolder, fetchFolders, createFolder)
-    const fileData = await uploadFile(files.name, files, trabajoFolder.id)
+    const revisionFolderName = `REV_${await getNextRevisionFolderName(blueprint, authUser)}`
+    const revisionFolders = await fetchFolders(trabajoFolder.id)
+    let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
+
+    if (!revisionFolder) {
+      revisionFolder = await createFolder(revisionFolderName, trabajoFolder.id)
+    }
+    const fileData = await uploadFile(files.name, files, revisionFolder.id)
 
     if (fileData?.id) {
       const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`

@@ -538,7 +538,8 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
                                       uploadFile,
                                       createFolder,
                                       updateBlueprintsWithStorageOrHlc,
-                                      rootFolder
+                                      rootFolder,
+                                      authUser
                                     })
                                     setFiles(null)
                                   } catch (error) {

@@ -313,6 +313,7 @@ export default function AlertDialogGabinete({
                               createFolder,
                               updateBlueprintsWithStorageOrHlc,
                               rootFolder,
+                              authUser,
                               onFileUpload
                             })
                             setFiles(null)
