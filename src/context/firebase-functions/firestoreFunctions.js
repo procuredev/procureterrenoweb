@@ -1604,11 +1604,34 @@ const getProcureCounter = async procureCounterField => {
   return currentProcureCounter
 }
 
-const markBlueprintAsDeleted = async (mainDocId, procureId) => {
-  const blueprintDocRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
+const markBlueprintAsDeleted = async (mainDocId, procureId, clientCode) => {
+  const blueprintRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
 
-  await updateDoc(blueprintDocRef, {
-    deleted: true
+  // Extrae los valores del clientCode (MEL)
+  const [__, otNumber, instalacion, areaNumber, melDiscipline, melDeliverable] = clientCode.split('-')
+
+  // Crea referencia al contador MEL
+  const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
+  const melCounterRef = doc(db, 'solicitudes', mainDocId, 'clientCodeGeneratorCount', melCounterDocId)
+
+  await runTransaction(db, async transaction => {
+    // Obtiene el documento del contador MEL
+    const melCounterDoc = await transaction.get(melCounterRef)
+    const currentMelCounter = melCounterDoc.data().count
+
+    // Calcula el nuevo valor del contador
+    const newMelCounter = String(Number(currentMelCounter) - 1).padStart(5, '0')
+
+    // Actualiza el contador MEL
+    transaction.update(melCounterRef, {
+      count: newMelCounter
+    })
+
+    // Marca el blueprint como eliminado
+    transaction.update(blueprintRef, {
+      deleted: true,
+      deletedAt: Timestamp.fromDate(new Date())
+    })
   })
 }
 
