@@ -921,8 +921,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
 
   const isM3D = blueprint.id.split('-').slice(-2, -1)[0] === 'M3D'
 
-  console.log('BOLL', approves && (isRevisionAtLeastB || isRevisionAtLeast0), userParam.role)
-
   // Inicializa los datos que se van a actualizar
   let updateData = {
     revision: nextRevision.newRevision,
@@ -1051,8 +1049,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
 
   // Aplica la acción correspondiente al rol del usuario
   updateData = roleActions[userParam.role] ? await roleActions[userParam.role](blueprint, userParam) : updateData
-
-  console.log('updateData', updateData)
 
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
