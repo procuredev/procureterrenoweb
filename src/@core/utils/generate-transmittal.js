@@ -221,36 +221,6 @@ export const generateTransmittal = async (
 
             console.log('Transmittal almacenado en Google Drive con éxito:', fileLink)
           }
-
-          // Obtiene el primer valor del Map para la revisión
-          /* const firstSelectedValue = Array.from(selected.values())[0]
-          const revisionFolderName = `REV_${firstSelectedValue.revision}`
-          const revisionFolders = await fetchFolders(issuedFolder.id)
-          let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
-
-          if (!revisionFolder) {
-            revisionFolder = await createFolder(revisionFolderName, issuedFolder.id)
-          }
-
-          if (revisionFolder) {
-            const documentosFolderName = 'DOCUMENTOS'
-            const documentosFolders = await fetchFolders(revisionFolder.id)
-            let documentosFolder = documentosFolders.files.find(folder => folder.name === documentosFolderName)
-
-            if (!documentosFolder) {
-              documentosFolder = await createFolder(documentosFolderName, revisionFolder.id)
-            }
-
-            if (documentosFolder) {
-              const fileData = await uploadFile(`${newCode}.pdf`, pdfBlob, documentosFolder.id)
-
-              if (fileData && fileData.id) {
-                const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
-
-                console.log('Transmittal almacenado en Google Drive con éxito:', fileLink)
-              }
-            }
-          } */
         }
       }
     }

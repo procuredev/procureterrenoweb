@@ -41,7 +41,9 @@ const TableGabinete = ({
   apiRef,
   selectedRows,
   setSelectedRows,
-  showReasignarSection
+  showReasignarSection,
+  isValidToken,
+  setIsDialogOpen
 }) => {
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -60,10 +62,14 @@ const TableGabinete = ({
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
   const handleOpenUploadDialog = doc => {
-    setCurrentRow(doc.id)
-    setDoc(doc)
-    setOpenUploadDialog(true)
-    setOpenDialog(true)
+    if (!isValidToken) {
+      setIsDialogOpen(true)
+    } else {
+      setCurrentRow(doc.id)
+      setDoc(doc)
+      setOpenUploadDialog(true)
+      setOpenDialog(true)
+    }
   }
 
   const handleCloseUploadDialog = () => {
@@ -71,9 +77,13 @@ const TableGabinete = ({
   }
 
   const handleClickOpenAlert = (doc, isApproved) => {
-    setDoc(doc)
-    setOpenAlert(true)
-    setApprove(isApproved)
+    if (!isValidToken) {
+      setIsDialogOpen(true)
+    } else {
+      setDoc(doc)
+      setOpenAlert(true)
+      setApprove(isApproved)
+    }
   }
 
   const handleSelectionChange = selection => {
@@ -246,18 +256,19 @@ const TableGabinete = ({
       (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
     'Aprobado por Control Documental con comentarios': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A' && row.remarks,
-    'Rechazado por Cliente con Observaciones': row =>
-      !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
     'Aprobado por Control Documental': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
 
     Iniciado: row => !row.sentTime,
-    'Devuelto con Observaciones': row =>
+    'Con Observaciones y Comentarios': row =>
       (!row.sentByDesigner &&
         (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
+      (!row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks) ||
+      (!row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks) ||
       (row.approvedByDocumentaryControl &&
         !row.sentByDesigner &&
-        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48))
+        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48)),
+    Rechazado: row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient
   }
 
   const renderStatus = row => {
@@ -1108,13 +1119,13 @@ const TableGabinete = ({
               row.approvedByDocumentaryControl === true &&
               !('lastTransmittal' in lastRevision)
             ) {
-              return theme.palette.success
+              return true
             }
 
-            return theme.palette.grey[500]
+            return false
           }
 
-          return theme.palette.grey[500]
+          return false
         }
 
         if (row.isRevision && expandedRows.has(params.row.parentId)) {
@@ -1188,14 +1199,18 @@ const TableGabinete = ({
                 {(canGenerateBlueprint &&
                   authUser.role === 9 &&
                   row.approvedByDocumentaryControl &&
-                  row.sentByDesigner) ||
-                (authUser.role === 9 && row.approvedByDocumentaryControl && row.sentBySupervisor) ? (
+                  row.sentByDesigner &&
+                  canUploadHlc(row)) ||
+                (authUser.role === 9 &&
+                  row.approvedByDocumentaryControl &&
+                  row.sentBySupervisor &&
+                  canUploadHlc(row)) ? (
                   <IconButton
                     sx={{
                       my: 'auto',
                       ml: 2,
                       p: 0,
-                      color: canUploadHlc(row),
+
                       opacity: 0.7
                     }}
                     color='success'
@@ -1609,23 +1624,25 @@ const TableGabinete = ({
         getRowHeight={row => (row.id === currentRow ? 'auto' : 'auto')}
         isRowExpanded={row => expandedRows.has(row.id)}
       />
-      <AlertDialogGabinete
-        open={openAlert}
-        handleClose={handleCloseAlert}
-        callback={writeCallback}
-        approves={approve}
-        authUser={authUser}
-        setRemarksState={setRemarksState}
-        remarksState={remarksState}
-        blueprint={doc && doc}
-        petition={petition}
-        petitionId={petitionId}
-        error={error}
-        setError={setError}
-        onFileUpload={handleFileUpload}
-        setDoc={setDoc}
-        checkRoleAndApproval={checkRoleAndApproval}
-      ></AlertDialogGabinete>
+      {doc && openAlert && (
+        <AlertDialogGabinete
+          open={openAlert}
+          handleClose={handleCloseAlert}
+          callback={writeCallback}
+          approves={approve}
+          authUser={authUser}
+          setRemarksState={setRemarksState}
+          remarksState={remarksState}
+          blueprint={doc}
+          petition={petition}
+          petitionId={petitionId}
+          error={error}
+          setError={setError}
+          onFileUpload={handleFileUpload}
+          setDoc={setDoc}
+          checkRoleAndApproval={checkRoleAndApproval}
+        ></AlertDialogGabinete>
+      )}
 
       <Dialog sx={{ '& .MuiPaper-root': { maxWidth: '1000px', width: '100%' } }} open={openDialog}>
         <DialogContent>

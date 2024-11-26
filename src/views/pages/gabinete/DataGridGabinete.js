@@ -63,7 +63,7 @@ const DataGridGabinete = () => {
   const apiRef = useGridApiRef()
 
   const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
-  const { renderDialog } = useGoogleAuth()
+  const { renderDialog, isValidToken, setIsDialogOpen } = useGoogleAuth()
 
   const currentPetitionRef = useRef()
 
@@ -183,6 +183,10 @@ const DataGridGabinete = () => {
     // console.log(selectedDocuments)
     if (selectedDocuments.size === 0) {
       setErrorTransmittal(true)
+    } else if (!isValidToken) {
+      {
+        setIsDialogOpen(true)
+      }
     } else {
       setOpenTransmittalDialog(true)
     }
@@ -268,11 +272,12 @@ const DataGridGabinete = () => {
         if (authUser) {
           // Carga los proyectistas
           const resProyectistas = await getUserData('getUserProyectistas', null, authUser)
-          setProyectistas(resProyectistas)
+          const resSupervisor = await getUserData('getUserSupervisor', null, authUser)
+          setProyectistas([...resProyectistas, ...resSupervisor])
         }
       }
 
-      fetchRoleAndProyectistas()
+      authUser.role === 7 && fetchRoleAndProyectistas()
     }
   }, [authUser, currentPetition])
 
@@ -525,16 +530,22 @@ const DataGridGabinete = () => {
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
           showReasignarSection={showReasignarSection}
+          isValidToken={isValidToken}
+          setIsDialogOpen={setIsDialogOpen}
         />
       </Box>
-      <DialogAssignGabineteDraftmen
-        open={open}
-        handleClose={handleClose}
-        doc={petitions.find(petition => petition.ot == currentOT)}
-        proyectistas={proyectistas}
-        gabineteDraftmenState={gabineteDraftmenState}
-        setGabineteDraftmenState={setGabineteDraftmenState}
-      />
+      {blueprints && (
+        <DialogAssignGabineteDraftmen
+          open={open}
+          handleClose={handleClose}
+          doc={petitions.find(petition => petition.ot == currentOT)}
+          proyectistas={proyectistas}
+          gabineteDraftmenState={gabineteDraftmenState}
+          setGabineteDraftmenState={setGabineteDraftmenState}
+          blueprints={blueprints}
+        />
+      )}
+
       <Dialog
         open={openTransmittalDialog}
         onClose={() => setOpenTransmittalDialog(false)}
@@ -579,6 +590,7 @@ const DataGridGabinete = () => {
               setIsLoading(true)
             }}
             color='primary'
+            disabled={isLoading}
           >
             Confirmar
           </Button>

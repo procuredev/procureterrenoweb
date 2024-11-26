@@ -47,7 +47,7 @@ const DialogDeleteBlueprint = ({ open, onClose, selectedRows, doc: mainDoc, setS
         )
       } else {
         // Marca el documento como eliminado
-        await markBlueprintAsDeleted(mainDoc.id, procureId)
+        await markBlueprintAsDeleted(mainDoc.id, procureId, clientCode)
         setSelectedRows([])
       }
 

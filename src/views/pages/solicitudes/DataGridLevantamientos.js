@@ -30,7 +30,6 @@ const DataGridLevantamientos = () => {
     const role = async () => {
       if (authUser) {
         const role = await getDomainData('roles', authUser.role.toString())
-        console.log('role', role)
         setRoleData(role)
       }
     }

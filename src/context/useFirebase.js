@@ -123,7 +123,7 @@ const FirebaseContextProvider = props => {
         setLoading(false)
 
         // Autorización de Google Drive
-        if ([1, 5, 6, 7, 8, 9, 10, 11].includes(databaseUserData.role)) {
+        if ([1, 5, 6, 7, 8, 9].includes(databaseUserData.role)) {
           try {
             await handleGoogleDriveAuthorization()
           } catch (error) {
