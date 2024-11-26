@@ -534,14 +534,18 @@ const DataGridGabinete = () => {
           setIsDialogOpen={setIsDialogOpen}
         />
       </Box>
-      <DialogAssignGabineteDraftmen
-        open={open}
-        handleClose={handleClose}
-        doc={petitions.find(petition => petition.ot == currentOT)}
-        proyectistas={proyectistas}
-        gabineteDraftmenState={gabineteDraftmenState}
-        setGabineteDraftmenState={setGabineteDraftmenState}
-      />
+      {blueprints && (
+        <DialogAssignGabineteDraftmen
+          open={open}
+          handleClose={handleClose}
+          doc={petitions.find(petition => petition.ot == currentOT)}
+          proyectistas={proyectistas}
+          gabineteDraftmenState={gabineteDraftmenState}
+          setGabineteDraftmenState={setGabineteDraftmenState}
+          blueprints={blueprints}
+        />
+      )}
+
       <Dialog
         open={openTransmittalDialog}
         onClose={() => setOpenTransmittalDialog(false)}
