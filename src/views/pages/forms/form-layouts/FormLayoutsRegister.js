@@ -342,42 +342,48 @@ const FormLayoutsBasic = () => {
   }
 
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 5; // Número máximo de intentos permitidos
+    const maxAttempts = 5 // Número máximo de intentos permitidos
 
     // Si ya se han alcanzado los intentos máximos, no continuar
     if (attempts >= maxAttempts) {
         setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.');
         setTimeout(() => {
             signAdminFailure().catch(error => console.log(error.message));
-            setDialog(false);
-            setAlertMessage('');
-        }, 1500);
+            setDialog(false)
+            setAlertMessage('')
+        }, 1500)
         return; // Salir de la función si los intentos han alcanzado el máximo
     }
 
     try {
         // Intentar realizar la acción de autenticación
-        const message = await signAdminBack(values, password, oldEmail, newUID);
+        const message = await signAdminBack(values, password, oldEmail, newUID)
 
         // Si la autenticación es exitosa
-        setValues(initialValues);
-        setAttempts(0); // Reiniciar el contador de intentos
-        setDialog(false);
-        setAlertMessage(message);
-        setIsCreatingProfile(false);
+        setValues(initialValues)
+        setAttempts(0) // Reiniciar el contador de intentos
+        setDialog(false)
+        setAlertMessage("Usuario creado con éxito")
+
+        // Mostrar el mensaje de éxito durante 3 segundos
+        setTimeout(() => {
+          setAlertMessage('') // Limpiar el mensaje después de 3 segundos
+        }, 3000);
+
+        setIsCreatingProfile(false)
     } catch (error) {
-        console.log(error);
-        setAttempts(prevAttempts => prevAttempts + 1); // Incrementar el contador de intentos
+        console.log(error)
+        setAttempts(prevAttempts => prevAttempts + 1) // Incrementar el contador de intentos
 
         if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-            setAlertMessage('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts - 1));
+            setAlertMessage('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts - 1))
         } else if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
-            setAlertMessage('Error, no se creó ningún usuario. Serás redirigid@ al login.');
+            setAlertMessage('Error, no se creó ningún usuario. Serás redirigid@ al login.')
             setTimeout(() => {
-                signAdminFailure().catch(error => console.log(error.message));
-                setDialog(false);
-                setAlertMessage('');
-            }, 1500);
+                signAdminFailure().catch(error => console.log(error.message))
+                setDialog(false)
+                setAlertMessage('')
+            }, 1500)
         }
     }
 }
@@ -385,13 +391,14 @@ const FormLayoutsBasic = () => {
 
   // Maneja Cierre de Dialog de ingreso de Contraseña de Admin cuando se hace click en "Cancelar".
   const handleClose = async () => {
+    setPassword('')
     if (authUser.role !== 1) {
-      setAlertMessage('Registro cancelado: no se creó ningún usuario. Serás redirigid@ al login.')
+      // setAlertMessage('Registro cancelado: no se creó ningún usuario. Serás redirigid@ al login.')
       setTimeout(() => {
         signAdminFailure().catch(error => {
           console.log(error.message)
         })
-        setDialog(false)
+        //setDialog(false)
         setAlertMessage('')
       }, 1500)
     } else {
@@ -694,7 +701,7 @@ const FormLayoutsBasic = () => {
 
                   <DialogActions>
                     <Button onClick={() => handleClose()}>Cerrar</Button>
-                    {!alertMessage && <Button onClick={() => handleConfirm(values, password)}>Confirmar</Button>}
+                    {!alertMessage && <Button disabled={!password ? true : false} onClick={() => handleConfirm(values, password)}>Confirmar</Button>}
                   </DialogActions>
                 </Dialog>
               </Box>
