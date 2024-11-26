@@ -256,9 +256,6 @@ const TableGabinete = ({
       (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
     'Aprobado por Control Documental con comentarios': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A' && row.remarks,
-    //Rechazado por Cliente con Observaciones
-    'Con Observaciones y Comentarios': row =>
-      !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
     'Aprobado por Control Documental': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
 
@@ -266,9 +263,12 @@ const TableGabinete = ({
     'Con Observaciones y Comentarios': row =>
       (!row.sentByDesigner &&
         (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
+      (!row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks) ||
+      (!row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks) ||
       (row.approvedByDocumentaryControl &&
         !row.sentByDesigner &&
-        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48))
+        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48)),
+    Rechazado: row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient
   }
 
   const renderStatus = row => {
