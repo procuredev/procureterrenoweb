@@ -211,13 +211,15 @@ const updateUserInDatabase = async (values, uid) => {
 
 }
 
-// ** Permite que el admin entre de vuelta y escribe en db
-const signAdminBack = async (values, password, oldEmail, uid, saveUID) => {
+// Función que se ejecuta cuando el Administrador hace click en "Confirmar" dentro del Dialog de Confirmación para crear un usuario.
+// values son los datos del usuario a crear {name, plant, rut, etc...}.
+// password es la contraseña del Admin, la cual se necesita para reconectar luego de crear el usuario.
+// oldEmail es el e-mail del Admin, el cual se necesita para reconectar luego de crear el usuario.
+// uid es el UID del usuario que se está tratando de crear.
+const signAdminBack = async (values, password, oldEmail, uid) => {
   try {
     await Firebase.auth().signInWithEmailAndPassword(oldEmail, password)
     const successMessage = await createUserInDatabase(values, uid)
-
-    saveUID('')
 
     // Realizar acciones adicionales si es necesario
 

@@ -342,45 +342,48 @@ const FormLayoutsBasic = () => {
   }
 
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 2 // Número máximo de intentos permitidos
+    const maxAttempts = 2; // Número máximo de intentos permitidos
+
+    // Si ya se han alcanzado los intentos máximos, no continuar
+    if (attempts >= maxAttempts) {
+        setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.');
+        setTimeout(() => {
+            signAdminFailure().catch(error => console.log(error.message));
+            setDialog(false);
+            setAlertMessage('');
+        }, 1500);
+        return; // Salir de la función si los intentos han alcanzado el máximo
+    }
 
     try {
-      console.log(values)
-      const message = await signAdminBack(values, password, oldEmail, newUID)
-      setValues(initialValues)
-      setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
-      setDialog(false)
-      setAlertMessage(message)
-      // Finaliza el estado de creación de perfil
-      setIsCreatingProfile(false)
+        // Intentar realizar la acción de autenticación
+        const message = await signAdminBack(values, password, oldEmail, newUID);
+
+        // Si la autenticación es exitosa
+        setValues(initialValues);
+        setAttempts(0); // Reiniciar el contador de intentos
+        setDialog(false);
+        setAlertMessage(message);
+        setIsCreatingProfile(false);
     } catch (error) {
-      console.log(error)
-      setAttempts(attempts + 1) // Incrementar el contador de intentos
+        console.log(error);
+        setAttempts(prevAttempts => prevAttempts + 1); // Incrementar el contador de intentos
 
-      if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-        setAlertMessage('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts))
-      } else if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
-        setAlertMessage('Error, no se creó ningún usuario. Serás redirigid@ al login.')
-        setTimeout(() => {
-          signAdminFailure().catch(error => {
-            console.log(error.message)
-          })
-          setDialog(false)
-          setAlertMessage('')
-        }, 1500)
-      } else if (attempts >= maxAttempts) {
-        setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
-        setTimeout(() => {
-          signAdminFailure().catch(error => {
-            console.log(error.message)
-          })
-          setDialog(false)
-          setAlertMessage('')
-        }, 1500)
-      }
+        if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
+            setAlertMessage('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts - 1));
+        } else if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
+            setAlertMessage('Error, no se creó ningún usuario. Serás redirigid@ al login.');
+            setTimeout(() => {
+                signAdminFailure().catch(error => console.log(error.message));
+                setDialog(false);
+                setAlertMessage('');
+            }, 1500);
+        }
     }
-  }
+}
 
+
+  // Maneja Cierre de Dialog de ingreso de Contraseña de Admin cuando se hace click en "Cancelar".
   const handleClose = async () => {
     if (authUser.role !== 1) {
       setAlertMessage('Registro cancelado: no se creó ningún usuario. Serás redirigid@ al login.')
