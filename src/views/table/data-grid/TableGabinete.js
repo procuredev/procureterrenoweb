@@ -252,7 +252,7 @@ const TableGabinete = ({
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
 
     Iniciado: row => !row.sentTime,
-    'Rechazado con Observaciones': row =>
+    'Devuelto con Observaciones': row =>
       (!row.sentByDesigner &&
         (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
       (row.approvedByDocumentaryControl &&
@@ -627,7 +627,7 @@ const TableGabinete = ({
     },
     {
       field: 'revision',
-      headerName: 'REVISION APROBADA',
+      headerName: 'REVISION',
       width: revisionLocalWidth
         ? revisionLocalWidth
         : role === 9 && !lg

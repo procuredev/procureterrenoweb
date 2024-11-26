@@ -27,6 +27,7 @@ import { db } from 'src/configs/firebase'
 import { getUnixTime } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
+import { sendEmailDeliverableNextRevision } from './mailing/sendEmailDeliverableNextRevision'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
 
 const moment = require('moment')
@@ -769,8 +770,6 @@ const getNextRevision = async (
   // Verifica si el id contiene "M3D" antes del último guion
   const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
 
-  console.log('isM3D', isM3D)
-
   // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
   if (role === 8 && approves) {
     // Define las acciones posibles
@@ -824,7 +823,7 @@ const getNextRevision = async (
         action()
       }
     })
-  } else if (role === 7 && approve && userId === uid) {
+  } else if (role === 7 && approves && userId === uid) {
     // Define las acciones posibles
     const actions = {
       // * Si la revisión es mayor o igual a 'B' y no ha sido aprobada por el cliente, se mantiene la revisión actual
@@ -974,12 +973,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentByDesigner: approves,
             attentive: approves ? 9 : 8,
             approvedBySupervisor: approves,
-            storageBlueprints:
-              approves && remarks === false
-                ? blueprint.storageBlueprints[0]
-                : approves
-                ? blueprint.storageBlueprints
-                : null
+            storageBlueprints: approves ? blueprint.storageBlueprints : null
           }
     },
     8: () => ({
@@ -1061,6 +1055,16 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   nextRevision.newBlueprintPercent = updateData.blueprintPercent
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
+
+  console.log(nextRevision)
+  console.log(updateData)
+
+  // Función para enviar emails de forma automática.
+  // userParam es el usuario conectado que ejecuta la acción.
+  // petitionID es el ID del la Solicitud/OT en Firestore.
+  // blueprint es el objeto con la información del entregable
+  // updateData es un objeto que contiene datos del siguiente revisor ("attentive" Rol del siguiente revisor , bla, bla)
+  await sendEmailDeliverableNextRevision(userParam, petitionID, blueprint, updateData)
 
   // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
   const solicitudDocBefore = await getDoc(solicitudRef)
@@ -1198,11 +1202,11 @@ const updateSelectedDocuments = async (newCode, selected, currentPetition, authU
 // Finaliza una solicitud, actualizando su estado y detalles relacionados con la OT. Se basa en la información de la solicitud actual y el usuario autenticado.
 const finishPetition = async (currentPetition, authUser) => {
   try {
-    console.log('currentPetition:', currentPetition)
+    // console.log('currentPetition:', currentPetition)
     const petitionRef = doc(db, 'solicitudes', currentPetition.id)
     const petitionDoc = await getDoc(petitionRef)
 
-    console.log('petitionDoc:', petitionDoc.data())
+    // console.log('petitionDoc:', petitionDoc.data())
 
     const otFinished = petitionDoc.data().otFinished
     const otReadyToFinish = petitionDoc.data().otReadyToFinish
@@ -1264,7 +1268,7 @@ const createWeekHoursByType = async (userParams, creations) => {
     const weekHoursRef = collection(userDocRef, 'workedHours')
 
     creations.forEach(change => {
-      console.log('change: ', change)
+      // console.log('change: ', change)
       const newDocRef = doc(weekHoursRef)
       const dayDate = new Date(change.day)
       dayDate.setHours(0, 0, 0, 0)
@@ -1691,8 +1695,6 @@ const updateBlueprintsWithStorageOrHlc = async (petitionId, blueprintId, fileLin
         storageHlcDocuments: arrayUnion(blueprintData)
       })
     }
-
-    console.log('Blueprint actualizado con éxito:', blueprintData)
   } catch (error) {
     console.error('Error al actualizar el blueprint:', error)
   }
@@ -1704,7 +1706,7 @@ const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId) =>
   const querySnapshot = await getDoc(blueprintRef)
   const docSnapshot = querySnapshot.data()
 
-  console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
+  // console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
 
   await updateDoc(blueprintRef, {
     storageBlueprints: [docSnapshot.storageBlueprints[0]]

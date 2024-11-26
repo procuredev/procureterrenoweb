@@ -21,7 +21,6 @@ const ChartDonutObjetivesLast30days = ({ objetivesByState, loading }) => {
 
   const totalObjetives = objetivesByState.reduce((total, count) => total + count, 0)
   const total = `Total: ${totalObjetives}`
-  console.log('objetivesByState', objetivesByState)
 
   const options = {
     stroke: { width: 0 },

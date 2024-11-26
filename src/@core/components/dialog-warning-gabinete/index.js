@@ -516,12 +516,26 @@ export default function AlertDialogGabinete({
       aria-describedby='alert-dialog-description'
     >
       <DialogTitle id='alert-dialog-title'>
-        {blueprint.userId === authUser.uid ? 'Enviar' : approves ? 'Aprobar' : 'Rechazar'} entregable de la solicitud
+        {blueprint.userId === authUser.uid
+          ? 'Enviar'
+          : approves
+          ? 'Aprobar'
+          : !approves && authUser.role === 9
+          ? 'Rechazar'
+          : 'Devolver'}{' '}
+        entregable de la solicitud
       </DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', width: 600 }}>
         <DialogContentText>
           ¿Estás segur@ de que quieres{' '}
-          {blueprint.userId === authUser.uid ? 'Enviar' : approves ? 'aprobar' : 'rechazar'} el entregable?
+          {blueprint.userId === authUser.uid
+            ? 'Enviar'
+            : approves
+            ? 'aprobar'
+            : !approves && authUser.role === 9
+            ? 'rechazar'
+            : 'devolver'}{' '}
+          el entregable?
         </DialogContentText>
 
         {(approves && authUser.role === 9 && blueprint?.approvedByDocumentaryControl === true) ||
