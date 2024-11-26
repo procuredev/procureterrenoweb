@@ -342,7 +342,7 @@ const FormLayoutsBasic = () => {
   }
 
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 2; // Número máximo de intentos permitidos
+    const maxAttempts = 5; // Número máximo de intentos permitidos
 
     // Si ya se han alcanzado los intentos máximos, no continuar
     if (attempts >= maxAttempts) {
