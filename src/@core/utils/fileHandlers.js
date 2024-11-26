@@ -59,7 +59,20 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
   return newRevision
 }
 
-export const validateFileName = (acceptedFiles, values, blueprint, authUser, checkRoleAndApproval) => {
+export const validateFileName = (acceptedFiles, values, blueprint, authUser, checkRoleAndApproval, approves) => {
+  // Si es rol 9 y está aprobado por control documental, retornamos válido sin restricciones
+  if (
+    authUser.role === 9 &&
+    blueprint.approvedByDocumentaryControl === true &&
+    checkRoleAndApproval(authUser.role, blueprint)
+  ) {
+    return acceptedFiles.map(file => ({
+      name: file.name,
+      isValid: true,
+      msj: `${file.name}`
+    }))
+  }
+
   const expectedClientCode = values.clientCode
   const expectedRevision = getNextRevisionFolderName(blueprint, authUser)
   let expectedFileName = null
@@ -72,7 +85,12 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
     !checkRoleAndApproval(authUser.role, blueprint)
   ) {
     expectedFileName = `${expectedClientCode}_REV_${expectedRevision}_HLC`
-  } else if (authUser.role === 9 && (blueprint.approvedBySupervisor || blueprint.approvedByContractAdmin)) {
+  } else if (
+    authUser.role === 9 &&
+    (blueprint.approvedBySupervisor || blueprint.approvedByContractAdmin) &&
+    blueprint.revision !== 'A' &&
+    approves
+  ) {
     expectedFileName = `${expectedClientCode}_REV_${expectedRevision}`
   } else {
     const initials = authUser.displayName
@@ -139,7 +157,7 @@ export const createFolderStructure = async (
   rootFolder,
   fetchFolders,
   createFolder,
-  folderEmitidos
+  uploadInFolder
 ) => {
   const plantFolders = await fetchFolders(rootFolder)
   let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
@@ -157,9 +175,7 @@ export const createFolderStructure = async (
     createFolder
   )
 
-  const destinationFolder = folderEmitidos
-    ? await ensureFolder(projectFolder.id, 'EMITIDOS', fetchFolders, createFolder)
-    : await ensureFolder(projectFolder.id, 'EN TRABAJO', fetchFolders, createFolder)
+  const destinationFolder = await ensureFolder(projectFolder.id, uploadInFolder, fetchFolders, createFolder)
 
   return destinationFolder
 }
@@ -187,7 +203,7 @@ export const handleFileUpload = async ({
   rootFolder,
   authUser,
   onFileUpload = null,
-  folderEmitidos = false
+  uploadInFolder = 'EN TRABAJO'
 }) => {
   if (!files || !blueprint.id) return null
 
@@ -199,7 +215,7 @@ export const handleFileUpload = async ({
       rootFolder,
       fetchFolders,
       createFolder,
-      folderEmitidos
+      uploadInFolder
     )
     const revisionFolderName = `REV_${await getNextRevisionFolderName(blueprint, authUser)}`
     const revisionFolders = await fetchFolders(destinationFolder.id)

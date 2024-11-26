@@ -256,13 +256,14 @@ const TableGabinete = ({
       (row.approvedByClient && row.approvedByDocumentaryControl) || row.zeroReviewCompleted,
     'Aprobado por Control Documental con comentarios': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A' && row.remarks,
-    'Rechazado por Cliente con Observaciones': row =>
+    //Rechazado por Cliente con Observaciones
+    'Con Observaciones y Comentarios': row =>
       !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks,
     'Aprobado por Control Documental': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
 
     Iniciado: row => !row.sentTime,
-    'Devuelto con Observaciones': row =>
+    'Con Observaciones y Comentarios': row =>
       (!row.sentByDesigner &&
         (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
       (row.approvedByDocumentaryControl &&

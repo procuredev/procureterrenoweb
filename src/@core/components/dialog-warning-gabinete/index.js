@@ -61,8 +61,22 @@ export default function AlertDialogGabinete({
     blueprint.revision &&
     blueprint?.revision?.charCodeAt(0) >= 48 &&
     blueprint?.revision?.charCodeAt(0) <= 57
-  const storageInEmitidos = (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && approves
+
+  const storageInEmitidos =
+    (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && approves && !blueprint.approvedByDocumentaryControl
+
+  const storageInComentByCLient =
+    (isRevisionAtLeastB || isRevisionAtLeast0) &&
+    isRole9 &&
+    (approves || !approves) &&
+    blueprint.approvedByDocumentaryControl
   const showUploadFile = storageInEmitidos || !approves
+
+  const uploadInFolder = storageInEmitidos
+    ? 'EMITIDOS'
+    : storageInComentByCLient
+    ? 'COMENTARIOS CLIENTE'
+    : 'REVISIONES & COMENTARIOS'
 
   const [values, setValues] = useState({})
   const [toggleRemarks, setToggleRemarks] = useState(!approves)
@@ -144,7 +158,8 @@ export default function AlertDialogGabinete({
         values,
         blueprint,
         authUser,
-        checkRoleAndApproval
+        checkRoleAndApproval,
+        approves
       ).filter(file => !file.isValid)
       if (invalidFileNames.length > 0) {
         handleOpenErrorDialog(invalidFileNames[0].msj)
@@ -183,8 +198,8 @@ export default function AlertDialogGabinete({
       }))
       setIsUploading(false)
     } catch (error) {
-      console.error('Error al cargar el archivo a Google Drive:', error)
-      setError('Error al cargar el archivo. Intente nuevamente.')
+      console.error('Error al cargar el ultimo archivo:', error)
+      setError('Error al cargar el ultimo archivo. Intente nuevamente.')
     }
   }
 
@@ -327,7 +342,7 @@ export default function AlertDialogGabinete({
                               rootFolder,
                               authUser,
                               onFileUpload,
-                              folderEmitidos: storageInEmitidos ? true : false
+                              uploadInFolder
                             })
                             setFiles(null)
                           } catch (error) {

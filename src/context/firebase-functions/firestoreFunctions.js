@@ -1023,7 +1023,10 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : autorRole,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
-            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient && approves ? 100 : updateData.blueprintPercent
+            blueprintPercent:
+              (isRevisionAtLeast0 || isRevisionAtLeast1) && isApprovedByClient && approves
+                ? 100
+                : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -1709,17 +1712,26 @@ const updateBlueprintsWithStorageOrHlc = async (petitionId, blueprintId, fileLin
   }
 }
 
-const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId) => {
+const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId, action) => {
   const blueprintRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
 
   const querySnapshot = await getDoc(blueprintRef)
   const docSnapshot = querySnapshot.data()
 
   // console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
-
-  await updateDoc(blueprintRef, {
-    storageBlueprints: [docSnapshot.storageBlueprints[0]]
-  })
+  if (action === 'resetStorageHlcDocuments') {
+    await updateDoc(blueprintRef, {
+      storageHlcDocuments: null
+    })
+  } else if (action === 'resetStorageBlueprints') {
+    await updateDoc(blueprintRef, {
+      storageBlueprints: null
+    })
+  } else {
+    await updateDoc(blueprintRef, {
+      storageBlueprints: [docSnapshot.storageBlueprints[0]]
+    })
+  }
 }
 
 // Función para crear un nuevo Centro de Costo para una Planta específica.

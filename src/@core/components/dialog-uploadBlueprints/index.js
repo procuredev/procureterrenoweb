@@ -12,6 +12,8 @@ import {
   Link,
   List,
   ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
   Paper,
   Typography,
   CircularProgress
@@ -67,7 +69,13 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
   const theme = useTheme()
   const rootFolder = getRootFolder()
 
-  const { updateDocs, authUser, addDescription, updateBlueprintsWithStorageOrHlc } = useFirebase()
+  const {
+    updateDocs,
+    authUser,
+    addDescription,
+    updateBlueprintsWithStorageOrHlc,
+    deleteReferenceOfLastDocumentAttached
+  } = useFirebase()
 
   // Verifica estado
   revision = typeof revision === 'string' ? revision : 100
@@ -323,6 +331,35 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
     event.preventDefault()
   }
 
+  const handleClickDeleteDocument = async (isHlc = false) => {
+    try {
+      setIsLoading(true)
+      if (isHlc) {
+        await deleteReferenceOfLastDocumentAttached(petitionId, doc.id, 'resetStorageHlcDocuments')
+      } else {
+        await deleteReferenceOfLastDocumentAttached(petitionId, doc.id, 'resetStorageBlueprints')
+      }
+
+      // Actualiza el estado de `values` directamente para reflejar la eliminación
+      if (isHlc) {
+        setValues(prevValues => ({
+          ...prevValues,
+          storageHlcDocuments: null // elimina el último archivo localmente
+        }))
+      } else {
+        setValues(prevValues => ({
+          ...prevValues,
+          storageBlueprints: null // elimina el último archivo localmente
+        }))
+      }
+
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error al eliminar el archivo:', error)
+      setErrorFileMsj('Error al eliminar el archivo. Intente nuevamente.')
+    }
+  }
+
   return (
     <Box>
       <AlertDialog open={openAlert} handleClose={handleCloseAlert} onSubmit={() => writeCallback()}></AlertDialog>
@@ -438,14 +475,35 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
                       Plano adjunto
                     </Typography>
                     <Box>
-                      {doc.storageBlueprints.map(file => (
+                      <List dense sx={{ py: 0, px: 0 }}>
+                        <ListItem key={doc.storageBlueprints[0].name} sx={{ py: 0, px: 0 }}>
+                          <Link href={doc.storageBlueprints[0].url} target='_blank' rel='noreferrer'>
+                            <ListItemText primary={doc.storageBlueprints[0].name} sx={{ mr: 10 }} />
+                          </Link>
+                          {authUser.uid === doc.userId && (!doc.sentByDesigner || !doc.sentBySupervisor) && (
+                            <ListItemSecondaryAction sx={{ right: 0 }}>
+                              <IconButton
+                                size='small'
+                                sx={{ display: 'flex' }}
+                                aria-haspopup='true'
+                                onClick={() => handleClickDeleteDocument()}
+                                aria-controls='modal-share-examples'
+                              >
+                                <Icon icon='mdi:delete-forever' color='#f44336' />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          )}
+                        </ListItem>
+                      </List>
+
+                      {/* {doc.storageBlueprints.map(file => (
                         <Fragment key={file.url}>
                           <Link href={file.url} target='_blank' rel='noreferrer'>
                             {file.name}
                           </Link>
                           <br />
                         </Fragment>
-                      ))}
+                      ))} */}
                     </Box>
                   </Box>
                 </ListItem>
@@ -458,9 +516,26 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
                       HLC adjunto
                     </Typography>
                     <Box>
-                      <Link href={doc.storageHlcDocuments[0].url} target='_blank' rel='noreferrer'>
-                        {doc.storageHlcDocuments[0].name}
-                      </Link>
+                      <List dense sx={{ py: 0, px: 0 }}>
+                        <ListItem key={doc.storageHlcDocuments[0].name} sx={{ py: 0, px: 0 }}>
+                          <Link href={doc.storageHlcDocuments[0].url} target='_blank' rel='noreferrer'>
+                            <ListItemText primary={doc.storageHlcDocuments[0].name} sx={{ mr: 10 }} />
+                          </Link>
+                          {authUser.role === 9 && (
+                            <ListItemSecondaryAction sx={{ right: 0 }}>
+                              <IconButton
+                                size='small'
+                                sx={{ display: 'flex' }}
+                                aria-haspopup='true'
+                                onClick={() => handleClickDeleteDocument(true)}
+                                aria-controls='modal-share-examples'
+                              >
+                                <Icon icon='mdi:delete-forever' color='#f44336' />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          )}
+                        </ListItem>
+                      </List>
                     </Box>
                   </Box>
                 </ListItem>
@@ -562,6 +637,8 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
                     <FormControl fullWidth>
                       <Fragment>
                         {authUser.role === 9 &&
+                        !hlcDocuments &&
+                        !doc.storageHlcDocuments &&
                         (doc.sentByDesigner || doc.sentBySupervisor) &&
                         doc.approvedByDocumentaryControl &&
                         !checkRoleAndApproval(authUser.role, doc) ? (
