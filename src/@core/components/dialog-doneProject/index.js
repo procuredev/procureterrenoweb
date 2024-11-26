@@ -175,8 +175,6 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       'Puerto Coloso': 'PCOL'
     }
 
-    console.log('plantMap[plantName]', plantMap[plantName])
-
     return plantMap[plantName] || ''
   }
 
@@ -220,7 +218,8 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                 'LEVANTAMIENTO',
                 'EN TRABAJO',
                 'REVISIONES & COMENTARIOS',
-                'EMITIDOS'
+                'EMITIDOS',
+                'COMENTARIOS CLIENTE'
               ]
               for (const subfolder of subfolders) {
                 await createFolder(subfolder, projectFolder.id)
@@ -442,7 +441,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
-            disabled={isSubmitDisabled}
+            disabled={isSubmitDisabled || loading}
             onClick={() => onSubmit(doc.id)}
           >
             <EngineeringIcon sx={{ fontSize: 18 }} />

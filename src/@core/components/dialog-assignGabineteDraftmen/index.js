@@ -2,8 +2,9 @@
 import { useState, useEffect, forwardRef } from 'react'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
 import List from '@mui/material/List'
+import Box from '@mui/material/Box'
+import DialogActions from '@mui/material/DialogActions'
 import Avatar from '@mui/material/Avatar'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Dialog from '@mui/material/Dialog'
@@ -36,12 +37,15 @@ export const DialogAssignGabineteDraftmen = ({
   doc,
   proyectistas,
   gabineteDraftmenState,
-  setGabineteDraftmenState
+  setGabineteDraftmenState,
+  blueprints
 }) => {
   //TODO: Evaluar la foto del proyectista
   // ** States
 
   const [filteredOptions, setFilteredOptions] = useState(proyectistas)
+  const [openAlert, setOpenAlert] = useState(false)
+  const [selectedName, setSelectedName] = useState('')
 
   // ** Hooks
   const { updateDocs, authUser } = useFirebase()
@@ -74,6 +78,15 @@ export const DialogAssignGabineteDraftmen = ({
   if (!doc) return null
 
   const handleClickDelete = name => {
+    const existsInBlueprints = blueprints?.some(blueprint => blueprint.userName === name)
+
+    if (existsInBlueprints) {
+      setSelectedName(name)
+      setOpenAlert(true)
+
+      return
+    }
+
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
     const updatedGabineteDraftmenState = gabineteDraftmenState.filter(
       gabineteDraftmen => gabineteDraftmen.name !== name
@@ -119,133 +132,155 @@ export const DialogAssignGabineteDraftmen = ({
 
   const emptyFields = gabineteDraftmenState.length === 0
 
+  const areArraysEqual = (arr1, arr2) => {
+    return JSON.stringify(arr1) === JSON.stringify(arr2)
+  }
+
+  console.log('gabineteDraftmenState', gabineteDraftmenState)
+  console.log('doc.gabineteDraftmen', doc.gabineteDraftmen)
+
   return (
-    <Dialog
-      fullWidth
-      open={open}
-      maxWidth='xs'
-      scroll='body'
-      onClose={() => handleClose()}
-      TransitionComponent={Transition}
-      onBackdropClick={() => {
-        setGabineteDraftmenState([])
-        handleClose()
-      }}
-    >
-      <DialogContent sx={{ px: { xs: 8, sm: 15 }, py: { xs: 8, sm: 12.5 }, position: 'relative' }}>
-        <IconButton
-          size='small'
-          onClick={() => {
-            handleClose()
-          }}
-          sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
-        >
-          <Icon icon='mdi:close' />
-        </IconButton>
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
-            Modificar Proyectistas
-          </Typography>
-          <Typography variant='body2'>{doc.title}</Typography>
-        </Box>
-        <Autocomplete
-          autoHighlight
-          sx={{ mb: 8 }}
-          id='add-members'
-          options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
-          ListboxComponent={List}
-          getOptionLabel={option => option.name}
-          renderInput={params => <TextField {...params} size='small' placeholder='Seleccionar proyectistas...' />}
-          filterOptions={filterOptions} // Agrega este prop
-          renderOption={(props, option) => (
-            <ListItem {...props} onClick={() => handleListItemClick(option)}>
-              <ListItemAvatar>
-                {option.avatar ? (
-                  <Avatar src={`/images/avatars/${option.avatar}`} alt={option.name} sx={{ height: 28, width: 28 }} />
-                ) : (
-                  <CustomAvatar
-                    skin='light'
-                    sx={{
-                      mr: 3,
-                      width: 28,
-                      height: 28,
-                      objectFit: 'contain',
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      fontSize: '.8rem'
-                    }}
-                  >
-                    {getInitials(option.name ? option.name : 'John Doe')}
-                  </CustomAvatar>
-                )}
-              </ListItemAvatar>
-              <ListItemText primary={option.name} />
-            </ListItem>
-          )}
-        />
-        <Typography variant='h6'>{`${gabineteDraftmenState.length} Seleccionados`}</Typography>
-        <List dense sx={{ py: 4 }}>
-          {gabineteDraftmenState.map(gabineteDraftmen => {
-            return (
-              <ListItem
-                key={gabineteDraftmen.name}
-                sx={{
-                  p: 0,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  '.MuiListItem-container:not(:last-child) &': { mb: 4 }
-                }}
-              >
+    <>
+      <Dialog
+        fullWidth
+        open={open}
+        maxWidth='xs'
+        scroll='body'
+        onClose={() => handleClose()}
+        TransitionComponent={Transition}
+        onBackdropClick={() => {
+          setGabineteDraftmenState([])
+          handleClose()
+        }}
+      >
+        <DialogContent sx={{ px: { xs: 8, sm: 15 }, py: { xs: 8, sm: 12.5 }, position: 'relative' }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              handleClose()
+            }}
+            sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Typography variant='h5' sx={{ mb: 3, lineHeight: '2rem' }}>
+              Modificar Proyectistas
+            </Typography>
+            <Typography variant='body2'>{doc.title}</Typography>
+          </Box>
+          <Autocomplete
+            autoHighlight
+            sx={{ mb: 8 }}
+            id='add-members'
+            options={filteredOptions} // Usa las opciones filtradas en lugar de 'proyectistas'
+            ListboxComponent={List}
+            getOptionLabel={option => option.name}
+            renderInput={params => <TextField {...params} size='small' placeholder='Seleccionar proyectistas...' />}
+            filterOptions={filterOptions} // Agrega este prop
+            renderOption={(props, option) => (
+              <ListItem {...props} onClick={() => handleListItemClick(option)}>
                 <ListItemAvatar>
-                  {gabineteDraftmen.avatar ? (
-                    <Avatar src={`/images/avatars/${gabineteDraftmen.avatar}`} alt={gabineteDraftmen.name} />
+                  {option.avatar ? (
+                    <Avatar src={`/images/avatars/${option.avatar}`} alt={option.name} sx={{ height: 28, width: 28 }} />
                   ) : (
                     <CustomAvatar
                       skin='light'
                       sx={{
                         mr: 3,
-                        width: 34,
-                        height: 34,
+                        width: 28,
+                        height: 28,
                         objectFit: 'contain',
                         bgcolor: 'primary.main',
                         color: 'white',
                         fontSize: '.8rem'
                       }}
                     >
-                      {getInitials(gabineteDraftmen.name ? gabineteDraftmen.name : 'John Doe')}
+                      {getInitials(option.name ? option.name : 'John Doe')}
                     </CustomAvatar>
                   )}
                 </ListItemAvatar>
-                <ListItemText
-                  primary={gabineteDraftmen.name}
-                  secondary={gabineteDraftmen.email}
-                  sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
-                />
-                <ListItemSecondaryAction sx={{ right: 0 }}>
-                  <IconButton
-                    size='small'
-                    aria-haspopup='true'
-                    onClick={() => handleClickDelete(gabineteDraftmen.name)}
-                    aria-controls='modal-share-examples'
-                  >
-                    <Icon icon='mdi:delete-forever' fontSize={20} color='#f44336' />
-                  </IconButton>
-                </ListItemSecondaryAction>
+                <ListItemText primary={option.name} />
               </ListItem>
-            )
-          })}
-        </List>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <Button
-            sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
-            disabled={emptyFields}
-            onClick={() => onsubmit(doc.id)}
-          >
-            <EngineeringIcon sx={{ fontSize: 18 }} />
-            Guardar Proyectistas
-          </Button>
-        </Box>
-      </DialogContent>
-    </Dialog>
+            )}
+          />
+          <Typography variant='h6'>{`${gabineteDraftmenState.length} Seleccionados`}</Typography>
+          <List dense sx={{ py: 4 }}>
+            {gabineteDraftmenState.map(gabineteDraftmen => {
+              return (
+                <ListItem
+                  key={gabineteDraftmen.name}
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    '.MuiListItem-container:not(:last-child) &': { mb: 4 }
+                  }}
+                >
+                  <ListItemAvatar>
+                    {gabineteDraftmen.avatar ? (
+                      <Avatar src={`/images/avatars/${gabineteDraftmen.avatar}`} alt={gabineteDraftmen.name} />
+                    ) : (
+                      <CustomAvatar
+                        skin='light'
+                        sx={{
+                          mr: 3,
+                          width: 34,
+                          height: 34,
+                          objectFit: 'contain',
+                          bgcolor: 'primary.main',
+                          color: 'white',
+                          fontSize: '.8rem'
+                        }}
+                      >
+                        {getInitials(gabineteDraftmen.name ? gabineteDraftmen.name : 'John Doe')}
+                      </CustomAvatar>
+                    )}
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={gabineteDraftmen.name}
+                    secondary={gabineteDraftmen.email}
+                    sx={{ m: 0, '& .MuiListItemText-primary, & .MuiListItemText-secondary': { lineHeight: '1.25rem' } }}
+                  />
+                  <ListItemSecondaryAction sx={{ right: 0 }}>
+                    <IconButton
+                      size='small'
+                      aria-haspopup='true'
+                      onClick={() => handleClickDelete(gabineteDraftmen.name)}
+                      aria-controls='modal-share-examples'
+                    >
+                      <Icon icon='mdi:delete-forever' fontSize={20} color='#f44336' />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              )
+            })}
+          </List>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+            <Button
+              sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
+              disabled={emptyFields || areArraysEqual(gabineteDraftmenState, doc.gabineteDraftmen)}
+              onClick={() => onsubmit(doc.id)}
+            >
+              <EngineeringIcon sx={{ fontSize: 18 }} />
+              Guardar Proyectistas
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {openAlert && (
+        <Dialog open={openAlert} onClose={() => setOpenAlert(false)}>
+          <DialogContent>
+            <Typography>
+              No es posible Eliminar a {selectedName} de la OT porque se encuentra asignado a un Entregable
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenAlert(false)}>Aceptar</Button>
+          </DialogActions>
+        </Dialog>
+      )}
+    </>
   )
 }

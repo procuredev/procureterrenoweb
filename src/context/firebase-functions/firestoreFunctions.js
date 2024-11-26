@@ -883,7 +883,9 @@ const getNextRevision = async (
     newRevision,
     description,
     storageBlueprints:
-      approves && (remarks === false || !remarks)
+      approves && storageBlueprints.length === 2
+        ? storageBlueprints[storageBlueprints.length - 1]
+        : approves && (remarks === false || !remarks)
         ? storageBlueprints[0]
         : storageBlueprints[storageBlueprints.length - 1],
     userEmail: email,
@@ -1022,7 +1024,10 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : autorRole,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
-            blueprintPercent: isRevisionAtLeast0 && isApprovedByClient && approves ? 100 : updateData.blueprintPercent
+            blueprintPercent:
+              (isRevisionAtLeast0 || isRevisionAtLeast1) && isApprovedByClient && approves
+                ? 100
+                : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -1042,7 +1047,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             blueprintPercent: approves && blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
             remarks: remarks ? true : false,
             storageBlueprints:
-              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
+              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [blueprint.storageBlueprints[0]] : null
           }
   }
 
@@ -1620,11 +1625,34 @@ const getProcureCounter = async procureCounterField => {
   return currentProcureCounter
 }
 
-const markBlueprintAsDeleted = async (mainDocId, procureId) => {
-  const blueprintDocRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
+const markBlueprintAsDeleted = async (mainDocId, procureId, clientCode) => {
+  const blueprintRef = doc(db, 'solicitudes', mainDocId, 'blueprints', procureId)
 
-  await updateDoc(blueprintDocRef, {
-    deleted: true
+  // Extrae los valores del clientCode (MEL)
+  const [__, otNumber, instalacion, areaNumber, melDiscipline, melDeliverable] = clientCode.split('-')
+
+  // Crea referencia al contador MEL
+  const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
+  const melCounterRef = doc(db, 'solicitudes', mainDocId, 'clientCodeGeneratorCount', melCounterDocId)
+
+  await runTransaction(db, async transaction => {
+    // Obtiene el documento del contador MEL
+    const melCounterDoc = await transaction.get(melCounterRef)
+    const currentMelCounter = melCounterDoc.data().count
+
+    // Calcula el nuevo valor del contador
+    const newMelCounter = String(Number(currentMelCounter) - 1).padStart(5, '0')
+
+    // Actualiza el contador MEL
+    transaction.update(melCounterRef, {
+      count: newMelCounter
+    })
+
+    // Marca el blueprint como eliminado
+    transaction.update(blueprintRef, {
+      deleted: true,
+      deletedAt: Timestamp.fromDate(new Date())
+    })
   })
 }
 
@@ -1700,17 +1728,26 @@ const updateBlueprintsWithStorageOrHlc = async (petitionId, blueprintId, fileLin
   }
 }
 
-const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId) => {
+const deleteReferenceOfLastDocumentAttached = async (petitionId, blueprintId, action) => {
   const blueprintRef = doc(db, 'solicitudes', petitionId, 'blueprints', blueprintId)
 
   const querySnapshot = await getDoc(blueprintRef)
   const docSnapshot = querySnapshot.data()
 
   // console.log('docSnapshot.storageBlueprints', docSnapshot.storageBlueprints)
-
-  await updateDoc(blueprintRef, {
-    storageBlueprints: [docSnapshot.storageBlueprints[0]]
-  })
+  if (action === 'resetStorageHlcDocuments') {
+    await updateDoc(blueprintRef, {
+      storageHlcDocuments: null
+    })
+  } else if (action === 'resetStorageBlueprints') {
+    await updateDoc(blueprintRef, {
+      storageBlueprints: null
+    })
+  } else {
+    await updateDoc(blueprintRef, {
+      storageBlueprints: [docSnapshot.storageBlueprints[0]]
+    })
+  }
 }
 
 // Función para crear un nuevo Centro de Costo para una Planta específica.
