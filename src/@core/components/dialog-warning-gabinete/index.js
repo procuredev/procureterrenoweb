@@ -47,9 +47,26 @@ export default function AlertDialogGabinete({
   setDoc,
   checkRoleAndApproval
 }) {
+  const isRole9 = authUser.role === 9 // Ctrl. Documental : C-Doc
+  const isRole8 = authUser.role === 8 // Proyectista
+  const isRole7 = authUser.role === 7 // Suervisor
+  const isRole6 = authUser.role === 6 // C. Owner : C-Ow
+
+  const isRevisor = isRole6 || isRole7 || isRole9
+
+  const isRevisionAtLeastB = blueprint && blueprint.revision && blueprint?.revision?.charCodeAt(0) >= 66
+
+  const isRevisionAtLeast0 =
+    blueprint &&
+    blueprint.revision &&
+    blueprint?.revision?.charCodeAt(0) >= 48 &&
+    blueprint?.revision?.charCodeAt(0) <= 57
+  const storageInEmitidos = (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && approves
+  const showUploadFile = storageInEmitidos || !approves
+
   const [values, setValues] = useState({})
   const [toggleRemarks, setToggleRemarks] = useState(!approves)
-  const [toggleAttach, setToggleAttach] = useState(!approves)
+  const [toggleAttach, setToggleAttach] = useState(showUploadFile)
   const [files, setFiles] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -57,15 +74,10 @@ export default function AlertDialogGabinete({
   const [errorFileMsj, setErrorFileMsj] = useState('')
   const previousBlueprintRef = useRef(blueprint)
 
-  const rootFolder = getRootFolder()
-  const { updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
-  const { uploadFile, fetchFolders, createFolder } = useGoogleDriveFolder()
-
-  // Condición para habilitar el botón de rechazo si hay más de un blueprint y el campo de observaciones está lleno
-  const canReject = blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
-
   const canAprove =
-    toggleRemarks && !toggleAttach
+    storageInEmitidos && blueprint.storageBlueprints?.length > 1
+      ? true
+      : toggleRemarks && !toggleAttach
       ? approves && remarksState.length > 0 && blueprint.storageBlueprints?.length < 2
       : !toggleRemarks && blueprint.storageBlueprints?.length > 1
       ? false
@@ -74,6 +86,13 @@ export default function AlertDialogGabinete({
       : toggleAttach
       ? blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
       : approves
+
+  const rootFolder = getRootFolder()
+  const { updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
+  const { uploadFile, fetchFolders, createFolder } = useGoogleDriveFolder()
+
+  // Condición para habilitar el botón de rechazo si hay más de un blueprint y el campo de observaciones está lleno
+  const canReject = blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
 
   useEffect(() => {
     const { storageBlueprints, ...otherBlueprintFields } = blueprint || {} // Excluye storageBlueprints
@@ -107,7 +126,7 @@ export default function AlertDialogGabinete({
   // Actualiza estados en caso de aprobación
   useEffect(() => {
     setToggleRemarks(!approves)
-    setToggleAttach(!approves)
+    setToggleAttach(showUploadFile)
   }, [approves])
 
   // Dropzone para manejar la carga de archivos
@@ -152,13 +171,6 @@ export default function AlertDialogGabinete({
     setFiles(null)
   }
 
-  const isRole9 = authUser.role === 9 // Ctrl. Documental : C-Doc
-  const isRole8 = authUser.role === 8 // Proyectista
-  const isRole7 = authUser.role === 7 // Suervisor
-  const isRole6 = authUser.role === 6 // C. Owner : C-Ow
-
-  const isRevisor = isRole6 || isRole7 || isRole9
-
   const handleClickDeleteDocumentReturned = async () => {
     try {
       setIsUploading(true)
@@ -183,7 +195,7 @@ export default function AlertDialogGabinete({
         handleClose()
         setFiles(null)
         setToggleRemarks(!approves)
-        setToggleAttach(!approves)
+        setToggleAttach(showUploadFile)
         setRemarksState('')
         setErrorDialog(false)
         setError('')
@@ -314,7 +326,8 @@ export default function AlertDialogGabinete({
                               updateBlueprintsWithStorageOrHlc,
                               rootFolder,
                               authUser,
-                              onFileUpload
+                              onFileUpload,
+                              folderEmitidos: storageInEmitidos ? true : false
                             })
                             setFiles(null)
                           } catch (error) {
@@ -365,7 +378,7 @@ export default function AlertDialogGabinete({
           onClick={() => {
             setRemarksState('')
             setToggleRemarks(!approves)
-            setToggleAttach(!approves)
+            setToggleAttach(showUploadFile)
             setErrorDialog(false)
             setError('')
             setFiles(null)

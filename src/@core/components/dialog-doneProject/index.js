@@ -218,7 +218,8 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
                 'LEVANTAMIENTO',
                 'EN TRABAJO',
                 'REVISIONES & COMENTARIOS',
-                'EMITIDOS'
+                'EMITIDOS',
+                'COMENTARIOS CLIENTE'
               ]
               for (const subfolder of subfolders) {
                 await createFolder(subfolder, projectFolder.id)

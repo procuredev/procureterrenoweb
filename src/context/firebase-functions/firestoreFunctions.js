@@ -882,7 +882,9 @@ const getNextRevision = async (
     newRevision,
     description,
     storageBlueprints:
-      approves && (remarks === false || !remarks)
+      approves && storageBlueprints.length === 2
+        ? storageBlueprints[storageBlueprints.length - 1]
+        : approves && (remarks === false || !remarks)
         ? storageBlueprints[0]
         : storageBlueprints[storageBlueprints.length - 1],
     userEmail: email,
@@ -918,6 +920,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const isOverResumable = isRevisionAtLeast1 && blueprint.resumeBlueprint && blueprint.blueprintCompleted
 
   const isM3D = blueprint.id.split('-').slice(-2, -1)[0] === 'M3D'
+
+  console.log('BOLL', approves && (isRevisionAtLeastB || isRevisionAtLeast0), userParam.role)
 
   // Inicializa los datos que se van a actualizar
   let updateData = {
@@ -1041,12 +1045,14 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             blueprintPercent: approves && blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
             remarks: remarks ? true : false,
             storageBlueprints:
-              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? blueprint.storageBlueprints : null
+              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [blueprint.storageBlueprints[0]] : null
           }
   }
 
   // Aplica la acción correspondiente al rol del usuario
   updateData = roleActions[userParam.role] ? await roleActions[userParam.role](blueprint, userParam) : updateData
+
+  console.log('updateData', updateData)
 
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)

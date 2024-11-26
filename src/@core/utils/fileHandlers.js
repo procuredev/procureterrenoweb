@@ -72,6 +72,8 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
     !checkRoleAndApproval(authUser.role, blueprint)
   ) {
     expectedFileName = `${expectedClientCode}_REV_${expectedRevision}_HLC`
+  } else if (authUser.role === 9 && (blueprint.approvedBySupervisor || blueprint.approvedByContractAdmin)) {
+    expectedFileName = `${expectedClientCode}_REV_${expectedRevision}`
   } else {
     const initials = authUser.displayName
       .toUpperCase()
@@ -131,7 +133,14 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
   })
 }
 
-export const createFolderStructure = async (petition, blueprint, rootFolder, fetchFolders, createFolder) => {
+export const createFolderStructure = async (
+  petition,
+  blueprint,
+  rootFolder,
+  fetchFolders,
+  createFolder,
+  folderEmitidos
+) => {
   const plantFolders = await fetchFolders(rootFolder)
   let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
 
@@ -147,9 +156,12 @@ export const createFolderStructure = async (petition, blueprint, rootFolder, fet
     fetchFolders,
     createFolder
   )
-  const trabajoFolder = await ensureFolder(projectFolder.id, 'EN TRABAJO', fetchFolders, createFolder)
 
-  return trabajoFolder
+  const destinationFolder = folderEmitidos
+    ? await ensureFolder(projectFolder.id, 'EMITIDOS', fetchFolders, createFolder)
+    : await ensureFolder(projectFolder.id, 'EN TRABAJO', fetchFolders, createFolder)
+
+  return destinationFolder
 }
 
 const ensureFolder = async (parentId, folderName, fetchFolders, createFolder) => {
@@ -174,19 +186,27 @@ export const handleFileUpload = async ({
   updateBlueprintsWithStorageOrHlc,
   rootFolder,
   authUser,
-  onFileUpload = null
+  onFileUpload = null,
+  folderEmitidos = false
 }) => {
   if (!files || !blueprint.id) return null
 
   try {
     // Utilizamos createFolderStructure para manejar toda la lógica de carpetas
-    const trabajoFolder = await createFolderStructure(petition, blueprint, rootFolder, fetchFolders, createFolder)
+    const destinationFolder = await createFolderStructure(
+      petition,
+      blueprint,
+      rootFolder,
+      fetchFolders,
+      createFolder,
+      folderEmitidos
+    )
     const revisionFolderName = `REV_${await getNextRevisionFolderName(blueprint, authUser)}`
-    const revisionFolders = await fetchFolders(trabajoFolder.id)
+    const revisionFolders = await fetchFolders(destinationFolder.id)
     let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
 
     if (!revisionFolder) {
-      revisionFolder = await createFolder(revisionFolderName, trabajoFolder.id)
+      revisionFolder = await createFolder(revisionFolderName, destinationFolder.id)
     }
     const fileData = await uploadFile(files.name, files, revisionFolder.id)
 

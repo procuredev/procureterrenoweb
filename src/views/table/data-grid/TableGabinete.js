@@ -1623,7 +1623,7 @@ const TableGabinete = ({
         getRowHeight={row => (row.id === currentRow ? 'auto' : 'auto')}
         isRowExpanded={row => expandedRows.has(row.id)}
       />
-      {doc && (
+      {doc && openAlert && (
         <AlertDialogGabinete
           open={openAlert}
           handleClose={handleCloseAlert}
