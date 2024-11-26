@@ -136,9 +136,6 @@ export const DialogAssignGabineteDraftmen = ({
     return JSON.stringify(arr1) === JSON.stringify(arr2)
   }
 
-  console.log('gabineteDraftmenState', gabineteDraftmenState)
-  console.log('doc.gabineteDraftmen', doc.gabineteDraftmen)
-
   return (
     <>
       <Dialog
