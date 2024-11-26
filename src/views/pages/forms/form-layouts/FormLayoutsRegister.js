@@ -301,35 +301,42 @@ const FormLayoutsBasic = () => {
     }
   }
 
-  const onSubmit = async event => {
+  const onSubmit = async (event) => {
     event.preventDefault()
+
+    // Validar el formulario
     const formErrors = validateForm(values)
-    const areFieldsValid = requiredKeys.every(key => !formErrors[key])
+    const areFieldsValid = requiredKeys.every((key) => !formErrors[key])
 
     if (areFieldsValid) {
-      let plant
-      Array.isArray(values.plant) ? (plant = values.plant) : (plant = values.plant.split(','))
-
-      values.name = values.firstName + (values.fatherLastName.length > 0 ? ' ' : '') + values.fatherLastName + (values.motherLastName.length > 0 ? ' ' : '') + values.motherLastName
-
-      // Primero que todo, se deberán formatear los campos rut para guardarlo correctamtente
-      if (values.rut) {
-        let formattedRut = values.rut.replace(/[.]/g, '')
-        values.rut = formattedRut
-        //console.log(formattedRut)
-      }
 
       try {
-        await createUser({ ...values, plant }, authUser, setOldEmail, setNewUID)
-        // Inicia el estado de creación de perfil
+
+        // Formatear el campo 'plant'
+        values.plant = Array.isArray(values.plant) ? values.plant : values.plant.split(',')
+
+        // Construir el nombre completo
+        values.name = values.firstName + (values.fatherLastName.length > 0 ? ' ' : '') + values.fatherLastName + (values.motherLastName.length ? ' ' : '') + values.motherLastName
+
+        // Formatear RUT
+        if (values.rut) {
+          values.rut = values.rut.replace(/[.]/g, '')
+        }
+
+        // Crear usuario
+        await createUser({ ...values }, authUser, setOldEmail, setNewUID)
+
+        // Cambiar estados tras éxito
         setIsCreatingProfile(true)
         setDialog(true)
         setErrors({})
       } catch (error) {
+        console.error('Error al crear el usuario:', error)
         setDialog(true)
         setAlertMessage(error.toString())
       }
     } else {
+      // Manejo de errores en la validación
       setErrors(formErrors)
     }
   }
@@ -338,10 +345,11 @@ const FormLayoutsBasic = () => {
     const maxAttempts = 2 // Número máximo de intentos permitidos
 
     try {
+      console.log(values)
       const message = await signAdminBack(values, password, oldEmail, newUID)
       setValues(initialValues)
       setAttempts(0) // Reiniciar el contador de intentos si el inicio de sesión es exitoso
-      setDialog(true)
+      setDialog(false)
       setAlertMessage(message)
       // Finaliza el estado de creación de perfil
       setIsCreatingProfile(false)
@@ -414,20 +422,6 @@ const FormLayoutsBasic = () => {
       <CardContent>
         <form onSubmit={onSubmit}>
           <Grid container spacing={5}>
-            {/* Nombre Completo */}
-            {/* <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label='Nombre Completo'
-                type='text'
-                placeholder='Nombre Completo'
-                onChange={handleChange('name')}
-                value={values.name}
-                error={errors.name ? true : false}
-                helperText={errors.name}
-                inputProps={{ maxLength: 45 }}
-              />
-            </Grid> */}
 
             {/* Primer Nombre */}
             <Grid item xs={12}>
