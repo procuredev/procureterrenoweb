@@ -119,7 +119,7 @@ const FormLayoutsBasic = () => {
         newValue = newValue.trim()
         break
       case 'email':
-        newValue = event.target.value.replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
+        newValue = event.target.value.toLowerCase().replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
         break
       case 'name':
         // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
@@ -558,7 +558,7 @@ const FormLayoutsBasic = () => {
               <TextField
                 fullWidth
                 label='Email'
-                type='email'
+                type='tel'
                 placeholder='email@ejemplo.com'
                 onChange={handleChange('email')}
                 value={values.email}
