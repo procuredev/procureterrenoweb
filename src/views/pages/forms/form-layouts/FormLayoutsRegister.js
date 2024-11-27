@@ -321,6 +321,11 @@ const FormLayoutsBasic = () => {
         // Formatear el campo 'plant'
         values.plant = Array.isArray(values.plant) ? values.plant : values.plant.split(',')
 
+        // Se quitan espacios al comienzo y final de cada name.
+        values.firstName = values.firstName.trim()
+        values.fatherLastName = values.fatherLastName.trim()
+        values.motherLastName = values.motherLastName.trim()
+
         // Construir el nombre completo
         values.name = values.firstName + (values.fatherLastName.length > 0 ? ' ' : '') + values.fatherLastName + (values.motherLastName.length ? ' ' : '') + values.motherLastName
 
@@ -359,9 +364,6 @@ const FormLayoutsBasic = () => {
 
     const updatedAttempts = attempts + 1
     setAttempts(updatedAttempts)
-
-    console.log(attempts)
-    console.log(updatedAttempts)
 
     // Si ya se han alcanzado los intentos máximos, no continuar
     if (updatedAttempts === 0  || updatedAttempts < maxAttempts) {
@@ -411,22 +413,6 @@ const FormLayoutsBasic = () => {
 
   }
 
-
-
-  // Obtener los nombres de las plantas cuando el componente se monta
-  useEffect(() => {
-
-    if (authUser) {
-      console.log(authUser.email ? authUser.email : 'No hay usuario conectado')
-    } else {
-      console.log('No hay usuario conectado')
-    }
-
-  }, [authUser])
-
-
-
-
   // Maneja Cierre de Dialog de ingreso de Contraseña de Admin cuando se hace click en "Cancelar".
   const handleClose = async () => {
 
@@ -454,8 +440,6 @@ const FormLayoutsBasic = () => {
   const handleTryPasswordAgain = async () => {
 
     setTryingCreateUser(false)
-
-    console.log(attempts)
 
     if (attempts >= 3) {
       handleConfirm()
