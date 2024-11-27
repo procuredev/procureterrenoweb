@@ -702,16 +702,11 @@ const FormLayoutsBasic = () => {
                 </FormControl>
               </Grid>
             )}
+
             <Grid item xs={12}>
-              <Box
-                sx={{
-                  gap: 5,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
+              <Box sx={{ gap: 5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+
+                {/* Botón "Crear Usuario" */}
                 <Button type='submit' variant='contained' size='large'>
                   Crear usuario
                 </Button>
@@ -721,11 +716,11 @@ const FormLayoutsBasic = () => {
                   <DialogContent>
                     <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar.</DialogContentText>
                     <DialogContentText sx={{ mb: 5 }}>Si haces click en "CERRAR" serás redirigido al login.</DialogContentText>
-                    <TextField fullWidth label='Contraseña' type='password' onChange={e => setPassword(e.target.value)} />
+                    <TextField fullWidth label='Contraseña' type='password' value={password} onChange={e => setPassword(e.target.value)} />
                   </DialogContent>
                   <DialogActions>
-                    {!alertMessage && <Button onClick={() => handleClose()}>Cerrar</Button>}
-                    {!alertMessage && <Button disabled={!password ? true : false} onClick={() => handleConfirm(values, password)}>Confirmar</Button>}
+                    <Button onClick={() => handleClose()}>Cerrar</Button>
+                    <Button disabled={!password ? true : false} onClick={() => handleConfirm(values, password)}>Confirmar</Button>
                   </DialogActions>
                 </Dialog>
 
