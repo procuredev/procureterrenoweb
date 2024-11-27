@@ -65,8 +65,6 @@ export default function AlertDialogGabinete({
   const storageInEmitidos =
     (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && approves && !blueprint.approvedByDocumentaryControl
 
-  console.log('storageInEmitidos', storageInEmitidos)
-
   const storageInComentByCLient =
     (isRevisionAtLeastB || isRevisionAtLeast0) &&
     isRole9 &&
@@ -171,8 +169,6 @@ export default function AlertDialogGabinete({
 
   const canRejectedByClient =
     (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && !approves && blueprint.approvedByDocumentaryControl
-
-  console.log('canRejectedByClient', canRejectedByClient)
 
   const rootFolder = getRootFolder()
   const { updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
