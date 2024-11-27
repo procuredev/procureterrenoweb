@@ -259,16 +259,15 @@ const TableGabinete = ({
     'Aprobado por Control Documental': row =>
       row.approvedByDocumentaryControl && !row.sentByDesigner && row.revision === 'A',
 
+    Rechazado: row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && !row.remarks,
     Iniciado: row => !row.sentTime,
     'Con Observaciones y Comentarios': row =>
       (!row.sentByDesigner &&
         (!row.approvedByDocumentaryControl || row.approvedByContractAdmin || row.approvedBySupervisor)) ||
       (!row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks) ||
-      (!row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient && row.remarks) ||
       (row.approvedByDocumentaryControl &&
         !row.sentByDesigner &&
-        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48)),
-    Rechazado: row => !row.sentByDesigner && row.approvedByDocumentaryControl && !row.approvedByClient
+        (row.revision.charCodeAt(0) >= 66 || row.revision.charCodeAt(0) >= 48))
   }
 
   const renderStatus = row => {

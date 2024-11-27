@@ -260,7 +260,7 @@ export default function AlertDialogGabinete({
 
   const handleClickDeleteDocumentReturned = async () => {
     try {
-      setIsUploading(true)
+      updateFormState('isUploading', true)
       await deleteReferenceOfLastDocumentAttached(petitionId, blueprint.id)
 
       // Actualiza el estado de `values` directamente para reflejar la eliminación
@@ -268,7 +268,7 @@ export default function AlertDialogGabinete({
         ...prevValues,
         storageBlueprints: blueprint.storageBlueprints.slice(0, -1) // elimina el último archivo localmente
       }))
-      setIsUploading(false)
+      updateFormState('isUploading', false)
     } catch (error) {
       console.error('Error al cargar el ultimo archivo:', error)
       setError('Error al cargar el ultimo archivo. Intente nuevamente.')
