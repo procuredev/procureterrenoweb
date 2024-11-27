@@ -110,6 +110,8 @@ export default function AlertDialogGabinete({
   })
   const previousBlueprintRef = useRef(blueprint)
 
+  const { values, toggleRemarks, toggleAttach, files, isLoading, isUploading, errorDialog, errorFileMsj } = formState
+
   const updateFormState = (key, value) => {
     setFormState(prev => ({ ...prev, [key]: value }))
   }
@@ -232,7 +234,7 @@ export default function AlertDialogGabinete({
         return
       }
 
-      if (toggleAttach) setFiles(acceptedFiles[0])
+      if (toggleAttach) updateFormState('files', acceptedFiles[0])
     },
     multiple: false
   })
@@ -249,11 +251,11 @@ export default function AlertDialogGabinete({
   }
 
   const handleCloseErrorDialog = () => {
-    setErrorDialog(false)
+    updateFormState('errorDialog', false)
   }
 
   const handleRemoveFile = () => {
-    setFiles(null)
+    updateFormState('files', null)
   }
 
   const handleClickDeleteDocumentReturned = async () => {
@@ -387,7 +389,7 @@ export default function AlertDialogGabinete({
               <Checkbox
                 disabled={showOptionsInRejected}
                 checked={toggleAttach}
-                onChange={() => setToggleAttach(!toggleAttach)}
+                onChange={() => updateFormState('toggleAttach', !toggleAttach)}
               />
             }
             label='Agregar Archivo Adjunto'
@@ -481,7 +483,7 @@ export default function AlertDialogGabinete({
   // Extraer la función de carga de archivos
   const handleUploadFile = async () => {
     try {
-      setIsUploading(true)
+      updateFormState('isUploading', true)
       await handleFileUpload({
         files,
         blueprint,
@@ -496,11 +498,11 @@ export default function AlertDialogGabinete({
         onFileUpload,
         uploadInFolder
       })
-      setFiles(null)
+      updateFormState('files', null)
     } catch (error) {
       console.error('Error al subir el archivo:', error)
     } finally {
-      setIsUploading(false)
+      updateFormState('isUploading', false)
     }
   }
 
@@ -509,11 +511,11 @@ export default function AlertDialogGabinete({
       open={open}
       onClose={() => {
         handleDialogClose()
-        setFiles(null)
-        setToggleRemarks(showOptionsInRejected)
-        setToggleAttach(showUploadFile)
+        updateFormState('files', null)
+        updateFormState('toggleRemarks', showOptionsInRejected)
+        updateFormState('toggleAttach', showUploadFile)
         setRemarksState('')
-        setErrorDialog(false)
+        updateFormState('errorDialog', false)
         setError('')
       }}
       aria-labelledby='alert-dialog-title'
@@ -525,7 +527,7 @@ export default function AlertDialogGabinete({
 
         {shouldShowRemarkCheckbox() && (
           <FormControlLabel
-            control={<Checkbox onChange={() => setToggleRemarks(!toggleRemarks)} />}
+            control={<Checkbox onChange={() => updateFormState('toggleRemarks', !toggleRemarks)} />}
             sx={{ mt: 4 }}
             label='Agregar Comentario'
           />
@@ -555,11 +557,11 @@ export default function AlertDialogGabinete({
         <Button
           onClick={() => {
             setRemarksState('')
-            setToggleRemarks(showOptionsInRejected)
-            setToggleAttach(showUploadFile)
-            setErrorDialog(false)
+            updateFormState('toggleRemarks', showOptionsInRejected)
+            updateFormState('toggleAttach', showUploadFile)
+            updateFormState('errorDialog', false)
             setError('')
-            setFiles(null)
+            updateFormState('files', null)
             handleDialogClose()
           }}
         >
