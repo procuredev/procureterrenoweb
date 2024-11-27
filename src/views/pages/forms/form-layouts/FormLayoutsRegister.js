@@ -352,7 +352,8 @@ const FormLayoutsBasic = () => {
             setDialog(false)
             setAlertMessage('')
         }, 1500)
-        return; // Salir de la función si los intentos han alcanzado el máximo
+
+        return // Salir de la función si los intentos han alcanzado el máximo
     }
 
     try {
