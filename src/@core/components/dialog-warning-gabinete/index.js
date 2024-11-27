@@ -65,6 +65,8 @@ export default function AlertDialogGabinete({
   const storageInEmitidos =
     (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && approves && !blueprint.approvedByDocumentaryControl
 
+  console.log('storageInEmitidos', storageInEmitidos)
+
   const storageInComentByCLient =
     (isRevisionAtLeastB || isRevisionAtLeast0) &&
     isRole9 &&
@@ -285,6 +287,7 @@ export default function AlertDialogGabinete({
         condition: canRejectedByClient && toggleRemarks && !toggleAttach,
         value: remarksState.length === 0
       },
+
       clientRejectionOnly: {
         condition: canRejectedByClient,
         value: false
@@ -327,16 +330,20 @@ export default function AlertDialogGabinete({
 
   const shouldShowRemarkCheckbox = () => {
     const conditions = {
-      noRejectedOptions: {
-        condition: !showOptionsInRejected,
-        show: true
-      },
       approvedByDocControl: {
         condition: approves && authUser.role === 9 && blueprint.approvedByDocumentaryControl === true,
         show: true
       },
       revisionA: {
         condition: approves && authUser.role === 9 && blueprint.revision === 'A',
+        show: true
+      },
+      hiden: {
+        condition: storageInEmitidos || ((isRole6 || isRole7) && approves),
+        show: false
+      },
+      noRejectedOptions: {
+        condition: !showOptionsInRejected,
         show: true
       },
       default: {
