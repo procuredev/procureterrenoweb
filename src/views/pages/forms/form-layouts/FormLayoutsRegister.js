@@ -13,6 +13,7 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -63,6 +64,7 @@ const FormLayoutsBasic = () => {
   const [melRoles, setMelRoles] = useState([])
   const [userTypes, setUserTypes] = useState([])
   const [wrongPasswordAdvice, setWrongPasswordAdvice] = useState(false)
+  const [tryingCreateUser, setTryingCreateUser] = useState(false)
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
@@ -350,6 +352,9 @@ const FormLayoutsBasic = () => {
   const router = useRouter()
 
   const handleConfirm = async (values, password) => {
+
+    setTryingCreateUser(true)
+
     const maxAttempts = 3 // Número máximo de intentos permitidos
 
     const updatedAttempts = attempts + 1
@@ -447,6 +452,8 @@ const FormLayoutsBasic = () => {
 
   // Maneja Cierre de Dialog donde se indica que usuario se equivocó al indicar la contraseña.
   const handleTryPasswordAgain = async () => {
+
+    setTryingCreateUser(false)
 
     console.log(attempts)
 
@@ -738,23 +745,45 @@ const FormLayoutsBasic = () => {
                 </Button>
 
                 {/* Dialog para ingresar la contraseña del Admin*/}
-                <Dialog open={dialog}>
-                  <DialogContent>
-                    <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar.</DialogContentText>
-                    <DialogContentText sx={{ mb: 5 }}>Si haces click en "CERRAR" serás redirigido al login.</DialogContentText>
-                    <TextField fullWidth label='Contraseña' type='password' value={password} onChange={e => setPassword(e.target.value)} />
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={async() => await handleClose()}>Cerrar</Button>
-                    <Button disabled={!password ? true : false} onClick={async() => await handleConfirm(values, password)}>Confirmar</Button>
-                  </DialogActions>
+                <Dialog
+                  open={dialog}
+                  sx={{
+                    "& .MuiDialog-paper": {
+                      width: 'auto',          // Ajusta el tamaño del diálogo
+                      maxWidth: 500,          // Limita el tamaño máximo del diálogo (puedes ajustar el valor según sea necesario)
+                      margin: 'auto',         // Centra el diálogo
+                      overflow: 'hidden',     // Evita el scrollbar cuando el contenido es pequeño
+                    },
+                  }}
+                >
+                  {tryingCreateUser ? (
+                    <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                      <CircularProgress size={40} />
+                    </DialogContent>
+                  ) : (
+                    <DialogContent>
+                      <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar.</DialogContentText>
+                      <DialogContentText sx={{ mb: 5 }}>Si haces click en "CERRAR" serás redirigido al login.</DialogContentText>
+                      <TextField fullWidth label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </DialogContent>
+                  )}
+
+                  {tryingCreateUser ? (
+                    null // Ya hemos centrado el CircularProgress en el DialogContent, no necesitamos acciones en esta parte.
+                  ) : (
+                    <DialogActions>
+                      <Button disabled={authUser && authUser.role === 1} onClick={async () => await handleClose()}>Cerrar</Button>
+                      <Button disabled={!password} onClick={async () => await handleConfirm(values, password)}>Confirmar</Button>
+                    </DialogActions>
+                  )}
                 </Dialog>
+
 
                 {/* Dialog para indicar Error en ingreso de Contraseña */}
                 <Dialog open={wrongPasswordAdvice}>
-                    <DialogContent>
-                      <DialogContentText sx={{ mb: 5 }}>{alertMessage}</DialogContentText>
-                    </DialogContent>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 5 }}>{alertMessage}</DialogContentText>
+                  </DialogContent>
                   <DialogActions>
                     <Button onClick={async() => await handleTryPasswordAgain()}>OK</Button>
                   </DialogActions>
