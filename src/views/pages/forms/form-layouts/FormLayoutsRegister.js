@@ -59,6 +59,7 @@ const FormLayoutsBasic = () => {
   const [procureRoles, setProcureRoles] = useState([])
   const [melRoles, setMelRoles] = useState([])
   const [userTypes, setUserTypes] = useState([])
+  const [wrongPasswordAdvice, setWrongPasswordAdvice] = useState(false)
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
@@ -346,7 +347,7 @@ const FormLayoutsBasic = () => {
 
     // Si ya se han alcanzado los intentos máximos, no continuar
     if (attempts >= maxAttempts) {
-        setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.');
+        setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
         setTimeout(() => {
             signAdminFailure().catch(error => console.log(error.message));
             setDialog(false)
@@ -377,7 +378,8 @@ const FormLayoutsBasic = () => {
         setAttempts(prevAttempts => prevAttempts + 1) // Incrementar el contador de intentos
 
         if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-            setAlertMessage('Contraseña incorrecta. Intentos disponibles: ' + (maxAttempts - attempts - 1))
+            setAlertMessage('Contraseña incorrecta. Te quedan ' + (maxAttempts - attempts - 1) + ' intentos disponibles.')
+            setWrongPasswordAdvice(true)
         } else if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
             setAlertMessage('Error, no se creó ningún usuario. Serás redirigid@ al login.')
             setTimeout(() => {
@@ -406,6 +408,13 @@ const FormLayoutsBasic = () => {
       setDialog(false)
       setAlertMessage('')
     }
+  }
+
+  // Maneja Cierre de Dialog donde se indica que usuario se equivocó al indicar la contraseña.
+  const handleTryPasswordAgain = async () => {
+    setPassword('')
+    setAlertMessage('')
+    setWrongPasswordAdvice(false)
   }
 
   const getOptions = async (plant, shift = '') => {
@@ -703,6 +712,16 @@ const FormLayoutsBasic = () => {
                   <DialogActions>
                     <Button onClick={() => handleClose()}>Cerrar</Button>
                     {!alertMessage && <Button disabled={!password ? true : false} onClick={() => handleConfirm(values, password)}>Confirmar</Button>}
+                  </DialogActions>
+                </Dialog>
+
+                {/* Dialog para indicar Error en ingreso de Contraseña */}
+                <Dialog open={wrongPasswordAdvice}>
+                    <DialogContent>
+                      <DialogContentText sx={{ mb: 5 }}>{alertMessage}</DialogContentText>
+                    </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => handleTryPasswordAgain()}>OK</Button>
                   </DialogActions>
                 </Dialog>
               </Box>
