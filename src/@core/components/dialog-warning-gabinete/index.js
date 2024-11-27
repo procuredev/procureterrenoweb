@@ -70,36 +70,105 @@ export default function AlertDialogGabinete({
     isRole9 &&
     (approves || !approves) &&
     blueprint.approvedByDocumentaryControl
-  const showUploadFile = storageInEmitidos || !approves
 
-  const uploadInFolder = storageInEmitidos
-    ? 'EMITIDOS'
-    : storageInComentByCLient
-    ? 'COMENTARIOS CLIENTE'
-    : 'REVISIONES & COMENTARIOS'
+  const showOptionsInRejected = !approves && !blueprint.approvedByDocumentaryControl
 
-  const [values, setValues] = useState({})
-  const [toggleRemarks, setToggleRemarks] = useState(!approves)
-  const [toggleAttach, setToggleAttach] = useState(showUploadFile)
-  const [files, setFiles] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [errorDialog, setErrorDialog] = useState(false)
-  const [errorFileMsj, setErrorFileMsj] = useState('')
+  const showUploadFile = storageInEmitidos || showOptionsInRejected
+
+  const getUploadFolder = () => {
+    const folderTypes = {
+      emitidos: {
+        condition: storageInEmitidos,
+        folder: 'EMITIDOS'
+      },
+      comentariosCliente: {
+        condition: storageInComentByCLient,
+        folder: 'COMENTARIOS CLIENTE'
+      },
+      revisionesComentarios: {
+        condition: true,
+        folder: 'REVISIONES & COMENTARIOS'
+      }
+    }
+
+    const { folder } = Object.values(folderTypes).find(({ condition }) => condition)
+
+    return folder
+  }
+
+  const uploadInFolder = getUploadFolder()
+
+  const [formState, setFormState] = useState({
+    values: {},
+    toggleRemarks: showOptionsInRejected,
+    toggleAttach: showUploadFile,
+    files: null,
+    isLoading: false,
+    isUploading: false,
+    errorDialog: false,
+    errorFileMsj: ''
+  })
   const previousBlueprintRef = useRef(blueprint)
 
-  const canAprove =
-    storageInEmitidos && blueprint.storageBlueprints?.length > 1
-      ? true
-      : toggleRemarks && !toggleAttach
-      ? approves && remarksState.length > 0 && blueprint.storageBlueprints?.length < 2
-      : !toggleRemarks && blueprint.storageBlueprints?.length > 1
-      ? false
-      : toggleRemarks && !toggleAttach && blueprint.storageBlueprints?.length > 1
-      ? false
-      : toggleAttach
-      ? blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
-      : approves
+  const updateFormState = (key, value) => {
+    setFormState(prev => ({ ...prev, [key]: value }))
+  }
+
+  // Maneja el reset de estados
+  const resetFormState = () => {
+    setFormState({
+      values: {},
+      toggleRemarks: showOptionsInRejected,
+      toggleAttach: showUploadFile,
+      files: null,
+      isLoading: false,
+      isUploading: false,
+      errorDialog: false,
+      errorFileMsj: ''
+    })
+    setRemarksState('')
+    setError('')
+  }
+
+  const getApprovalStatus = () => {
+    const approvalConditions = {
+      emitidosWithMultipleBlueprints: {
+        condition: storageInEmitidos && blueprint.storageBlueprints?.length > 1,
+        value: true
+      },
+      remarksWithoutAttach: {
+        condition: toggleRemarks && !toggleAttach,
+        value: approves && remarksState.length > 0 && blueprint.storageBlueprints?.length < 2
+      },
+      noRemarksWithMultipleBlueprints: {
+        condition: !toggleRemarks && blueprint.storageBlueprints?.length > 1,
+        value: false
+      },
+      remarksOnlyWithMultipleBlueprints: {
+        condition: toggleRemarks && !toggleAttach && blueprint.storageBlueprints?.length > 1,
+        value: false
+      },
+      withAttachment: {
+        condition: toggleAttach,
+        value: blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
+      },
+      default: {
+        condition: true,
+        value: approves
+      }
+    }
+
+    const { value } = Object.values(approvalConditions).find(({ condition }) => condition)
+
+    return value
+  }
+
+  const canAprove = getApprovalStatus()
+
+  const canRejectedByClient =
+    (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && !approves && blueprint.approvedByDocumentaryControl
+
+  console.log('canRejectedByClient', canRejectedByClient)
 
   const rootFolder = getRootFolder()
   const { updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
@@ -109,12 +178,8 @@ export default function AlertDialogGabinete({
   const canReject = blueprint.storageBlueprints?.length > 1 && remarksState.length > 0
 
   useEffect(() => {
-    const { storageBlueprints, ...otherBlueprintFields } = blueprint || {} // Excluye storageBlueprints
-
-    setValues(prevValues => ({
-      ...prevValues,
-      ...otherBlueprintFields // Actualiza solo si otros campos de blueprint han cambiado
-    }))
+    const { storageBlueprints, ...otherBlueprintFields } = blueprint || {}
+    updateFormState('values', otherBlueprintFields)
   }, [
     blueprint.id,
     blueprint.clientCode,
@@ -129,8 +194,8 @@ export default function AlertDialogGabinete({
 
   useEffect(() => {
     if (previousBlueprintRef.current?.storageBlueprints !== blueprint.storageBlueprints) {
-      setValues(prevValues => ({
-        ...prevValues,
+      updateFormState('values', prev => ({
+        ...prev,
         storageBlueprints: blueprint.storageBlueprints
       }))
       previousBlueprintRef.current = blueprint
@@ -139,8 +204,8 @@ export default function AlertDialogGabinete({
 
   // Actualiza estados en caso de aprobación
   useEffect(() => {
-    setToggleRemarks(!approves)
-    setToggleAttach(showUploadFile)
+    updateFormState('toggleRemarks', showOptionsInRejected)
+    updateFormState('toggleAttach', showUploadFile)
   }, [approves])
 
   // Dropzone para manejar la carga de archivos
@@ -174,8 +239,13 @@ export default function AlertDialogGabinete({
 
   // Función para manejar el diálogo de error
   const handleOpenErrorDialog = msj => {
-    setErrorFileMsj(msj)
-    setErrorDialog(true)
+    updateFormState('errorDialog', true)
+    updateFormState('errorFileMsj', msj)
+  }
+
+  const handleDialogClose = () => {
+    resetFormState()
+    handleClose()
   }
 
   const handleCloseErrorDialog = () => {
@@ -203,13 +273,244 @@ export default function AlertDialogGabinete({
     }
   }
 
+  const getButtonDisabledState = () => {
+    const conditions = {
+      clientRejectionWithAttachAndRemarks: {
+        condition: canRejectedByClient && toggleAttach && toggleRemarks,
+        value: blueprint.storageBlueprints?.length === 1
+      },
+      clientRejectionWithRemarksOnly: {
+        condition: canRejectedByClient && toggleRemarks && !toggleAttach,
+        value: remarksState.length === 0
+      },
+      clientRejectionOnly: {
+        condition: canRejectedByClient,
+        value: false
+      },
+      default: {
+        condition: true,
+        value: (!approves && !canReject) || !canAprove
+      }
+    }
+
+    const matchingCondition = Object.values(conditions).find(({ condition }) => condition)
+
+    return matchingCondition.value
+  }
+
+  const getDialogText = () => {
+    const textTypes = {
+      userOwner: {
+        condition: blueprint.userId === authUser.uid,
+        text: 'Enviar'
+      },
+      approve: {
+        condition: approves,
+        text: 'Aprobar'
+      },
+      rejectByDocControl: {
+        condition: !approves && authUser.role === 9,
+        text: 'Rechazar'
+      },
+      return: {
+        condition: true,
+        text: 'Devolver'
+      }
+    }
+
+    const { text } = Object.values(textTypes).find(({ condition }) => condition)
+
+    return text
+  }
+
+  const shouldShowRemarkCheckbox = () => {
+    const conditions = {
+      noRejectedOptions: {
+        condition: !showOptionsInRejected,
+        show: true
+      },
+      approvedByDocControl: {
+        condition: approves && authUser.role === 9 && blueprint.approvedByDocumentaryControl === true,
+        show: true
+      },
+      revisionA: {
+        condition: approves && authUser.role === 9 && blueprint.revision === 'A',
+        show: true
+      },
+      default: {
+        condition: true,
+        show: false
+      }
+    }
+
+    const { show } = Object.values(conditions).find(({ condition }) => condition)
+
+    return show
+  }
+
+  const getRemarkFieldConfig = () => {
+    const configs = {
+      rejection: {
+        condition: toggleRemarks && !approves,
+        config: {
+          label: 'Observación',
+          error: Boolean(error),
+          helperText: error
+        }
+      },
+      comment: {
+        condition: toggleRemarks,
+        config: {
+          label: 'Comentario',
+          error: Boolean(error),
+          helperText: error
+        }
+      },
+      hidden: {
+        condition: true,
+        config: null
+      }
+    }
+
+    const { config } = Object.values(configs).find(({ condition }) => condition)
+
+    return config
+  }
+
+  const getAttachmentConfig = () => {
+    const configs = {
+      showCheckbox: {
+        condition: (approves && toggleRemarks) || (canRejectedByClient && toggleRemarks),
+        component: (
+          <FormControlLabel
+            control={
+              <Checkbox
+                disabled={showOptionsInRejected}
+                checked={toggleAttach}
+                onChange={() => setToggleAttach(!toggleAttach)}
+              />
+            }
+            label='Agregar Archivo Adjunto'
+          />
+        )
+      },
+      showUploadedFile: {
+        condition: blueprint.storageBlueprints?.length === 2,
+        component: (
+          <Box sx={{ mt: 6 }}>
+            <Typography variant='body2'>
+              Documento de corrección cargado: <br />
+            </Typography>
+            <List dense sx={{ py: 4 }}>
+              <ListItem key={blueprint.storageBlueprints[1]?.name}>
+                <ListItemText primary={blueprint.storageBlueprints[1]?.name} />
+                <ListItemSecondaryAction sx={{ right: 0, my: 'auto' }}>
+                  <IconButton
+                    size='small'
+                    sx={{ display: 'flex' }}
+                    aria-haspopup='true'
+                    onClick={handleClickDeleteDocumentReturned}
+                    aria-controls='modal-share-examples'
+                  >
+                    <Icon icon='mdi:delete-forever' color='#f44336' />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            </List>
+          </Box>
+        )
+      }
+    }
+
+    return Object.values(configs)
+      .filter(({ condition }) => condition)
+      .map(({ component }) => component)
+  }
+
+  const getFileUploadSection = () => {
+    const sections = {
+      fileList: {
+        condition: toggleAttach && files,
+        component: (
+          <Fragment>
+            <List>
+              <FileList files={files} handleRemoveFile={handleRemoveFile} />
+            </List>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+              <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveFile}>
+                Quitar
+              </Button>
+              <Button color='primary' sx={{ m: 2 }} variant='outlined' onClick={handleUploadFile} disabled={isLoading}>
+                Subir archivo
+              </Button>
+            </Box>
+          </Fragment>
+        )
+      },
+      dropzone: {
+        condition: blueprint.storageBlueprints?.length < 2 && toggleAttach && !files,
+        component: (
+          <div {...getRootProps({ className: 'dropzone' })}>
+            <input {...getInputProps()} />
+            <Box
+              sx={{
+                my: 5,
+                mx: 'auto',
+                p: 5,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                width: '100%',
+                borderRadius: '10px'
+              }}
+            >
+              <Typography color='textSecondary'>
+                <Link onClick={() => {}}>Haz click acá</Link> para adjuntar archivo
+              </Typography>
+            </Box>
+          </div>
+        )
+      }
+    }
+
+    return Object.values(sections)
+      .filter(({ condition }) => condition)
+      .map(({ component }) => component)
+  }
+
+  // Extraer la función de carga de archivos
+  const handleUploadFile = async () => {
+    try {
+      setIsUploading(true)
+      await handleFileUpload({
+        files,
+        blueprint,
+        petitionId,
+        petition,
+        fetchFolders,
+        uploadFile,
+        createFolder,
+        updateBlueprintsWithStorageOrHlc,
+        rootFolder,
+        authUser,
+        onFileUpload,
+        uploadInFolder
+      })
+      setFiles(null)
+    } catch (error) {
+      console.error('Error al subir el archivo:', error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   return (
     <Dialog
       open={open}
       onClose={() => {
-        handleClose()
+        handleDialogClose()
         setFiles(null)
-        setToggleRemarks(!approves)
+        setToggleRemarks(showOptionsInRejected)
         setToggleAttach(showUploadFile)
         setRemarksState('')
         setErrorDialog(false)
@@ -218,167 +519,29 @@ export default function AlertDialogGabinete({
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>
-        {blueprint.userId === authUser.uid
-          ? 'Enviar'
-          : approves
-          ? 'Aprobar'
-          : !approves && authUser.role === 9
-          ? 'Rechazar'
-          : 'Devolver'}{' '}
-        entregable de la solicitud
-      </DialogTitle>
+      <DialogTitle id='alert-dialog-title'>{getDialogText()} entregable de la solicitud</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', width: 600 }}>
-        <DialogContentText>
-          ¿Estás segur@ de que quieres{' '}
-          {blueprint.userId === authUser.uid
-            ? 'Enviar'
-            : approves
-            ? 'aprobar'
-            : !approves && authUser.role === 9
-            ? 'rechazar'
-            : 'devolver'}{' '}
-          el entregable?
-        </DialogContentText>
+        <DialogContentText>¿Estás segur@ de que quieres {getDialogText()} el entregable?</DialogContentText>
 
-        {(approves && authUser.role === 9 && blueprint.approvedByDocumentaryControl === true) ||
-        (approves && authUser.role === 9 && blueprint.revision === 'A') ? (
+        {shouldShowRemarkCheckbox() && (
           <FormControlLabel
             control={<Checkbox onChange={() => setToggleRemarks(!toggleRemarks)} />}
             sx={{ mt: 4 }}
             label='Agregar Comentario'
           />
-        ) : (
-          ''
         )}
 
-        {toggleRemarks && !approves ? (
-          <TextField
-            sx={{ mt: 4 }}
-            label='Observación'
-            //* error={error} */
-            error={Boolean(error)}
-            helperText={error}
-            onChange={e => setRemarksState(e.target.value)}
-          />
-        ) : toggleRemarks ? (
-          <TextField
-            sx={{ mt: 4 }}
-            label='Comentario'
-            error={Boolean(error)}
-            helperText={error}
-            onChange={e => setRemarksState(e.target.value)}
-          />
-        ) : (
-          ''
+        {getRemarkFieldConfig() && (
+          <TextField sx={{ mt: 4 }} {...getRemarkFieldConfig()} onChange={e => setRemarksState(e.target.value)} />
         )}
 
         {isRevisor ? (
           <Fragment>
-            {isUploading === false ? (
+            {!isUploading ? (
               <Fragment>
-                {approves && toggleRemarks && (
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        disabled={!approves}
-                        checked={toggleAttach}
-                        onChange={() => setToggleAttach(!toggleAttach)}
-                      />
-                    }
-                    label='Agregar Archivo Adjunto'
-                  />
-                )}
+                {getAttachmentConfig()}
 
-                {blueprint.storageBlueprints?.length === 2 && (
-                  <Box sx={{ mt: 6 }}>
-                    <Typography variant='body2'>
-                      Documento de corrección cargado: <br /> {/* {blueprint.storageBlueprints[1].name} */}
-                    </Typography>
-                    <List dense sx={{ py: 4 }}>
-                      <ListItem key={blueprint.storageBlueprints[1].name}>
-                        <ListItemText primary={blueprint.storageBlueprints[1].name} />
-                        <ListItemSecondaryAction sx={{ right: 0, my: 'auto' }}>
-                          <IconButton
-                            size='small'
-                            sx={{ display: 'flex' }}
-                            aria-haspopup='true'
-                            onClick={() => handleClickDeleteDocumentReturned()} // handleClickDeleteDocumentReturned(blueprint.storageBlueprints[1].name)
-                            aria-controls='modal-share-examples'
-                          >
-                            <Icon icon='mdi:delete-forever' color='#f44336' />
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    </List>
-                  </Box>
-                )}
-
-                {toggleAttach && files && (
-                  <Fragment>
-                    <List>
-                      <FileList files={files} handleRemoveFile={handleRemoveFile} />
-                    </List>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                      <Button color='error' sx={{ m: 2 }} variant='outlined' onClick={handleRemoveFile}>
-                        Quitar
-                      </Button>
-                      <Button
-                        color='primary'
-                        sx={{ m: 2 }}
-                        variant='outlined'
-                        onClick={async () => {
-                          try {
-                            setIsUploading(true)
-                            await handleFileUpload({
-                              files,
-                              blueprint,
-                              petitionId,
-                              petition,
-                              fetchFolders,
-                              uploadFile,
-                              createFolder,
-                              updateBlueprintsWithStorageOrHlc,
-                              rootFolder,
-                              authUser,
-                              onFileUpload,
-                              uploadInFolder
-                            })
-                            setFiles(null)
-                          } catch (error) {
-                            console.error('Error al subir el archivo:', error)
-                          } finally {
-                            setIsUploading(false)
-                          }
-                        }}
-                        disabled={isLoading}
-                      >
-                        'Subir archivo'
-                      </Button>
-                    </Box>
-                  </Fragment>
-                )}
-                {blueprint.storageBlueprints?.length < 2 && toggleAttach && !files && (
-                  <div {...getRootProps({ className: 'dropzone' })}>
-                    <input {...getInputProps()} />
-                    <Box
-                      sx={{
-                        my: 5,
-                        mx: 'auto',
-                        p: 5,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        width: '100%',
-                        borderRadius: '10px'
-                      }}
-                    >
-                      <Typography color='textSecondary'>
-                        <Link onClick={() => {}}>Haz click acá</Link> para adjuntar archivo
-                      </Typography>
-                    </Box>
-                  </div>
-                )}
+                {getFileUploadSection()}
               </Fragment>
             ) : (
               <CircularProgress sx={{ m: 5 }} />
@@ -392,17 +555,17 @@ export default function AlertDialogGabinete({
         <Button
           onClick={() => {
             setRemarksState('')
-            setToggleRemarks(!approves)
+            setToggleRemarks(showOptionsInRejected)
             setToggleAttach(showUploadFile)
             setErrorDialog(false)
             setError('')
             setFiles(null)
-            handleClose()
+            handleDialogClose()
           }}
         >
           No
         </Button>
-        <Button onClick={callback} autoFocus disabled={(!approves && !canReject) || !canAprove}>
+        <Button onClick={callback} autoFocus disabled={getButtonDisabledState()}>
           Sí
         </Button>
       </DialogActions>
