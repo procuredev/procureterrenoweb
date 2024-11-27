@@ -558,7 +558,7 @@ const FormLayoutsBasic = () => {
               <TextField
                 fullWidth
                 label='Email'
-                type='tel'
+                type='tel' // Con esto hago que el campo no admita espacios en blanco.
                 placeholder='email@ejemplo.com'
                 onChange={handleChange('email')}
                 value={values.email}
