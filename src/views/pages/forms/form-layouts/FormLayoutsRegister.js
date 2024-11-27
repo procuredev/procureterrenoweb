@@ -1,6 +1,9 @@
 // ** React Imports
 import { useEffect, useState } from 'react'
 
+// ** Next Imports
+import { useRouter } from 'next/router'
+
 // ** Hooks Imports
 import { useFirebase } from 'src/context/useFirebase'
 
@@ -389,21 +392,33 @@ const FormLayoutsBasic = () => {
             }, 1500)
         }
     }
-}
+  }
+
+  const router = useRouter();
+
+  // Obtener los nombres de las plantas cuando el componente se monta
+  useEffect(() => {
+    console.log(authUser.email)
+
+  }, [authUser])
+
+
 
 
   // Maneja Cierre de Dialog de ingreso de Contraseña de Admin cuando se hace click en "Cancelar".
   const handleClose = async () => {
     setPassword('')
     if (authUser.role !== 1) {
-      // setAlertMessage('Registro cancelado: no se creó ningún usuario. Serás redirigid@ al login.')
-      setTimeout(() => {
-        signAdminFailure().catch(error => {
-          console.log(error.message)
-        })
-        //setDialog(false)
-        setAlertMessage('')
-      }, 1500)
+      setAlertMessage('Registro cancelado: no se creó ningún usuario. Serás redirigid@ al login.')
+
+      try {
+        router.push('/login')
+        await signAdminFailure()
+        //router.push('/login') // Redirige al usuario
+      } catch (error) {
+        console.log(error)
+      }
+
     } else {
       setDialog(false)
       setAlertMessage('')
@@ -704,8 +719,9 @@ const FormLayoutsBasic = () => {
                     <DialogContent>{alertMessage}</DialogContent>
                   ) : (
                     <DialogContent>
-                      <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar</DialogContentText>
-                      <TextField label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
+                      <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar.</DialogContentText>
+                      <DialogContentText sx={{ mb: 5 }}>Si haces click en "CERRAR" serás redirigido al login.</DialogContentText>
+                      <TextField fullWidth label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
                     </DialogContent>
                   )}
 

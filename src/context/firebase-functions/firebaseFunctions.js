@@ -235,7 +235,7 @@ async function signAdminFailure() {
 
   return new Promise(async (resolve, reject) => {
     try {
-      // await deleteUser(user)
+      await deleteUser(user)
       resolve('Excediste el número de intentos. No se creó ningún usuario.')
     } catch (error) {
       reject(new Error(error))
