@@ -345,28 +345,21 @@ const FormLayoutsBasic = () => {
     }
   }
 
+
+  // Se define router para redirir a los usuariosa otras páginas, de ser necesario.
+  const router = useRouter()
+
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 4 // Número máximo de intentos permitidos
-    setAttempts(prevAttempts => prevAttempts + 1)
+    const maxAttempts = 3 // Número máximo de intentos permitidos
+
+    const updatedAttempts = attempts + 1
+    setAttempts(updatedAttempts)
+
+    console.log(attempts)
+    console.log(updatedAttempts)
 
     // Si ya se han alcanzado los intentos máximos, no continuar
-    if (attempts >= maxAttempts) {
-        setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
-
-        // Mostrar el mensaje durante 3 segundos.
-        setTimeout(async () => {
-          try {
-            await signAdminFailure(); // Asegúrate de que esta función sea async si tiene promesas.
-            router.push('/login'); // Redirige al usuario al login.
-            setDialog(false); // Cierra el diálogo.
-            setAlertMessage(''); // Limpia el mensaje de alerta.
-          } catch (error) {
-            console.log(error); // Maneja el error.
-          }
-        }, 3000)
-
-        return // Salir de la función si los intentos han alcanzado el máximo
-    } else {
+    if (updatedAttempts === 0  || updatedAttempts < maxAttempts) {
 
       try {
         // Intentar realizar la acción de autenticación
@@ -383,7 +376,7 @@ const FormLayoutsBasic = () => {
           // setAttempts(prevAttempts => prevAttempts + 1) // Incrementar el contador de intentos
 
           if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-              setAlertMessage('Contraseña incorrecta. Te quedan ' + (maxAttempts - attempts) + ' intentos disponibles.')
+              setAlertMessage('Contraseña incorrecta. Te quedan ' + (maxAttempts - updatedAttempts) + ' intentos disponibles.')
               setWrongPasswordAdvice(true)
           } else {
             setAlertMessage('Error desconocido')
@@ -391,15 +384,38 @@ const FormLayoutsBasic = () => {
           }
       }
 
+    } else {
+
+      setAlertMessage('Has llegado al límite de contraseñas. Serás redirigido al login.')
+
+        // Mostrar el mensaje durante 3 segundos.
+        setTimeout(async () => {
+          try {
+            await signAdminFailure() // Asegúrate de que esta función sea async si tiene promesas.
+            router.push('/login') // Redirige al usuario al login.
+            setDialog(false) // Cierra el diálogo.
+            setAlertMessage('') // Limpia el mensaje de alerta.
+          } catch (error) {
+            console.log(error) // Maneja el error.
+          }
+        }, 3000)
+
+        return // Salir de la función si los intentos han alcanzado el máximo
+
     }
 
   }
 
-  const router = useRouter();
+
 
   // Obtener los nombres de las plantas cuando el componente se monta
   useEffect(() => {
-    console.log(authUser.email)
+
+    if (authUser) {
+      console.log(authUser.email ? authUser.email : 'No hay usuario conectado')
+    } else {
+      console.log('No hay usuario conectado')
+    }
 
   }, [authUser])
 
@@ -408,7 +424,9 @@ const FormLayoutsBasic = () => {
 
   // Maneja Cierre de Dialog de ingreso de Contraseña de Admin cuando se hace click en "Cancelar".
   const handleClose = async () => {
+
     setPassword('')
+
     if (authUser.role !== 1) {
       setAlertMessage('Registro cancelado: no se creó ningún usuario. Serás redirigid@ al login.')
 
@@ -424,10 +442,18 @@ const FormLayoutsBasic = () => {
       setDialog(false)
       setAlertMessage('')
     }
+
   }
 
   // Maneja Cierre de Dialog donde se indica que usuario se equivocó al indicar la contraseña.
   const handleTryPasswordAgain = async () => {
+
+    console.log(attempts)
+
+    if (attempts >= 3) {
+      handleConfirm()
+    }
+
     setPassword('')
     setAlertMessage('')
     setWrongPasswordAdvice(false)
@@ -719,8 +745,8 @@ const FormLayoutsBasic = () => {
                     <TextField fullWidth label='Contraseña' type='password' value={password} onChange={e => setPassword(e.target.value)} />
                   </DialogContent>
                   <DialogActions>
-                    <Button onClick={() => handleClose()}>Cerrar</Button>
-                    <Button disabled={!password ? true : false} onClick={() => handleConfirm(values, password)}>Confirmar</Button>
+                    <Button onClick={async() => await handleClose()}>Cerrar</Button>
+                    <Button disabled={!password ? true : false} onClick={async() => await handleConfirm(values, password)}>Confirmar</Button>
                   </DialogActions>
                 </Dialog>
 
@@ -730,7 +756,7 @@ const FormLayoutsBasic = () => {
                       <DialogContentText sx={{ mb: 5 }}>{alertMessage}</DialogContentText>
                     </DialogContent>
                   <DialogActions>
-                    <Button onClick={() => handleTryPasswordAgain()}>OK</Button>
+                    <Button onClick={async() => await handleTryPasswordAgain()}>OK</Button>
                   </DialogActions>
                 </Dialog>
 

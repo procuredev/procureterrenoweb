@@ -125,7 +125,7 @@ const UserDropdown = props => {
     }
 
     setUserObject({ name: thisName, email: thisEmail, role: thisRole })
-  }, [authUser.role, domainRoles])
+  }, [authUser, domainRoles])
 
   const renderUserAvatar = () => {
     let avatarContent
