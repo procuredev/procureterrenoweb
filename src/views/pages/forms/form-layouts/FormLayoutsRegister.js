@@ -346,52 +346,53 @@ const FormLayoutsBasic = () => {
   }
 
   const handleConfirm = async (values, password) => {
-    const maxAttempts = 5 // Número máximo de intentos permitidos
+    const maxAttempts = 4 // Número máximo de intentos permitidos
+    setAttempts(prevAttempts => prevAttempts + 1)
 
     // Si ya se han alcanzado los intentos máximos, no continuar
     if (attempts >= maxAttempts) {
         setAlertMessage('Contraseña incorrecta, no se creó ningún usuario. Serás redirigid@ al login.')
-        setTimeout(() => {
-            signAdminFailure().catch(error => console.log(error.message));
-            setDialog(false)
-            setAlertMessage('')
-        }, 1500)
+
+        // Mostrar el mensaje durante 3 segundos.
+        setTimeout(async () => {
+          try {
+            await signAdminFailure(); // Asegúrate de que esta función sea async si tiene promesas.
+            router.push('/login'); // Redirige al usuario al login.
+            setDialog(false); // Cierra el diálogo.
+            setAlertMessage(''); // Limpia el mensaje de alerta.
+          } catch (error) {
+            console.log(error); // Maneja el error.
+          }
+        }, 3000)
 
         return // Salir de la función si los intentos han alcanzado el máximo
-    }
+    } else {
 
-    try {
+      try {
         // Intentar realizar la acción de autenticación
-        const message = await signAdminBack(values, password, oldEmail, newUID)
+        await signAdminBack(values, password, oldEmail, newUID)
 
         // Si la autenticación es exitosa
         setValues(initialValues)
         setAttempts(0) // Reiniciar el contador de intentos
         setDialog(false)
-        setAlertMessage("Usuario creado con éxito")
-
-        // Mostrar el mensaje de éxito durante 3 segundos
-        setTimeout(() => {
-          setAlertMessage('') // Limpiar el mensaje después de 3 segundos
-        }, 3000);
-
         setIsCreatingProfile(false)
-    } catch (error) {
-        console.log(error)
-        setAttempts(prevAttempts => prevAttempts + 1) // Incrementar el contador de intentos
 
-        if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
-            setAlertMessage('Contraseña incorrecta. Te quedan ' + (maxAttempts - attempts - 1) + ' intentos disponibles.')
+      } catch (error) {
+          console.log(error)
+          // setAttempts(prevAttempts => prevAttempts + 1) // Incrementar el contador de intentos
+
+          if (error.message === 'FirebaseError: Firebase: Error (auth/wrong-password).') {
+              setAlertMessage('Contraseña incorrecta. Te quedan ' + (maxAttempts - attempts) + ' intentos disponibles.')
+              setWrongPasswordAdvice(true)
+          } else {
+            setAlertMessage('Error desconocido')
             setWrongPasswordAdvice(true)
-        } else if (error.message === 'FirebaseError: Firebase: Error (auth/requires-recent-login).') {
-            setAlertMessage('Error, no se creó ningún usuario. Serás redirigid@ al login.')
-            setTimeout(() => {
-                signAdminFailure().catch(error => console.log(error.message))
-                setDialog(false)
-                setAlertMessage('')
-            }, 1500)
-        }
+          }
+      }
+
     }
+
   }
 
   const router = useRouter();
@@ -714,19 +715,16 @@ const FormLayoutsBasic = () => {
                 <Button type='submit' variant='contained' size='large'>
                   Crear usuario
                 </Button>
-                <Dialog open={dialog}>
-                  {alertMessage ? (
-                    <DialogContent>{alertMessage}</DialogContent>
-                  ) : (
-                    <DialogContent>
-                      <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar.</DialogContentText>
-                      <DialogContentText sx={{ mb: 5 }}>Si haces click en "CERRAR" serás redirigido al login.</DialogContentText>
-                      <TextField fullWidth label='Contraseña' type='password' onInput={e => setPassword(e.target.value)} />
-                    </DialogContent>
-                  )}
 
+                {/* Dialog para ingresar la contraseña del Admin*/}
+                <Dialog open={dialog}>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 5 }}>Ingresa tu contraseña para confirmar.</DialogContentText>
+                    <DialogContentText sx={{ mb: 5 }}>Si haces click en "CERRAR" serás redirigido al login.</DialogContentText>
+                    <TextField fullWidth label='Contraseña' type='password' onChange={e => setPassword(e.target.value)} />
+                  </DialogContent>
                   <DialogActions>
-                    <Button onClick={() => handleClose()}>Cerrar</Button>
+                    {!alertMessage && <Button onClick={() => handleClose()}>Cerrar</Button>}
                     {!alertMessage && <Button disabled={!password ? true : false} onClick={() => handleConfirm(values, password)}>Confirmar</Button>}
                   </DialogActions>
                 </Dialog>
@@ -740,6 +738,7 @@ const FormLayoutsBasic = () => {
                     <Button onClick={() => handleTryPasswordAgain()}>OK</Button>
                   </DialogActions>
                 </Dialog>
+
               </Box>
             </Grid>
           </Grid>
