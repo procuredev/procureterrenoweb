@@ -335,7 +335,7 @@ export default function AlertDialogGabinete({
         show: true
       },
       hiden: {
-        condition: storageInEmitidos || ((isRole6 || isRole7) && approves),
+        condition: storageInEmitidos || ((isRole6 || isRole7 || isRole8) && approves),
         show: false
       },
       noRejectedOptions: {

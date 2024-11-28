@@ -1024,10 +1024,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
                 : autorRole,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
-            blueprintPercent:
-              (isRevisionAtLeast0 || isRevisionAtLeast1) && isApprovedByClient && approves
-                ? 100
-                : updateData.blueprintPercent
+            blueprintPercent: (isRevisionAtLeast0 || isRevisionAtLeast1) && approves ? 100 : updateData.blueprintPercent
           }
         : isOverResumable
         ? {
@@ -1574,7 +1571,6 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
     })
 
     return newDocs
-
   })
 
   return codes
