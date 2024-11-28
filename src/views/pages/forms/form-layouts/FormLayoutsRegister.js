@@ -65,6 +65,7 @@ const FormLayoutsBasic = () => {
   const [userTypes, setUserTypes] = useState([])
   const [wrongPasswordAdvice, setWrongPasswordAdvice] = useState(false)
   const [tryingCreateUser, setTryingCreateUser] = useState(false)
+  const [userAlreadyExists, setUserAlreadyExists] = useState(false)
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
@@ -295,6 +296,7 @@ const FormLayoutsBasic = () => {
     return newErrors
   }
 
+  // Función onBlur que busca en Firestore por e-mail luego de que el usuario ingresa un email.
   const onBlur = async e => {
     const email = e.target.value
 
@@ -302,7 +304,7 @@ const FormLayoutsBasic = () => {
       await consultUserEmailInDB(email)
       setErrors({})
     } catch (error) {
-      setDialog(true)
+      setUserAlreadyExists(true)
       setAlertMessage(error.toString())
     }
   }
@@ -448,6 +450,14 @@ const FormLayoutsBasic = () => {
     setPassword('')
     setAlertMessage('')
     setWrongPasswordAdvice(false)
+  }
+
+  // Maneja Cierre de Dialog donde se indica que el e-mail ya existe.
+  const handleCloseDialogUserAlreadyExists = async () => {
+
+    setAlertMessage('')
+    setUserAlreadyExists(false)
+
   }
 
   const getOptions = async (plant, shift = '') => {
@@ -762,7 +772,6 @@ const FormLayoutsBasic = () => {
                   )}
                 </Dialog>
 
-
                 {/* Dialog para indicar Error en ingreso de Contraseña */}
                 <Dialog open={wrongPasswordAdvice}>
                   <DialogContent>
@@ -770,6 +779,16 @@ const FormLayoutsBasic = () => {
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={async() => await handleTryPasswordAgain()}>OK</Button>
+                  </DialogActions>
+                </Dialog>
+
+                {/* Dialog para indicar que ya existe e-mail en Firestore */}
+                <Dialog open={userAlreadyExists}>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 5 }}>{alertMessage}</DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={async() => await handleCloseDialogUserAlreadyExists()}>OK</Button>
                   </DialogActions>
                 </Dialog>
 
