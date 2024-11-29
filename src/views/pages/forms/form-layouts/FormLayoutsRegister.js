@@ -306,6 +306,7 @@ const FormLayoutsBasic = () => {
     } catch (error) {
       setUserAlreadyExists(true)
       setAlertMessage(error.toString())
+      setErrors({ email: 'Este e-mail ya existe' });
     }
   }
 
@@ -734,7 +735,7 @@ const FormLayoutsBasic = () => {
               <Box sx={{ gap: 5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
 
                 {/* Botón "Crear Usuario" */}
-                <Button type='submit' variant='contained' size='large'>
+                <Button disabled={Object.keys(errors).length > 0} type='submit' variant='contained' size='large'>
                   Crear usuario
                 </Button>
 
