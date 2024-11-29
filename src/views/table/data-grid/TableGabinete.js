@@ -515,8 +515,8 @@ const TableGabinete = ({
       incrementRevision: {
         condition: () =>
           (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
-          doc.approvedByClient === true &&
-          !doc.blueprintCompleted,
+          doc.approvedByClient === false &&
+          doc.approvedByDocumentaryControl === true,
         action: () => (newRevision = nextChar)
       },
       startRevision: {
