@@ -480,30 +480,23 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
                           <Link href={doc.storageBlueprints[0].url} target='_blank' rel='noreferrer'>
                             <ListItemText primary={doc.storageBlueprints[0].name} sx={{ mr: 10 }} />
                           </Link>
-                          {authUser.uid === doc.userId && (!doc.sentByDesigner || !doc.sentBySupervisor) && (
-                            <ListItemSecondaryAction sx={{ right: 0 }}>
-                              <IconButton
-                                size='small'
-                                sx={{ display: 'flex' }}
-                                aria-haspopup='true'
-                                onClick={() => handleClickDeleteDocument()}
-                                aria-controls='modal-share-examples'
-                              >
-                                <Icon icon='mdi:delete-forever' color='#f44336' />
-                              </IconButton>
-                            </ListItemSecondaryAction>
-                          )}
+                          {authUser.uid === doc.userId &&
+                            ((authUser.role === 8 && !doc.sentByDesigner) ||
+                              (authUser.role === 7 && !doc.sentBySupervisor)) && (
+                              <ListItemSecondaryAction sx={{ right: 0 }}>
+                                <IconButton
+                                  size='small'
+                                  sx={{ display: 'flex' }}
+                                  aria-haspopup='true'
+                                  onClick={() => handleClickDeleteDocument()}
+                                  aria-controls='modal-share-examples'
+                                >
+                                  <Icon icon='mdi:delete-forever' color='#f44336' />
+                                </IconButton>
+                              </ListItemSecondaryAction>
+                            )}
                         </ListItem>
                       </List>
-
-                      {/* {doc.storageBlueprints.map(file => (
-                        <Fragment key={file.url}>
-                          <Link href={file.url} target='_blank' rel='noreferrer'>
-                            {file.name}
-                          </Link>
-                          <br />
-                        </Fragment>
-                      ))} */}
                     </Box>
                   </Box>
                 </ListItem>
@@ -546,23 +539,11 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
                   <ListItem>
                     <FormControl fullWidth>
                       <Fragment>
-                        {(!doc.storageBlueprints &&
-                          !files &&
-                          doc &&
-                          authUser.uid === doc.userId &&
-                          !doc.sentByDesigner) ||
-                        (doc &&
-                          (authUser.role === 6 || authUser.role === 7) &&
-                          doc.sentByDesigner &&
-                          !doc.approvedByDocumentaryControl &&
-                          doc.storageBlueprints?.length < 2 &&
-                          !doc.approvedBySupervisor &&
-                          !doc.approvedByContractAdmin) ||
-                        (doc &&
-                          authUser.role === 9 &&
-                          (doc.approvedBySupervisor || doc.approvedByContractAdmin) &&
-                          doc.storageBlueprints?.length < 2 &&
-                          !checkRoleAndApproval(authUser.role, doc)) ? (
+                        {!doc.storageBlueprints &&
+                        !files &&
+                        doc &&
+                        authUser.uid === doc.userId &&
+                        !doc.sentByDesigner ? (
                           <div {...getRootProps({ className: 'dropzone' })}>
                             <input {...getInputProps()} />
                             <Box

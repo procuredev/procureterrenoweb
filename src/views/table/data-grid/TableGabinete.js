@@ -475,7 +475,7 @@ const TableGabinete = ({
   }
 
   const roleMap = {
-    'Contract Owner': row => row.attentive === 4,
+    Cliente: row => row.attentive === 4,
     'Contract Admin': row => row.attentive === 6,
     Supervisor: row => row.attentive === 7,
     Proyectista: row => row.attentive === 8,
