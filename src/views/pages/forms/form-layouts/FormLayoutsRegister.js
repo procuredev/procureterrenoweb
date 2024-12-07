@@ -514,6 +514,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                name='firstName'
                 label='Nombre'
                 type='text'
                 placeholder='Nombre'
@@ -529,6 +530,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                name='fatherLastName'
                 label='Apellido Paterno'
                 type='text'
                 placeholder='Apellido Paterno'
@@ -544,6 +546,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                name='motherLastName'
                 label='Apellido Materno'
                 type='text'
                 placeholder='Apellido Materno'
@@ -560,6 +563,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                name='rut'
                 type='tel'
                 label='RUT'
                 placeholder='RUT'
@@ -575,6 +579,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                name='phone'
                 label='Teléfono'
                 type='tel'
                 placeholder='Teléfono'
@@ -609,6 +614,7 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Empresa</InputLabel>
                 <Select
+                  name='company'
                   label='Empresa'
                   value={values.company}
                   onChange={handleChange('company')}
@@ -626,6 +632,7 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Rol</InputLabel>
                 <Select
+                  name='role'
                   label='Rol'
                   value={values.role}
                   onChange={handleChange('role')}
@@ -648,6 +655,7 @@ const FormLayoutsBasic = () => {
                     <InputLabel>Subtipo</InputLabel>
                     <Select
                       disabled={values.company !== 'Procure'}
+                      name='subtype'
                       label='Subtipo'
                       value={values.subtype}
                       onChange={handleChange('subtype')}
@@ -676,6 +684,7 @@ const FormLayoutsBasic = () => {
                     renderInput={params => (
                       <TextField
                         {...params}
+                        name='plant'
                         label='Planta'
                         InputLabelProps={{ required: false }}
                         error={errors.plant ? true : false}
@@ -693,6 +702,7 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Ingeniería integrada</InputLabel>
                   <Select
+                    name='engineering'
                     label='Ingeniería integrada'
                     value={values.engineering}
                     onChange={handleChange('engineering')}
@@ -712,6 +722,7 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Turno</InputLabel>
                   <Select
+                    name='shift'
                     label='Turno'
                     value={values.shift}
                     onChange={(event) => {
@@ -737,6 +748,7 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Contraturno</InputLabel>
                   <Select
+                    name='opshift'
                     label='Contraturno'
                     value={values.opshift}
                     onChange={handleChange('opshift')}
