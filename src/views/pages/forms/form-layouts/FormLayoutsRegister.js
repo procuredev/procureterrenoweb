@@ -125,17 +125,8 @@ const FormLayoutsBasic = () => {
         newValue = event.target.value.toLowerCase().replace(/[^a-zA-Z0-9\-_@.]+/g, '').trim()
         break
       case 'name':
-        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
-        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
-        break
       case 'firstName':
-        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
-        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
-        break
       case 'fatherLastName':
-        // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
-        newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
-        break
       case 'motherLastName':
         // Eliminar cualquier caracter que no sea una letra, tilde, guion o "ñ"
         newValue = event.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\-\s]/g, '')
@@ -188,30 +179,23 @@ const FormLayoutsBasic = () => {
     // Deshacer errores al dar formato correcto
     // Primero para aquellos campos que están dentro de validationRegex: firstName, fatherLastName, motherLastName, rut y phone.
     if (validationRegex.hasOwnProperty(prop)) {
-      if (newValue && validationRegex[prop] && validationRegex[prop].test(newValue) && errors[prop]) {
-        setErrors(current => {
-          const updatedErrors = Object.keys(current).reduce((obj, key) => {
-            if (key !== prop) {
-              obj[key] = current[key]
-            }
+      if (newValue && validationRegex[prop].test(newValue) && errors[prop]) {
+        setErrors((current) => {
+          const { [prop]: _, ...updatedErrors } = current;
 
-            return obj
-          }, {})
-
-          return updatedErrors
-        })
+          return updatedErrors;
+        });
       }
-    } else {
       // Para el resto de los casos, dado que todos son seleccionables, bastará con que newValue exista.
+    } else {
       // Si se actualizó el valor, existen errores previos.
       if (newValue && errors[prop]) {
-        setErrors((currentErrors) => {
-          const { [prop]: _, ...rest } = currentErrors // Se elimina este campo de errors.
+        setErrors((current) => {
+          const { [prop]: _, ...updatedErrors } = current;
 
-          return rest
-        })
+          return updatedErrors;
+        });
       }
-
     }
 
   }
