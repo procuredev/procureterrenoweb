@@ -201,6 +201,9 @@ const FormLayoutsBasic = () => {
 
   const validationRegex = {
     name: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
+    firstName: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
+    fatherLastName: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
+    motherLastName: /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s-]+$/,
     email: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i,
     phone: /^\d\s\d{4}\s\d{4}$/
   }
