@@ -296,18 +296,41 @@ const FormLayoutsBasic = () => {
     return newErrors
   }
 
-  // Función onBlur que busca en Firestore por e-mail luego de que el usuario ingresa un email.
-  const onBlur = async e => {
-    const email = e.target.value
+  // Función onBlur. Se ejecuta luego de hacer click fuera del campo previamente seleccionado.
+  // name es un parámetro que existe dentro de cada campo.
+  const onBlur = async (event) => {
+    const { name, value } = event.target // Obtiene el nombre y valor del campo.
 
-    try {
-      await consultUserEmailInDB(email)
-      setErrors({})
-    } catch (error) {
-      setUserAlreadyExists(true)
-      setAlertMessage(error.toString())
-      setErrors({ email: 'Este e-mail ya existe' });
+    if (name === 'email') {
+      try {
+        await consultUserEmailInDB(value)
+
+        const emailParts = values.email.split('@')
+        const emailConcat = allowableEmails.join(' y ')
+
+        if (!allowableEmails.includes(emailParts[1])) {
+          setErrors((currentErrors) => ({
+            ...currentErrors,
+            [name]: `Solo se permiten correos de ${emailConcat}`
+          }))
+        } else {
+          setErrors((currentErrors) => {
+            const { [name]: _, ...rest } = currentErrors
+
+            return rest
+          })
+        }
+
+      } catch (error) {
+        setUserAlreadyExists(true)
+        setAlertMessage(error.toString())
+        setErrors((currentErrors) => ({
+          ...currentErrors,
+          [name]: 'El valor ingresado ya existe',
+        }))
+      }
     }
+
   }
 
   const onSubmit = async (event) => {
@@ -568,6 +591,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                name='email'
                 label='Email'
                 type='tel' // Con esto hago que el campo no admita espacios en blanco.
                 placeholder='email@ejemplo.com'
