@@ -111,6 +111,8 @@ const FormLayoutsBasic = () => {
     getUserTypes()
   }, [])
 
+  // Función handleChange. Se ejecuta cada vez que alguno de los campos es cambiado.
+  // Formatea valores y se eliminan errors si es que existen.
   const handleChange = prop => (event, data) => {
     let newValue
     switch (prop) {
@@ -200,7 +202,16 @@ const FormLayoutsBasic = () => {
         })
       }
     } else {
-      // Para el resto de los casos se deberá analizar caso por caso.
+      // Para el resto de los casos, dado que todos son seleccionables, bastará con que newValue exista.
+      // Si se actualizó el valor, existen errores previos.
+      if (newValue && errors[prop]) {
+        setErrors((currentErrors) => {
+          const { [prop]: _, ...rest } = currentErrors // Se elimina este campo de errors.
+
+          return rest
+        })
+      }
+
     }
 
   }
