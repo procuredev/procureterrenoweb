@@ -184,19 +184,25 @@ const FormLayoutsBasic = () => {
     setValues(prevValues => ({ ...prevValues, [prop]: newValue }))
 
     // Deshacer errores al dar formato correcto
-    if (newValue && validationRegex[prop] && validationRegex[prop].test(newValue) && errors[prop]) {
-      setErrors(current => {
-        const updatedErrors = Object.keys(current).reduce((obj, key) => {
-          if (key !== prop) {
-            obj[key] = current[key]
-          }
+    // Primero para aquellos campos que están dentro de validationRegex: firstName, fatherLastName, motherLastName, rut y phone.
+    if (validationRegex.hasOwnProperty(prop)) {
+      if (newValue && validationRegex[prop] && validationRegex[prop].test(newValue) && errors[prop]) {
+        setErrors(current => {
+          const updatedErrors = Object.keys(current).reduce((obj, key) => {
+            if (key !== prop) {
+              obj[key] = current[key]
+            }
 
-          return obj
-        }, {})
+            return obj
+          }, {})
 
-        return updatedErrors
-      })
+          return updatedErrors
+        })
+      }
+    } else {
+      // Para el resto de los casos se deberá analizar caso por caso.
     }
+
   }
 
   const validationRegex = {
