@@ -44,7 +44,8 @@ const FormLayoutsBasic = () => {
     plant: [],
     engineering: '',
     shift: [],
-    opshift: ''
+    opshift: '',
+    subtype: ''
   }
 
   // ** States
@@ -66,6 +67,8 @@ const FormLayoutsBasic = () => {
   const [wrongPasswordAdvice, setWrongPasswordAdvice] = useState(false)
   const [tryingCreateUser, setTryingCreateUser] = useState(false)
   const [userAlreadyExists, setUserAlreadyExists] = useState(false)
+  const basicKeys = ['firstName', 'fatherLastName', 'email', 'company', 'role']
+  const [requiredKeys, setRequiredKeys] = useState([...basicKeys])
 
   // ** Hooks
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
@@ -209,91 +212,85 @@ const FormLayoutsBasic = () => {
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
-  const basicKeys = ['firstName', 'fatherLastName', 'email', 'company', 'role']
-  let requiredKeys = [...basicKeys] // Utilizamos spread operator para crear una copia de basicKeys
+  // useEffect para manejar los requiredkeys a medida que se va manejando el Formulario.
+  useEffect(() => {
+    // Inicia con las claves básicas.
+    let updatedKeys = [...basicKeys]
 
-  const validateForm = values => {
-    const trimmedValues = {}
-    const newErrors = {}
-
-    switch (true) {
-      case values.role === 2 && !values.plant.includes('Sucursal Santiago'):
-        requiredKeys.push('shift', 'plant') // Utilizamos push para agregar elementos al array
-        break
-      case values.role === 3:
-        requiredKeys.push('plant')
-        break
-      case [7, 8].includes(values.role):
-        requiredKeys.push('shift')
-        break
-      default:
-        break // Aunque el default esté vacío, se recomienda colocar el break
+    // Condiciones para agregar claves adicionales.
+    if (values.role === 2 && !values.plant.includes('Sucursal Santiago')) {
+      updatedKeys.push('shift', 'plant')
+    } else if (values.role === 3) {
+      updatedKeys.push('plant')
+    } else if ([7, 8].includes(values.role)) {
+      updatedKeys.push('shift')
+    } else {
+      //
     }
 
+    if (values.company === 'Procure') {
+      updatedKeys.push('rut', 'subtype')
+    }
+
+    // Establece las claves calculadas.
+    setRequiredKeys(updatedKeys)
+
+  }, [values.role, values.plant, values.company])
+
+  const validateForm = values => {
+
+    const newErrors = {}
+
     for (const key of requiredKeys) {
-      // Validaciones solo para claves presentes en requiredKeys
-      if (values.hasOwnProperty(key)) {
-        // Error para campos vacíos
-        if (values[key] === '' || !values[key] || (typeof values[key] === 'object' && values[key].length === 0)) {
-          newErrors[key] = 'Por favor, selecciona una opción'
-        }
+      // Validaciones específicas para cada clave utilizando switch case
+      switch (key) {
+        case 'email':
+          const emailParts = values.email.split('@')
+          const emailConcat = allowableEmails.join(' y ')
 
-        // Validaciones específicas para cada clave utilizando switch case
-        switch (key) {
-          case 'email':
-            const emailParts = values.email.split('@')
-            const emailConcat = allowableEmails.join(' y ')
-
-            if (!allowableEmails.includes(emailParts[1])) {
-              newErrors['email'] = `Solo se permiten correos de ${emailConcat}`
+          if (!allowableEmails.includes(emailParts[1])) {
+            newErrors['email'] = `Solo se permiten correos de ${emailConcat}`
+          }
+          break
+        case 'rut':
+          if (isRutLike(values.rut)) {
+            values.rut = formatRut(values.rut)
+            if (!validateRut(values.rut)) {
+              newErrors['rut'] = 'Dígito verificador incorrecto'
             }
-            break
-          case 'rut':
-            if (isRutLike(values.rut)) {
-              values.rut = formatRut(values.rut)
-              if (!validateRut(values.rut)) {
-                newErrors['rut'] = 'Dígito verificador incorrecto'
-              }
+          } else if (!values.rut || values.rut === '') {
+            newErrors['rut'] = 'Por favor, ingresa un valor.'
+          }
+          break
+        case 'shift':
+          if (values.company === 'Procure') {
+            if (!values.shift || values.shift === '' || !Array.isArray(values.shift) || values.shift.length === 0) {
+              newErrors['shift'] = 'Por favor, selecciona un valor válido (A o B)'
             }
-            break
-          case 'shift':
-            if (values.company === 'Procure') {
-              const validValues = ['A', 'B']
-              const invalidValues = values.shift.filter((value) => !validValues.includes(value))
-
-              if (invalidValues.length > 0) {
-                newErrors['shift'] = 'Por favor, selecciona un valor válido (A o B)'
-              }
-            } else if (values.company === 'MEL') {
-              const validValues = ['P', 'Q']
-              const invalidValues = values.shift.filter((value) => !validValues.includes(value))
-
-              if (invalidValues.length > 0) {
-                newErrors['shift'] = 'Por favor, selecciona un valor válido (P o Q)'
-              }
+          } else if (values.company === 'MEL') {
+            if (!values.shift || values.shift === '' || !Array.isArray(values.shift) || values.shift.length === 0) {
+              newErrors['shift'] = 'Por favor, selecciona un valor válido (P o Q)'
             }
-            break
-          case 'plant':
-            if ((!Array.isArray(values.plant) && values.role !== 2) || values.plant.length === 0) {
-              newErrors['plant'] = 'Por favor, introduce al menos un valor'
-            // } else if (values.role === 2 && Array.isArray(values.plant) && ![0, 1].includes(values.plant.length)) {
-            //   newErrors['plant'] = 'Debes escoger sólo una planta'
-            }
-            break
-          default:
-            // Validación regex para otras claves de tipo string
-            if (
-              (key !== 'opshift' && !values[key]) ||
-              (validationRegex[key] && !validationRegex[key].test(values[key]))
-            ) {
-              newErrors[key] = `Por favor, introduce un ${key} válido`
-            }
-        }
-
-        // Remover espacios en los valores de tipo string
-        if (typeof values[key] === 'string') {
-          trimmedValues[key] = values[key].replace(/\s+$/, '')
-        }
+          }
+          break
+        case 'plant':
+          if ((!Array.isArray(values.plant) && values.role !== 2) || values.plant.length === 0) {
+            newErrors['plant'] = 'Por favor, introduce al menos un valor'
+          }
+          break
+        case 'subtype':
+          if (!values.subtype || values.subtype === '') {
+            newErrors['subtype'] = 'Por favor, selecciona un valor.'
+          }
+          break
+        default:
+          // Validación regex para otras claves de tipo string
+          if (
+            (key !== 'opshift' && !values[key]) ||
+            (validationRegex[key] && !validationRegex[key].test(values[key]))
+          ) {
+            newErrors[key] = `Por favor, introduce un ${key} válido`
+          }
       }
     }
 
@@ -654,26 +651,27 @@ const FormLayoutsBasic = () => {
 
             {/* Subtipo */}
             {values.company === 'Procure' && (
-                  <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel>Subtipo</InputLabel>
-                    <Select
-                      disabled={values.company !== 'Procure'}
-                      name='subtype'
-                      label='Subtipo'
-                      value={values.subtype}
-                      onChange={handleChange('subtype')}
-                      error={errors.subtype ? true : false}
-                    >
-                      {userTypes.map(element => (
-                        <MenuItem value={element} key={element}>
-                          {element}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                )}
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Subtipo</InputLabel>
+                  <Select
+                    disabled={values.company !== 'Procure'}
+                    name='subtype'
+                    label='Subtipo'
+                    value={values.subtype}
+                    onChange={handleChange('subtype')}
+                    error={errors.subtype ? true : false}
+                  >
+                    {userTypes.map(element => (
+                      <MenuItem value={element} key={element}>
+                        {element}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                {errors.subtype && <FormHelperText error>{errors.subtype}</FormHelperText>}
+                </FormControl>
+              </Grid>
+            )}
 
             {/* Planta */}
             {values.company === 'MEL' && (values.role === 2 || values.role === 3) && (
