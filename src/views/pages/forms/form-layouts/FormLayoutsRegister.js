@@ -74,12 +74,10 @@ const FormLayoutsBasic = () => {
   const { createUser, signAdminBack, signAdminFailure, getUserData, consultUserEmailInDB, authUser, isCreatingProfile, setIsCreatingProfile, getDomainData } = useFirebase()
 
   // Acá se define en una constante los nombres de las plantas como un array
-  // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
   const getPlantNames = async () => {
     const plants = await getDomainData('plants')
     let plantsArray = Object.keys(plants)
     plantsArray.sort()
-    plantsArray = [...plantsArray, 'Sucursal Santiago']
     setPlantsNames(plantsArray)
   }
 
@@ -218,7 +216,7 @@ const FormLayoutsBasic = () => {
     let updatedKeys = [...basicKeys]
 
     // Condiciones para agregar claves adicionales.
-    if (values.role === 2 && !values.plant.includes('Sucursal Santiago')) {
+    if (values.role === 2) {
       updatedKeys.push('shift', 'plant')
     } else if (values.role === 3) {
       updatedKeys.push('plant')
@@ -699,7 +697,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Ingeniería Integrada */}
-            {values.company === 'MEL' && values.role === 2 && values.plant.includes('Sucursal Santiago') && (
+            {values.company === 'MEL' && values.role === 2 && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Ingeniería integrada</InputLabel>
@@ -719,7 +717,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Turno */}
-            {[2, 7, 8].includes(values.role) && !values.plant.includes('Sucursal Santiago') && (
+            {[2, 7, 8].includes(values.role) && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Turno</InputLabel>
@@ -745,7 +743,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Contraturno */}
-            {values.company === 'MEL' && values.role === 2 && !values.plant.includes('Sucursal Santiago') && (
+            {values.company === 'MEL' && values.role === 2 && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Contraturno</InputLabel>
