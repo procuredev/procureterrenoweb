@@ -743,7 +743,7 @@ const FormLayoutsBasic = () => {
             )}
 
             {/* Contraturno */}
-            {values.company === 'MEL' && values.role === 2 && (
+            {/* {values.company === 'MEL' && values.role === 2 && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Contraturno</InputLabel>
@@ -765,7 +765,7 @@ const FormLayoutsBasic = () => {
                   {errors.opshift && <FormHelperText error>{errors.opshift}</FormHelperText>}
                 </FormControl>
               </Grid>
-            )}
+            )} */}
 
             <Grid item xs={12}>
               <Box sx={{ gap: 5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
