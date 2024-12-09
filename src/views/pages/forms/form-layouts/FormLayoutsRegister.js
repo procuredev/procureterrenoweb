@@ -521,6 +521,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                required={requiredKeys.includes('firstName')}
                 name='firstName'
                 label='Nombre'
                 type='text'
@@ -537,6 +538,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                required={requiredKeys.includes('fatherLastName')}
                 name='fatherLastName'
                 label='Apellido Paterno'
                 type='text'
@@ -553,6 +555,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                required={requiredKeys.includes('motherLastName')}
                 name='motherLastName'
                 label='Apellido Materno'
                 type='text'
@@ -570,6 +573,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                required={requiredKeys.includes('rut')}
                 name='rut'
                 type='tel'
                 label='RUT'
@@ -586,6 +590,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                required={requiredKeys.includes('phone')}
                 name='phone'
                 label='Teléfono'
                 type='tel'
@@ -603,6 +608,7 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                required={requiredKeys.includes('email')}
                 name='email'
                 label='Email'
                 type='tel' // Con esto hago que el campo no admita espacios en blanco.
@@ -621,6 +627,7 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Empresa</InputLabel>
                 <Select
+                  required={requiredKeys.includes('company')}
                   name='company'
                   label='Empresa'
                   value={values.company}
@@ -639,6 +646,7 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Rol</InputLabel>
                 <Select
+                  required={requiredKeys.includes('role')}
                   name='role'
                   label='Rol'
                   value={values.role}
@@ -661,6 +669,7 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Subtipo</InputLabel>
                   <Select
+                    required={requiredKeys.includes('subtype')}
                     disabled={values.company !== 'Procure'}
                     name='subtype'
                     label='Subtipo'
@@ -692,6 +701,7 @@ const FormLayoutsBasic = () => {
                     renderInput={params => (
                       <TextField
                         {...params}
+                        required={requiredKeys.includes('plant')}
                         name='plant'
                         label='Planta'
                         InputLabelProps={{ required: false }}
@@ -710,6 +720,7 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Ingeniería integrada</InputLabel>
                   <Select
+                    required={requiredKeys.includes('engineering')}
                     name='engineering'
                     label='Ingeniería integrada'
                     value={values.engineering}
@@ -730,6 +741,7 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Turno</InputLabel>
                   <Select
+                    required={requiredKeys.includes('shift')}
                     name='shift'
                     label='Turno'
                     value={values.shift}
