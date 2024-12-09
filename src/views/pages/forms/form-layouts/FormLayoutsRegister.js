@@ -589,7 +589,7 @@ const FormLayoutsBasic = () => {
                 name='phone'
                 label='Teléfono'
                 type='tel'
-                placeholder='Teléfono'
+                placeholder='9 8765 4321'
                 onChange={handleChange('phone')}
                 value={values.phone}
                 error={errors.phone ? true : false}
