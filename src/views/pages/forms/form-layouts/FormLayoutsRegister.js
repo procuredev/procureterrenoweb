@@ -210,6 +210,14 @@ const FormLayoutsBasic = () => {
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
+  useEffect(() => {
+    console.log(requiredKeys)
+  }, [requiredKeys])
+
+  useEffect(() => {
+    console.log(values)
+  }, [values])
+
   // useEffect para manejar los requiredkeys a medida que se va manejando el Formulario.
   useEffect(() => {
     // Inicia con las claves básicas.

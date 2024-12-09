@@ -8,6 +8,7 @@ export function registerValidator(values) {
   const valRoleProcure = [1, 5, 6, 7, 8, 9, 10, 11, 12]
   const valShiftMel = ['P', 'Q']
   const valShiftProcure = ['A', 'B']
+  const valSubtype = ['Teletrabajo', 'Terreno', 'Oficina']
 
   // const valPlant = [
   //   'Planta Concentradora Los Colorados',
@@ -29,6 +30,9 @@ export function registerValidator(values) {
   //   'Campamento Villa Cerro Alegre'
   // ]
 
+  // Objeto que contiene reglas de validación para cada campo. Cada campo tiene dos propiedades:
+  // validate: Una función que evalúa si el valor es válido. Retorna `true` si pasa la validación y `false` en caso contrario.
+  // message: Mensaje de error que se mostrará al usuario si la validación falla.
   const validations = {
     // name: {
     //   validate: value => valName.test(value),
@@ -73,6 +77,16 @@ export function registerValidator(values) {
         return false
       },
       message: 'El Rol seleccionado no se encuentra entre los sugeridos para la empresa seleccionada.'
+    },
+    subtype: {
+      validate: value => {
+        if (values.company === 'MEL') {
+          return true
+        } else {
+          return value.every(val => valSubtype.includes(val))
+        }
+      },
+      message: 'Debe seleccionar un subtipo de formato de trabajo para usuarios Procure.'
     },
     // plant: {
     //   validate: value => {
@@ -132,7 +146,7 @@ export function registerValidator(values) {
     if (typeof values[key] === 'string') {
       if (
         (key === 'shift' && hasShift && !values[key]) ||
-        (!['motherLastName', 'shift', 'opshift', 'plant', 'engineering', 'rut', 'phone'].includes(key) && values[key].trim() === '')
+        (!['motherLastName', 'shift', 'opshift', 'plant', 'engineering', 'rut', 'phone', 'subtype'].includes(key) && values[key].trim() === '')
       ) {
         throw new Error('Debes rellenar todos los campos. ' + `Error en campo ${key} `)
       }
