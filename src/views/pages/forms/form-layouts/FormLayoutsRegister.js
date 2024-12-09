@@ -210,14 +210,6 @@ const FormLayoutsBasic = () => {
     phone: /^\d\s\d{4}\s\d{4}$/
   }
 
-  useEffect(() => {
-    console.log(requiredKeys)
-  }, [requiredKeys])
-
-  useEffect(() => {
-    console.log(values)
-  }, [values])
-
   // useEffect para manejar los requiredkeys a medida que se va manejando el Formulario.
   useEffect(() => {
     // Inicia con las claves básicas.
@@ -521,9 +513,8 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                required={requiredKeys.includes('firstName')}
                 name='firstName'
-                label='Nombre'
+                label={`Nombre${requiredKeys.includes('firstName') ? ' *' : ''}`}
                 type='text'
                 placeholder='Nombre'
                 onChange={handleChange('firstName')}
@@ -538,9 +529,8 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                required={requiredKeys.includes('fatherLastName')}
                 name='fatherLastName'
-                label='Apellido Paterno'
+                label={`Apellido Paterno${requiredKeys.includes('fatherLastName') ? ' *' : ''}`}
                 type='text'
                 placeholder='Apellido Paterno'
                 onChange={handleChange('fatherLastName')}
@@ -555,9 +545,8 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                required={requiredKeys.includes('motherLastName')}
                 name='motherLastName'
-                label='Apellido Materno'
+                label={`Apellido Materno${requiredKeys.includes('motherLastName') ? ' *' : ''}`}
                 type='text'
                 placeholder='Apellido Materno'
                 onChange={handleChange('motherLastName')}
@@ -573,10 +562,9 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                required={requiredKeys.includes('rut')}
                 name='rut'
                 type='tel'
-                label='RUT'
+                label={`RUT${requiredKeys.includes('rut') ? ' *' : ''}`}
                 placeholder='RUT'
                 onChange={handleChange('rut')}
                 value={values.rut}
@@ -590,9 +578,8 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                required={requiredKeys.includes('phone')}
                 name='phone'
-                label='Teléfono'
+                label={`Teléfono${requiredKeys.includes('phone') ? ' *' : ''}`}
                 type='tel'
                 placeholder='9 8765 4321'
                 onChange={handleChange('phone')}
@@ -608,9 +595,8 @@ const FormLayoutsBasic = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                required={requiredKeys.includes('email')}
                 name='email'
-                label='Email'
+                label={`Email${requiredKeys.includes('email') ? ' *' : ''}`}
                 type='tel' // Con esto hago que el campo no admita espacios en blanco.
                 placeholder='email@ejemplo.com'
                 onChange={handleChange('email')}
@@ -627,9 +613,8 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Empresa</InputLabel>
                 <Select
-                  required={requiredKeys.includes('company')}
                   name='company'
-                  label='Empresa'
+                  label={`Empresa${requiredKeys.includes('company') ? ' *' : ''}`}
                   value={values.company}
                   onChange={handleChange('company')}
                   error={errors.company ? true : false}
@@ -646,9 +631,8 @@ const FormLayoutsBasic = () => {
               <FormControl fullWidth>
                 <InputLabel>Rol</InputLabel>
                 <Select
-                  required={requiredKeys.includes('role')}
                   name='role'
-                  label='Rol'
+                  label={`Rol${requiredKeys.includes('role') ? ' *' : ''}`}
                   value={values.role}
                   onChange={handleChange('role')}
                   error={errors.role ? true : false}
@@ -669,10 +653,9 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Subtipo</InputLabel>
                   <Select
-                    required={requiredKeys.includes('subtype')}
                     disabled={values.company !== 'Procure'}
                     name='subtype'
-                    label='Subtipo'
+                    label={`Subtipo${requiredKeys.includes('subtype') ? ' *' : ''}`}
                     value={values.subtype}
                     onChange={handleChange('subtype')}
                     error={errors.subtype ? true : false}
@@ -701,9 +684,8 @@ const FormLayoutsBasic = () => {
                     renderInput={params => (
                       <TextField
                         {...params}
-                        required={requiredKeys.includes('plant')}
                         name='plant'
-                        label='Planta'
+                        label={`Planta${requiredKeys.includes('plant') ? ' *' : ''}`}
                         InputLabelProps={{ required: false }}
                         error={errors.plant ? true : false}
                         helperText={errors.plant}
@@ -720,9 +702,8 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Ingeniería integrada</InputLabel>
                   <Select
-                    required={requiredKeys.includes('engineering')}
                     name='engineering'
-                    label='Ingeniería integrada'
+                    label={`Ingeniería Integrada${requiredKeys.includes('engineering') ? ' *' : ''}`}
                     value={values.engineering}
                     onChange={handleChange('engineering')}
                     error={errors.engineering ? true : false}
@@ -741,9 +722,8 @@ const FormLayoutsBasic = () => {
                 <FormControl fullWidth>
                   <InputLabel>Turno</InputLabel>
                   <Select
-                    required={requiredKeys.includes('shift')}
                     name='shift'
-                    label='Turno'
+                    label={`Turno${requiredKeys.includes('shift') ? ' *' : ''}`}
                     value={values.shift}
                     onChange={(event) => {
                       const selectedShifts = event.target.value
