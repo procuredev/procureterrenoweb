@@ -611,7 +611,7 @@ const FormLayoutsBasic = () => {
             {/* Empresa */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel>Empresa</InputLabel>
+                <InputLabel>Empresa{requiredKeys.includes('company') ? ' *' : ''}</InputLabel>
                 <Select
                   name='company'
                   label={`Empresa${requiredKeys.includes('company') ? ' *' : ''}`}
@@ -629,10 +629,10 @@ const FormLayoutsBasic = () => {
             {/* Rol */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel>Rol</InputLabel>
+                <InputLabel>Rol{requiredKeys.includes('role') ? ' *' : ''}</InputLabel>
                 <Select
                   name='role'
-                  label={`Rol${requiredKeys.includes('role') ? ' *' : ''}`}
+                  label={`Rol${requiredKeys.includes('rol') ? ' *' : ''}`}
                   value={values.role}
                   onChange={handleChange('role')}
                   error={errors.role ? true : false}
@@ -651,7 +651,7 @@ const FormLayoutsBasic = () => {
             {values.company === 'Procure' && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel>Subtipo</InputLabel>
+                  <InputLabel>Subtipo{requiredKeys.includes('subtype') ? ' *' : ''}</InputLabel>
                   <Select
                     disabled={values.company !== 'Procure'}
                     name='subtype'
@@ -700,7 +700,7 @@ const FormLayoutsBasic = () => {
             {values.company === 'MEL' && values.role === 2 && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel>Ingeniería integrada</InputLabel>
+                  <InputLabel>Ingeniería Integrada{requiredKeys.includes('engineering') ? ' *' : ''}</InputLabel>
                   <Select
                     name='engineering'
                     label={`Ingeniería Integrada${requiredKeys.includes('engineering') ? ' *' : ''}`}
@@ -720,7 +720,7 @@ const FormLayoutsBasic = () => {
             {[2, 7, 8].includes(values.role) && (
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel>Turno</InputLabel>
+                  <InputLabel>Turno{requiredKeys.includes('shift') ? ' *' : ''}</InputLabel>
                   <Select
                     name='shift'
                     label={`Turno${requiredKeys.includes('shift') ? ' *' : ''}`}
