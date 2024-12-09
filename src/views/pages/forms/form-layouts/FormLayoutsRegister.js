@@ -328,6 +328,22 @@ const FormLayoutsBasic = () => {
           [name]: 'El valor ingresado ya existe',
         }))
       }
+    } else if (name === 'rut') {
+      // Si el rut es truthy, debe cumplir con las reglas de
+      if (Boolean(value)) {
+        if (!validateRut(value)) {
+          setErrors((currentErrors) => ({
+            ...currentErrors,
+            [name]: `RUT inválido`
+          }))
+        }
+      } else {
+        setErrors((currentErrors) => {
+          const { [name]: _, ...rest } = currentErrors
+
+          return rest
+        })
+      }
     }
 
   }
@@ -567,6 +583,7 @@ const FormLayoutsBasic = () => {
                 label={`RUT${requiredKeys.includes('rut') ? ' *' : ''}`}
                 placeholder='RUT'
                 onChange={handleChange('rut')}
+                onBlur={onBlur}
                 value={values.rut}
                 error={errors.rut ? true : false}
                 helperText={errors.rut}

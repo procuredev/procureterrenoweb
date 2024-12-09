@@ -34,7 +34,7 @@ function setMandatoryFields(values) {
       mandatoryFields.push('shift')
     }
   } else if (values.company === 'MEL') {
-    if (values.role === 2 || values.role === 3) {
+    if (values.role === 2) {
       mandatoryFields.push('shift')
     }
   }
@@ -152,11 +152,19 @@ export function registerValidator(values) {
 
             return valShiftProcure.includes(...value)
 
+          } else {
+
+            return true
+
           }
         } else if (values.company === 'MEL') {
           if (values.role === 2) {
 
             return valShiftMel.includes(...value)
+
+          } else {
+
+            return true
 
           }
         } else {
