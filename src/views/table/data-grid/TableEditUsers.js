@@ -108,7 +108,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.name ? row.name : ''}</div>
+        return <div>{row.name || ''}</div>
 
       }
     },
@@ -122,7 +122,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.rut ? row.rut : ''}</div>
+        return <div>{row.rut || ''}</div>
 
       }
     },
@@ -136,7 +136,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.email}</div>
+        return <div>{row.email || ''}</div>
 
       }
     },
@@ -150,7 +150,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.phone ? row.phone : ''}</div>
+        return <div>{row.phone || ''}</div>
 
       }
     },
@@ -164,7 +164,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.company ? row.company : ''}</div>
+        return <div>{row.company || ''}</div>
 
       }
     },
@@ -176,9 +176,10 @@ const TableEditUsers = ({ rows, role, roleData }) => {
       maxWidth: 200,
       renderCell: params => {
         const { row } = params
+        const role = roles.find(role => role.id === row.role)
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{roles[row.role-1].name}</div>
+        return <div>{role?.name || ''}</div>
 
       }
     },
