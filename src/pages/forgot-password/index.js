@@ -1,21 +1,16 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
-
-import toast from 'react-hot-toast'
 
 // ** MUI Components
 import Paper from '@mui/material/Paper'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Box from '@mui/material/Box'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
 import FormHelperText from '@mui/material/FormHelperText'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -26,71 +21,64 @@ import DialogContentText from '@mui/material/DialogContentText'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Configs
-import themeConfig from 'src/configs/themeConfig'
-
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Hooks
 import { useFirebase } from 'src/context/useFirebase'
-import { useSettings } from 'src/@core/hooks/useSettings'
-
-// ** Demo Imports
-import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 
 // ** Logo Procure
 import LogoProcure from 'src/images/logoProcure'
 
 // Styled Components
 
+// Styled component RightWrapper: Estiliza el contenedor Box y adapta su diseño dependiendo del tamaño de la pantalla.
 const RightWrapper = styled(Box)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    margin: 20
+  width: '100%', // Establece el ancho a 100% del contenedor padre.
+  [theme.breakpoints.down('sm')]: { // Cuando el tamaño de la pantalla sea pequeño (menor que 'sm' en el theme).
+    margin: 20 // Aplica un margen de 20px.
   },
-  [theme.breakpoints.up('sm')]: {
-    maxWidth: 400
+  [theme.breakpoints.up('sm')]: { // Cuando el tamaño de la pantalla sea mayor o igual a 'sm'.
+    maxWidth: 400 // Limita el ancho máximo a 400px.
   }
 }))
 
+// Styled component BoxWrapper: Estiliza el contenedor Box para tener un ancho máximo ajustado según el tamaño de la pantalla.
 const BoxWrapper = styled(Box)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.down('md')]: {
-    maxWidth: 400
+  width: '100%', // Establece el ancho a 100% del contenedor padre.
+  [theme.breakpoints.down('md')]: { // Cuando el tamaño de la pantalla sea menor que 'md' en el theme.
+    maxWidth: 400 // Limita el ancho máximo a 400px.
   }
 }))
 
-const TypographyStyled = styled(Typography)(({ theme }) => ({
-  fontWeight: 600,
-  letterSpacing: '0.18px',
-  marginBottom: theme.spacing(1.5),
-  [theme.breakpoints.down('md')]: { marginTop: theme.spacing(8) }
+// Styled component TypographyStyled: Personaliza la tipografía para que tenga un estilo particular.
+const TypographyStyled = styled(Typography)(() => ({
+  fontWeight: 600, // Establece un peso de fuente de 600 (negrita).
+  textAlign: 'center', // Centra el texto.
+  letterSpacing: '0.18px' // Aplica un espaciado entre letras de 0.18px.
 }))
 
+// Styled component LinkStyled: Personaliza un link, para que tenga un estilo particular.
 const LinkStyled = styled(Link)(({ theme }) => ({
-  display: 'flex',
-  '& svg': { mr: 1.5 },
-  alignItems: 'center',
-  textDecoration: 'none',
-  justifyContent: 'center',
+  display: 'flex', // Configuración del display como flex, lo que permite usar propiedades de alineación de los elementos hijos.
+  '& svg': { mr: 1.5 }, // Cuando el componente Link contiene un ícono en forma de SVG, aplica margen derecho (mr) de 1.5 unidades.
+  alignItems: 'center', // Alineación vertical de los elementos dentro del contenedor usando 'center' para centrar.
+  textDecoration: 'none', // Eliminar la decoración de texto (subrayado) que es el comportamiento por defecto de los enlaces.
+  justifyContent: 'center', // Asegura que los elementos hijos se alineen de manera centrada en el contenedor horizontalmente.
   color: theme.palette.primary.main
-}))
+}));
 
 const ForgotPassword = () => {
   // ** Hooks
   const theme = useTheme()
-  const { settings } = useSettings()
 
   // ** Vars
-  const { skin } = settings
-  const hidden = useMediaQuery(theme.breakpoints.down('md'))
   const { resetPassword } = useFirebase()
   const [helperText, setHelperText] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
   const [email, setEmail] = useState('')
   const [alertMessage, setAlertMessage] = useState('')
 
+  // Función para manejar el cambio del campo e-mail.
   const handleEmailChange = event => {
     const updatedEmail = event.target.value
     setEmail(updatedEmail)
@@ -99,21 +87,25 @@ const ForgotPassword = () => {
     }
   }
 
+  // Función para manejar el envío del Formulario.
   const handleSubmit = async e => {
     e.preventDefault()
 
+    // Primero se valida que el campo e-mail sea no vacío.
     if (!email || email.trim() === '') {
       setHelperText('Por favor, ingresa tu correo.')
 
       return
     }
 
+    // Luego se valida que el valor de e-mail cumpla con el formato requerido.
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       setHelperText('Por favor, ingresa un e-mail válido')
 
       return
     }
 
+    // Luego se ejecuta el cambio de e-mail
     await resetPassword(email)
       .then(user => {
         // Manejar la respuesta exitosa
@@ -126,11 +118,11 @@ const ForgotPassword = () => {
       })
   }
 
-  const imageSource =
-    skin === 'bordered' ? 'auth-v2-forgot-password-illustration-bordered' : 'auth-v2-forgot-password-illustration'
-
+  // Se retorna de forma gráfica.
   return (
     <Box className='content-right'>
+
+      {/* Dialog de Errores */}
       <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
         <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
           Atención
@@ -140,17 +132,14 @@ const ForgotPassword = () => {
             {alertMessage}
           </DialogContentText>
           <DialogActions>
-            <Button
-              size='small'
-              onClick={() => {
-                setAlertMessage('')
-              }}
-            >
+            <Button size='small' onClick={() => {setAlertMessage('')}}>
               Cerrar
             </Button>
           </DialogActions>
         </DialogContent>
       </Dialog>
+
+      {/* Contenedor de elementos en el centro de la página */}
       <RightWrapper sx={{ margin: 'auto' }}>
         <Paper
           elevation={9}
@@ -165,30 +154,32 @@ const ForgotPassword = () => {
           }}
         >
           <BoxWrapper>
+
+            {/* Contenedor de parte de arriba: Logo y Mensaje de Bienvenida */}
             <Box sx={{ mb: 6 }}>
-              <Box
-                sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
-              >
+              <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+
+                {/* Logo de la empresa */}
                 <Box sx={{ width: '65%', m: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                   <LogoProcure sx={{ width: '100%', height: 'auto' }} theme={theme}/>
                 </Box>
+
+                {/* Título */}
                 <TypographyStyled sx={{ mt: 5, mb: 5 }} variant='h7'>
                   ¿Olvidaste tu contraseña? 🔒
                 </TypographyStyled>
               </Box>
-              {errorMessage ? (
-                <Alert severity='error' onClose={() => setErrorMessage('')}>
-                  <AlertTitle>Error</AlertTitle>
-                  {errorMessage}
-                </Alert>
-              ) : (
-                <Typography variant='body2' sx={{ textAlign: 'center' }}>
+
+              {/* Mensaje explicatorio */}
+              <Typography variant='body2' sx={{ textAlign: 'center' }}>
                   Ingresa tu mail y recibirás un correo para reestablecerla.
                 </Typography>
-              )}
             </Box>
 
+            {/* Formulario de parámetros de Login: e-mail y Contraseña */}
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>
+
+              {/* e-mail de usuario */}
               <TextField
                 error={helperText !== ''}
                 autoFocus
@@ -201,9 +192,13 @@ const ForgotPassword = () => {
                 sx={{ display: 'flex', mb: 4 }}
               />
               {helperText && <FormHelperText sx={{ color: 'error.main' }}>{helperText}</FormHelperText>}
+
+              {/* Botón para reestablecer contraseña */}
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mt: 5.25, mb: 5.25 }}>
                 Reestablecer contraseña
               </Button>
+
+              {/* Link para volver a la página de Login */}
               <Typography sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LinkStyled href='/login/'>
                   <Icon icon='mdi:chevron-left' fontSize='2rem' />
