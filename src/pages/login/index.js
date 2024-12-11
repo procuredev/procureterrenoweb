@@ -47,60 +47,67 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Styled Components
 
+// Styled component RightWrapper: Estiliza el contenedor Box y adapta su diseño dependiendo del tamaño de la pantalla.
 const RightWrapper = styled(Box)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    margin: 20
+  width: '100%', // Establece el ancho a 100% del contenedor padre.
+  [theme.breakpoints.down('sm')]: { // Cuando el tamaño de la pantalla sea pequeño (menor que 'sm' en el theme).
+    margin: 20 // Aplica un margen de 20px.
   },
-  [theme.breakpoints.up('sm')]: {
-    maxWidth: 400
+  [theme.breakpoints.up('sm')]: { // Cuando el tamaño de la pantalla sea mayor o igual a 'sm'.
+    maxWidth: 400 // Limita el ancho máximo a 400px.
   }
 }))
 
+// Styled component BoxWrapper: Estiliza el contenedor Box para tener un ancho máximo ajustado según el tamaño de la pantalla.
 const BoxWrapper = styled(Box)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.down('md')]: {
-    maxWidth: 400
+  width: '100%', // Establece el ancho a 100% del contenedor padre.
+  [theme.breakpoints.down('md')]: { // Cuando el tamaño de la pantalla sea menor que 'md' en el theme.
+    maxWidth: 400 // Limita el ancho máximo a 400px.
   }
 }))
 
+// Styled component TypographyStyled: Personaliza la tipografía para que tenga un estilo particular.
 const TypographyStyled = styled(Typography)(() => ({
-  fontWeight: 600,
-  textAlign: 'center',
-  letterSpacing: '0.18px'
+  fontWeight: 600, // Establece un peso de fuente de 600 (negrita).
+  textAlign: 'center', // Centra el texto.
+  letterSpacing: '0.18px' // Aplica un espaciado entre letras de 0.18px.
 }))
 
+// Styled component FormControlLabel: Personaliza el componente MuiFormControlLabel de Material-UI.
 const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
-  '& .MuiFormControlLabel-label': {
-    fontSize: '0.875rem',
-    color: theme.palette.text.secondary
+  '& .MuiFormControlLabel-label': { // Estiliza específicamente la etiqueta dentro de FormControlLabel.
+    fontSize: '0.875rem', // Define el tamaño de la fuente de la etiqueta.
+    color: theme.palette.text.secondary // Usa el color secundario del texto desde el tema de Material-UI.
   }
 }))
 
+// Esquema de validación usando Yup para los campos 'email' y 'password'.
 const schema = yup.object().shape({
-  email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'),
+  email: yup.string().email('Ingresa un mail válido').required('Por favor, ingresa tu correo'), // Valida que el correo sea una cadena, sea un correo válido y sea obligatorio.
   password: yup
     .string()
-    .min(6, 'La contraseña debe tener al menos 6 caracteres')
-    .required('Por favor, ingresa tu contraseña')
+    .min(6, 'La contraseña debe tener al menos 6 caracteres') // La contraseña debe tener al menos 6 caracteres.
+    .required('Por favor, ingresa tu contraseña') // La contraseña es obligatoria.
 })
 
+
 const LoginPage = () => {
-  const [errorMessage, setErrorMessage] = useState('')
+
+  // Estados de React
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [alertMessage, setAlertMessage] = useState('')
 
   // ** Hooks
-
   const theme = useTheme()
   const { settings } = useSettings()
 
   // ** Vars
-  const { skin } = settings
   const { signInWithEmailAndPassword, signGoogle } = useFirebase()
   const { control, handleSubmit, formState: { errors } } = useForm({ mode: 'onBlur', resolver: yupResolver(schema) })
 
+  // Función onSubmit.
+  // Se ejecuta cuando el usuario hace click en 'Entrar'.
   const onSubmit = async data => {
     const { email, password } = data
     try {
@@ -111,19 +118,23 @@ const LoginPage = () => {
     }
   }
 
-  const handleSignGoogle = e => {
-    e.preventDefault()
-    signGoogle()
-      .then(token => {
-        // Manejar la respuesta exitosa
-      })
-      .catch(error => {
-        console.log(error)
-      })
-  }
+  // Función para manejar el login con Google SSO.
+  // const handleSignGoogle = e => {
+  //   e.preventDefault()
+  //   signGoogle()
+  //     .then(token => {
+  //       // Manejar la respuesta exitosa
+  //     })
+  //     .catch(error => {
+  //       console.log(error)
+  //     })
+  // }
 
+  // Se retorna de forma gráfica.
   return (
     <Box className='content-right'>
+
+      {/* Dialog de Errores */}
       <Dialog sx={{ '.MuiDialog-paper': { minWidth: '20%' } }} open={!!alertMessage} maxWidth={false}>
         <DialogTitle sx={{ ml: 2, mt: 4 }} id='alert-dialog-title'>
           Atención
@@ -133,34 +144,22 @@ const LoginPage = () => {
             {alertMessage}
           </DialogContentText>
           <DialogActions>
-            <Button
-              size='small'
-              onClick={() => {
-                setAlertMessage('')
-              }}
-            >
+            <Button size='small'onClick={() => {setAlertMessage('')}}>
               Cerrar
             </Button>
           </DialogActions>
         </DialogContent>
       </Dialog>
+
+      {/* Contenedor de elementos en el centro de la página de login */}
       <RightWrapper sx={{ margin: 'auto' }}>
-        <Paper
-          elevation={9}
-          sx={{
-            margin: 'auto',
-            p: 7,
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'background.paper'
-          }}
-        >
+        <Paper elevation={9} sx={{margin: 'auto', p: 7, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'background.paper'}}>
           <BoxWrapper>
-            <Box
-              sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
-            >
+
+            {/* Contenedor de parte de arriba: Logo y Mensaje de Bienvenida */}
+            <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+
+              {/* Logo de la empresa */}
               <Box sx={{ width: '65%', m: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <svg id='Capa_1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 446'>
                   <rect x='417.1' y='29.94' fill='#92c13d' width='173.39' height='346.78' />
@@ -191,26 +190,18 @@ const LoginPage = () => {
                   />
                 </svg>
               </Box>
-              <TypographyStyled
-                variant='h7'
-                sx={{ m: 2 }}
-              >{`¡Bienvenid@ a ${themeConfig.templateName}!`}</TypographyStyled>
 
-              <Box sx={{ m: 2 }}>
-                {errorMessage ? (
-                  <Alert severity='error' onClose={() => setErrorMessage('')}>
-                    <AlertTitle>Error</AlertTitle>
-                    {errorMessage}
-                  </Alert>
-                ) : (
-                  <TypographyStyled variant='h7' sx={{ textAlign: 'center' }}>
-                    Iniciar sesión
-                  </TypographyStyled>
-                )}
-              </Box>
+              {/* Mensaje de bienvenida */}
+              <TypographyStyled variant='h7'sx={{ m: 2 }}>
+                {`¡Bienvenid@ a ${themeConfig.templateName}!`}
+              </TypographyStyled>
+
             </Box>
 
-            <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+            {/* Formulario de parámetros de Login: e-mail y Contraseña */}
+            <form noValidate onSubmit={handleSubmit(onSubmit)}>
+
+              {/* e-mail de usuario */}
               <FormControl fullWidth sx={{ mb: 4 }}>
                 <Controller
                   name='email'
@@ -218,7 +209,7 @@ const LoginPage = () => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange, onBlur } }) => (
                     <TextField
-                      label='autoFocusEmail'
+                      label='e-mail'
                       value={value ? value : ''}
                       onBlur={onBlur}
                       onChange={onChange}
@@ -229,6 +220,8 @@ const LoginPage = () => {
                 />
                 {errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
               </FormControl>
+
+              {/* Contraseña */}
               <FormControl fullWidth>
                 <InputLabel htmlFor='password' error={Boolean(errors.password)}>
                   Contraseña
@@ -248,11 +241,7 @@ const LoginPage = () => {
                       autoComplete='current-password'
                       endAdornment={
                         <InputAdornment position='end'>
-                          <IconButton
-                            edge='end'
-                            onMouseDown={e => e.preventDefault()}
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
+                          <IconButton edge='end' onMouseDown={e => e.preventDefault()} onClick={() => setShowPassword(!showPassword)}>
                             <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} fontSize={20} />
                           </IconButton>
                         </InputAdornment>
@@ -266,25 +255,33 @@ const LoginPage = () => {
                   </FormHelperText>
                 )}
               </FormControl>
-              <Box
-                sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
-              >
+
+              {/* Contenedor de Recordarme y ¿Olvidaste tu Contraseña? */}
+              <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+
+                {/* Checkbox 'Recordarme' */}
                 <FormControlLabel
                   label='Recordarme'
-                  control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />}
+                  control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}/>}
                 />
+
+                {/* Link '¿Olvidaste tu contraseña?' */}
                 <Typography
                   variant='body2'
                   component={Link}
                   href='/forgot-password'
                   sx={{ color: 'primary.main', textDecoration: 'none' }}
                 >
-                  Olvidaste tu contraseña?
+                  ¿Olvidaste tu contraseña?
                 </Typography>
+
               </Box>
+
+              {/* Botón 'Entrar' */}
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>
                 Entrar
               </Button>
+
               {/* <Button fullWidth size='large' onClick={(e) => handleSignGoogle(e)} variant='contained' sx={{ mb:3}}>
                 Entrar con Google
               </Button>
