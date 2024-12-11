@@ -85,10 +85,6 @@ const schema = yup.object().shape({
     .required('Por favor, ingresa tu contraseña')
 })
 
-// const defaultValues = {
-//   email: 'admin@materialize.com'
-// }
-
 const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
@@ -103,16 +99,7 @@ const LoginPage = () => {
   // ** Vars
   const { skin } = settings
   const { signInWithEmailAndPassword, signGoogle } = useFirebase()
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    // defaultValues,
-    mode: 'onBlur',
-    resolver: yupResolver(schema)
-  })
+  const { control, handleSubmit, formState: { errors } } = useForm({ mode: 'onBlur', resolver: yupResolver(schema) })
 
   const onSubmit = async data => {
     const { email, password } = data
@@ -231,19 +218,19 @@ const LoginPage = () => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange, onBlur } }) => (
                     <TextField
-                      autoFocus
-                      label='Email'
+                      label='autoFocusEmail'
                       value={value ? value : ''}
                       onBlur={onBlur}
                       onChange={onChange}
                       error={Boolean(errors.email)}
+                      autoComplete='username'
                     />
                   )}
                 />
                 {errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
               </FormControl>
               <FormControl fullWidth>
-                <InputLabel htmlFor='auth-login-v2-password' error={Boolean(errors.password)}>
+                <InputLabel htmlFor='password' error={Boolean(errors.password)}>
                   Contraseña
                 </InputLabel>
                 <Controller
@@ -255,9 +242,10 @@ const LoginPage = () => {
                       onBlur={onBlur}
                       label='Password'
                       onChange={onChange}
-                      id='auth-login-v2-password'
+                      id='password'
                       error={Boolean(errors.password)}
                       type={showPassword ? 'text' : 'password'}
+                      autoComplete='current-password'
                       endAdornment={
                         <InputAdornment position='end'>
                           <IconButton
