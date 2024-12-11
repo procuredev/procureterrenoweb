@@ -22,7 +22,7 @@ const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign, row }) 
 
   useEffect(() => {
     const fetchPlants = async () => {
-      const plants = await getDomainData('plantsTest')
+      const plants = await getDomainData('plants')
       const filteredPlants = Object.fromEntries(Object.entries(plants).filter(([key, value]) => value.enabled)) // Se filtran las plantas, dejando sólo las que están habilitadas.
       const plantOptions = []
 
