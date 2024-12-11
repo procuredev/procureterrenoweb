@@ -24,10 +24,14 @@ const TableEditUsers = ({ rows, role, roleData }) => {
 
   // Función para obtener las Plantas desde Firestore.
   const getPlantNames = async () => {
-    const plants = await getDomainData('plants')
-    const filteredPlants = Object.fromEntries(Object.entries(plants).filter(([key, value]) => value.enabled)) // Se filtran las plantas, dejando sólo las que están habilitadas.
-    let plantsArray = Object.values(filteredPlants).map(plant => plant.name) // Se crea un array que contiene sólo los nombres de las Plantas.
-    setPlantNames(plantsArray)
+    const plantsData = await getDomainData('plants')
+
+    const plants = Object.entries(plantsData)
+      .filter(([_, value]) => value.enabled)
+      .sort((a, b) => a[1].priority - b[1].priority)
+      .map(([key]) => key)
+
+    setPlantNames(plants)
   }
 
   // Función para obtener los dominios permitidos para e-mails (@blablabla.com) desde Firestore.

@@ -75,10 +75,14 @@ const FormLayoutsBasic = () => {
 
   // Acá se define en una constante los nombres de las plantas como un array
   const getPlantNames = async () => {
-    const plants = await getDomainData('plants')
-    const filteredPlants = Object.fromEntries(Object.entries(plants).filter(([key, value]) => value.enabled)) // Se filtran las plantas, dejando sólo las que están habilitadas.
-    let plantsArray = Object.values(filteredPlants).map(plant => plant.name) // Se crea un array que contiene sólo los nombres de las Plantas.
-    setPlantsNames(plantsArray)
+    const plantsData = await getDomainData('plants')
+
+    const plants = Object.entries(plantsData)
+      .filter(([_, value]) => value.enabled)
+      .sort((a, b) => a[1].priority - b[1].priority)
+      .map(([key]) => key)
+
+    setPlantsNames(plants)
   }
 
   const getAllowableEmailDomains = async () => {
