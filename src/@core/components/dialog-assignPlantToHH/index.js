@@ -22,16 +22,15 @@ const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign, row }) 
 
   useEffect(() => {
     const fetchPlants = async () => {
-      const data = await getDomainData('plants')
+      const plants = await getDomainData('plantsTest')
+      const filteredPlants = Object.fromEntries(Object.entries(plants).filter(([key, value]) => value.enabled)) // Se filtran las plantas, dejando sólo las que están habilitadas.
       const plantOptions = []
 
-      // Agregar solo los elementos de nivel superior
-      Object.keys(data).forEach(key => {
-        if (typeof data[key] === 'object' && data[key] !== null && !Array.isArray(data[key])) {
-          plantOptions.push({ id: key, name: key })
-        }
+      // Agregar solo los nombres de Plantas
+      Object.keys(filteredPlants).forEach(key => {
+        plantOptions.push({ id: plants[key].name, name: plants[key].name })
       })
-      plantOptions.sort((a, b) => a.name.localeCompare(b.name))
+
       setPlants(plantOptions)
     }
 
