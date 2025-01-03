@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react'
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material'
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import { useEffect, useState } from 'react'
 
 // Configuración de autenticación de Google para producción y desarrollo
 const googleAuthConfigProduction = {
   CLIENT_ID: process.env.NEXT_PUBLIC_PROD_GOOGLE_CLIENT_ID,
   CLIENT_SECRET: process.env.NEXT_PUBLIC_PROD_GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI: 'https://www.prosite.cl/home' // URL de producción
+  REDIRECT_URI: process.env.NEXT_PUBLIC_PROD_GOOGLE_REDIRECT_URI // URL de producción
 }
 
 const googleAuthConfigDevelopment = {
   CLIENT_ID: process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_ID,
   CLIENT_SECRET: process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI: 'http://localhost:3000/home' // URL de desarrollo
+  REDIRECT_URI: process.env.NEXT_PUBLIC_DEV_GOOGLE_REDIRECT_URI // URL de desarrollo
 }
 
 // Selecciona la configuración de autenticación según el hostname
