@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react'
-
 import { useFirebase } from 'src/context/useFirebase'
-// import useColumnResizer from 'src/@core/hooks/useColumnResizer'
-
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { DataGridPremium } from '@mui/x-data-grid-premium'
 import { esES } from '@mui/x-data-grid-pro'
-
 import EditIcon from '@mui/icons-material/Edit'
 import { Box, Card } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-
 import { EditUserDialog } from 'src/@core/components/dialog-editUser'
 
 const TableEditUsers = ({ rows, role, roleData }) => {
 
+  // Definición de Estados.
   const [editingUser, setEditingUser] = useState({})
   const [dialogEditUserOpen, setDialogEditUserOpen] = useState(false)
   const [plantNames, setPlantNames] = useState([])
@@ -23,30 +19,37 @@ const TableEditUsers = ({ rows, role, roleData }) => {
   const [roles, setRoles] = useState([])
   const [userTypes, setUserTypes] = useState([])
 
-  const { updateDocs, authUser, domainDictionary, getDomainData } = useFirebase()
+  // Importación de funciones de Firebase.
+  const { getDomainData } = useFirebase()
 
-  // Acá se define en una constante los nombres de las plantas como un array
-  // Se agrega la planta "Sucursal Santiago" que tendrá características especiales dentro del sistema
+  // Función para obtener las Plantas desde Firestore.
   const getPlantNames = async () => {
-    const plants = await getDomainData('plants')
-    let plantsArray = Object.keys(plants)
-    plantsArray.sort()
-    plantsArray = [...plantsArray]
-    setPlantNames(plantsArray)
+    const plantsData = await getDomainData('plants')
+
+    const plants = Object.entries(plantsData)
+      .filter(([_, value]) => value.enabled)
+      .sort((a, b) => a[1].priority - b[1].priority)
+      .map(([key]) => key)
+
+    setPlantNames(plants)
   }
 
+  // Función para obtener los dominios permitidos para e-mails (@blablabla.com) desde Firestore.
   const getAllowableEmailDomains = async () => {
     const domains = await getDomainData('allowableDomains')
     const array = Object.keys(domains)
     setAllowableEmails(array)
   }
 
+  // Función para obtener los roles y sus funcionalidades desde Firestore.
   const getRolesDomains = async () => {
     const roles = await getDomainData('roles')
     const rolesArray = Object.keys(roles).map(key => ({ id: Number(key), ...roles[key] }))
     setRoles(rolesArray)
   }
 
+  // Función para obtener los tipos de Modalidad de Trabajo desde Firestore.
+  // Modalidad de Trabajo = [Teletrabajo, Terreno, Oficina]
   const getUserTypes = async () => {
     const types = await getDomainData('userType')
     const typesArray = Object.keys(types)
@@ -54,7 +57,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
   }
 
 
-  // Obtener los nombres de las plantas cuando el componente se monta
+  // Se define Plantas, Dominios Permitidos, Roles y Modalidade de trabajo, cuando el componente se monta.
   useEffect(() => {
     getPlantNames()
     getAllowableEmailDomains()
@@ -62,22 +65,23 @@ const TableEditUsers = ({ rows, role, roleData }) => {
     getUserTypes()
   }, [])
 
+  // Función para que maneja el efecto luego de hacer click en el botón "Editar" (ícono lápiz).
   const handleEditClick = (user) => {
-
     setEditingUser(user)
     setDialogEditUserOpen(true)
-
   }
 
+  // Función que maneja el efecto al hacer click fuera del Dialog o cerrar el Dialog de edición de usuario.
   const handleCloseDialog = () => {
     setDialogEditUserOpen(false)
   }
 
   const theme = useTheme()
-  const sm = useMediaQuery(theme.breakpoints.up('sm'))
-  const md = useMediaQuery(theme.breakpoints.up('md'))
-  const xl = useMediaQuery(theme.breakpoints.up('xl'))
+  // const sm = useMediaQuery(theme.breakpoints.up('sm'))
+  // const md = useMediaQuery(theme.breakpoints.up('md'))
+  // const xl = useMediaQuery(theme.breakpoints.up('xl'))
 
+  // Objeto para traducir el nombre de la Planta a su sigla.
   const plantsObject = {
     'Planta Concentradora Los Colorados': 'PCLC',
     'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
@@ -97,6 +101,13 @@ const TableEditUsers = ({ rows, role, roleData }) => {
     'Campamento Villa Cerro Alegre': 'CVCA'
   }
 
+  // Definición de columns. Éste arreglo contiene todas las columnas que se desplegarán en la tabla.
+  // Cada columna tendrá las siguientes variables:
+  // - field: nombre en inglés de la columna.
+  // - headerName: nombre visible del encabezado de la columna.
+  // - width: (oculto) ancho permitido de la columna.
+  // - rederCell: valores que serán mostrados en cada fila de esa columna.
+  // - row: representa el objeto que corresponde a la fila completa del DataGrid. Este objeto contiene todos los datos asociados con esa fila en particular
   const columns = [
     {
       field: 'name',
@@ -108,7 +119,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.name ? row.name : ''}</div>
+        return <div>{row.name || ''}</div>
 
       }
     },
@@ -122,7 +133,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.rut ? row.rut : ''}</div>
+        return <div>{row.rut || ''}</div>
 
       }
     },
@@ -136,7 +147,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.email}</div>
+        return <div>{row.email || ''}</div>
 
       }
     },
@@ -150,7 +161,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.phone ? row.phone : ''}</div>
+        return <div>{row.phone || ''}</div>
 
       }
     },
@@ -164,7 +175,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
         const { row } = params
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{row.company ? row.company : ''}</div>
+        return <div>{row.company || ''}</div>
 
       }
     },
@@ -176,9 +187,10 @@ const TableEditUsers = ({ rows, role, roleData }) => {
       maxWidth: 200,
       renderCell: params => {
         const { row } = params
+        const role = roles.find(role => role.id === row.role)
         // localStorage.setItem('userSolicitudesWidthColumn', params.colDef.computedWidth)
 
-        return <div>{roles[row.role-1].name}</div>
+        return <div>{role?.name || ''}</div>
 
       }
     },
@@ -271,6 +283,7 @@ const TableEditUsers = ({ rows, role, roleData }) => {
     }
   ]
 
+  // Se retorna el objeto visible (DataGridPremium).
   return (
     <Card>
       <Box sx={{ height: 500 }}>
@@ -280,10 +293,8 @@ const TableEditUsers = ({ rows, role, roleData }) => {
               sortModel: [{ field: 'company', sort: 'desc' }]
             }
           }}
-          hideFooterSelectedRowCount
           rows={rows}
           columns={columns}
-          // columnVisibilityModel={columnVisibilityModel}
           localeText={esES.components.MuiDataGrid.defaultProps.localeText}
         />
         { dialogEditUserOpen && (

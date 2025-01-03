@@ -571,9 +571,7 @@ export const FullScreenDialog = ({ open, handleClose, doc, roleData, editButtonV
         // Se reordena la información de areas en domain, para que sea un arreglo que contiene el {N°Area - Nombre de Area}
         const plantData = domainData?.plants?.[values.plant] || {}
         if (plantData) {
-          const areas = Object.keys(plantData)
-            .map(area => `${area} - ${plantData[area].name}`)
-            .sort()
+          const areas = plantData.areas.map(area => `${area.number} - ${area.name}`)
           setAreasArray(areas)
         }
       } catch (error) {
