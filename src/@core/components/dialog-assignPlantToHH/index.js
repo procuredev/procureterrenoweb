@@ -22,16 +22,20 @@ const AssignPlantDialog = ({ open, onClose, userId, dayDocIds, onAssign, row }) 
 
   useEffect(() => {
     const fetchPlants = async () => {
-      const data = await getDomainData('plants')
+      const plantsData = await getDomainData('plants')
+
+      const plants = Object.entries(plantsData)
+        .filter(([_, value]) => value.enabled)
+        .sort((a, b) => a[1].priority - b[1].priority)
+        .map(([key]) => key)
+
       const plantOptions = []
 
-      // Agregar solo los elementos de nivel superior
-      Object.keys(data).forEach(key => {
-        if (typeof data[key] === 'object' && data[key] !== null && !Array.isArray(data[key])) {
-          plantOptions.push({ id: key, name: key })
-        }
+      // Agregar solo los nombres de Plantas
+      plants.forEach(plant => {
+        plantOptions.push({ id: plant, name: plant })
       })
-      plantOptions.sort((a, b) => a.name.localeCompare(b.name))
+
       setPlants(plantOptions)
     }
 
