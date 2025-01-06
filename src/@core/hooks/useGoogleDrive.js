@@ -1,53 +1,104 @@
-import { useEffect, useState } from 'react'
-import { useGoogleAuth } from './useGoogleAuth'
+import { useEffect, useState } from 'react';
+import googleAuthConfig from '../../configs/googleDrive'; // Configuración de Google Drive, como IDs de carpeta
+import { useGoogleAuth } from './useGoogleAuth'; // Hook personalizado para manejar la autenticación de Google
 
+/**
+ * Hook personalizado para interactuar con Google Drive.
+ * Proporciona funcionalidad para listar y subir archivos, y manejar el estado de autenticación.
+ */
 export const useGoogleDrive = () => {
-  const { accessToken, refreshAccessToken, isLoading: authLoading, error: authError, oauth2SignIn } = useGoogleAuth()
-  const [files, setFiles] = useState([])
-  const [nextPageToken, setNextPageToken] = useState(null)
-  const [prevPageTokens, setPrevPageTokens] = useState([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [nestedFiles, setNestedFiles] = useState(true)
-  const [isFirstLoad, setIsFirstLoad] = useState(true)
-  const [isSwitching, setIsSwitching] = useState(false)
+  // Estados y funciones provenientes del hook de autenticación
+  const {
+    accessToken, // Token de acceso actual
+    refreshAccessToken, // Función para refrescar el token de acceso
+    isLoading: authLoading, // Estado de carga relacionado con la autenticación
+    error: authError, // Error relacionado con la autenticación
+    oauth2SignIn // Función para iniciar sesión con OAuth 2.0
+  } = useGoogleAuth()
 
+  // Estado local para gestionar la funcionalidad de Google Drive
+  const [files, setFiles] = useState([]) // Lista de archivos actuales
+  const [nextPageToken, setNextPageToken] = useState(null) // Token para la página siguiente
+  const [prevPageTokens, setPrevPageTokens] = useState([]) // Pila de tokens para páginas anteriores
+  const [currentPage, setCurrentPage] = useState(1) // Número de la página actual
+  const [isLoading, setIsLoading] = useState(false) // Estado de carga general
+  const [error, setError] = useState(null) // Mensaje de error
+  const [nestedFiles, setNestedFiles] = useState(true) // Indicador para mostrar archivos de subcarpetas
+  const [isFirstLoad, setIsFirstLoad] = useState(true) // Indicador para la primera carga de datos
+  const [isSwitching, setIsSwitching] = useState(false) // Indicador de cambio de modo de visualización
+
+  // Efecto para cargar archivos al obtener un token de acceso o cambiar el modo de archivos anidados
   useEffect(() => {
     if (accessToken) {
       fetchFiles()
     }
   }, [accessToken, nestedFiles])
 
+  /**
+   * Construye la URL y parámetros de la API de Google Drive.
+   * @param {string} folderId - ID de la carpeta.
+   * @param {string|null} pageToken - Token para paginación.
+   * @returns {string} - URL completa con parámetros.
+   */
+  const buildDriveApiUrl = (folderId, pageToken) => {
+    const url = new URL('https://www.googleapis.com/drive/v3/files')
+    const queryParams = {
+      includeItemsFromAllDrives: 'true',
+      supportsAllDrives: 'true',
+      pageSize: '100',
+      q: `'${folderId}' in parents`
+    }
+
+    if (pageToken) {
+      queryParams.pageToken = pageToken
+    }
+
+    url.search = new URLSearchParams(queryParams).toString()
+    return url.toString()
+  }
+
+  /**
+   * Maneja la paginación actualizando los estados relevantes.
+   * @param {'next'|'prev'} direction - Dirección de la paginación.
+   * @param {string|null} pageToken - Token actual.
+   */
+  const handlePagination = (direction, pageToken) => {
+    if (isFirstLoad || isSwitching) {
+      setCurrentPage(1)
+      setPrevPageTokens([])
+      setIsSwitching(false)
+    } else if (direction === 'next') {
+      setPrevPageTokens([...prevPageTokens, pageToken])
+      setCurrentPage(currentPage + 1)
+    } else if (direction === 'prev') {
+      setPrevPageTokens(prevPageTokens.slice(0, -1))
+      setCurrentPage(Math.max(1, currentPage - 1))
+    }
+  }
+
+  /**
+   * Obtiene una lista de archivos desde Google Drive.
+   * @param {string} folderId - ID de la carpeta a listar (por defecto: principal o raíz).
+   * @param {string|null} pageToken - Token para paginación.
+   * @param {'next'|'prev'} direction - Dirección de la paginación.
+   * @param {boolean} retry - Si se debe reintentar al fallar.
+   */
   const fetchFiles = async (
-    folderId = nestedFiles ? '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' : 'root', // '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' : 'root',
+    folderId = nestedFiles ? googleAuthConfig.MAIN_FOLDER_ID : 'root',
     pageToken = null,
     direction = 'next',
     retry = true
   ) => {
     if (!accessToken) {
       setError('No access token found')
-
       return
     }
 
     setIsLoading(true)
     setError(null)
 
-    const url = new URL('https://www.googleapis.com/drive/v3/files')
-
-    const queryParams = {
-      includeItemsFromAllDrives: 'true',
-      supportsAllDrives: 'true',
-      pageSize: '100'
-    }
-
-    if (nestedFiles) queryParams.q = `'${folderId}' in parents`
-    if (pageToken) queryParams.pageToken = pageToken
-
-    url.search = new URLSearchParams(queryParams).toString()
-
     try {
+      const url = buildDriveApiUrl(folderId, pageToken)
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -57,8 +108,7 @@ export const useGoogleDrive = () => {
 
       if (!response.ok) {
         if (response.status === 401 && retry) {
-          const newAccessToken = await refreshAccessToken()
-
+          await refreshAccessToken()
           return fetchFiles(folderId, pageToken, direction, false)
         }
         throw new Error('Failed to fetch files')
@@ -68,23 +118,7 @@ export const useGoogleDrive = () => {
       setFiles(data.files || [])
       setNextPageToken(data.nextPageToken || null)
 
-      if (isFirstLoad) {
-        setCurrentPage(1)
-        setPrevPageTokens([])
-      } else if (isSwitching) {
-        setCurrentPage(1)
-        setPrevPageTokens([])
-        setIsSwitching(false)
-      } else {
-        if (direction === 'next') {
-          setPrevPageTokens([...prevPageTokens, pageToken])
-          setCurrentPage(currentPage + 1)
-        } else if (direction === 'prev') {
-          setPrevPageTokens(prevPageTokens.slice(0, -1))
-          setCurrentPage(Math.max(1, currentPage - 1))
-        }
-      }
-
+      handlePagination(direction, pageToken)
       setIsFirstLoad(false)
     } catch (error) {
       setError(error.message)
@@ -93,11 +127,16 @@ export const useGoogleDrive = () => {
     }
   }
 
+
+  /**
+   * Sube archivos al Google Drive del usuario.
+   * @param {File[]} filesToUpload - Lista de archivos a subir.
+   */
   const uploadFiles = async filesToUpload => {
+
     if (!accessToken) {
       setError('No access token found')
       oauth2SignIn()
-
       return
     }
 
@@ -143,7 +182,7 @@ export const useGoogleDrive = () => {
       setFiles([...files, ...results])
     } catch (error) {
       if (error.message === 'Failed to upload file') {
-        const newAccessToken = await refreshAccessToken()
+        await refreshAccessToken()
         await uploadFiles(filesToUpload)
       } else {
         setError(error.message)

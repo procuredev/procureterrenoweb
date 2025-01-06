@@ -36,4 +36,6 @@ if (typeof window !== 'undefined') {
   googleAuthConfig = googleAuthConfigDevelopment
 }
 
+console.log("Google Drive Folder ID: " + googleAuthConfig.MAIN_FOLDER_ID)
+
 export default googleAuthConfig
