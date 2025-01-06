@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
-import Firebase from 'firebase/compat/app'
-import 'firebase/compat/auth'
-import { getFirestore } from 'firebase/firestore'
-import 'dotenv/config'
+import 'dotenv/config';
+import Firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import { getFirestore } from 'firebase/firestore';
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -19,7 +19,7 @@ const firebaseConfigProduction = {
   appId: process.env.NEXT_PUBLIC_PROD_APPID,
   measurementId: process.env.NEXT_PUBLIC_PROD_MEASUREMENTID,
   isMaintenanceMode: process.env.NEXT_PUBLIC_PROD_MAINTENANCE_MOD
-};
+}
 
 const firebaseConfigDevelopment = {
   apiKey: process.env.NEXT_PUBLIC_DEV_APIKEY,
@@ -29,7 +29,7 @@ const firebaseConfigDevelopment = {
   messagingSenderId: process.env.NEXT_PUBLIC_DEV_MESSAGINGSENDERID,
   appId: process.env.NEXT_PUBLIC_DEV_APPID,
   isMaintenanceMode: process.env.NEXT_PUBLIC_DEV_MAINTENANCE_MOD
-};
+}
 
 // Initialize Firebase
 
@@ -52,4 +52,5 @@ const db = getFirestore(app)
 const isUnderMaintenance = firebaseConfig.isMaintenanceMode
 
 
-export { Firebase, db, app, isUnderMaintenance }
+export { Firebase, db, app, isUnderMaintenance };
+

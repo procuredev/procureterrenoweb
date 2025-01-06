@@ -2,35 +2,9 @@
  * Hook para gestionar la autenticación de Google OAuth2.
  * Incluye lógica para manejar tokens de acceso, refrescar tokens y reconectar en caso de expiración.
  */
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { useEffect, useState } from 'react';
-
-// Configuración de autenticación de Google para Producción.
-const googleAuthConfigProduction = {
-  CLIENT_ID: process.env.NEXT_PUBLIC_PROD_GOOGLE_CLIENT_ID,
-  CLIENT_SECRET: process.env.NEXT_PUBLIC_PROD_GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI: process.env.NEXT_PUBLIC_PROD_GOOGLE_REDIRECT_URI // URL de producción
-}
-
-// Configuración de autenticación de Google para Desarrollo.
-const googleAuthConfigDevelopment = {
-  CLIENT_ID: process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_ID,
-  CLIENT_SECRET: process.env.NEXT_PUBLIC_DEV_GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI: process.env.NEXT_PUBLIC_DEV_GOOGLE_REDIRECT_URI // URL de desarrollo
-}
-
-// Selecciona la configuración de autenticación según el hostname
-let googleAuthConfig
-
-if (typeof window !== 'undefined') {
-  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
-    googleAuthConfig = googleAuthConfigProduction
-  } else {
-    googleAuthConfig = googleAuthConfigDevelopment
-  }
-} else {
-  googleAuthConfig = googleAuthConfigDevelopment
-}
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import { useEffect, useState } from 'react'
+import googleAuthConfig from '../../configs/googleDrive'
 
 /**
  * Hook para gestionar la autenticación de Google OAuth2.
