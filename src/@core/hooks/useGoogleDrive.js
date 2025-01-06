@@ -129,68 +129,90 @@ export const useGoogleDrive = () => {
 
 
   /**
+   * Sube un solo archivo a Google Drive.
+   * @param {File} file - Archivo a subir.
+   * @returns {Promise<object>} - Respuesta de la API de Google Drive.
+   */
+  const uploadSingleFile = async (file, accessToken) => {
+    const metadata = {
+      name: file.name, // Nombre del archivo
+      mimeType: file.type, // Tipo MIME del archivo
+    }
+
+    const formData = new FormData()
+    // Añade los metadatos del archivo y el archivo en sí a la solicitud
+    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
+    formData.append('file', file)
+
+    try {
+      // Realiza la solicitud de subida a Google Drive
+      const response = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: formData,
+        }
+      )
+
+      // Verifica si la respuesta es exitosa, de lo contrario lanza un error
+      if (!response.ok) {
+        throw new Error('Failed to upload file')
+      }
+
+      // Devuelve los datos del archivo subido
+      return await response.json()
+    } catch (error) {
+      // Si ocurre un error, lo lanza
+      throw error
+    }
+  }
+
+  /**
    * Sube archivos al Google Drive del usuario.
    * @param {File[]} filesToUpload - Lista de archivos a subir.
    */
   const uploadFiles = async filesToUpload => {
 
+    // Verifica si existe un token de acceso. Si no, solicita iniciar sesión.
     if (!accessToken) {
       setError('No access token found')
       oauth2SignIn()
       return
     }
 
+    // Inicia el estado de carga y resetea el error
     setIsLoading(true)
     setError(null)
 
-    const uploadSingleFile = async file => {
-      const metadata = {
-        name: file.name,
-        mimeType: file.type
-      }
-
-      const formData = new FormData()
-      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
-      formData.append('file', file)
-
-      try {
-        const response = await fetch(
-          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${accessToken}`
-            },
-            body: formData
-          }
-        )
-
-        if (!response.ok) {
-          throw new Error('Failed to upload file')
-        }
-
-        return await response.json()
-      } catch (error) {
-        setError(error.message)
-        throw error
-      }
-    }
-
     try {
-      const uploadPromises = Array.from(filesToUpload).map(uploadSingleFile)
+      // Crea una lista de promesas para subir cada archivo
+      const uploadPromises = Array.from(filesToUpload).map(file =>
+        uploadSingleFile(file, accessToken) // Ahora usa la función externa
+      )
+
+      // Espera que todas las promesas se resuelvan
       const results = await Promise.all(uploadPromises)
+
+      // Actualiza el estado con los archivos subidos
       setFiles([...files, ...results])
     } catch (error) {
+      // Si falla la subida, intenta obtener un nuevo token de acceso y reintentar la subida
       if (error.message === 'Failed to upload file') {
-        await refreshAccessToken()
-        await uploadFiles(filesToUpload)
+        const newAccessToken = await refreshAccessToken()
+        await uploadFiles(filesToUpload); // Reintenta la carga
       } else {
+        // En caso de cualquier otro error, establece el error
         setError(error.message)
       }
     } finally {
+      // Finaliza el estado de carga
       setIsLoading(false)
     }
   }
+
 
   return {
     files,
