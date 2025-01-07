@@ -7,6 +7,7 @@ import { useGoogleAuth } from './useGoogleAuth'; // Hook personalizado para mane
  * Proporciona funcionalidad para listar y subir archivos, y manejar el estado de autenticación.
  */
 export const useGoogleDrive = () => {
+
   // Estados y funciones provenientes del hook de autenticación
   const {
     accessToken, // Token de acceso actual
@@ -86,54 +87,63 @@ export const useGoogleDrive = () => {
    * @param {boolean} retry - Si se debe reintentar al fallar.
    */
   const fetchFiles = async (
-    folderId = nestedFiles ? googleAuthConfig.MAIN_FOLDER_ID : 'root',
-    pageToken = null,
-    direction = 'next',
-    retry = true
+    folderId = nestedFiles ? googleAuthConfig.MAIN_FOLDER_ID : 'root', // ID de la carpeta raíz o una carpeta específica.
+    pageToken = null, // Token para la paginación (si no es nulo, continúa desde una página específica).
+    direction = 'next', // Dirección de la navegación: 'next' para avanzar, 'prev' para retroceder.
+    retry = true // Indica si se debe reintentar la solicitud tras un error de autenticación.
   ) => {
+    // Verifica que exista un token de acceso antes de proceder.
     if (!accessToken) {
+      setError('No access token found') // Establece un error si no se encuentra el token.
 
-      setError('No access token found')
-
-      return
-
+      return // Finaliza la función para evitar ejecuciones innecesarias.
     }
 
-    setIsLoading(true)
-    setError(null)
+    // Configura el estado inicial antes de realizar la solicitud.
+    setIsLoading(true) // Indica que la carga está en curso.
+    setError(null) // Limpia cualquier error previo.
 
     try {
+      // Construye la URL de la API de Google Drive con los parámetros necesarios.
       const url = buildDriveApiUrl(folderId, pageToken)
 
+      // Realiza la solicitud a la API de Google Drive.
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'GET', // Método de la solicitud.
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}` // Incluye el token de acceso para la autorización.
         }
       })
 
+      // Verifica si la respuesta es válida.
       if (!response.ok) {
+        // Si el token ha expirado y está permitido reintentar, renueva el token y vuelve a intentar.
         if (response.status === 401 && retry) {
-          await refreshAccessToken()
+          await refreshAccessToken() // Intenta renovar el token de acceso.
 
-          return fetchFiles(folderId, pageToken, direction, false)
+          return fetchFiles(folderId, pageToken, direction, false) // Llama de nuevo a la función sin reintentar.
         }
-        throw new Error('Failed to fetch files')
+        throw new Error('Failed to fetch files') // Lanza un error para manejar otros problemas.
       }
 
-      const data = await response.json()
-      setFiles(data.files || [])
-      setNextPageToken(data.nextPageToken || null)
+      // Si la solicitud es exitosa, procesa los datos recibidos.
+      const data = await response.json() // Convierte la respuesta en formato JSON.
+      setFiles(data.files || []) // Actualiza la lista de archivos obtenidos.
+      setNextPageToken(data.nextPageToken || null) // Establece el token para la siguiente página (si existe).
 
+      // Maneja el estado de paginación basado en la dirección.
       handlePagination(direction, pageToken)
+
+      // Marca la primera carga como completada.
       setIsFirstLoad(false)
     } catch (error) {
-      setError(error.message)
+      // Captura y muestra cualquier error que ocurra durante la solicitud.
+      setError(error.message) // Establece el mensaje de error en el estado.
     } finally {
-      setIsLoading(false)
+      // Restablece el estado de carga independientemente del resultado.
+      setIsLoading(false) // Finaliza la indicación de carga.
     }
   }
-
 
   /**
    * Sube un solo archivo a Google Drive.
