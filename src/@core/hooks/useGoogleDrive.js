@@ -42,6 +42,7 @@ export const useGoogleDrive = () => {
    */
   const buildDriveApiUrl = (folderId, pageToken) => {
     const url = new URL('https://www.googleapis.com/drive/v3/files')
+
     const queryParams = {
       includeItemsFromAllDrives: 'true',
       supportsAllDrives: 'true',
@@ -54,6 +55,7 @@ export const useGoogleDrive = () => {
     }
 
     url.search = new URLSearchParams(queryParams).toString()
+
     return url.toString()
   }
 
@@ -90,8 +92,11 @@ export const useGoogleDrive = () => {
     retry = true
   ) => {
     if (!accessToken) {
+
       setError('No access token found')
+
       return
+
     }
 
     setIsLoading(true)
@@ -99,6 +104,7 @@ export const useGoogleDrive = () => {
 
     try {
       const url = buildDriveApiUrl(folderId, pageToken)
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -109,6 +115,7 @@ export const useGoogleDrive = () => {
       if (!response.ok) {
         if (response.status === 401 && retry) {
           await refreshAccessToken()
+
           return fetchFiles(folderId, pageToken, direction, false)
         }
         throw new Error('Failed to fetch files')
@@ -180,6 +187,7 @@ export const useGoogleDrive = () => {
     if (!accessToken) {
       setError('No access token found')
       oauth2SignIn()
+
       return
     }
 
