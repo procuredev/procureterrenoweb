@@ -76,13 +76,20 @@ export const useGoogleAuth = () => {
    * @returns {Promise<boolean>} - `true` si el token es válido, `false` en caso contrario.
    */
   const validateAccessToken = async token => {
+
     try {
+
       const response = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`)
       const data = await response.json()
+
       return data.expires_in > 0
+
     } catch {
+
       return false
+
     }
+
   }
 
   /**
