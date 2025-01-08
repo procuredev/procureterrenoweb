@@ -1,7 +1,3 @@
-/**
- * Hook para gestionar la autenticación de Google OAuth2.
- * Incluye lógica para manejar tokens de acceso, refrescar tokens y reconectar en caso de expiración.
- */
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
 import { useEffect, useState } from 'react'
 import googleAuthConfig from '../../configs/googleDrive'

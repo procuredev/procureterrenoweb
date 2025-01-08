@@ -33,23 +33,12 @@ import Icon from 'src/@core/components/icon'
 // ** Hooks Imports
 import { CircularProgress, FormControl } from '@mui/material'
 import { useFirebase } from 'src/context/useFirebase'
+import googleAuthConfig from 'src/configs/googleDrive'
 import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
-
-let rootFolder
-
-if (typeof window !== 'undefined') {
-  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
-    rootFolder = '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' //* carpeta original "72336"
-  } else {
-    rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
-  }
-} else {
-  rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
-}
 
 export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   // ** States
@@ -184,13 +173,13 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       setLoading(true)
       try {
         // Busca la carpeta de la planta.
-        const plantFolders = await fetchFolders(rootFolder)
+        const plantFolders = await fetchFolders(googleAuthConfig.MAIN_FOLDER_ID)
         let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
 
         // Si no existe la carpeta de la planta, se crea
         if (!plantFolder) {
           const plantName = getPlantAbbreviation(doc.plant)
-          plantFolder = await createFolder(plantName, rootFolder)
+          plantFolder = await createFolder(plantName, googleAuthConfig.MAIN_FOLDER_ID)
         }
 
         if (plantFolder) {
