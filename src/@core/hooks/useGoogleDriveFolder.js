@@ -1,17 +1,29 @@
 import { useState } from 'react'
 import { useGoogleAuth } from './useGoogleAuth'
 
+/**
+ * Hook para interactuar con Google Drive, que incluye la gestión de carpetas, permisos y subida de archivos.
+ * @returns {Object} Funciones y estados para gestionar Google Drive.
+ */
 export const useGoogleDriveFolder = () => {
   const { accessToken, refreshAccessToken, oauth2SignIn } = useGoogleAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const fetchFolders = async parentId => {
+  /**
+   * Obtiene una lista de carpetas dentro de una carpeta específica en Google Drive.
+   * @async
+   * @param {string} parentId - ID de la carpeta padre en Google Drive.
+   * @returns {Promise<Object>} Respuesta con la lista de carpetas.
+   * @throws {Error} Si la solicitud falla o no hay un token de acceso válido.
+   */
+  const fetchFolders = async (parentId) => {
     if (!accessToken) {
       setError('No access token found')
       oauth2SignIn()
 
       return
+
     }
 
     try {
@@ -26,14 +38,12 @@ export const useGoogleDriveFolder = () => {
       )
 
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Failed to create permission:', errorData)
         if (response.status === 401) {
           await refreshAccessToken()
 
-          return createPermission(fileId, emailAddress, role) // Retry after refreshing the token
+          return fetchFolders(parentId) // Retry after refreshing the token
         }
-        throw new Error(`Failed to create permission: ${errorData.error.message}`)
+        throw new Error('Failed to fetch folders')
       }
 
       return await response.json()
@@ -43,43 +53,52 @@ export const useGoogleDriveFolder = () => {
     }
   }
 
+  /**
+   * Crea una nueva carpeta en Google Drive.
+   * @async
+   * @param {string} name - Nombre de la carpeta a crear.
+   * @param {string} [parentFolderId='root'] - ID de la carpeta padre (por defecto, la raíz).
+   * @returns {Promise<Object>} Datos de la carpeta creada.
+   * @throws {Error} Si la creación falla o no hay un token de acceso válido.
+   */
   const createFolder = async (name, parentFolderId = 'root') => {
     if (!accessToken) {
       setError('No access token found')
       oauth2SignIn()
 
-      return
+return;
     }
 
     setIsLoading(true)
     setError(null)
 
     try {
-      const response = await fetch(`https://www.googleapis.com/drive/v3/files?supportsAllDrives=true`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name,
-          mimeType: 'application/vnd.google-apps.folder',
-          parents: [parentFolderId]
-        })
-      })
+      const response = await fetch(
+        `https://www.googleapis.com/drive/v3/files?supportsAllDrives=true`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [parentFolderId]
+          })
+        }
+      )
 
       if (!response.ok) {
         if (response.status === 401) {
           await refreshAccessToken()
 
-          return createFolder(name, parentFolderId) // Reintenta después de actualizar el token
+          return createFolder(name, parentFolderId) // Retry after refreshing the token
         }
         throw new Error('Failed to create folder')
       }
 
-      const data = await response.json()
-
-      return data
+      return await response.json()
     } catch (error) {
       setError(error.message)
       throw error
@@ -88,6 +107,15 @@ export const useGoogleDriveFolder = () => {
     }
   }
 
+  /**
+   * Crea un permiso para un archivo en Google Drive.
+   * @async
+   * @param {string} fileId - ID del archivo al que se aplicará el permiso.
+   * @param {string} emailAddress - Dirección de correo del usuario que recibirá el permiso.
+   * @param {string} role - Rol del permiso (e.g., 'reader', 'writer').
+   * @returns {Promise<Object>} Datos del permiso creado.
+   * @throws {Error} Si la creación del permiso falla o no hay un token de acceso válido.
+   */
   const createPermission = async (fileId, emailAddress, role) => {
     if (!accessToken) {
       setError('No access token found')
@@ -111,13 +139,7 @@ export const useGoogleDriveFolder = () => {
           body: JSON.stringify({
             role,
             type: 'user',
-            emailAddress,
-            permissionDetails: [
-              {
-                permissionType: 'user',
-                role: role
-              }
-            ]
+            emailAddress
           })
         }
       )
@@ -130,9 +152,8 @@ export const useGoogleDriveFolder = () => {
         }
         throw new Error('Failed to create permission')
       }
-      const data = await response.json()
 
-      return data
+      return await response.json()
     } catch (error) {
       setError(error.message)
       throw error
@@ -141,6 +162,15 @@ export const useGoogleDriveFolder = () => {
     }
   }
 
+  /**
+   * Sube un archivo a Google Drive.
+   * @async
+   * @param {string} fileName - Nombre del archivo a subir.
+   * @param {File} file - Objeto de archivo a subir.
+   * @param {string} parentFolderId - ID de la carpeta donde se subirá el archivo.
+   * @returns {Promise<Object>} Datos del archivo subido.
+   * @throws {Error} Si la subida falla o no hay un token de acceso válido.
+   */
   const uploadFile = async (fileName, file, parentFolderId) => {
     if (!accessToken) {
       setError('No access token found')
@@ -155,7 +185,7 @@ export const useGoogleDriveFolder = () => {
     try {
       const metadata = {
         name: fileName,
-        parents: [parentFolderId] // Especifica la carpeta padre en la que se guardará el archivo
+        parents: [parentFolderId],
       }
 
       const formData = new FormData()
@@ -167,7 +197,7 @@ export const useGoogleDriveFolder = () => {
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${accessToken}` // Incluye el token de acceso para la autenticación
+            Authorization: `Bearer ${accessToken}`
           },
           body: formData
         }
@@ -175,17 +205,14 @@ export const useGoogleDriveFolder = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Si el token de acceso ha expirado
-          await refreshAccessToken() // Intenta refrescar el token de acceso
+          await refreshAccessToken()
 
-          return uploadFile(fileName, file, parentFolderId) // Reintenta subir el archivo con el nuevo token
+          return uploadFile(fileName, file, parentFolderId) // Retry after refreshing the token
         }
         throw new Error('Failed to upload file')
       }
 
-      const data = await response.json() // Parsea la respuesta del servidor para obtener los datos del archivo
-
-      return data // Retorna el objeto con la información del archivo, que incluye el ID
+      return await response.json()
     } catch (error) {
       setError(error.message)
       throw error
@@ -200,6 +227,6 @@ export const useGoogleDriveFolder = () => {
     createPermission,
     uploadFile,
     isLoading,
-    error
+    error,
   }
 }
