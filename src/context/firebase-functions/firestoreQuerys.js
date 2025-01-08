@@ -676,27 +676,44 @@ const consultDocs = async (type, options = {}) => {
   }
 }
 
+/**
+ * Función para obtener las disciplinas desde la Tabla de Dominio.
+ * @returns {Object} - Objeto con las disciplinas y sus características.
+ */
 const fetchDisciplineProperties = async () => {
   const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
   const docSnapshot = await getDoc(propsRef)
 
   if (docSnapshot.exists()) {
+
     return docSnapshot.data()
+
   } else {
+
     throw new Error('No matching document found in the database.')
+
   }
 }
 
+/**
+ * Función para obtener los tipos de entregables por disciplina desde la Tabla de Dominio.
+ * @param {string} discipline - Disciplina para la cual se buscan sus tipos de entregables.
+ * @returns {Object} - Objeto con los tipos de entregables y sus características.
+ */
 const fetchDeliverablesByDiscipline = async discipline => {
   const propsRef = doc(db, 'domain', 'blueprintCodeProperties')
   const docSnapshot = await getDoc(propsRef)
 
   if (docSnapshot.exists()) {
+
     const data = docSnapshot.data()
 
     return data[discipline]
+
   } else {
+
     throw new Error('No matching discipline found in the database.')
+
   }
 }
 
