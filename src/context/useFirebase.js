@@ -105,7 +105,6 @@ const FirebaseContextProvider = props => {
 
   // Este useEffect manejará los datos del usuario conectado
   useEffect(() => {
-    const auth = getAuth(app)
 
     const unsubscribe = onAuthStateChanged(auth, async authState => {
       if (!authState) {
@@ -122,14 +121,14 @@ const FirebaseContextProvider = props => {
         setDomainRoles(roles)
         setLoading(false)
 
-        // Autorización de Google Drive
-        if ([1, 5, 6, 7, 8, 9].includes(databaseUserData.role)) {
-          try {
-            await handleGoogleDriveAuthorization()
-          } catch (error) {
-            console.error('Error during Google Drive authorization:', error)
-          }
-        }
+        // // Autorización de Google Drive
+        // if ([1, 5, 6, 7, 8, 9].includes(databaseUserData.role)) {
+        //   try {
+        //     await handleGoogleDriveAuthorization()
+        //   } catch (error) {
+        //     console.error('Error during Google Drive authorization:', error)
+        //   }
+        // }
       }
     })
 

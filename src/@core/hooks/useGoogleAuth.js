@@ -11,7 +11,6 @@ export const useGoogleAuth = () => {
   const [refreshToken, setRefreshToken] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isValidToken, setIsValidToken] = useState(false)
 
   /**
@@ -19,50 +18,24 @@ export const useGoogleAuth = () => {
    * Su propósito es gestionar el proceso de autenticación y validación del token de acceso almacenado.
    */
   useEffect(() => {
-
-    // Recupera los parámetros de autenticación almacenados previamente en localStorage.
     const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
 
-    // Si hay un token de acceso almacenado en los parámetros.
-    if (storedParams?.access_token) {
-
-      // Llama a la función `validateAccessToken` para comprobar si el token es válido.
+    if (storedParams?.access_token && storedParams?.refresh_token) {
       validateAccessToken(storedParams.access_token)
         .then(isValid => {
-          // Establece el estado de validez del token
-          setIsValidToken(isValid)
-
-          // Si el token es válido:
           if (isValid) {
-
-            // Actualiza el estado `accessToken` con el token almacenado.
             setAccessToken(storedParams.access_token)
-
-            // Cambia `isLoading` a `false` para indicar que el proceso de autenticación ha finalizado.
-            setIsLoading(false)
-
-            // Programa un refresco automático del token utilizando la función `scheduleTokenRefresh`.
-            scheduleTokenRefresh(storedParams.expires_in)
-
-            // Si el token no es válido:
+            setRefreshToken(storedParams.refresh_token)
+            scheduleTokenRefresh(storedParams.expires_in, storedParams.refresh_token)
           } else {
-
-            // Abre un Dialog para informar al usuario de que debe volver a autenticarse.
-            setIsDialogOpen(true)
-
+            refreshAccessToken(storedParams.refresh_token)
           }
         })
         .catch(() => {
-          // En caso de error durante la validación del token abre el diálogo para informar al usuario.
-          setIsDialogOpen(true)
+          oauth2SignIn()
         })
-
-      // Si no hay un token almacenado:
     } else {
-
-      // Llama a la función `parseQueryString` para intentar extraer los parámetros de autenticación de la URL actual.
       parseQueryString()
-
     }
   }, [])
 
@@ -239,39 +212,7 @@ export const useGoogleAuth = () => {
     } else {
       oauth2SignIn()
     }
-  };
-
-  /**
-   * Cierra el diálogo de reconexión.
-   */
-  const handleCloseDialog = () => setIsDialogOpen(false)
-
-  /**
-   * Renderiza el diálogo de reconexión.
-   * @returns {JSX.Element} - Componente Dialog.
-   */
-  const renderDialog = () => (
-    <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
-      <DialogTitle>Conexión expirada</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          Tu conexión con Google Drive ha expirado. <br /> Haz clic en "Conectar" para volver a autenticarse.
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={() => {
-            oauth2SignIn()
-            handleCloseDialog()
-          }}
-          color="primary"
-          autoFocus
-        >
-          Conectar
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
+  }
 
   return {
     accessToken,
@@ -281,8 +222,6 @@ export const useGoogleAuth = () => {
     oauth2SignIn,
     refreshAccessToken,
     handleGoogleDriveAuthorization,
-    renderDialog,
-    isValidToken,
-    setIsDialogOpen
+    isValidToken
   }
 }

@@ -628,7 +628,7 @@ const DataGridGabinete = () => {
       />
       {errorTransmittal && <DialogErrorTransmittal open={errorTransmittal} handleClose={handleCloseErrorTransmittal} />}
       {/* Renderiza el diálogo de recondección a Google Drive, en caso de que expire el access token */}
-      {renderDialog()}
+      {/* {renderDialog()} */}
     </Box>
   )
 }
