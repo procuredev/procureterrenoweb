@@ -4,28 +4,43 @@ import { createContext, useContext, useEffect, useState } from 'react'
 export const GoogleContext = createContext()
 
 // ** Importamos el hook `useGoogleAuth`
-import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
+import {
+  oauth2SignIn,
+  validateAccessToken,
+  refreshAccessToken,
+  parseQueryString,
+  handleGoogleDriveAuthorization
+} from 'src/@core/hooks/useGoogleAuth'
 
 import { useFirebase } from 'src/context/useFirebase'
 
 const GoogleContextProvider = props => {
 
-  // ** Llamamos al hook `useGoogleAuth` para manejar la autenticación de Google
-  const { authUser } = useFirebase()
+  const [googleTokens, setGoogleTokens] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      const params = localStorage.getItem('oauth2-params')
+
+      return params ? JSON.parse(params) : null
+    } else {
+      return null
+    }
+  })
 
   // ** Llamamos al hook `useGoogleAuth` para manejar la autenticación de Google
-  const { handleGoogleDriveAuthorization } = useGoogleAuth()
+  const { authUser } = useFirebase()
 
   console.log(authUser)
 
   // Autorización de Google Drive
-  if (authUser && [1, 5, 6, 7, 8, 9].includes(authUser.role)) {
+  if (authUser && authUser.company === "Procure") {
     try {
       handleGoogleDriveAuthorization()
     } catch (error) {
       console.error('Error al conectarse con Google:', error)
     }
   }
+
+  console.log(googleTokens)
 
   const value = {
     handleGoogleDriveAuthorization

@@ -97,9 +97,6 @@ const FirebaseContextProvider = props => {
   const [domainDictionary, setDomainDictionary] = useState({})
   const [domainRoles, setDomainRoles] = useState({})
 
-  // ** Llamamos al hook `useGoogleAuth` para manejar la autenticación de Google
-  const { handleGoogleDriveAuthorization } = useGoogleAuth()
-
   // ** Variables
   const auth = getAuth(app)
 
@@ -121,14 +118,6 @@ const FirebaseContextProvider = props => {
         setDomainRoles(roles)
         setLoading(false)
 
-        // // Autorización de Google Drive
-        // if ([1, 5, 6, 7, 8, 9].includes(databaseUserData.role)) {
-        //   try {
-        //     await handleGoogleDriveAuthorization()
-        //   } catch (error) {
-        //     console.error('Error during Google Drive authorization:', error)
-        //   }
-        // }
       }
     })
 

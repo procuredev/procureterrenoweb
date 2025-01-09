@@ -98,8 +98,6 @@ const DataGridLevantamientos = () => {
           </Grid>
         ))}
       </TabContext>
-      {/* Renderiza el diálogo de recondección a Google Drive, en caso de que expire el access token */}
-      {/* {renderDialog()} */}
     </Box>
   )
 }

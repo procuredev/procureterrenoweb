@@ -86,7 +86,7 @@ const UserDropdown = props => {
   }
 
   const handleLogout = async () => {
-    const storedParams = JSON.parse(localStorage.getItem('oauth2-test-params'))
+    const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
 
     if (storedParams) {
       const { access_token } = storedParams
@@ -102,7 +102,7 @@ const UserDropdown = props => {
         setTimeout(() => {
           localStorage.removeItem('formData')
           localStorage.removeItem('user')
-          localStorage.removeItem('oauth2-test-params')
+          localStorage.removeItem('oauth2-params')
           handleDropdownClose('/login')
         }, 500) // Retraso de 500 milisegundos antes de redireccionar
       })
