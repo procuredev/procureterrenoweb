@@ -105,44 +105,52 @@ const getTokens = async () => {
  * @param {string} refreshToken - Token de refresco.
  * @returns {Promise<number>} - Tiempo de expiración en segundos del nuevo token.
  */
-const refreshAccessToken = async refreshToken => {
+const refreshAccessToken = async () => {
 
-  if (tokenExpiresIn() > 300) {
-    return
-  } else {
-    // Configura los parámetros necesarios para refrescar el token de acceso
-    const params = new URLSearchParams()
-    params.append('client_id', googleAuthConfig.CLIENT_ID) // ID del cliente
-    params.append('client_secret', googleAuthConfig.CLIENT_SECRET) // Secreto del cliente
-    params.append('refresh_token', refreshToken) // Token de actualización
-    params.append('grant_type', 'refresh_token') // Tipo de concesión (token de actualización)
+  console.log("Refrescando las credenciales...")
 
-    try {
-      // Realiza una solicitud POST al endpoint para refrescar el token
-      const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST', // Método POST
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // Encabezados necesarios
-        body: params.toString() // Cuerpo con los parámetros en formato URL-encoded
-      })
+  const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
+  const refreshToken = storedParams.refresh_token
 
-      // Lanza un error si la respuesta no es exitosa
-      if (!response.ok) throw new Error('Failed to refresh access token')
+  // if (await tokenExpiresIn(storedParams.access_token) > 300) {
+  //   return
+  // } else {
+  // }
 
-      // Analiza la respuesta JSON para obtener el nuevo token y el tiempo de expiración
-      const data = await response.json()
-      const newAccessToken = data.access_token // Nuevo token de acceso
+  // Configura los parámetros necesarios para refrescar el token de acceso
+  const params = new URLSearchParams()
+  params.append('client_id', googleAuthConfig.CLIENT_ID) // ID del cliente
+  params.append('client_secret', googleAuthConfig.CLIENT_SECRET) // Secreto del cliente
+  params.append('refresh_token', refreshToken) // Token de actualización
+  params.append('grant_type', 'refresh_token') // Tipo de concesión (token de actualización)
 
-      // Recupera los parámetros almacenados en localStorage, o un objeto vacío si no existen
-      const storedParams = JSON.parse(localStorage.getItem('oauth2-params')) || {}
-      storedParams.access_token = newAccessToken // Actualiza el token de acceso
+  try {
+    // Realiza una solicitud POST al endpoint para refrescar el token
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST', // Método POST
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // Encabezados necesarios
+      body: params.toString() // Cuerpo con los parámetros en formato URL-encoded
+    })
 
-      // Guarda los parámetros actualizados en localStorage
-      localStorage.setItem('oauth2-params', JSON.stringify(storedParams))
+    // Lanza un error si la respuesta no es exitosa
+    if (!response.ok) throw new Error('Failed to refresh access token')
 
-    } catch (error) {
-      throw error // Relanza el error para manejarlo externamente
-    }
+    // Analiza la respuesta JSON para obtener el nuevo token y el tiempo de expiración
+    const data = await response.json()
+    const newAccessToken = data.access_token // Nuevo token de acceso
+
+    // Recupera los parámetros almacenados en localStorage, o un objeto vacío si no existen
+    storedParams.access_token = newAccessToken // Actualiza el token de acceso
+
+    // Guarda los parámetros actualizados en localStorage
+    localStorage.setItem('oauth2-params', JSON.stringify(storedParams))
+
+    console.log(storedParams)
+
+  } catch (error) {
+    throw error // Relanza el error para manejarlo externamente
   }
+
 }
 
 /**

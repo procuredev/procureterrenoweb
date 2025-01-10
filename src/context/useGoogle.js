@@ -14,12 +14,6 @@ import {
 
 import { useFirebase } from 'src/context/useFirebase'
 
-const hola = (authUser) => {
-  console.log(authUser)
-  console.log(Boolean(authUser))
-  console.log("Hola ke pasa")
-}
-
 const GoogleContextProvider = props => {
 
   const [googleTokens, setGoogleTokens] = useState(() => {
@@ -46,9 +40,12 @@ const GoogleContextProvider = props => {
     }
   }
 
-  console.log(googleTokens)
+  useEffect(() => {
+    console.log(googleTokens)
+  },[googleTokens])
+
   if (authUser) {
-    setInterval(hola, 0.5 * 60 * 1000, authUser)
+    setInterval(refreshAccessToken, 1 * 60 * 1000)
   }
 
   const value = {

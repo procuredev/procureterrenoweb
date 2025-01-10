@@ -78,9 +78,6 @@ import {
 
 import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
 
-// ** Importamos el hook `useGoogleAuth`
-import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
-
 const FirebaseContextProvider = props => {
   // ** Hooks
   const [authUser, setAuthUser] = useState(() => {
@@ -112,10 +109,13 @@ const FirebaseContextProvider = props => {
         const databaseUserData = await formatAuthUser(authState)
         setAuthUser(databaseUserData)
         localStorage.setItem('user', JSON.stringify(databaseUserData))
+
         const dictionary = await getDomainData('dictionary')
         setDomainDictionary(dictionary)
+
         const roles = await getDomainData('roles')
         setDomainRoles(roles)
+
         setLoading(false)
 
       }
