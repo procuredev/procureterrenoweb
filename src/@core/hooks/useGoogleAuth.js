@@ -1,5 +1,3 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
-import { useEffect, useState } from 'react'
 import googleAuthConfig from '../../configs/googleDrive'
 
 /**
@@ -112,11 +110,6 @@ const refreshAccessToken = async () => {
   const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
   const refreshToken = storedParams.refresh_token
 
-  // if (await tokenExpiresIn(storedParams.access_token) > 300) {
-  //   return
-  // } else {
-  // }
-
   // Configura los parámetros necesarios para refrescar el token de acceso
   const params = new URLSearchParams()
   params.append('client_id', googleAuthConfig.CLIENT_ID) // ID del cliente
@@ -133,7 +126,9 @@ const refreshAccessToken = async () => {
     })
 
     // Lanza un error si la respuesta no es exitosa
-    if (!response.ok) throw new Error('Failed to refresh access token')
+    if (!response.ok) {
+      throw new Error('Error al refrescar el Token de Acceso.')
+    }
 
     // Analiza la respuesta JSON para obtener el nuevo token y el tiempo de expiración
     const data = await response.json()
@@ -150,7 +145,22 @@ const refreshAccessToken = async () => {
   } catch (error) {
     throw error // Relanza el error para manejarlo externamente
   }
+}
 
+/**
+ * Función que revisa si la validez del Token y lo refresca.
+ * Si quedan mas de 5 minutos, no se refresca el Token.
+ * Si quedan menos de 5 minutos, se refresca el Token.
+ */
+const refreshAccessTokenIfExpired = async() => {
+
+  const secondsToExpire = await tokenExpiresIn(storedParams.access_token)
+
+  if (secondsToExpire > 300) {
+    return
+  } else {
+    await refreshAccessToken()
+  }
 }
 
 /**
@@ -175,5 +185,6 @@ export {
   oauth2SignIn,
   tokenExpiresIn,
   refreshAccessToken,
+  refreshAccessTokenIfExpired,
   handleGoogleDriveAuthorization
 }
