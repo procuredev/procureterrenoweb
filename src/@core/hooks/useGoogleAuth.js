@@ -60,7 +60,11 @@ const oauth2SignIn = async () => {
 /**
  * Intercambia el código de autorización por tokens.
  */
-const getTokens = async (code) => {
+const getTokens = async () => {
+
+  const urlParams = new URLSearchParams(window.location.search)
+  const code = urlParams.get('code')
+
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -151,18 +155,8 @@ const handleGoogleDriveAuthorization = async () => {
     return
   } else {
     try {
-
-      // Se loguea con oauth2
       await oauth2SignIn()
-
-      console.log("se ejecuta oauth2")
-
-      const urlParams = new URLSearchParams(window.location.search)
-      const code = urlParams.get('code')
-
-      await getTokens(code)
-
-
+      await getTokens()
     } catch (error) {
       throw new Error (error)
     }
