@@ -6,13 +6,19 @@ export const GoogleContext = createContext()
 // ** Importamos el hook `useGoogleAuth`
 import {
   oauth2SignIn,
-  validateAccessToken,
+  tokenExpiresIn,
   refreshAccessToken,
   parseQueryString,
   handleGoogleDriveAuthorization
 } from 'src/@core/hooks/useGoogleAuth'
 
 import { useFirebase } from 'src/context/useFirebase'
+
+const hola = (authUser) => {
+  console.log(authUser)
+  console.log(Boolean(authUser))
+  console.log("Hola ke pasa")
+}
 
 const GoogleContextProvider = props => {
 
@@ -41,6 +47,9 @@ const GoogleContextProvider = props => {
   }
 
   console.log(googleTokens)
+  if (authUser) {
+    setInterval(hola, 0.5 * 60 * 1000, authUser)
+  }
 
   const value = {
     handleGoogleDriveAuthorization
