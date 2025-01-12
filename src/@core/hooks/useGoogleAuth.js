@@ -10,6 +10,8 @@ const tokenExpiresIn = async token => {
     const response = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`)
     const data = await response.json()
 
+    console.log(data)
+
     return data.expires_in
   } catch {
     return false
@@ -103,11 +105,11 @@ const getTokens = async () => {
  * @param {string} refreshToken - Token de refresco.
  * @returns {Promise<number>} - Tiempo de expiración en segundos del nuevo token.
  */
-const refreshAccessToken = async () => {
+const refreshAccessToken = async (storedParams) => {
 
   console.log("Refrescando las credenciales...")
 
-  const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
+  // const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
   const refreshToken = storedParams.refresh_token
 
   // Configura los parámetros necesarios para refrescar el token de acceso
@@ -152,14 +154,16 @@ const refreshAccessToken = async () => {
  * Si quedan mas de 5 minutos, no se refresca el Token.
  * Si quedan menos de 5 minutos, se refresca el Token.
  */
-const refreshAccessTokenIfExpired = async() => {
+const refreshAccessTokenIfExpired = async(googleTokens) => {
 
-  const secondsToExpire = await tokenExpiresIn(storedParams.access_token)
+  const secondsToExpire = await tokenExpiresIn(googleTokens.access_token)
+
+  console.log("Expira en: " + secondsToExpire + " segundos.")
 
   if (secondsToExpire > 300) {
     return
   } else {
-    await refreshAccessToken()
+    await refreshAccessToken(googleTokens)
   }
 }
 
@@ -167,17 +171,12 @@ const refreshAccessTokenIfExpired = async() => {
  * Maneja la autorización de Google Drive.
  * @returns {Promise<string|void>} - Token de acceso o inicia el flujo de autenticación.
  */
-const handleGoogleDriveAuthorization = async () => {
-  const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
-  if (storedParams) {
-    return
-  } else {
-    try {
-      await oauth2SignIn()
-      await getTokens()
-    } catch (error) {
-      throw new Error (error)
-    }
+const signInToGoogle = async () => {
+  try {
+    await oauth2SignIn()
+    await getTokens()
+  } catch (error) {
+    throw new Error (error)
   }
 }
 
@@ -186,5 +185,5 @@ export {
   tokenExpiresIn,
   refreshAccessToken,
   refreshAccessTokenIfExpired,
-  handleGoogleDriveAuthorization
+  signInToGoogle
 }

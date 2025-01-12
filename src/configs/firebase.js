@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
-import 'dotenv/config';
-import Firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import { getFirestore } from 'firebase/firestore';
+import 'dotenv/config'
+import Firebase from 'firebase/compat/app'
+import 'firebase/compat/auth'
+import { getFirestore } from 'firebase/firestore'
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -37,7 +37,7 @@ let firebaseConfig
 
 if (typeof window !== 'undefined') {
   if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
-    firebaseConfig = firebaseConfigProduction;
+    firebaseConfig = firebaseConfigProduction
   } else {
     firebaseConfig = firebaseConfigDevelopment
   }
@@ -52,5 +52,5 @@ const db = getFirestore(app)
 const isUnderMaintenance = firebaseConfig.isMaintenanceMode
 
 
-export { Firebase, db, app, isUnderMaintenance };
+export { Firebase, db, app, isUnderMaintenance }
 
