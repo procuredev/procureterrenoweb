@@ -54,10 +54,6 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     setDraftmen(updatedDraftmen)
   }
 
-  /*   const handleClose = () => {
-    setAnchorEl(null)
-  } */
-
   const handleListItemClick = option => {
     // Verificamos si el option ya existe en el array draftmen
     if (!draftmen.some(draftman => draftman.name === option.name)) {
@@ -72,55 +68,6 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
     if (draftmen.length > 0) {
       try {
         await updateDocs(id, { draftmen, pendingReschedule: false }, authUser)
-
-        //* Busca la carpeta de la planta.
-        // const plantFolders = await fetchFolders('180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt')
-        // console.log('plantFolders', plantFolders)
-        // const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
-
-        // if (plantFolder) {
-        //* Busca la carpeta del area.
-        // const areaFolders = await fetchFolders(plantFolder.id)
-        // const areaFolder = areaFolders.files.find(folder => folder.name === doc.area)
-
-        // if (areaFolder) {
-        //   const projectFolderName = `OT N${doc.ot} - ${doc.title}`
-        //   const existingProjectFolders = await fetchFolders(areaFolder.id)
-        //   const projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
-
-        //   let projectFolderId
-        //   if (!projectFolder) {
-        //     const createdProjectFolder = await createFolder(projectFolderName, areaFolder.id)
-        //     projectFolderId = createdProjectFolder.id
-
-        //* Asigna permisos a los proyectistas seleccionados.
-        // console.log('Creating permissions for folder:', projectFolderId)
-
-        /*  for (const proyectista of proyectistas) {
-                console.log('Creating permission for:', proyectista.email)
-                await createPermission(projectFolderId, proyectista.email, 'writer')
-              } */
-
-        //       await createPermission(projectFolderId, 'd.alvarez@procure.cl', 'writer')
-
-        //       const subfolders = [
-        //         'ANTECEDENTES',
-        //         'SOLICITUD DE REQUERIMIENTO',
-        //         'LEVANTAMIENTO',
-        //         'EN TRABAJO',
-        //         'REVISIONES & COMENTARIOS',
-        //         'EMITIDOS'
-        //       ]
-        //       for (const subfolder of subfolders) {
-        //         await createFolder(subfolder, projectFolderId)
-        //       }
-        //     } else {
-        //       projectFolderId = projectFolder.id
-        //       console.log(`Carpeta existente: ${projectFolderId}`)
-        //     }
-        //   }
-        // }
-
         setDraftmen([])
         handleClose()
       } catch (error) {
