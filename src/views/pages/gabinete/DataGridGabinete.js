@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 
 // ** Hooks
 import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
-import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
+import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleAuth'
 import { useFirebase } from 'src/context/useFirebase'
 
 // ** MUI Imports

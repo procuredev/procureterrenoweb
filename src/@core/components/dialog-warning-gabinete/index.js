@@ -23,7 +23,7 @@ import Icon from 'src/@core/components/icon'
 
 import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
-import { useGoogleDriveFolder } from 'src/@core/hooks/useGoogleDriveFolder'
+import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleAuth'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import { getRootFolder } from 'src/@core/utils/constants'
 import { validateFileName, handleFileUpload } from 'src/@core/utils/fileHandlers'
