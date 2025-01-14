@@ -7,7 +7,7 @@ export const GoogleContext = createContext()
 import {
   signInToGoogle,
   refreshAccessTokenIfExpired
-} from 'src/context/google-drive-functions/useGoogleAuth'
+} from 'src/context/google-drive-functions/googleDriveAuth'
 
 import { useFirebase } from 'src/context/useFirebase'
 

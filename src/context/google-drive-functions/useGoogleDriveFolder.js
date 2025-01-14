@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useGoogleAuth } from './useGoogleAuth'
+import { useGoogleAuth } from './googleDriveAuth'
 
 /**
  * Hook para interactuar con Google Drive, que incluye gestión de carpetas, permisos y subida de archivos.
