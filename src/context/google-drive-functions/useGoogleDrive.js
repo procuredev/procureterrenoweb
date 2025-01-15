@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import googleAuthConfig from '../../configs/googleDrive'; // Configuración de Google Drive, como IDs de carpeta
-import { useGoogleAuth } from './googleDriveAuth'; // Hook personalizado para manejar la autenticación de Google
+import { useGoogleAuth } from './useGoogleDriveAuth'; // Hook personalizado para manejar la autenticación de Google
 
 /**
  * Hook personalizado para interactuar con Google Drive.

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 // ** Hooks
-import { useGoogleAuth } from 'src/@core/hooks/useGoogleAuth'
+import { useGoogleAuth } from 'src/context/google-drive-functions/useGoogleDriveAuth'
 import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleDriveFolder'
 import { useFirebase } from 'src/context/useFirebase'
 

@@ -5,9 +5,9 @@ export const GoogleContext = createContext()
 
 // ** Importamos el hook `useGoogleAuth`
 import {
-  signInToGoogle,
-  refreshAccessTokenIfExpired
-} from 'src/context/google-drive-functions/googleDriveAuth'
+  refreshAccessTokenIfExpired,
+  signInToGoogle
+} from 'src/context/google-drive-functions/useGoogleDriveAuth'
 
 import { useFirebase } from 'src/context/useFirebase'
 

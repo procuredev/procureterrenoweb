@@ -57,7 +57,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   const [deadlineDate, setDeadlineDate] = useState(moment())
 
   // ** Hooks
-  const { updateDocs, authUser } = useFirebase()
+  const { updateDocs, authUser, getDomainData } = useFirebase()
 
   const { fetchFolders, createFolder, uploadFile, isLoading: folderLoading } = useGoogleDriveFolder()
 
@@ -152,7 +152,13 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
-  const getPlantAbbreviation = plantName => {
+  const getPlantAbbreviation = async (plantName) => {
+
+    const plantData = await getDomainData('plants', plantName)
+    const plantInitials = plantData.initials
+
+    console.log(plantInitials)
+
     // Implement the logic to get the plant abbreviation from the full plant name
     const plantMap = {
       'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
