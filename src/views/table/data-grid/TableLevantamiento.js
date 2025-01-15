@@ -41,7 +41,7 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
   const [proyectistas, setProyectistas] = useState([])
   const [loadingProyectistas, setLoadingProyectistas] = useState(true)
   const [approve, setApprove] = useState(true)
-  const { updateDocs, authUser, getUserData, domainDictionary } = useFirebase()
+  const { updateDocs, authUser, getUserData, domainDictionary, getDomainData } = useFirebase()
   const [isLoading, setIsLoading] = useState(false)
   const [today, setToday] = useState(Timestamp.fromDate(moment().startOf('day').toDate()))
   const [domainData, setDomainData] = useState({})

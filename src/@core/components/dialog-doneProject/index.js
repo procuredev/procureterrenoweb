@@ -32,9 +32,9 @@ import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
 import { CircularProgress, FormControl } from '@mui/material'
-import { useFirebase } from 'src/context/useFirebase'
 import googleAuthConfig from 'src/configs/googleDrive'
 import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleDriveFolder'
+import { useFirebase } from 'src/context/useFirebase'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -175,6 +175,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
 
   // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
   const onSubmit = async id => {
+
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
       try {

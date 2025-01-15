@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef } from 'react'
 
 // ** Crea contexto
 export const GoogleContext = createContext()
@@ -14,30 +14,29 @@ const GoogleContextProvider = props => {
   const { signInToGoogle, refreshAccessTokenIfExpired } = useGoogleAuth()
   const tokensValidity = useRef(null) // Referencia para manejar la validez de los Tokens de Google.
 
-  const [googleTokens, setGoogleTokens] = useState(() => {
-    if (typeof localStorage !== 'undefined') {
-      const params = localStorage.getItem('oauth2-params')
-
-      return params ? JSON.parse(params) : null
-    } else {
-      return null
-    }
-  })
+  const refreshTokens = async(googleTokens) => {
+    await refreshAccessTokenIfExpired(googleTokens)
+    const newGoogleTokens = JSON.parse(localStorage.getItem('oauth2-params'))
+    console.log(newGoogleTokens)
+  }
 
   // Efecto que manejar la autenticación/refresco de las credenciales de Google.
   useEffect(() => {
+
     const checkGoogleConnection = async () => {
       try {
         // ** Si existe un usuario conectado, maneja la conexión a Google.
         if (authUser && authUser.company === "Procure") {
+          const googleTokens = JSON.parse(localStorage.getItem('oauth2-params')) || null
+          console.log(googleTokens)
           if (!googleTokens) {
             // Inicia el proceso de autenticación con Google
             await signInToGoogle()
           } else {
             // Si existen los tokens, revisa su validez periódicamente
             tokensValidity.current = setInterval(async () => {
-              await refreshAccessTokenIfExpired(googleTokens)
-            }, 1 * 60 * 1000) // Cada 1 minuto
+              await refreshTokens(googleTokens)
+            }, 0.5 * 60 * 1000) // Cada 1 minuto
           }
         } else {
           // ** Limpia el intervalo si el usuario no está conectado
@@ -63,15 +62,7 @@ const GoogleContextProvider = props => {
         tokensValidity.current = null
       }
     }
-  }, [authUser, googleTokens])
-
-  useEffect(() => {
-    console.log('AuthUser:', authUser)
-  }, [authUser])
-
-  useEffect(() => {
-    console.log('Google Tokens:', googleTokens)
-  }, [googleTokens])
+  }, [])
 
   const value = {
     signInToGoogle

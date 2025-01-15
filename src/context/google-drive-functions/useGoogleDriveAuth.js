@@ -96,7 +96,6 @@ export const useGoogleAuth = () => {
       }
 
       localStorage.setItem('oauth2-params', JSON.stringify(tokens))
-      console.log('Tokens almacenados:', tokens)
 
       // Reemplaza el estado de la URL para eliminar el fragmento hash
       window.history.replaceState({}, document.title, window.location.pathname)
@@ -147,8 +146,6 @@ export const useGoogleAuth = () => {
       // Guarda los parámetros actualizados en localStorage
       localStorage.setItem('oauth2-params', JSON.stringify(storedParams))
 
-      console.log(storedParams)
-
     } catch (error) {
       throw error // Relanza el error para manejarlo externamente
     }
@@ -190,8 +187,7 @@ export const useGoogleAuth = () => {
     tokenExpiresIn,
     refreshAccessToken,
     refreshAccessTokenIfExpired,
-    signInToGoogle,
-    accessToken,
+    signInToGoogle
   }
 
 }
