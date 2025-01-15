@@ -1,17 +1,19 @@
-import { createContext, useContext, useEffect, useState, useRef } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
 // ** Crea contexto
 export const GoogleContext = createContext()
 
-// ** Importamos el hook `useGoogleAuth`
-import {
-  refreshAccessTokenIfExpired,
-  signInToGoogle
-} from 'src/context/google-drive-functions/useGoogleDriveAuth'
-
+// ** Hooks
+import { useGoogleAuth } from 'src/context/google-drive-functions/useGoogleDriveAuth'
 import { useFirebase } from 'src/context/useFirebase'
 
 const GoogleContextProvider = props => {
+
+  // Hooks
+  const { authUser } = useFirebase() // Hook para obtener el usuario autenticado
+  const { signInToGoogle, refreshAccessTokenIfExpired } = useGoogleAuth()
+  const tokensValidity = useRef(null) // Referencia para manejar la validez de los Tokens de Google.
+
   const [googleTokens, setGoogleTokens] = useState(() => {
     if (typeof localStorage !== 'undefined') {
       const params = localStorage.getItem('oauth2-params')
@@ -21,9 +23,6 @@ const GoogleContextProvider = props => {
       return null
     }
   })
-
-  const tokensValidity = useRef(null) // Referencia para manejar la validez de los Tokens de Google.
-  const { authUser } = useFirebase() // Hook para obtener el usuario autenticado
 
   // Efecto que manejar la autenticación/refresco de las credenciales de Google.
   useEffect(() => {

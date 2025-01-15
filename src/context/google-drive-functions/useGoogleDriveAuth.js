@@ -1,187 +1,197 @@
 import googleAuthConfig from '../../configs/googleDrive'
 
 /**
- * Valida si el token de acceso es válido.
- * @param {string} token - Token de acceso para validar.
- * @returns {Promise<boolean>} - `true` si el token es válido, `false` en caso contrario.
+ * Hook para interactuar con la Autenticación a Google Drive.
+ * @returns {Object} Funciones y estados para gestionar la Autenticación a Google Drive.
  */
-const tokenExpiresIn = async token => {
-  try {
-    const response = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`)
-    const data = await response.json()
+export const useGoogleAuth = () => {
 
-    return data.expires_in
-  } catch {
-    return false
-  }
-}
+  /**
+   * Valida si el token de acceso es válido.
+   * @param {string} token - Token de acceso para validar.
+   * @returns {Promise<boolean>} - `true` si el token es válido, `false` en caso contrario.
+   */
+  const tokenExpiresIn = async token => {
+    try {
+      const response = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`)
+      const data = await response.json()
 
-/**
- * Inicia el proceso de autenticación de OAuth2.
- */
-const oauth2SignIn = async () => {
-
-  // Define la URL del endpoint de autenticación de Google OAuth 2.0
-  const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth'
-
-  // Configura los parámetros necesarios para la autenticación
-  const params = {
-    redirect_uri: googleAuthConfig.REDIRECT_URI, // URI de redirección después de autenticarse
-    prompt: 'consent',
-    response_type: 'code', // Tipo de respuesta esperado (token de acceso)
-    client_id: googleAuthConfig.CLIENT_ID, // ID del cliente de la aplicación
-    scope: 'https://www.googleapis.com/auth/drive', // Alcances solicitados (acceso a Google Drive)
-    // state: 'try_sample_request', // Estado personalizado para el seguimiento
-    // include_granted_scopes: 'true', // Incluir permisos previamente otorgados
-    access_type: 'offline'
+      return data.expires_in
+    } catch {
+      return false
+    }
   }
 
-  // Crea dinámicamente un formulario HTML para redirigir al usuario al endpoint de autenticación
-  const form = document.createElement('form')
-  form.setAttribute('method', 'GET') // Método de envío del formulario
-  form.setAttribute('action', oauth2Endpoint) // URL de destino del formulario
+  /**
+   * Inicia el proceso de autenticación de OAuth2.
+   */
+  const oauth2SignIn = async () => {
 
-  // Agrega los parámetros como campos ocultos en el formulario
-  for (const key in params) {
-    const input = document.createElement('input')
-    input.type = 'hidden' // Campo oculto
-    input.name = key // Nombre del parámetro
-    input.value = params[key] // Valor del parámetro
-    form.appendChild(input) // Añade el campo al formulario
-  }
+    // Define la URL del endpoint de autenticación de Google OAuth 2.0
+    const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth'
 
-  // Añade el formulario al cuerpo del documento y lo envía
-  document.body.appendChild(form)
-  form.submit() // Redirige al usuario al endpoint de autenticación
-}
-
-/**
- * Intercambia el código de autorización por tokens.
- */
-const getTokens = async () => {
-
-  const urlParams = new URLSearchParams(window.location.search)
-  const code = urlParams.get('code')
-
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      code: code,
-      client_id: googleAuthConfig.CLIENT_ID,
-      client_secret: googleAuthConfig.CLIENT_SECRET,
-      redirect_uri: googleAuthConfig.REDIRECT_URI,
-      grant_type: 'authorization_code',
-    }),
-  })
-
-  const data = await response.json()
-
-  // Almacena los tokens en localStorage
-  if (data.access_token && data.refresh_token) {
-    const tokens = {
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      expires_in: data.expires_in,
-      token_type: data.token_type,
-      timestamp: new Date().toISOString(),
+    // Configura los parámetros necesarios para la autenticación
+    const params = {
+      redirect_uri: googleAuthConfig.REDIRECT_URI, // URI de redirección después de autenticarse
+      prompt: 'consent',
+      response_type: 'code', // Tipo de respuesta esperado (token de acceso)
+      client_id: googleAuthConfig.CLIENT_ID, // ID del cliente de la aplicación
+      scope: 'https://www.googleapis.com/auth/drive', // Alcances solicitados (acceso a Google Drive)
+      // state: 'try_sample_request', // Estado personalizado para el seguimiento
+      // include_granted_scopes: 'true', // Incluir permisos previamente otorgados
+      access_type: 'offline'
     }
 
-    localStorage.setItem('oauth2-params', JSON.stringify(tokens))
-    console.log('Tokens almacenados:', tokens)
+    // Crea dinámicamente un formulario HTML para redirigir al usuario al endpoint de autenticación
+    const form = document.createElement('form')
+    form.setAttribute('method', 'GET') // Método de envío del formulario
+    form.setAttribute('action', oauth2Endpoint) // URL de destino del formulario
 
-    // Reemplaza el estado de la URL para eliminar el fragmento hash
-    window.history.replaceState({}, document.title, window.location.pathname)
-    window.location.href = '/home' // Redirige al usuario a la página de inicio
+    // Agrega los parámetros como campos ocultos en el formulario
+    for (const key in params) {
+      const input = document.createElement('input')
+      input.type = 'hidden' // Campo oculto
+      input.name = key // Nombre del parámetro
+      input.value = params[key] // Valor del parámetro
+      form.appendChild(input) // Añade el campo al formulario
+    }
+
+    // Añade el formulario al cuerpo del documento y lo envía
+    document.body.appendChild(form)
+    form.submit() // Redirige al usuario al endpoint de autenticación
   }
-}
 
-/**
- * Refresca el token de acceso utilizando el token de refresco.
- * @param {string} refreshToken - Token de refresco.
- * @returns {Promise<number>} - Tiempo de expiración en segundos del nuevo token.
- */
-const refreshAccessToken = async (storedParams) => {
+  /**
+   * Intercambia el código de autorización por tokens.
+   */
+  const getTokens = async () => {
 
-  console.log("Refrescando las credenciales...")
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
 
-  // const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
-  const refreshToken = storedParams.refresh_token
-
-  // Configura los parámetros necesarios para refrescar el token de acceso
-  const params = new URLSearchParams()
-  params.append('client_id', googleAuthConfig.CLIENT_ID) // ID del cliente
-  params.append('client_secret', googleAuthConfig.CLIENT_SECRET) // Secreto del cliente
-  params.append('refresh_token', refreshToken) // Token de actualización
-  params.append('grant_type', 'refresh_token') // Tipo de concesión (token de actualización)
-
-  try {
-    // Realiza una solicitud POST al endpoint para refrescar el token
     const response = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST', // Método POST
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // Encabezados necesarios
-      body: params.toString() // Cuerpo con los parámetros en formato URL-encoded
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code: code,
+        client_id: googleAuthConfig.CLIENT_ID,
+        client_secret: googleAuthConfig.CLIENT_SECRET,
+        redirect_uri: googleAuthConfig.REDIRECT_URI,
+        grant_type: 'authorization_code',
+      }),
     })
 
-    // Lanza un error si la respuesta no es exitosa
-    if (!response.ok) {
-      throw new Error('Error al refrescar el Token de Acceso.')
+    const data = await response.json()
+
+    // Almacena los tokens en localStorage
+    if (data.access_token && data.refresh_token) {
+      const tokens = {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_in: data.expires_in,
+        token_type: data.token_type,
+        timestamp: new Date().toISOString(),
+      }
+
+      localStorage.setItem('oauth2-params', JSON.stringify(tokens))
+      console.log('Tokens almacenados:', tokens)
+
+      // Reemplaza el estado de la URL para eliminar el fragmento hash
+      window.history.replaceState({}, document.title, window.location.pathname)
+      window.location.href = '/home' // Redirige al usuario a la página de inicio
     }
 
-    // Analiza la respuesta JSON para obtener el nuevo token y el tiempo de expiración
-    const data = await response.json()
-    const newAccessToken = data.access_token // Nuevo token de acceso
-
-    // Recupera los parámetros almacenados en localStorage, o un objeto vacío si no existen
-    storedParams.access_token = newAccessToken // Actualiza el token de acceso
-
-    // Guarda los parámetros actualizados en localStorage
-    localStorage.setItem('oauth2-params', JSON.stringify(storedParams))
-
-    console.log(storedParams)
-
-  } catch (error) {
-    throw error // Relanza el error para manejarlo externamente
   }
-}
 
-/**
- * Función que revisa si la validez del Token y lo refresca.
- * Si quedan mas de 5 minutos, no se refresca el Token.
- * Si quedan menos de 5 minutos, se refresca el Token.
- */
-const refreshAccessTokenIfExpired = async(googleTokens) => {
+  /**
+   * Refresca el token de acceso utilizando el token de refresco.
+   * @param {string} refreshToken - Token de refresco.
+   * @returns {Promise<number>} - Tiempo de expiración en segundos del nuevo token.
+   */
+  const refreshAccessToken = async (storedParams) => {
 
-  const secondsToExpire = await tokenExpiresIn(googleTokens.access_token)
+    console.log("Refrescando las credenciales...")
 
-  console.log("Expira en: " + secondsToExpire + " segundos.")
+    // const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
+    const refreshToken = storedParams.refresh_token
 
-  if (secondsToExpire > 300) {
-    return
-  } else {
-    await refreshAccessToken(googleTokens)
+    // Configura los parámetros necesarios para refrescar el token de acceso
+    const params = new URLSearchParams()
+    params.append('client_id', googleAuthConfig.CLIENT_ID) // ID del cliente
+    params.append('client_secret', googleAuthConfig.CLIENT_SECRET) // Secreto del cliente
+    params.append('refresh_token', refreshToken) // Token de actualización
+    params.append('grant_type', 'refresh_token') // Tipo de concesión (token de actualización)
+
+    try {
+      // Realiza una solicitud POST al endpoint para refrescar el token
+      const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST', // Método POST
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // Encabezados necesarios
+        body: params.toString() // Cuerpo con los parámetros en formato URL-encoded
+      })
+
+      // Lanza un error si la respuesta no es exitosa
+      if (!response.ok) {
+        throw new Error('Error al refrescar el Token de Acceso.')
+      }
+
+      // Analiza la respuesta JSON para obtener el nuevo token y el tiempo de expiración
+      const data = await response.json()
+      const newAccessToken = data.access_token // Nuevo token de acceso
+
+      // Recupera los parámetros almacenados en localStorage, o un objeto vacío si no existen
+      storedParams.access_token = newAccessToken // Actualiza el token de acceso
+
+      // Guarda los parámetros actualizados en localStorage
+      localStorage.setItem('oauth2-params', JSON.stringify(storedParams))
+
+      console.log(storedParams)
+
+    } catch (error) {
+      throw error // Relanza el error para manejarlo externamente
+    }
   }
-}
 
-/**
- * Maneja la autorización de Google Drive.
- * @returns {Promise<string|void>} - Token de acceso o inicia el flujo de autenticación.
- */
-const signInToGoogle = async () => {
-  try {
-    await oauth2SignIn()
-    await getTokens()
-  } catch (error) {
-    throw new Error (error)
+  /**
+   * Función que revisa si la validez del Token y lo refresca.
+   * Si quedan mas de 5 minutos, no se refresca el Token.
+   * Si quedan menos de 5 minutos, se refresca el Token.
+   */
+  const refreshAccessTokenIfExpired = async(googleTokens) => {
+
+    const secondsToExpire = await tokenExpiresIn(googleTokens.access_token)
+
+    console.log("Expira en: " + secondsToExpire + " segundos.")
+
+    if (secondsToExpire > 300) {
+      return
+    } else {
+      await refreshAccessToken(googleTokens)
+    }
   }
-}
 
-export {
-  oauth2SignIn,
-  tokenExpiresIn,
-  refreshAccessToken,
-  refreshAccessTokenIfExpired,
-  signInToGoogle
+  /**
+   * Maneja la autorización de Google Drive.
+   * @returns {Promise<string|void>} - Token de acceso o inicia el flujo de autenticación.
+   */
+  const signInToGoogle = async () => {
+    try {
+      await oauth2SignIn()
+      await getTokens()
+    } catch (error) {
+      throw new Error (error)
+    }
+  }
+
+  return {
+    oauth2SignIn,
+    tokenExpiresIn,
+    refreshAccessToken,
+    refreshAccessTokenIfExpired,
+    signInToGoogle,
+    accessToken,
+  }
+
 }

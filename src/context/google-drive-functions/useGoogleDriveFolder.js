@@ -7,7 +7,7 @@ import { useGoogleAuth } from './useGoogleDriveAuth'
  */
 export const useGoogleDriveFolder = () => {
 
-  const { accessToken, refreshAccessToken, oauth2SignIn } = useGoogleAuth()
+  const { refreshAccessToken, oauth2SignIn } = useGoogleAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -18,6 +18,9 @@ export const useGoogleDriveFolder = () => {
    * @returns {Promise<any>} Resultado de la llamada a la API.
    */
   const executeApiCall = async (apiCall, ...args) => {
+
+    const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
+    const accessToken = storedParams.acess_token
 
     if (!accessToken) {
       setError('No access token found')
@@ -52,6 +55,10 @@ export const useGoogleDriveFolder = () => {
    * @returns {Promise<Object>} Respuesta de la API.
    */
   const makeApiRequest = async (url, options = {}) => {
+
+    const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
+    const accessToken = storedParams.acess_token
+
     const response = await fetch(url, {
       ...options,
       headers: {
