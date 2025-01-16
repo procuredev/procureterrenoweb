@@ -62,14 +62,10 @@ const TableGabinete = ({
   const defaultSortingModel = [{ field: 'date', sort: 'desc' }]
 
   const handleOpenUploadDialog = doc => {
-    if (!isValidToken) {
-      setIsDialogOpen(true)
-    } else {
-      setCurrentRow(doc.id)
-      setDoc(doc)
-      setOpenUploadDialog(true)
-      setOpenDialog(true)
-    }
+    setCurrentRow(doc.id)
+    setDoc(doc)
+    setOpenUploadDialog(true)
+    setOpenDialog(true)
   }
 
   const handleCloseUploadDialog = () => {

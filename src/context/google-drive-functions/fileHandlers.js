@@ -147,31 +147,35 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
   })
 }
 
+/**
+ *
+ * @param {object} petition - Objeto con la información de la OT.
+ * @param {string} rootFolder - String con el ID de la carpeta.
+ * @param {Function} fetchFolders - Función que busca las carpetas existentes en parentId.
+ * @param {Function} createFolder - Función que crea una carpeta de nombre "folderName" en parentId.
+ * @param {string} uploadInFolder - Nombre de la carpeta específica que se quiere crear.
+ * @returns {object} - Objeto folder de Google Drive.
+ */
 export const createFolderStructure = async (
   petition,
-  blueprint,
   rootFolder,
   fetchFolders,
   createFolder,
   uploadInFolder
 ) => {
-  const plantFolders = await fetchFolders(rootFolder)
-  let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantInitals(petition.plant)))
 
-  if (!plantFolder) {
-    plantFolder = await createFolder(getPlantInitals(blueprint.plant), rootFolder)
+  // Función para obtener el Número de Área a partir del nombre completo del área.
+  function extractAreaNumber(areaFullname) {
+    const nameArray = areaFullname.split(" - ")
+
+    return nameArray[0]
   }
 
-  const areaFolder = await ensureFolder(plantFolder.id, petition.area, fetchFolders, createFolder)
-
-  const projectFolder = await ensureFolder(
-    areaFolder.id,
-    `OT N°${petition.ot} - ${petition.title}`,
-    fetchFolders,
-    createFolder
-  )
-
-  const destinationFolder = await ensureFolder(projectFolder.id, uploadInFolder, fetchFolders, createFolder)
+  const plantInitials = await getPlantInitals(petition.plant)
+  const plantFolder = await ensureFolder(rootFolder, plantInitials, fetchFolders, createFolder, plantInitials)
+  const areaFolder = await ensureFolder(plantFolder.id, petition.area, fetchFolders, createFolder, extractAreaNumber(petition.area))
+  const projectFolder = await ensureFolder(areaFolder.id, `OT N°${petition.ot} - ${petition.title}`, fetchFolders, createFolder, petition.ot)
+  const destinationFolder = await ensureFolder(projectFolder.id, uploadInFolder, fetchFolders, createFolder, uploadInFolder)
 
   return destinationFolder
 }
@@ -182,12 +186,13 @@ export const createFolderStructure = async (
  * @param {string} folderName - Nombre de la carpeta a crear.
  * @param {Function} fetchFolders - Función que busca las carpetas existentes en parentId.
  * @param {Function} createFolder - Función que crea una carpeta de nombre "folderName" en parentId.
+ * @param {Array} includedString - String para hacer el Match de la búsqueda mediante "includes".
  * @returns {object} - Objeto folder de Google Drive.
  */
-const ensureFolder = async (parentId, folderName, fetchFolders, createFolder) => {
+const ensureFolder = async (parentId, folderName, fetchFolders, createFolder, includedString) => {
 
-  const folders = await fetchFolders(parentId)
-  let folder = folders.files.find(f => f.name === folderName)
+  const parentFolders = await fetchFolders(parentId)
+  let folder = parentFolders.files.find(f => f.name.includes(includedString))
 
   if (!folder) {
     folder = await createFolder(folderName, parentId)
@@ -216,7 +221,6 @@ export const handleFileUpload = async ({
     // Utilizamos createFolderStructure para manejar toda la lógica de carpetas
     const destinationFolder = await createFolderStructure(
       petition,
-      blueprint,
       rootFolder,
       fetchFolders,
       createFolder,

@@ -1487,7 +1487,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
 
   // Función para obtener el Número de Área a partir del nombre completo del área.
   function extractAreaNumber(areaFullname) {
-    nameArray = areaFullname.split(" - ")
+    const nameArray = areaFullname.split(" - ")
 
     return nameArray[0]
   }

@@ -50,16 +50,11 @@ const Transition = forwardRef(function Transition(props, ref) {
  * @param {string} name - String con el nombre completo del área. Ej: "0100 - Planta Desaladora".
  * @returns {string} - areaNumber que es un string con él número. Ek: "0100".
  */
-const extractAreaNumberFromName = (name) => {
-  try {
-    const nameArray = name.split(" - ") // Se separa el name con el carácter separador " - ".
-    const areaNumber = nameArray[0]
+  function extractAreaNumber(areaFullname) {
+    const nameArray = areaFullname.split(" - ")
 
-    return areaNumber
-  } catch (error) {
-    console.log(error)
+    return nameArray[0]
   }
-}
 
 export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   // ** States
@@ -197,7 +192,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
         if (plantFolder) {
           // Busca la carpeta del área.
           const plantFolderFolders = await fetchFolders(plantFolder.id) // Carpetas de la Planta
-          let areaFolder = plantFolderFolders.files.find(folder => folder.name.includes(extractAreaNumberFromName(doc.area))) // Carpeta del área de esta OT.
+          let areaFolder = plantFolderFolders.files.find(folder => folder.name.includes(extractAreaNumber(doc.area))) // Carpeta del área de esta OT.
 
           // Si no existe la carpeta del Área, se crea
           if (!areaFolder) {

@@ -218,7 +218,7 @@ const getDomainData = async (document = null, field = null) => {
 /**
  * Función que busca la información del usuario buscando por ID.
  * @param {string} id - ID del usuario.
- * @returns {object} - Objeto con campos del usuario en Firestore.
+ * @returns {Promise<object|undefined>} - Objeto con campos del usuario en Firestore.
  */
 const getData = async id => {
   const docRef = doc(db, 'users', id)
@@ -1025,15 +1025,24 @@ const subscribeToBlockDayChanges = setBlockResult => {
 /**
  * Función para obtener las iniciales de la planta a partir de la información disponible en la Tabla de Dominio.
  * @param {string} plantName - Nombre completo de la Planta.
- * @returns {string} - iniciales de la Planta.
+ * @returns {Promise<string>} - Iniciales de la planta.
+ * @throws {Error} - Si ocurre un error al obtener los datos o las iniciales no están disponibles.
  */
 const getPlantInitals = async (plantName) => {
+  try {
+    const plantData = await getDomainData('plants', plantName)
 
-  const plantData = await getDomainData('plants', plantName)
-  const plantInitials = plantData.initials
+    if (!plantData || !plantData.initials) {
+      throw new Error(`No se encontraron iniciales para la planta '${plantName}'.`)
+    }
 
-  return plantInitials
+    return plantData.initials
+  } catch (error) {
+    console.error('Error en getPlantInitals:', error.message)
+    throw error // Se vuelve a lanzar el error para que el llamador lo maneje
+  }
 }
+
 
 export {
   useEvents,
