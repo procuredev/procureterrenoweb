@@ -22,6 +22,9 @@ import { LocalizationProvider, MobileDatePicker } from '@mui/x-date-pickers'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
+// ** Firebase Imports
+import { Timestamp } from 'firebase/firestore'
+
 // ** Date Library
 //import moment from 'moment'
 import moment from 'moment-timezone'
@@ -248,11 +251,11 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
         // Actualiza cada elemento en draftmen con allocationTime (timestamp de esta ejecución).
         const updatedDraftmen = draftmen.map(designer => ({
           userId: designer.userId,
-          allocationTime: new Date().getTime()
+          allocationTime: Timestamp.fromDate(new Date())
         }))
 
-        await updateDocs(
-          id,
+        // Se actualiza la información en Firestore de esta OT.
+        await updateDocs(id,
           { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: updatedDraftmen },
           authUser
         )
