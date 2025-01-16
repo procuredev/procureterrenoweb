@@ -194,7 +194,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
           const plantFolderFolders = await fetchFolders(plantFolder.id) // Carpetas de la Planta
           let areaFolder = plantFolderFolders.files.find(folder => folder.name.includes(extractAreaNumberFromName(doc.area))) // Carpeta del área de esta OT.
 
-          // Si no existe la carpeta del área, se crea
+          // Si no existe la carpeta del Área, se crea
           if (!areaFolder) {
             areaFolder = await createFolder(doc.area, plantFolder.id)
           }
@@ -205,6 +205,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
             const areaFolderFolders = await fetchFolders(areaFolder.id) // Carpetas del Área
             let projectFolder = areaFolderFolders.files.find(folder => folder.name.includes(doc.ot)) // Carpeta de esta OT.
 
+            // Si no existe la carpeta de la OT, se crea
             if (!projectFolder) {
               projectFolder = await createFolder(projectFolderName, areaFolder.id)
 
@@ -224,14 +225,21 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
             }
 
             // Una vez creadas las carpetas, ubica la carpeta "LEVANTAMIENTO"
-            const levantamientoFolder = await fetchFolders(projectFolder.id)
-            const targetFolder = levantamientoFolder.files.find(folder => folder.name === 'LEVANTAMIENTO')
+            const projectFolderFolders = await fetchFolders(projectFolder.id)
+            const targetFolderName = "LEVANTAMIENTO"
+            let targetFolder = projectFolderFolders.files.find(folder => folder.name === targetFolderName)
 
+            // Si no existe la carpeta de la OT, se crea
+            if (!targetFolder) {
+              targetFolder = await createFolder(targetFolderName, projectFolder.id)
+            }
+
+            // Si existe la carpeta "LEVANTAMIENTO" (o se creó la carpeta en el proceso)...
             if (targetFolder) {
+              // Se carga un archivo vacío dentro de la carpeta.
               const fileContent = `levantamiento de OT ${doc.ot} - ${doc.title} TERMINADO`
               const file = new Blob([fileContent], { type: 'text/plain' })
               const fileName = `levantamiento de OT ${doc.ot} terminado.txt`
-
               await uploadFile(fileName, file, targetFolder.id)
             }
           }
