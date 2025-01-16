@@ -36,7 +36,7 @@ import DialogDeleteBlueprint from 'src/@core/components/dialog-deleteBlueprint'
 import ReasignarDialog from 'src/@core/components/dialog-deliverableReassign'
 import DialogErrorTransmittal from 'src/@core/components/dialog-errorTransmittal'
 import DialogFinishOt from 'src/@core/components/dialog-finishOt'
-import { generateTransmittal } from 'src/@core/utils/generate-transmittal'
+import { generateTransmittal } from 'src/context/google-drive-functions/generate-transmittal'
 import TableGabinete from 'src/views/table/data-grid/TableGabinete'
 
 const DataGridGabinete = () => {
