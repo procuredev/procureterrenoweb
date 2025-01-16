@@ -1447,6 +1447,15 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
   }
 }
 
+/**
+ * Función para generar y actualizar los códigos de entregables.
+ * Mediante una transaction (FIFO) se obtienen los últimos contadores de códigos, se crean los códigos y se actualizan los contadores.
+ * @param {object} mappedCodes - Objeto con siglas de los códigos Procure y MEL a generar.
+ * @param {object} docData - Datos de la OT en Firestore.
+ * @param {number} quantity - Cantidad de entregables a generar.
+ * @param {object} userParam - Datos del Proyectista seleccionado para trabajar el entregable.
+ * @returns {Array.<string>} - Lista con códigos generados.
+ */
 const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam) => {
 
   const { melDiscipline, melDeliverable, procureDiscipline, procureDeliverable } = mappedCodes
@@ -1477,16 +1486,17 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
   }
 
   // Función para obtener el Número de Área a partir del nombre completo del área.
-  function getAreaNumber(areaFullname) {
+  function extractAreaNumber(areaFullname) {
     nameArray = areaFullname.split(" - ")
 
     return nameArray[0]
   }
 
-  const instalacion = await getPlantInitals(plant)
-  const areaNumber = getAreaNumber(area)
+  const plantInitials = await getPlantInitals(plant)
+  const areaNumber = extractAreaNumber(area)
   const otNumber = `OT${ot}`
 
+  // Función tipo transtaction (FIFO) para obtener la lista de códigos.
   const codes = await runTransaction(db, async transaction => {
     const procureCounterDoc = await transaction.get(procureCounterRef)
     const melCounterDoc = await transaction.get(melCounterRef)
@@ -1527,7 +1537,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
         procureCounter + i + 1
       )}`
 
-      const melCode = `${idProject}-${otNumber}-${instalacion}-${areaNumber}-${melDiscipline}-${melDeliverable}-${formatCountMEL(
+      const melCode = `${idProject}-${otNumber}-${plantInitials}-${areaNumber}-${melDiscipline}-${melDeliverable}-${formatCountMEL(
         melCounter + i + 1
       )}`
 
@@ -1539,7 +1549,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
         clientCode: melCode,
         userId: userParam.userId,
         userName: userData.name,
-        revision: 'iniciado',
+        revision: 'Iniciado',
         otFinished: false,
         userEmail: userData.email,
         sentByDesigner: false,
