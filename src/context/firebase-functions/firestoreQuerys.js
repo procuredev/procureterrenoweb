@@ -1017,6 +1017,19 @@ const subscribeToBlockDayChanges = setBlockResult => {
   return unsubscribe
 }
 
+/**
+ * Función para obtener las iniciales de la planta a partir de la información disponible en la Tabla de Dominio.
+ * @param {string} plantName - Nombre completo de la Planta.
+ * @returns {string} - iniciales de la Planta.
+ */
+const getPlantInitals = async (plantName) => {
+
+  const plantData = await getDomainData('plants', plantName)
+  const plantInitials = plantData.initials
+
+  return plantInitials
+}
+
 export {
   useEvents,
   useSnapshot,
@@ -1037,5 +1050,6 @@ export {
   subscribeToUserProfileChanges,
   subscribeToBlockDayChanges,
   fetchDisciplineProperties,
-  fetchDeliverablesByDiscipline
+  fetchDeliverablesByDiscipline,
+  getPlantInitals
 }

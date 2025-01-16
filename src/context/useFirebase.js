@@ -73,7 +73,8 @@ import {
   useEvents,
   useSnapshot,
   fetchDisciplineProperties,
-  fetchDeliverablesByDiscipline
+  fetchDeliverablesByDiscipline,
+  getPlantInitals
 } from 'src/context/firebase-functions/firestoreQuerys'
 
 import { updateUserProfile, uploadFilesToFirebaseStorage } from 'src/context/firebase-functions/storageFunctions'
@@ -193,7 +194,8 @@ const FirebaseContextProvider = props => {
     createCostCenter,
     modifyCostCenter,
     deleteCostCenter,
-    setDefaultCostCenter
+    setDefaultCostCenter,
+    getPlantInitals
   }
 
   return <FirebaseContext.Provider value={value}>{props.children}</FirebaseContext.Provider>

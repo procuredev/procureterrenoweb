@@ -57,9 +57,8 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   const [deadlineDate, setDeadlineDate] = useState(moment())
 
   // ** Hooks
-  const { updateDocs, authUser, getDomainData } = useFirebase()
-
-  const { fetchFolders, createFolder, uploadFile, isLoading: folderLoading } = useGoogleDriveFolder()
+  const { updateDocs, authUser, getDomainData, getPlantInitals } = useFirebase()
+  const { fetchFolders, createFolder, uploadFile } = useGoogleDriveFolder()
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -150,28 +149,12 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     }
   }, [uprisingTimeSelected, deadlineDate, draftmen, error])
 
+  /**
+   * Función para obtener las iniciales del nombre del usuario.
+   * @param {string} string - Nombre del Usuario
+   * @returns {string} - string con las iniciales del usuario
+   */
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
-
-  const getPlantAbbreviation = async (plantName) => {
-
-    const plantData = await getDomainData('plants', plantName)
-    const plantInitials = plantData.initials
-
-    console.log(plantInitials)
-
-    // Implement the logic to get the plant abbreviation from the full plant name
-    const plantMap = {
-      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
-      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
-      'Instalaciones Escondida Water Supply': 'IEWS',
-      'Planta Concentradora Los Colorados': 'PCLC',
-      'Instalaciones Cátodo': 'ICAT',
-      'Chancado y Correas': 'CHCO',
-      'Puerto Coloso': 'PCOL'
-    }
-
-    return plantMap[plantName] || ''
-  }
 
   // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
   const onSubmit = async id => {
@@ -180,19 +163,20 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
       setLoading(true)
       try {
         // Busca la carpeta de la planta.
-        const plantFolders = await fetchFolders(googleAuthConfig.MAIN_FOLDER_ID)
-        let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(doc.plant)))
+        const mainFolderFolders = await fetchFolders(googleAuthConfig.MAIN_FOLDER_ID) // Carpetas existentes en la carpeta principal.
+        const plantInitials = await getPlantInitals(doc.plant) // Iniciales de la Planta de la OT.
+        let plantFolder = mainFolderFolders.files.find(folder => folder.name.includes(plantInitials)) // Carpeta de la Planta.
 
-        // Si no existe la carpeta de la planta, se crea
+        // Si no existe la carpeta de la planta, se crea.
         if (!plantFolder) {
-          const plantName = getPlantAbbreviation(doc.plant)
-          plantFolder = await createFolder(plantName, googleAuthConfig.MAIN_FOLDER_ID)
+          plantFolder = await createFolder(plantInitials, googleAuthConfig.MAIN_FOLDER_ID)
         }
 
+        // Si existe (o se creó la carpeta en el proceso)...
         if (plantFolder) {
           // Busca la carpeta del área.
-          const areaFolders = await fetchFolders(plantFolder.id)
-          let areaFolder = areaFolders.files.find(folder => folder.name === doc.area)
+          const plantFolderFolders = await fetchFolders(plantFolder.id)
+          let areaFolder = plantFolderFolders.files.find(folder => folder.name === doc.area)
 
           // Si no existe la carpeta del área, se crea
           if (!areaFolder) {
