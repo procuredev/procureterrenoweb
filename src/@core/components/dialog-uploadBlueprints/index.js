@@ -31,7 +31,7 @@ import { InputAdornment } from '@mui/material'
 import DateListItem from 'src/@core/components/custom-date'
 import CustomListItem from 'src/@core/components/custom-list'
 import { getPlantAbbreviation, validateFileName, handleFileUpload } from 'src/context/google-drive-functions/fileHandlers'
-import { validateFiles, getFileIcon } from 'src/@core/utils/fileValidation'
+import { validateFiles, getFileIcon } from 'src/context/google-drive-functions/fileValidation'
 import FileList from 'src/@core/components/file-list'
 
 // ** Configuración de Google Drive

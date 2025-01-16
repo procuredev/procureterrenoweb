@@ -1,6 +1,6 @@
 import { Grid, Paper, Typography, IconButton } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { getFileIcon } from 'src/@core/utils/fileValidation'
+import { getFileIcon } from 'src/context/google-drive-functions/fileValidation'
 import { useTheme } from '@mui/material/styles'
 
 const FileList = ({ files, handleRemoveFile }) => {

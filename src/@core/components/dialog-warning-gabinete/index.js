@@ -26,7 +26,7 @@ import { useFirebase } from 'src/context/useFirebase'
 import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleDriveFolder'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
 import { validateFileName, handleFileUpload } from 'src/context/google-drive-functions/fileHandlers'
-import { validateFiles } from 'src/@core/utils/fileValidation'
+import { validateFiles } from 'src/context/google-drive-functions/fileValidation'
 import FileList from 'src/@core/components/file-list'
 
 // ** Configuración de Google Drive
