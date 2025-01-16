@@ -29,6 +29,7 @@ import { useEffect, useState } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailDeliverableNextRevision } from './mailing/sendEmailDeliverableNextRevision'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
+import { getPlantInitals } from './firestoreQuerys'
 
 const moment = require('moment')
 
@@ -1474,24 +1475,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
     return String(count).padStart(3, '0')
   }
 
-  // Función para obtener la definición corta de la planta
-  function getShortDefinition(plantLongDef) {
-    const shortPlants = ['PCLC', 'LSL1', 'LSL2', 'CHCO', 'PCOL', 'ICAT']
-
-    const valPlant = [
-      'Planta Concentradora Los Colorados',
-      'Planta Concentradora Laguna Seca | Línea 1',
-      'Planta Concentradora Laguna Seca | Línea 2',
-      'Chancado y Correas',
-      'Puerto Coloso',
-      'Instalaciones Cátodo'
-    ]
-    const index = valPlant.indexOf(plantLongDef)
-
-    return index !== -1 ? shortPlants[index] : 'No se encontró definición corta para esta planta'
-  }
-
-  const instalacion = getShortDefinition(plant)
+  const instalacion = getPlantInitals(plant)
   const areaNumber = area.slice(0, 4)
   const otNumber = `OT${ot}`
 

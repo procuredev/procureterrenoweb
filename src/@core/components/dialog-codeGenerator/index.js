@@ -173,7 +173,16 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
       setIsSubmitDisabled(true)
       try {
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
+        console.log(mappedCodes)
+
+        console.log(typeOfDocument)
+        console.log(mappedCodes[typeOfDocument])
+        console.log(doc)
+        console.log(quantity)
+        console.log(selectedDraftman)
+
         const codes = await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
+        console.log(codes)
 
         // Se obtienen los usuarios que deben ir en copia en este e-mail.
         const usersOnCopy = await getUserEmailOnCopy()
@@ -181,13 +190,18 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
         // Se envia el e-mail con toda la información de la Solicitud.
         // Se enviarán tantos e-mails como entregables a los que fué asignado.
         for (let i = 0; i < quantity; i++) {
-          await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
+          try {
+            console.log(sele)
+            await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
+          } catch (error) {
+            throw error
+          }
         }
 
         handleClose()
       } catch (error) {
         console.error(error)
-        setError('Error generating codes')
+        setError('Error al generar los códigos.')
       } finally {
         setIsSubmitDisabled(false)
       }
