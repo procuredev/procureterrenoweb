@@ -7,7 +7,7 @@ import { useGoogleAuth } from './useGoogleDriveAuth'
  */
 export const useGoogleDriveFolder = () => {
 
-  const { refreshAccessToken, oauth2SignIn } = useGoogleAuth()
+  const { refreshAccessToken, signInToGoogle } = useGoogleAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -20,11 +20,11 @@ export const useGoogleDriveFolder = () => {
   const executeApiCall = async (apiCall, ...args) => {
 
     const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
-    const accessToken = storedParams.acess_token
+    const accessToken = storedParams.access_token
 
     if (!accessToken) {
       setError('No access token found')
-      oauth2SignIn()
+      await signInToGoogle()
 
       return
     }
@@ -57,7 +57,7 @@ export const useGoogleDriveFolder = () => {
   const makeApiRequest = async (url, options = {}) => {
 
     const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
-    const accessToken = storedParams.acess_token
+    const accessToken = storedParams.access_token
 
     const response = await fetch(url, {
       ...options,
@@ -136,6 +136,9 @@ export const useGoogleDriveFolder = () => {
    * @returns {Promise<Object>} Archivo subido.
    */
   const uploadFile = async (fileName, file, parentFolderId) => {
+
+    const storedParams = JSON.parse(localStorage.getItem('oauth2-params'))
+    const accessToken = storedParams.access_token
 
     const url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&includeItemsFromAllDrives=true'
 
