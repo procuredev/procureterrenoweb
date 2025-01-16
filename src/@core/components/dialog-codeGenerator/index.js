@@ -168,33 +168,53 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
   const handleOpenConfirmDialog = () => setOpenConfirmDialog(true)
   const handleCloseConfirmDialog = () => setOpenConfirmDialog(false)
 
-  const onsubmit = async id => {
+  /**
+   * Función onSubmit() que ejecuta:
+   * - Creación de Códigos.
+   * - Envío de e-mails a involucrados.
+   * - Manejo de apertura y cierre de Dialog.
+   * - Manejo de bloqueo y desbloqueo de Botones.
+   * - Manejo de errores.
+   */
+  const onsubmit = async () => {
+
     if (typeOfDiscipline && typeOfDocument && quantity > 0) {
+
+      // Se bloquea el botón "Crear código" mientras se ejecuta este onSubmit.
       setIsSubmitDisabled(true)
+
       try {
+        // Obtener los códigos de los planos
         const mappedCodes = await fetchDeliverablesByDiscipline(typeOfDiscipline)
         const codes = await generateBlueprintCodes(mappedCodes[typeOfDocument], doc, quantity, selectedDraftman)
 
-        // Se obtienen los usuarios que deben ir en copia en este e-mail.
+        // Cerrar el diálogo inmediatamente después de generar los códigos
+        handleClose()
+
+        // Obtener los usuarios que deben ir en copia
         const usersOnCopy = await getUserEmailOnCopy()
 
-        // Se envia el e-mail con toda la información de la Solicitud.
-        // Se enviarán tantos e-mails como entregables a los que fué asignado.
+        // Enviar correos electrónicos para cada entregable
         for (let i = 0; i < quantity; i++) {
-          await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
+          try {
+            await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
+          } catch (emailError) {
+            console.error(`Error al enviar el correo para el código ${codes[i]}:`, emailError)
+          }
         }
-
-        handleClose()
       } catch (error) {
         console.error(error)
         setError('Error al generar los códigos.')
       } finally {
+        // Se desbloquea el botón "Crear código".
         setIsSubmitDisabled(false)
       }
     } else {
       setError('Por favor, indique tipo de disciplina, tipo de documento y cantidad.')
     }
+
   }
+
 
   const emptyFields = typeOfDiscipline.length === 0 || typeOfDocument.length === 0 || selectedDraftman === null
 

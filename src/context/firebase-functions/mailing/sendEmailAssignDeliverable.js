@@ -6,19 +6,15 @@ import { getData } from '../firestoreQuerys'
 
 const moment = require('moment')
 
-// Función para enviar emails de forma automática.
-// user es el usuario conectado que efectúa el envío de la solicitud.
-// ot es la información del Levantamiento (en Firebase es cada documento dentro de levantamientos).
-// draftman es el Proyectista que selecciona el Supervisor para hacer ese entregable.
-// codes es un array de objetos que se genera cuando se crean los códigos de entregables. clientCode es el codigo cliente y id es el codigo Procure.
-// usersOnCopy es un array con los e-mails de las personas que deben ir copiadas por defecto.
+/**
+ * Función para enviar emails de forma automática.
+ * @param {Object} user - Usuario conectado que efectúa el envío de la solicitud.
+ * @param {Object} ot - Información del Levantamiento (en Firebase es cada documento dentro de levantamientos).
+ * @param {Object} draftman - Proyectista que selecciona el Supervisor para hacer ese entregable.
+ * @param {Array.<Object>} codes - Array de objetos que se genera cuando se crean los códigos de entregables. clientCode es el codigo cliente y id es el codigo Procure.
+ * @param {Array.<string>} usersOnCopy - Array con los e-mails de las personas que deben ir copiadas por defecto.
+ */
 export const sendEmailAssignDeliverable = async (user, ot, draftman, codes, usersOnCopy) => {
-
-  console.log(user)
-  console.log(ot)
-  console.log(draftman)
-  console.log(codes)
-  console.log(usersOnCopy)
 
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
@@ -37,15 +33,17 @@ export const sendEmailAssignDeliverable = async (user, ot, draftman, codes, user
 
       const docRef = doc(collectionRef, mailId) // Se busca la referencia del elemento recién creado con su id
 
+      const draftmanData = await getData(draftman.userId) // Se busca la información del Proyectista mediante su ID.
+
       // Llamada al html del email con las constantes previamente indicadads
       emailHtml = getEmailTemplate(
-        draftman.name,
+        draftmanData.name,
         user.displayName,
         ot,
         codes
       )
 
-      const draftmanData = await getData(draftman.id)
+      // e-mail de quien recibe este e-mail.
       let sendTo = draftmanData.email
 
       // Se agrega a lista de usuarios en copia al Supervisor(user.email) y usersOnCopy.
