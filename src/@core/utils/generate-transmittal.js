@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
+import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
 import base64Image from 'src/views/pages/gabinete/base64Image'
 import base64MEL from 'src/views/pages/gabinete/base64MEL'
 
@@ -178,27 +179,11 @@ export const generateTransmittal = async (
   // Descarga el documento
   doc.save(`${newCode}.pdf`)
 
-  // ----------- NUEVO: Subir el archivo a Google Drive -----------
-
-  const getPlantAbbreviation = plantName => {
-    const plantMap = {
-      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
-      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
-      'Instalaciones Escondida Water Supply': 'IEWS',
-      'Planta Concentradora Los Colorados': 'PCLC',
-      'Instalaciones Cátodo': 'ICAT',
-      'Chancado y Correas': 'CHCO',
-      'Puerto Coloso': 'PCOL'
-    }
-
-    return plantMap[plantName] || ''
-  }
-
   const pdfBlob = doc.output('blob') // Genera el blob del documento PDF
 
   // Lógica de carga a Google Drive
   const plantFolders = await fetchFolders(rootFolder)
-  const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+  const plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantInitals(petition.plant)))
 
   if (plantFolder) {
     const areaFolders = await fetchFolders(plantFolder.id)
