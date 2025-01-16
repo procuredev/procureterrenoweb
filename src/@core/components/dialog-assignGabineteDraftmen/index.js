@@ -1,6 +1,9 @@
 // ** React Imports
 import { useState, useEffect, forwardRef } from 'react'
 
+// ** Firebase Imports
+import { Timestamp } from 'firebase/firestore'
+
 // ** MUI Imports
 import List from '@mui/material/List'
 import Box from '@mui/material/Box'
@@ -117,7 +120,7 @@ export const DialogAssignGabineteDraftmen = ({
       if (gabineteDraftmenInDoc) {
         return gabineteDraftmenInDoc
       } else {
-        gabineteDraftmen.allocationTime = new Date().getTime()
+        gabineteDraftmen.allocationTime = Timestamp.fromDate(new Date())
 
         return gabineteDraftmen
       }
