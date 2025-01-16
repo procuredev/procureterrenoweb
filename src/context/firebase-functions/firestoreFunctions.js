@@ -799,7 +799,7 @@ const getNextRevision = async (
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => revision === 'iniciado' && !isM3D,
+        condition: () => revision === 'Iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
@@ -811,7 +811,7 @@ const getNextRevision = async (
         action: () => (newBlueprintPercent = 60)
       },
       dotCloud: {
-        condition: () => revision === 'iniciado' && isM3D,
+        condition: () => revision === 'Iniciado' && isM3D,
         action: () => {
           newRevision = '0'
         }
@@ -851,7 +851,7 @@ const getNextRevision = async (
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => revision === 'iniciado' && !isM3D,
+        condition: () => revision === 'Iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
@@ -863,7 +863,7 @@ const getNextRevision = async (
         action: () => (newBlueprintPercent = 60)
       },
       dotCloud: {
-        condition: () => revision === 'iniciado' && isM3D,
+        condition: () => revision === 'Iniciado' && isM3D,
         action: () => {
           newRevision = '0'
         }
@@ -962,12 +962,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         ? {
             ...updateData,
             sentBySupervisor: approves,
-            approvedByContractAdmin: approves && blueprint.revision === 'iniciado' && !isM3D,
-            attentive: blueprint.revision === 'iniciado' ? 9 : 6,
+            approvedByContractAdmin: approves && blueprint.revision === 'Iniciado' && !isM3D,
+            attentive: blueprint.revision === 'Iniciado' ? 9 : 6,
             blueprintPercent:
-              blueprint.revision === 'iniciado' && !isM3D
+              blueprint.revision === 'Iniciado' && !isM3D
                 ? 20
-                : blueprint.revision === 'iniciado' && isM3D
+                : blueprint.revision === 'Iniciado' && isM3D
                 ? 60
                 : updateData.blueprintPercent
           }
@@ -982,15 +982,15 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
-      attentive: blueprint.revision === 'iniciado' ? 9 : 7,
+      attentive: blueprint.revision === 'Iniciado' ? 9 : 7,
       blueprintPercent:
-        blueprint.revision === 'iniciado' && !isM3D
+        blueprint.revision === 'Iniciado' && !isM3D
           ? 20
-          : blueprint.revision === 'iniciado' && isM3D
+          : blueprint.revision === 'Iniciado' && isM3D
           ? 60
           : updateData.blueprintPercent,
       approvedBySupervisor:
-        (approves && blueprint.revision === 'iniciado' && !isM3D) ||
+        (approves && blueprint.revision === 'Iniciado' && !isM3D) ||
         (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl)
     }),
     9: () =>

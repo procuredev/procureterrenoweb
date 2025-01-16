@@ -32,7 +32,7 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => blueprint.revision === 'iniciado' && !isM3D,
+        condition: () => blueprint.revision === 'Iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
@@ -40,7 +40,7 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
         action: () => (newRevision = blueprint.approvedByDocumentaryControl ? nextChar : blueprint.revision)
       },
       dotCloud: {
-        condition: () => blueprint.revision === 'iniciado' && isM3D,
+        condition: () => blueprint.revision === 'Iniciado' && isM3D,
         action: () => (newRevision = '0')
       }
     }
@@ -72,6 +72,7 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
 
   const expectedClientCode = values.clientCode
   const expectedRevision = getNextRevisionFolderName(blueprint, authUser)
+  console.log(expectedRevision)
   let expectedFileName = null
 
   if (authUser.role === 8 || (authUser.role === 7 && blueprint.userId === authUser.uid)) {

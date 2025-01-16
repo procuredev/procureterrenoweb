@@ -161,7 +161,7 @@ const Home = () => {
         })
 
         // Filtrar por revisión para turno A
-        const revisions = ['iniciado', 'A', 'B', 'C', '0', '1']
+        const revisions = ['Iniciado', 'A', 'B', 'C', '0', '1']
 
         const filteredByRevisionA = revisions.map(revision => {
           return blueprintsShiftA.filter(doc => doc.revision === revision).length

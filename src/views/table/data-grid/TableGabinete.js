@@ -174,7 +174,7 @@ const TableGabinete = ({
       6: {
         approve:
           role === 6 &&
-          row.revision !== 'iniciado' &&
+          row.revision !== 'Iniciado' &&
           (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
           (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
@@ -182,7 +182,7 @@ const TableGabinete = ({
           row.approvedBySupervisor === false,
         reject:
           role === 6 &&
-          row.revision !== 'iniciado' &&
+          row.revision !== 'Iniciado' &&
           (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
           (row.sentByDesigner === true || row.sentBySupervisor === true) &&
           row.approvedByContractAdmin === false &&
@@ -192,7 +192,7 @@ const TableGabinete = ({
       7: {
         approve:
           (role === 7 &&
-            row.revision !== 'iniciado' &&
+            row.revision !== 'Iniciado' &&
             (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
             row.sentByDesigner === true &&
             row.approvedBySupervisor === false &&
@@ -205,7 +205,7 @@ const TableGabinete = ({
             !row.blueprintCompleted),
         reject:
           role === 7 &&
-          row.revision !== 'iniciado' &&
+          row.revision !== 'Iniciado' &&
           (row.revision?.charCodeAt(0) >= 65 || row.revision?.charCodeAt(0) >= 48) &&
           row.sentByDesigner === true &&
           row.approvedBySupervisor === false &&
@@ -219,13 +219,13 @@ const TableGabinete = ({
       },
       9: {
         approve:
-          row.revision === 'iniciado'
+          row.revision === 'Iniciado'
             ? role === 9 && (row.sentByDesigner === true || row.sentBySupervisor === true)
             : role === 9 &&
               (row.sentByDesigner === true || row.sentBySupervisor === true) &&
               (row.approvedByContractAdmin === true || row.approvedBySupervisor === true),
         reject:
-          row.revision === 'iniciado'
+          row.revision === 'Iniciado'
             ? role === 9 && (row.sentByDesigner === true || row.sentBySupervisor === true)
             : role === 9 &&
               (row.sentByDesigner === true || row.sentBySupervisor === true) &&
@@ -502,7 +502,7 @@ const TableGabinete = ({
         action: () => (newRevision = nextChar)
       },
       startRevision: {
-        condition: () => doc.revision === 'iniciado' && !isM3D,
+        condition: () => doc.revision === 'Iniciado' && !isM3D,
         action: () => (newRevision = 'A')
       },
       incrementRevisionInA: {
@@ -510,7 +510,7 @@ const TableGabinete = ({
         action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
       },
       dotCloud: {
-        condition: () => doc.revision === 'iniciado' && isM3D,
+        condition: () => doc.revision === 'Iniciado' && isM3D,
         action: () => {
           newRevision = '0'
         }
@@ -1513,7 +1513,7 @@ const TableGabinete = ({
       return selectableRows.some(
         selectableRow =>
           selectableRow.id === params.row.id &&
-          (params.row.revision === 'iniciado' ||
+          (params.row.revision === 'Iniciado' ||
             params.row.revision === 'A' ||
             (params.row.revision === 'B' && !params.row.lastTransmittal))
       )
