@@ -40,6 +40,22 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
+/**
+ * Función para extraer el número de área desde el string que contiene el nombre completo del área.
+ * @param {string} name - String con el nombre completo del área. Ej: "0100 - Planta Desaladora".
+ * @returns {string} - areaNumber que es un string con él número. Ek: "0100".
+ */
+const extractAreaNumberFromName = (name) => {
+  try {
+    const nameArray = name.split(" - ") // Se separa el name con el carácter separador " - ".
+    const areaNumber = nameArray[0]
+
+    return areaNumber
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   // ** States
 
@@ -175,8 +191,8 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
         // Si existe (o se creó la carpeta en el proceso)...
         if (plantFolder) {
           // Busca la carpeta del área.
-          const plantFolderFolders = await fetchFolders(plantFolder.id)
-          let areaFolder = plantFolderFolders.files.find(folder => folder.name === doc.area)
+          const plantFolderFolders = await fetchFolders(plantFolder.id) // Carpetas de la Planta
+          let areaFolder = plantFolderFolders.files.find(folder => folder.name.includes(extractAreaNumberFromName(doc.area))) // Carpeta del área de esta OT.
 
           // Si no existe la carpeta del área, se crea
           if (!areaFolder) {
