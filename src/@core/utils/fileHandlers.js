@@ -1,10 +1,6 @@
-import { PLANT_ABBREVIATIONS } from './constants'
 import { Typography, Tooltip, IconButton } from '@mui/material'
 import FileCopyIcon from '@mui/icons-material/FileCopy'
-
-export const getPlantAbbreviation = plantName => {
-  return PLANT_ABBREVIATIONS[plantName] || ''
-}
+import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
 
 export const getNextRevisionFolderName = (blueprint, authUser) => {
   let newRevision = blueprint.revision
@@ -160,10 +156,10 @@ export const createFolderStructure = async (
   uploadInFolder
 ) => {
   const plantFolders = await fetchFolders(rootFolder)
-  let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+  let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantInitals(petition.plant)))
 
   if (!plantFolder) {
-    plantFolder = await createFolder(getPlantAbbreviation(blueprint.plant), rootFolder)
+    plantFolder = await createFolder(getPlantInitals(blueprint.plant), rootFolder)
   }
 
   const areaFolder = await ensureFolder(plantFolder.id, petition.area, fetchFolders, createFolder)
