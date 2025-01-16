@@ -181,11 +181,7 @@ export const DialogCodeGenerator = ({ open, handleClose, doc }) => {
         // Se envia el e-mail con toda la información de la Solicitud.
         // Se enviarán tantos e-mails como entregables a los que fué asignado.
         for (let i = 0; i < quantity; i++) {
-          try {
-            await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
-          } catch (error) {
-            throw error
-          }
+          await sendEmailAssignDeliverable(authUser, doc, selectedDraftman, codes[i], usersOnCopy)
         }
 
         handleClose()

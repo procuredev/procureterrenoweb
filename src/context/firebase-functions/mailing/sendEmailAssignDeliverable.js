@@ -2,6 +2,7 @@
 import { addDoc, collection, doc, updateDoc } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 import { getEmailTemplate } from './assignDeliverableTemplate'
+import { getData } from '../firestoreQuerys'
 
 const moment = require('moment')
 
@@ -12,6 +13,12 @@ const moment = require('moment')
 // codes es un array de objetos que se genera cuando se crean los códigos de entregables. clientCode es el codigo cliente y id es el codigo Procure.
 // usersOnCopy es un array con los e-mails de las personas que deben ir copiadas por defecto.
 export const sendEmailAssignDeliverable = async (user, ot, draftman, codes, usersOnCopy) => {
+
+  console.log(user)
+  console.log(ot)
+  console.log(draftman)
+  console.log(codes)
+  console.log(usersOnCopy)
 
   const collectionRef = collection(db, 'mail') // Se llama a la colección mail de Firestore
 
@@ -38,7 +45,8 @@ export const sendEmailAssignDeliverable = async (user, ot, draftman, codes, user
         codes
       )
 
-      let sendTo = draftman.email
+      const draftmanData = await getData(draftman.id)
+      let sendTo = draftmanData.email
 
       // Se agrega a lista de usuarios en copia al Supervisor(user.email) y usersOnCopy.
       let arrayCC = [user.email, ...usersOnCopy]

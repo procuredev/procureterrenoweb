@@ -1513,10 +1513,17 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
     }
 
     // Obtiene el valor actual del contador específico
-    const procureCounterData = procureCounterDoc.data()[procureCounterField]
+    let procureCounterData = procureCounterDoc.data()[procureCounterField]
     if (!procureCounterData) {
-      throw new Error(`El campo ${procureCounterField} no existe en el documento blueprints_InternalCode-Counter.`)
+      procureCounterData = {
+        count: "000"
+      }
+      // Se crea el contador si no existe.
+      transaction.update(procureCounterRef, {
+        [procureCounterField]: procureCounterData
+      })
     }
+
     let procureCounter = Number(procureCounterData.count)
     melCounter = Number(melCounter)
 
