@@ -414,20 +414,6 @@ const TableGabinete = ({
     }
   }, [selectedRows, apiRef])
 
-  const getFileName = (content, index) => {
-    if (typeof content === 'string') {
-      const urlSegments = content.split('%2F')
-      const encodedFileName = urlSegments[urlSegments.length - 1]
-      const fileNameSegments = encodedFileName.split('?')
-      const fileName = decodeURIComponent(fileNameSegments[0])
-
-      return fileName
-    } else {
-      // Si content no es una cadena, devuelve un valor por defecto.
-      return ''
-    }
-  }
-
   // Filtra las filas eliminadas
   const filterDeletedRows = rows => {
     return rows.filter(row => !row.deleted)

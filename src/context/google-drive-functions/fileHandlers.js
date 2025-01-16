@@ -56,6 +56,7 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
 }
 
 export const validateFileName = (acceptedFiles, values, blueprint, authUser, checkRoleAndApproval, approves) => {
+
   // Si es rol 9 y está aprobado por control documental, retornamos válido sin restricciones
   if (
     authUser.role === 9 &&
