@@ -461,5 +461,3 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     </Dialog>
   )
 }
-
-//export default DialogAssignProject

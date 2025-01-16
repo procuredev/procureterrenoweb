@@ -88,23 +88,6 @@ export const DialogAssignProject = ({ open, doc, proyectistas, handleClose }) =>
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
-  const getPlantAbbreviation = plantName => {
-    // Implement the logic to get the plant abbreviation from the full plant name
-    const plantMap = {
-      'Planta Concentradora Laguna Seca | Línea 1': 'LSL1',
-      'Planta Concentradora Laguna Seca | Línea 2': 'LSL2',
-      'Instalaciones Escondida Water Supply': 'IEWS',
-      'Planta Concentradora Los Colorados': 'PCLC',
-      'Instalaciones Cátodo': 'ICAT',
-      'Chancado y Correas': 'CHCO',
-      'Puerto Coloso': 'PCOL'
-    }
-
-    console.log('plantMap[plantName]', plantMap[plantName])
-
-    return plantMap[plantName] || ''
-  }
-
   return (
     <Dialog
       fullWidth
