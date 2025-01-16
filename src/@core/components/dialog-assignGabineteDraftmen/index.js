@@ -108,27 +108,38 @@ export const DialogAssignGabineteDraftmen = ({
     }
   }
 
+  /**
+   * Función para ejecutar la actualización de gabineteDraftmen en Firestore.
+   * @param {string} id - id de la OT a actualizar.
+   */
   const onsubmit = id => {
-    //si tiene allocation time es porque esta en el doc
-    //si no tiene allocation time es porque es nuevo
 
-    //si está en el doc y no está en el state, lo borramos
-    //si está en el state y no está en el doc, lo agregamos
-    //si está en ambos, dejamos el que está en el doc
-    const gabineteDraftmen = gabineteDraftmenState.map(gabineteDraftmen => {
-      const gabineteDraftmenInDoc = doc.gabineteDraftmen?.find(item => item.userId === gabineteDraftmen.userId)
+    // gabineteDraftmenState es la lista de Proyectistas seleccionados en el Gabinete de esa OT.
+    const gabineteDraftmen = gabineteDraftmenState.map(draftmen => {
+
+      // Se buscan los Proyectistas previamente seleccionados.
+      const gabineteDraftmenInDoc = doc.gabineteDraftmen?.find(item => item.userId === draftmen.userId)
+
+      // Se retornan los previamente seleccionados.
       if (gabineteDraftmenInDoc) {
         return gabineteDraftmenInDoc
       } else {
-        gabineteDraftmen.allocationTime = Timestamp.fromDate(new Date())
+        // Se retornan los nuevos seleccionados.
 
-        return gabineteDraftmen
+        const newDraftmen = {
+          "name": draftmen.name,
+          "userId": draftmen.userId,
+          "allocationTime": Timestamp.fromDate(new Date())
+        }
+
+        return newDraftmen
       }
     })
-    console.log(gabineteDraftmen)
+
     updateDocs(id, { gabineteDraftmen }, authUser)
     setGabineteDraftmenState([])
     handleClose()
+
   }
 
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')

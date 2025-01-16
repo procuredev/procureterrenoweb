@@ -250,6 +250,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
 
         // Actualiza cada elemento en draftmen con allocationTime (timestamp de esta ejecución).
         const updatedDraftmen = draftmen.map(designer => ({
+          name: designer.name,
           userId: designer.userId,
           allocationTime: Timestamp.fromDate(new Date())
         }))
