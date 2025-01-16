@@ -25,7 +25,7 @@ import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
 import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleDriveFolder'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
-import { validateFileName, handleFileUpload } from 'src/@core/utils/fileHandlers'
+import { validateFileName, handleFileUpload } from 'src/context/google-drive-functions/fileHandlers'
 import { validateFiles } from 'src/@core/utils/fileValidation'
 import FileList from 'src/@core/components/file-list'
 
