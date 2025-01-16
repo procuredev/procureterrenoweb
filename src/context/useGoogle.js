@@ -62,7 +62,7 @@ const GoogleContextProvider = props => {
         tokensValidity.current = null
       }
     }
-  }, [])
+  }, [authUser])
 
   const value = {
     signInToGoogle
