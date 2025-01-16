@@ -188,7 +188,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
           plantFolder = await createFolder(plantInitials, googleAuthConfig.MAIN_FOLDER_ID)
         }
 
-        // Si existe (o se creó la carpeta en el proceso)...
+        // Si existe la carpeta de la Planta (o se creó la carpeta en el proceso)...
         if (plantFolder) {
           // Busca la carpeta del área.
           const plantFolderFolders = await fetchFolders(plantFolder.id) // Carpetas de la Planta
@@ -199,10 +199,11 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
             areaFolder = await createFolder(doc.area, plantFolder.id)
           }
 
+          // Si existe la carpeta del Área (o se creó la carpeta en el proceso)...
           if (areaFolder) {
-            const projectFolderName = `OT N°${doc.ot} - ${doc.title}`
-            const existingProjectFolders = await fetchFolders(areaFolder.id)
-            let projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+            const projectFolderName = `OT N°${doc.ot} - ${doc.title}` // Nombre de la carpeta de OT a crear
+            const areaFolderFolders = await fetchFolders(areaFolder.id) // Carpetas del Área
+            let projectFolder = areaFolderFolders.files.find(folder => folder.name.includes(doc.ot)) // Carpeta de esta OT.
 
             if (!projectFolder) {
               projectFolder = await createFolder(projectFolderName, areaFolder.id)
