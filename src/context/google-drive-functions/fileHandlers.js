@@ -148,13 +148,13 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
 }
 
 /**
- *
+ * Crea una estructura de carpetas jerárquica en Google Drive basada en los datos de la petición.
  * @param {object} petition - Objeto con la información de la OT.
  * @param {string} rootFolder - String con el ID de la carpeta.
  * @param {Function} fetchFolders - Función que busca las carpetas existentes en parentId.
  * @param {Function} createFolder - Función que crea una carpeta de nombre "folderName" en parentId.
  * @param {string} uploadInFolder - Nombre de la carpeta específica que se quiere crear.
- * @returns {object} - Objeto folder de Google Drive.
+ * @returns {Promise<object>} - Objeto que representa la carpeta final creada o encontrada en Google Drive.
  */
 export const createFolderStructure = async (
   petition,
@@ -181,24 +181,30 @@ export const createFolderStructure = async (
 }
 
 /**
- * Función para crear una carpeta de nombre específico en una carpeta de ID específico.
+ * Asegura la existencia de una carpeta con un nombre específico dentro de una carpeta padre en Google Drive.
+ * Si la carpeta no existe, se crea.
  * @param {string} parentId - ID de la carpeta analizada.
  * @param {string} folderName - Nombre de la carpeta a crear.
  * @param {Function} fetchFolders - Función que busca las carpetas existentes en parentId.
  * @param {Function} createFolder - Función que crea una carpeta de nombre "folderName" en parentId.
- * @param {Array} includedString - String para hacer el Match de la búsqueda mediante "includes".
- * @returns {object} - Objeto folder de Google Drive.
+ * @param {string} includedString - String para hacer el Match de la búsqueda mediante "includes".
+ * @returns {Promise<object>} - Objeto que representa la carpeta final creada o encontrada en Google Drive.
  */
 const ensureFolder = async (parentId, folderName, fetchFolders, createFolder, includedString) => {
 
-  const parentFolders = await fetchFolders(parentId)
-  let folder = parentFolders.files.find(f => f.name.includes(includedString))
+  try {
+    const parentFolders = await fetchFolders(parentId)
+    let folder = parentFolders.files.find(f => f.name.includes(includedString))
 
-  if (!folder) {
-    folder = await createFolder(folderName, parentId)
+    if (!folder) {
+      folder = await createFolder(folderName, parentId)
+    }
+
+    return folder
+  } catch (error) {
+    console.error('Error en la ejecución de ensureFolder():', error)
+    throw error
   }
-
-  return folder
 }
 
 export const handleFileUpload = async ({
