@@ -25,10 +25,12 @@ import { useDropzone } from 'react-dropzone'
 import { useFirebase } from 'src/context/useFirebase'
 import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleDriveFolder'
 import DialogErrorFile from 'src/@core/components/dialog-errorFile'
-import { getRootFolder } from 'src/@core/utils/constants'
 import { validateFileName, handleFileUpload } from 'src/@core/utils/fileHandlers'
 import { validateFiles } from 'src/@core/utils/fileValidation'
 import FileList from 'src/@core/components/file-list'
+
+// ** Configuración de Google Drive
+import googleAuthConfig from 'src/configs/googleDrive'
 
 export default function AlertDialogGabinete({
   open,
@@ -170,7 +172,7 @@ export default function AlertDialogGabinete({
   const canRejectedByClient =
     (isRevisionAtLeastB || isRevisionAtLeast0) && isRole9 && !approves && blueprint.approvedByDocumentaryControl
 
-  const rootFolder = getRootFolder()
+  const rootFolder = googleAuthConfig.MAIN_FOLDER_ID
   const { updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
   const { uploadFile, fetchFolders, createFolder } = useGoogleDriveFolder()
 

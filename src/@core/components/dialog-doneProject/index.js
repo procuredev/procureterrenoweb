@@ -35,9 +35,11 @@ import Icon from 'src/@core/components/icon'
 
 // ** Hooks Imports
 import { CircularProgress, FormControl } from '@mui/material'
-import googleAuthConfig from 'src/configs/googleDrive'
 import { useGoogleDriveFolder } from 'src/context/google-drive-functions/useGoogleDriveFolder'
 import { useFirebase } from 'src/context/useFirebase'
+
+// ** Configuración de Google Drive
+import googleAuthConfig from 'src/configs/googleDrive'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />

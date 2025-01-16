@@ -30,10 +30,12 @@ import 'moment/locale/es'
 import { InputAdornment } from '@mui/material'
 import DateListItem from 'src/@core/components/custom-date'
 import CustomListItem from 'src/@core/components/custom-list'
-import { getRootFolder } from 'src/@core/utils/constants'
 import { getPlantAbbreviation, validateFileName, handleFileUpload } from 'src/@core/utils/fileHandlers'
 import { validateFiles, getFileIcon } from 'src/@core/utils/fileValidation'
 import FileList from 'src/@core/components/file-list'
+
+// ** Configuración de Google Drive
+import googleAuthConfig from 'src/configs/googleDrive'
 
 export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, checkRoleAndApproval }) => {
   let id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments
@@ -67,7 +69,7 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
   const [isLoading, setIsLoading] = useState(false)
 
   const theme = useTheme()
-  const rootFolder = getRootFolder()
+  const rootFolder = googleAuthConfig.MAIN_FOLDER_ID
 
   const {
     updateDocs,
