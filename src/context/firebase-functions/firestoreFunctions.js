@@ -29,7 +29,7 @@ import { useEffect, useState } from 'react'
 import { solicitudValidator } from '../form-validation/helperSolicitudValidator'
 import { sendEmailDeliverableNextRevision } from './mailing/sendEmailDeliverableNextRevision'
 import { sendEmailWhenReviewDocs } from './mailing/sendEmailWhenReviewDocs'
-import { getPlantInitals } from './firestoreQuerys'
+import { getData, getPlantInitals } from './firestoreQuerys'
 
 const moment = require('moment')
 
@@ -1448,6 +1448,7 @@ const updateWeekHoursWithPlant = async (userId, dayDocIds, plant, costCenter) =>
 }
 
 const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam) => {
+
   const { melDiscipline, melDeliverable, procureDiscipline, procureDeliverable } = mappedCodes
 
   // Parámetros adicionales
@@ -1475,8 +1476,15 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
     return String(count).padStart(3, '0')
   }
 
-  const instalacion = getPlantInitals(plant)
-  const areaNumber = area.slice(0, 4)
+  // Función para obtener el Número de Área a partir del nombre completo del área.
+  function getAreaNumber(areaFullname) {
+    nameArray = areaFullname.split(" - ")
+
+    return nameArray[0]
+  }
+
+  const instalacion = await getPlantInitals(plant)
+  const areaNumber = getAreaNumber(area)
   const otNumber = `OT${ot}`
 
   const codes = await runTransaction(db, async transaction => {
@@ -1523,19 +1531,22 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
         melCounter + i + 1
       )}`
 
+      // Se buscan los datos del usuario selccionado.
+      const userData = await getData(userParam.userId)
+
       newDocs.push({
         id: procureCode,
         clientCode: melCode,
         userId: userParam.userId,
-        userName: userParam.name,
+        userName: userData.name,
         revision: 'iniciado',
         otFinished: false,
-        userEmail: userParam.email,
+        userEmail: userData.email,
         sentByDesigner: false,
         sentBySupervisor: false,
         date: Timestamp.fromDate(new Date()),
         blueprintPercent: 5,
-        attentive: userParam.role
+        attentive: userData.role
       })
     }
 

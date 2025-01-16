@@ -215,6 +215,11 @@ const getDomainData = async (document = null, field = null) => {
   }
 }
 
+/**
+ * Función que busca la información del usuario buscando por ID.
+ * @param {string} id - ID del usuario.
+ * @returns {object} - Objeto con campos del usuario en Firestore.
+ */
 const getData = async id => {
   const docRef = doc(db, 'users', id)
   const docSnap = await getDoc(docRef)
