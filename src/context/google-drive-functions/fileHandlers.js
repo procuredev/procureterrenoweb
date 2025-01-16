@@ -176,7 +176,16 @@ export const createFolderStructure = async (
   return destinationFolder
 }
 
+/**
+ * Función para crear una carpeta de nombre específico en una carpeta de ID específico.
+ * @param {string} parentId - ID de la carpeta analizada.
+ * @param {string} folderName - Nombre de la carpeta a crear.
+ * @param {Function} fetchFolders - Función que busca las carpetas existentes en parentId.
+ * @param {Function} createFolder - Función que crea una carpeta de nombre "folderName" en parentId.
+ * @returns {object} - Objeto folder de Google Drive.
+ */
 const ensureFolder = async (parentId, folderName, fetchFolders, createFolder) => {
+
   const folders = await fetchFolders(parentId)
   let folder = folders.files.find(f => f.name === folderName)
 
