@@ -23,7 +23,6 @@ const DataGridLevantamientos = () => {
   const [roleData, setRoleData] = useState({ name: 'admin' })
 
   const { useSnapshot, authUser, getDomainData } = useFirebase()
-  const { renderDialog } = useGoogleAuth()
   const data = useSnapshot(true, authUser)
 
   useEffect(() => {
