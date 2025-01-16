@@ -4,20 +4,13 @@ import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
 import base64Image from 'src/views/pages/gabinete/base64Image'
 import base64MEL from 'src/views/pages/gabinete/base64MEL'
 
+// ** Configuración de Google Drive
+import googleAuthConfig from 'src/configs/googleDrive'
+
 const callAddRegular = require('public/fonts/calibri-normal.js')
 const callAddBold = require('public/fonts/calibri-bold.js')
 
-let rootFolder
-
-if (typeof window !== 'undefined') {
-  if (window.location.hostname === 'www.prosite.cl' || window.location.hostname === 'procureterrenoweb.vercel.app') {
-    rootFolder = '180lLMkkTSpFhHTYXBSBQjLsoejSmuXwt' //* carpeta original "72336"
-  } else {
-    rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
-  }
-} else {
-  rootFolder = '1kKCLEpiN3E-gleNVR8jz_9mZ7dpSY8jw' //* carpeta TEST
-}
+const rootFolder = googleAuthConfig.MAIN_FOLDER_ID
 
 export const generateTransmittal = async (
   tableElement,
