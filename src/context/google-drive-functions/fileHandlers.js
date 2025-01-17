@@ -2,58 +2,78 @@ import { Typography, Tooltip, IconButton } from '@mui/material'
 import FileCopyIcon from '@mui/icons-material/FileCopy'
 import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
 
+/**
+ * Función para obtener la letra con la que debe ser creada la carpeta de la revisión en Google Drive.
+ * @param {Object} blueprint - Objeto con los datos del entregable/plano.
+ * @param {Object} authUser - Objeto con los datos del usuario conectado que está ejecutando la acción.
+ * @returns {string} - Retorna la letra de la siguiente revisión con la que debe ser creada una carpeta.
+ */
 export const getNextRevisionFolderName = (blueprint, authUser) => {
-  let newRevision = blueprint.revision
-  const nextCharCode = blueprint.revision.charCodeAt(0) + 1
-  const nextChar = String.fromCharCode(nextCharCode)
-  const isM3D = blueprint.id.split('-').slice(-2, -1)[0] === 'M3D'
 
-  const isRole8 = authUser.role === 8
-  const isRole7 = authUser.role === 7
+  // Desestructuración de los Objetos blueprint y authUser.
+  const { revision, id, userId, approvedByClient, approvedByDocumentaryControl } = blueprint
+  const { role, uid } = authUser
 
-  if (isRole8 || (isRole7 && blueprint.userId === authUser.uid)) {
-    const actions = {
-      keepRevision: {
-        condition: () =>
-          blueprint.revision.charCodeAt(0) >= 48 &&
-          blueprint.approvedByClient === true &&
-          blueprint.approvedByDocumentaryControl === false,
-        action: () => (newRevision = blueprint.revision)
-      },
-      resetRevision: {
-        condition: () => blueprint.revision.charCodeAt(0) >= 66 && blueprint.approvedByClient === true,
-        action: () => (newRevision = '0')
-      },
-      incrementRevision: {
-        condition: () =>
-          (blueprint.revision.charCodeAt(0) >= 66 || blueprint.revision.charCodeAt(0) >= 48) &&
-          blueprint.approvedByClient === false &&
-          blueprint.approvedByDocumentaryControl === true,
-        action: () => (newRevision = nextChar)
-      },
-      startRevision: {
-        condition: () => blueprint.revision === 'Iniciado' && !isM3D,
-        action: () => (newRevision = 'A')
-      },
-      incrementRevisionInA: {
-        condition: () => blueprint.revision === 'A',
-        action: () => (newRevision = blueprint.approvedByDocumentaryControl ? nextChar : blueprint.revision)
-      },
-      dotCloud: {
-        condition: () => blueprint.revision === 'Iniciado' && isM3D,
-        action: () => (newRevision = '0')
-      }
-    }
+  const nextChar = String.fromCharCode(revision.charCodeAt(0) + 1)
+  const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
+  const isAuthorized = role === 8 || (role === 7 && userId === uid)
 
-    Object.values(actions).forEach(({ condition, action }) => {
-      if (condition()) {
-        action()
-      }
-    })
+  // Si el usuario que ejecuta la acción no está autorizado, se retorna la actual revisión.
+  if (!isAuthorized) {
+    return revision
   }
 
-  return newRevision
+  // Se define Patrón de reglas con condiciones y acciones para definir la siguiente revisión de la carpeta.
+  // Este patrón
+  const actions = [
+    {
+      // Si la revisión es mayor o igual a Rev. 0, está aprobada por el Cliente y no está Aprobada por Control Documental.
+      // Se retorna la revisión actual (Rev. 0)
+      condition: () => revision.charCodeAt(0) >= 48 && approvedByClient && !approvedByDocumentaryControl,
+      action: () => revision
+    },
+    {
+      // Si la revisión es mayor o igual a Rev. B y es aprobado por el Cliente.
+      // Se retorna Rev. 0.
+      condition: () => revision.charCodeAt(0) >= 66 && approvedByClient,
+      action: () => '0'
+    },
+    {
+      // Si la revisión es mayor o igual a Rev. 0, no está aprobada por el Cliente y está aprobado por Control Documental.
+      // Se retorna la Revisión siguinete (1, 2, 3...)
+      condition: () => revision.charCodeAt(0) >= 48 && !approvedByClient && approvedByDocumentaryControl,
+      action: () => nextChar
+    },
+    {
+      // Si la reivisión es "Iniciado" y el entregable es un M3D (Memoria de Cálculo).
+      // Se retorna Rev. 0.
+      condition: () => revision === 'Iniciado' && isM3D,
+      action: () => '0'
+    },
+    {
+      // Si la reivisión es "Iniciado" y el entregable no es un M3D (Memoria de Cálculo).
+      // Se retorna Rev. A.
+      condition: () => revision === 'Iniciado' && !isM3D,
+      action: () => 'A'
+    },
+    {
+      // Si la revisión es Rev. A.
+      // Se retorna la siguiente letra si ha sido aprobada por Control Documental.
+      // Se retorna Rev. A no si ha sido aprobada por Control Documental.
+      condition: () => revision === 'A',
+      action: () => approvedByDocumentaryControl ? nextChar : revision
+    }
+  ]
+
+  // Se ejecuta la definición de la siguiente revisión.
+  const matchedAction = actions.find(({ condition }) => condition())
+
+  // Se retorna la siguiente revisión en caso de que concuerde con alguna de las condiciones definidas.
+  // Si no, se retorna la revisión actual
+  return matchedAction ? matchedAction.action() : revision
+
 }
+
 
 export const validateFileName = (acceptedFiles, values, blueprint, authUser, checkRoleAndApproval, approves) => {
 
