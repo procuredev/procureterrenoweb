@@ -150,6 +150,17 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
 }
 
 /**
+ * Función para extraer el número de área desde el string que contiene el nombre completo del área.
+ * @param {string} name - String con el nombre completo del área. Ej: "0100 - Planta Desaladora".
+ * @returns {string} - areaNumber que es un string con él número. Ek: "0100".
+ */
+function extractAreaNumber(areaFullname) {
+  const nameArray = areaFullname.split(" - ")
+
+  return nameArray[0]
+}
+
+/**
  * Crea una estructura de carpetas jerárquica en Google Drive basada en los datos de la petición.
  * @param {object} petition - Objeto con la información de la OT.
  * @param {string} rootFolder - String con el ID de la carpeta.
@@ -158,20 +169,7 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
  * @param {string} uploadInFolder - Nombre de la carpeta específica que se quiere crear.
  * @returns {Promise<object>} - Objeto que representa la carpeta final creada o encontrada en Google Drive.
  */
-export const createFolderStructure = async (
-  petition,
-  rootFolder,
-  fetchFolders,
-  createFolder,
-  uploadInFolder
-) => {
-
-  // Función para obtener el Número de Área a partir del nombre completo del área.
-  function extractAreaNumber(areaFullname) {
-    const nameArray = areaFullname.split(" - ")
-
-    return nameArray[0]
-  }
+export const createFolderStructure = async (petition, rootFolder, fetchFolders, createFolder, uploadInFolder) => {
 
   const plantInitials = await getPlantInitals(petition.plant)
   const plantFolder = await ensureFolder(rootFolder, plantInitials, fetchFolders, createFolder, plantInitials)
