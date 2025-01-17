@@ -287,7 +287,7 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
       )
 
       // Ubica la carpeta "EMITIDOS"
-      const targetFolder = await findOrCreateFolder("EMITIDOS", projectFolder.id)
+      const targetFolder = await findOrCreateFolder("EMITIDOS", projectFolder.id, "EMITIDOS")
 
       // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
       const revisionFolderName = `REV_${doc.revision}`
