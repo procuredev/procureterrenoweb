@@ -63,9 +63,19 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
   const { revision, id, userId, approvedByClient, approvedByDocumentaryControl } = blueprint
   const { role, uid } = authUser
 
+  // Se obtiene la letra o número de la siguiente revisión.
   const nextChar = getNextChar(revision)
-  const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
-  const isAuthorized = role === 8 || (role === 7 && userId === uid)
+
+  // Booleano que define si el código Procure del entregable es un M3D (Memoria de Cálculo)
+  const isM3D = id.split('-')[2] === 'M3D'
+
+  // Booleano que define si es el autor del documento. userId del Entregable debe ser igual al uid del Usuario.
+  const isAuthor = userId === uid
+
+  // Booleano que define si está autorizado.
+  // Se autoriza si el role del usuario conectado es 8 (Proyectista).
+  // Se autoriza si el role del usuario conectado es 7 (Supervisor) y a la vez es el autor del documento.
+  const isAuthorized = role === 8 || (role === 7 && isAuthor)
 
   // Si el usuario que ejecuta la acción no está autorizado, se retorna la actual revisión.
   if (!isAuthorized) {
