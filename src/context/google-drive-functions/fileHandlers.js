@@ -12,7 +12,7 @@ import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
  */
 function getNextChar(revision) {
 
-  if (input === "Iniciado") {
+  if (revision === "Iniciado") {
       return "A"
   }
 
