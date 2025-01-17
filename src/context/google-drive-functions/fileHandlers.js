@@ -47,7 +47,7 @@ function getNextChar(revision) {
     return result
 
   } else {
-    throw new Error("La Revisión debe ser un número, una letra o la palabra 'Iniciado'.")
+    throw new Error("La Revisión debe ser un número, una letra mayúscula o la palabra 'Iniciado'.")
   }
 }
 
