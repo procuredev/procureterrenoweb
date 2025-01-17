@@ -537,9 +537,8 @@ const TableLevantamiento = ({ rows, role, roleData }) => {
         {openDone && (
           <DialogDoneProject
             open={openDone}
+            petition={doc}
             handleClose={handleCloseDone}
-            doc={doc}
-            roleData={roleData}
             proyectistas={proyectistas}
           />
         )}

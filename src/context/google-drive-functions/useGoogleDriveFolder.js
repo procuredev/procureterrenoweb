@@ -155,6 +155,57 @@ export const useGoogleDriveFolder = () => {
 
   }
 
+  /**
+   * Función para Buscar y/o Crear una nueva carpeta.
+   * @param {string} folderName - Nombre de la carpeta a crear.
+   * @param {string} parentFolderId - ID de la carpeta donde se debe buscar y/o crear la nueva carpeta.
+   * @param {string} findBy - String para hacer el match de búsqueda mediante includes().
+   * @returns
+   */
+  const findOrCreateFolder = async (folderName, parentFolderId, findBy) => {
+
+    // Busca las carpetas dentro del directorio especificado.
+    const folders = await fetchFolders(parentFolderId)
+    let folder = folders.files.find(f => f.name.includes(findBy))
+
+    // Si no existe, la crea.
+    if (!folder) {
+      folder = await createFolder(folderName, parentFolderId)
+    }
+
+    return folder
+  }
+
+  /**
+   * Función para manejar la creación de carpetas y subcarpetas en Google Drive.
+   * @param {string} mainFolderId - ID de la carpeta donde se debe buscar y/o crear la nueva carpeta.
+   * @param {string} plantName - Nombre completo de la Planta de la OT.
+   * @param {string} plantInitials - Iniciales de la Planta de la OT.
+   * @param {string} areaName - Nombre completo del área de la OT.
+   * @param {string} areaNumber - Número del área.
+   * @param {string} projectFolderName - Nombre completo de la carpeta de la OT.
+   * @param {string} projectOtNumber - Número de OT.
+   * @param {Array.<string>} subfolders - Array de Strings con subcarpetas a crear dentro de la carpeta de la OT.
+   * @returns
+   */
+  const processFolders = async (mainFolderId, plantName, plantInitials, areaName, areaNumber, projectFolderName, projectOtNumber, subfolders = []) => {
+    // Carpeta principal (de la planta).
+    const plantFolder = await findOrCreateFolder(plantInitials, mainFolderId, plantInitials)
+
+    // Carpeta del área.
+    const areaFolder = await findOrCreateFolder(areaName, plantFolder.id, areaNumber)
+
+    // Carpeta del proyecto.
+    const projectFolder = await findOrCreateFolder(projectFolderName, areaFolder.id, projectOtNumber)
+
+    // Crear subcarpetas si se especifican.
+    for (const subfolder of subfolders) {
+      await findOrCreateFolder(subfolder, projectFolder.id, subfolder)
+    }
+
+    return projectFolder
+  }
+
   return {
     fetchFolders,
     createFolder,
@@ -162,5 +213,7 @@ export const useGoogleDriveFolder = () => {
     uploadFile,
     isLoading,
     error,
+    findOrCreateFolder,
+    processFolders
   }
 }

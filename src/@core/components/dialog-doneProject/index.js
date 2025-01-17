@@ -50,13 +50,14 @@ const Transition = forwardRef(function Transition(props, ref) {
  * @param {string} name - String con el nombre completo del área. Ej: "0100 - Planta Desaladora".
  * @returns {string} - areaNumber que es un string con él número. Ek: "0100".
  */
-  function extractAreaNumber(areaFullname) {
-    const nameArray = areaFullname.split(" - ")
+function extractAreaNumber(areaFullname) {
+  const nameArray = areaFullname.split(" - ")
 
-    return nameArray[0]
-  }
+  return nameArray[0]
+}
 
-export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
+export const DialogDoneProject = ({ open, petition, handleClose, proyectistas }) => {
+
   // ** States
 
   const [draftmen, setDraftmen] = useState([])
@@ -74,7 +75,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
 
   // ** Hooks
   const { updateDocs, authUser, getDomainData, getPlantInitals } = useFirebase()
-  const { fetchFolders, createFolder, uploadFile } = useGoogleDriveFolder()
+  const { fetchFolders, createFolder, uploadFile, findOrCreateFolder, processFolders } = useGoogleDriveFolder()
 
   const handleClickDelete = name => {
     // Filtramos el array draftmen para mantener todos los elementos excepto aquel con el nombre proporcionado
@@ -173,93 +174,63 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
   const getInitials = string => string.split(/\s/).reduce((response, word) => (response += word.slice(0, 1)), '')
 
   // Función onSubmit que se encargará de ejecutar el almacenamiento de datos en la Base de Datos.
-  const onSubmit = async id => {
+  const onSubmit = async() => {
 
     if (uprisingTimeSelected.hours > 0) {
       setLoading(true)
       try {
-        // Busca la carpeta de la planta.
-        const mainFolderFolders = await fetchFolders(googleAuthConfig.MAIN_FOLDER_ID) // Carpetas existentes en la carpeta principal.
-        const plantInitials = await getPlantInitals(doc.plant) // Iniciales de la Planta de la OT.
-        let plantFolder = mainFolderFolders.files.find(folder => folder.name.includes(plantInitials)) // Carpeta de la Planta.
 
-        // Si no existe la carpeta de la planta, se crea.
-        if (!plantFolder) {
-          plantFolder = await createFolder(plantInitials, googleAuthConfig.MAIN_FOLDER_ID)
-        }
+        const plantInitials = await getPlantInitals(petition.plant)
+        const areaNumber = extractAreaNumber(petition.area)
+        const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
 
-        // Si existe la carpeta de la Planta (o se creó la carpeta en el proceso)...
-        if (plantFolder) {
-          // Busca la carpeta del área.
-          const plantFolderFolders = await fetchFolders(plantFolder.id) // Carpetas de la Planta
-          let areaFolder = plantFolderFolders.files.find(folder => folder.name.includes(extractAreaNumber(doc.area))) // Carpeta del área de esta OT.
+        const subfolders = [
+          'ANTECEDENTES',
+          'SOLICITUD DE REQUERIMIENTO',
+          'LEVANTAMIENTO',
+          'EN TRABAJO',
+          'REVISIONES & COMENTARIOS',
+          'EMITIDOS',
+          'COMENTARIOS CLIENTE'
+        ]
 
-          // Si no existe la carpeta del Área, se crea
-          if (!areaFolder) {
-            areaFolder = await createFolder(doc.area, plantFolder.id)
-          }
+        // Procesar carpetas.
+        const projectFolder = await processFolders(
+          googleAuthConfig.MAIN_FOLDER_ID,
+          petition.plant,
+          plantInitials,
+          petition.area,
+          areaNumber,
+          projectFolderName,
+          petition.ot,
+          subfolders
+        )
 
-          // Si existe la carpeta del Área (o se creó la carpeta en el proceso)...
-          if (areaFolder) {
-            const projectFolderName = `OT N°${doc.ot} - ${doc.title}` // Nombre de la carpeta de OT a crear
-            const areaFolderFolders = await fetchFolders(areaFolder.id) // Carpetas del Área
-            let projectFolder = areaFolderFolders.files.find(folder => folder.name.includes(doc.ot)) // Carpeta de esta OT.
+        // Buscar o crear la carpeta "LEVANTAMIENTO".
+        const targetFolder = await findOrCreateFolder("LEVANTAMIENTO", projectFolder.id, "LEVANTAMIENTO")
 
-            // Si no existe la carpeta de la OT, se crea
-            if (!projectFolder) {
-              projectFolder = await createFolder(projectFolderName, areaFolder.id)
+        // Subir archivo a la carpeta "LEVANTAMIENTO".
+        const fileContent = `levantamiento de OT ${petition.ot} - ${petition.title} TERMINADO`
+        const file = new Blob([fileContent], { type: 'text/plain' })
+        const fileName = `levantamiento de OT ${petition.ot} terminado.txt`
+        await uploadFile(fileName, file, targetFolder.id)
 
-              // Crea subcarpetas.
-              const subfolders = [
-                'ANTECEDENTES',
-                'SOLICITUD DE REQUERIMIENTO',
-                'LEVANTAMIENTO',
-                'EN TRABAJO',
-                'REVISIONES & COMENTARIOS',
-                'EMITIDOS',
-                'COMENTARIOS CLIENTE'
-              ]
-              for (const subfolder of subfolders) {
-                await createFolder(subfolder, projectFolder.id)
-              }
-            }
-
-            // Una vez creadas las carpetas, ubica la carpeta "LEVANTAMIENTO"
-            const projectFolderFolders = await fetchFolders(projectFolder.id)
-            const targetFolderName = "LEVANTAMIENTO"
-            let targetFolder = projectFolderFolders.files.find(folder => folder.name === targetFolderName)
-
-            // Si no existe la carpeta de la OT, se crea
-            if (!targetFolder) {
-              targetFolder = await createFolder(targetFolderName, projectFolder.id)
-            }
-
-            // Si existe la carpeta "LEVANTAMIENTO" (o se creó la carpeta en el proceso)...
-            if (targetFolder) {
-              // Se carga un archivo vacío dentro de la carpeta.
-              const fileContent = `levantamiento de OT ${doc.ot} - ${doc.title} TERMINADO`
-              const file = new Blob([fileContent], { type: 'text/plain' })
-              const fileName = `levantamiento de OT ${doc.ot} terminado.txt`
-              await uploadFile(fileName, file, targetFolder.id)
-            }
-          }
-        }
-
-        // Actualiza cada elemento en draftmen con allocationTime (timestamp de esta ejecución).
+        // Actualizar Firestore.
         const updatedDraftmen = draftmen.map(designer => ({
           name: designer.name,
           userId: designer.userId,
           allocationTime: Timestamp.fromDate(new Date())
         }))
 
-        // Se actualiza la información en Firestore de esta OT.
-        await updateDocs(id,
-          { uprisingInvestedHours: uprisingTimeSelected, deadline: deadlineDate, gabineteDraftmen: updatedDraftmen },
-          authUser
-        )
+        await updateDocs(petition.id, {
+          uprisingInvestedHours: uprisingTimeSelected,
+          deadline: deadlineDate,
+          gabineteDraftmen: updatedDraftmen
+        }, authUser)
 
         setDraftmen([])
         handleClose()
+
       } catch (error) {
         console.error(error)
       } finally {
@@ -268,6 +239,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
     } else {
       setError('Por favor, indique fecha de inicio y fecha de término.')
     }
+
   }
 
   return (
@@ -448,7 +420,7 @@ export const DialogDoneProject = ({ open, doc, handleClose, proyectistas }) => {
           <Button
             sx={{ lineHeight: '1.5rem', '& svg': { mr: 2 } }}
             disabled={isSubmitDisabled || loading}
-            onClick={() => onSubmit(doc.id)}
+            onClick={() => onSubmit()}
           >
             <EngineeringIcon sx={{ fontSize: 18 }} />
             Guardar

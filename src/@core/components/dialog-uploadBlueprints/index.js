@@ -30,14 +30,19 @@ import 'moment/locale/es'
 import { InputAdornment } from '@mui/material'
 import DateListItem from 'src/@core/components/custom-date'
 import CustomListItem from 'src/@core/components/custom-list'
-import { getPlantAbbreviation, validateFileName, handleFileUpload } from 'src/context/google-drive-functions/fileHandlers'
+import { validateFileName, handleFileUpload } from 'src/context/google-drive-functions/fileHandlers'
 import { validateFiles, getFileIcon } from 'src/context/google-drive-functions/fileValidation'
 import FileList from 'src/@core/components/file-list'
+import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
 
 // ** Configuración de Google Drive
 import googleAuthConfig from 'src/configs/googleDrive'
 
+// Dialog para cargar entregables.
+// doc: Object con la información del entregable.
+// petition: Object con la información de la OT.
 export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, checkRoleAndApproval }) => {
+
   let id, userId, userName, userEmail, revision, storageBlueprints, description, date, clientCode, storageHlcDocuments
 
   if (doc) {
@@ -71,13 +76,8 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
   const theme = useTheme()
   const rootFolder = googleAuthConfig.MAIN_FOLDER_ID
 
-  const {
-    updateDocs,
-    authUser,
-    addDescription,
-    updateBlueprintsWithStorageOrHlc,
-    deleteReferenceOfLastDocumentAttached
-  } = useFirebase()
+  const { updateDocs, authUser, addDescription, updateBlueprintsWithStorageOrHlc, deleteReferenceOfLastDocumentAttached } = useFirebase()
+  const { uploadFile, createFolder, fetchFolders, findOrCreateFolder, processFolders } = useGoogleDriveFolder()
 
   // Verifica estado
   revision = typeof revision === 'string' ? revision : 100
@@ -102,8 +102,6 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
       description: prevValues.description || description
     }))
   }, [id, clientCode, userId, userName, userEmail, revision, storageBlueprints, storageHlcDocuments, date])
-
-  const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
 
   const writeCallback = () => {
     const newData = {}
@@ -249,72 +247,60 @@ export const UploadBlueprintsDialog = ({ doc, petitionId, currentRow, petition, 
     </Grid>
   )
 
+  /**
+   * Función para extraer el número de área desde el string que contiene el nombre completo del área.
+   * @param {string} name - String con el nombre completo del área. Ej: "0100 - Planta Desaladora".
+   * @returns {string} - areaNumber que es un string con él número. Ek: "0100".
+   */
+  function extractAreaNumber(areaFullname) {
+    const nameArray = areaFullname.split(" - ")
+
+    return nameArray[0]
+  }
+
+  /**
+   * Función para manejar la carga de la HLC a la carpeta de la Revisión.
+   * Se encarga de crear las carpetas en caso de que no existan.
+   */
   const handleSubmitHlcDocuments = async () => {
     try {
       setIsLoading(true)
       // Busca la carpeta de la planta.
-      const plantFolders = await fetchFolders(rootFolder)
-      let plantFolder = plantFolders.files.find(folder => folder.name.includes(getPlantAbbreviation(petition.plant)))
+      const plantInitials = await getPlantInitals(petition.plant)
+      const areaNumber = extractAreaNumber(petition.area)
+      const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
 
-      // Si no existe la carpeta de la planta, se crea
-      if (!plantFolder) {
-        const plantName = getPlantAbbreviation(doc.plant)
-        plantFolder = await createFolder(plantName, rootFolder)
-      }
+      const subfolders = [
+        'EMITIDOS'
+      ]
 
-      if (plantFolder) {
-        // Busca la carpeta del área.
-        const areaFolders = await fetchFolders(plantFolder.id)
-        let areaFolder = areaFolders.files.find(folder => folder.name === petition.area)
+      // Procesar carpetas.
+      const projectFolder = await processFolders(
+        googleAuthConfig.MAIN_FOLDER_ID,
+        petition.plant,
+        plantInitials,
+        petition.area,
+        areaNumber,
+        projectFolderName,
+        petition.ot,
+        subfolders
+      )
 
-        // Si no existe la carpeta del área, se crea
-        if (!areaFolder) {
-          areaFolder = await createFolder(doc.area, plantFolder.id)
-        }
+      // Ubica la carpeta "EMITIDOS"
+      const targetFolder = await findOrCreateFolder("EMITIDOS", projectFolder.id)
 
-        if (areaFolder) {
-          const projectFolderName = `OT N°${petition.ot} - ${petition.title}`
-          const existingProjectFolders = await fetchFolders(areaFolder.id)
-          let projectFolder = existingProjectFolders.files.find(folder => folder.name === projectFolderName)
+      // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
+      const revisionFolderName = `REV_${doc.revision}`
+      const revisionFolder = await findOrCreateFolder(revisionFolderName, targetFolder.id, revisionFolderName)
 
-          // Si no existe la carpeta de la OT, se crea
-          if (!projectFolder) {
-            projectFolder = await createFolder(projectFolderName, areaFolder.id)
-          }
+      // Se sube el archivo a la carpeta de la Revisión.
+      const fileData = await uploadFile(hlcDocuments.name, hlcDocuments, revisionFolder.id)
 
-          if (projectFolder) {
-            // Ubica la carpeta "EMITIDOS"
-            const issuedFolders = await fetchFolders(projectFolder.id)
-            let issuedFolder = issuedFolders.files.find(folder => folder.name === 'EMITIDOS')
+      if (fileData && fileData.id) {
+        const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
 
-            // Si no existe la carpeta 'EMITIDOS', se crea
-            if (!issuedFolder) {
-              trabajoFolder = await createFolder('EMITIDOS', projectFolder.id)
-            }
-
-            if (issuedFolder) {
-              // Crear o encontrar la subcarpeta de la revisión, por ejemplo: "REV_A"
-              const revisionFolderName = `REV_${doc.revision}`
-              const revisionFolders = await fetchFolders(issuedFolder.id)
-              let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
-
-              if (!revisionFolder) {
-                revisionFolder = await createFolder(revisionFolderName, issuedFolder.id)
-              }
-
-              if (revisionFolder) {
-                const fileData = await uploadFile(hlcDocuments.name, hlcDocuments, revisionFolder.id)
-
-                if (fileData && fileData.id) {
-                  const fileLink = `https://drive.google.com/file/d/${fileData.id}/view`
-
-                  // Actualiza el campo storageBlueprints del blueprint en Firestore
-                  await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'hlc')
-                }
-              }
-            }
-          }
-        }
+        // Actualiza el campo storageBlueprints del blueprint en Firestore
+        await updateBlueprintsWithStorageOrHlc(petitionId, doc.id, fileLink, fileData.name, 'hlc')
       }
 
       setHlcDocuments(null)
