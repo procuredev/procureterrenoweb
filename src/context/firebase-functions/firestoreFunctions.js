@@ -1059,9 +1059,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   nextRevision.newBlueprintPercent = updateData.blueprintPercent
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
 
-  console.log(nextRevision)
-  console.log(updateData)
-
   // Función para enviar emails de forma automática.
   // userParam es el usuario conectado que ejecuta la acción.
   // petitionID es el ID del la Solicitud/OT en Firestore.

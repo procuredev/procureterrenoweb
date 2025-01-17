@@ -63,7 +63,6 @@ const DataGridGabinete = () => {
   const apiRef = useGridApiRef()
 
   const { uploadFile, createFolder, fetchFolders } = useGoogleDriveFolder()
-  const { renderDialog, isValidToken, setIsDialogOpen } = useGoogleAuth()
 
   const currentPetitionRef = useRef()
 
@@ -183,10 +182,6 @@ const DataGridGabinete = () => {
     // console.log(selectedDocuments)
     if (selectedDocuments.size === 0) {
       setErrorTransmittal(true)
-    } else if (!isValidToken) {
-      {
-        setIsDialogOpen(true)
-      }
     } else {
       setOpenTransmittalDialog(true)
     }
@@ -530,8 +525,6 @@ const DataGridGabinete = () => {
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
           showReasignarSection={showReasignarSection}
-          isValidToken={isValidToken}
-          setIsDialogOpen={setIsDialogOpen}
         />
       </Box>
       {blueprints && (

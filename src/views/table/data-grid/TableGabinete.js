@@ -41,9 +41,7 @@ const TableGabinete = ({
   apiRef,
   selectedRows,
   setSelectedRows,
-  showReasignarSection,
-  isValidToken,
-  setIsDialogOpen
+  showReasignarSection
 }) => {
   const [openUploadDialog, setOpenUploadDialog] = useState(false)
   const [openAlert, setOpenAlert] = useState(false)
@@ -73,13 +71,9 @@ const TableGabinete = ({
   }
 
   const handleClickOpenAlert = (doc, isApproved) => {
-    if (!isValidToken) {
-      setIsDialogOpen(true)
-    } else {
-      setDoc(doc)
-      setOpenAlert(true)
-      setApprove(isApproved)
-    }
+    setDoc(doc)
+    setOpenAlert(true)
+    setApprove(isApproved)
   }
 
   const handleSelectionChange = selection => {
