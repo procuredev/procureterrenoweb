@@ -72,7 +72,7 @@ export const validateFileName = (acceptedFiles, values, blueprint, authUser, che
 
   const expectedClientCode = values.clientCode
   const expectedRevision = getNextRevisionFolderName(blueprint, authUser)
-  console.log(expectedRevision)
+
   let expectedFileName = null
 
   if (authUser.role === 8 || (authUser.role === 7 && blueprint.userId === authUser.uid)) {
