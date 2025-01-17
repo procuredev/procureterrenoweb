@@ -12,7 +12,7 @@ import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
  */
 function getNextChar(revision) {
 
-  if (revision === "Iniciado") {
+  if (revision === "Iniciado" || revision === "iniciado") {
       return "A"
   }
 
@@ -54,33 +54,18 @@ function getNextChar(revision) {
 /**
  * Función para obtener la letra con la que debe ser creada la carpeta de la revisión en Google Drive.
  * @param {Object} blueprint - Objeto con los datos del entregable/plano.
- * @param {Object} authUser - Objeto con los datos del usuario conectado que está ejecutando la acción.
  * @returns {string} - Retorna la letra de la siguiente revisión con la que debe ser creada una carpeta.
  */
-export const getNextRevisionFolderName = (blueprint, authUser) => {
+export const getNextRevisionFolderName = (blueprint) => {
 
   // Desestructuración de los Objetos blueprint y authUser.
-  const { revision, id, userId, approvedByClient, approvedByDocumentaryControl } = blueprint
-  const { role, uid } = authUser
+  const { revision, id, approvedByClient, approvedByDocumentaryControl } = blueprint
 
   // Se obtiene la letra o número de la siguiente revisión.
   const nextChar = getNextChar(revision)
 
   // Booleano que define si el código Procure del entregable es un M3D (Memoria de Cálculo)
   const isM3D = id.split('-')[2] === 'M3D'
-
-  // Booleano que define si es el autor del documento. userId del Entregable debe ser igual al uid del Usuario.
-  const isAuthor = userId === uid
-
-  // Booleano que define si está autorizado.
-  // Se autoriza si el role del usuario conectado es 8 (Proyectista).
-  // Se autoriza si el role del usuario conectado es 7 (Supervisor) y a la vez es el autor del documento.
-  const isAuthorized = role === 8 || (role === 7 && isAuthor)
-
-  // Si el usuario que ejecuta la acción no está autorizado, se retorna la actual revisión.
-  if (!isAuthorized) {
-    return revision
-  }
 
   // Se define Patrón de reglas con condiciones y acciones para definir la siguiente revisión de la carpeta.
   // Este patrón
@@ -106,13 +91,13 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
     {
       // Si la reivisión es "Iniciado" y el entregable es un M3D (Memoria de Cálculo).
       // Se retorna Rev. 0.
-      condition: () => revision === 'Iniciado' && isM3D,
+      condition: () => (revision === 'Iniciado' || revision === 'iniciado') && isM3D,
       action: () => '0'
     },
     {
       // Si la reivisión es "Iniciado" y el entregable no es un M3D (Memoria de Cálculo).
       // Se retorna Rev. A.
-      condition: () => revision === 'Iniciado' && !isM3D,
+      condition: () => (revision === 'Iniciado' || revision === 'iniciado') && !isM3D,
       action: () => 'A'
     },
     {
@@ -132,7 +117,6 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
   return matchedAction ? matchedAction.action() : revision
 
 }
-
 
 export const validateFileName = (acceptedFiles, values, blueprint, authUser, checkRoleAndApproval, approves) => {
 

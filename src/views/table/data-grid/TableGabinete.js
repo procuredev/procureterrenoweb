@@ -29,6 +29,8 @@ import { useFirebase } from 'src/context/useFirebase'
 import AlertDialogGabinete from 'src/@core/components/dialog-warning-gabinete'
 import { UploadBlueprintsDialog } from 'src/@core/components/dialog-uploadBlueprints'
 
+import { getNextRevisionFolderName } from 'src/context/google-drive-functions/fileHandlers'
+
 // TODO: Move to firebase-functions
 import { getStorage, ref, list } from 'firebase/storage'
 
@@ -467,58 +469,58 @@ const TableGabinete = ({
     }
   }
 
-  const getNextRevisionFolderName = (doc, authUser) => {
-    let newRevision = doc.revision
+  // const getNextRevisionFolderName = (doc, authUser) => {
+  //   let newRevision = doc.revision
 
-    const nextCharCode = doc.revision.charCodeAt(0) + 1
-    const nextChar = String.fromCharCode(nextCharCode)
+  //   const nextCharCode = doc.revision.charCodeAt(0) + 1
+  //   const nextChar = String.fromCharCode(nextCharCode)
 
-    // Verifica si el id contiene "M3D" antes del último guion
-    const isM3D = doc.id.split('-').slice(-2, -1)[0] === 'M3D'
+  //   // Verifica si el id contiene "M3D" antes del último guion
+  //   const isM3D = doc.id.split('-').slice(-2, -1)[0] === 'M3D'
 
-    const actions = {
-      keepRevision: {
-        condition: () =>
-          doc.revision.charCodeAt(0) >= 48 &&
-          doc.approvedByClient === true &&
-          doc.approvedByDocumentaryControl === false,
-        action: () => (newRevision = doc.revision)
-      },
-      resetRevision: {
-        condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
-        action: () => (newRevision = '0')
-      },
-      incrementRevision: {
-        condition: () =>
-          (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
-          doc.approvedByClient === false &&
-          doc.approvedByDocumentaryControl === true,
-        action: () => (newRevision = nextChar)
-      },
-      startRevision: {
-        condition: () => doc.revision === 'Iniciado' && !isM3D,
-        action: () => (newRevision = 'A')
-      },
-      incrementRevisionInA: {
-        condition: () => doc.revision === 'A',
-        action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
-      },
-      dotCloud: {
-        condition: () => doc.revision === 'Iniciado' && isM3D,
-        action: () => {
-          newRevision = '0'
-        }
-      }
-    }
+  //   const actions = {
+  //     keepRevision: {
+  //       condition: () =>
+  //         doc.revision.charCodeAt(0) >= 48 &&
+  //         doc.approvedByClient === true &&
+  //         doc.approvedByDocumentaryControl === false,
+  //       action: () => (newRevision = doc.revision)
+  //     },
+  //     resetRevision: {
+  //       condition: () => doc.revision.charCodeAt(0) >= 66 && doc.approvedByClient === true,
+  //       action: () => (newRevision = '0')
+  //     },
+  //     incrementRevision: {
+  //       condition: () =>
+  //         (doc.revision.charCodeAt(0) >= 66 || doc.revision.charCodeAt(0) >= 48) &&
+  //         doc.approvedByClient === false &&
+  //         doc.approvedByDocumentaryControl === true,
+  //       action: () => (newRevision = nextChar)
+  //     },
+  //     startRevision: {
+  //       condition: () => doc.revision === 'Iniciado' && !isM3D,
+  //       action: () => (newRevision = 'A')
+  //     },
+  //     incrementRevisionInA: {
+  //       condition: () => doc.revision === 'A',
+  //       action: () => (newRevision = doc.approvedByDocumentaryControl ? nextChar : doc.revision)
+  //     },
+  //     dotCloud: {
+  //       condition: () => doc.revision === 'Iniciado' && isM3D,
+  //       action: () => {
+  //         newRevision = '0'
+  //       }
+  //     }
+  //   }
 
-    Object.values(actions).forEach(({ condition, action }) => {
-      if (condition()) {
-        action()
-      }
-    })
+  //   Object.values(actions).forEach(({ condition, action }) => {
+  //     if (condition()) {
+  //       action()
+  //     }
+  //   })
 
-    return newRevision
-  }
+  //   return newRevision
+  // }
 
   const idLocalWidth = Number(localStorage.getItem('idGabineteWidthColumn'))
   const revisionLocalWidth = Number(localStorage.getItem('revisionGabineteWidthColumn'))
@@ -689,7 +691,7 @@ const TableGabinete = ({
           // Para las filas principales, muestra la el estado de la revisión actual
           revisionContent = row.revision
 
-          let nextRevision = row && getNextRevisionFolderName(row, authUser)
+          let nextRevision = row && getNextRevisionFolderName(row)
 
           return (
             <Box sx={{ overflow: 'hidden' }}>
