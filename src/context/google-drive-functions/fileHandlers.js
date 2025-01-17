@@ -3,6 +3,55 @@ import FileCopyIcon from '@mui/icons-material/FileCopy'
 import { getPlantInitals } from 'src/context/firebase-functions/firestoreQuerys'
 
 /**
+ * Función para obtener la siguiente revisión letra o número de un entregable.
+ * Si es Iniciado, la siguiente revisión es A.
+ * Si es una letra, la siguiente revisión es la siguiente letra. En el caso de Z cambia a AA.
+ * Si es un número, la siguiente revisión es el siguiente número.
+ * @param {string} revision - Revisión en que se encuentra el entregable.
+ * @returns {string} - Retorna la siguiente revisión.
+ */
+function getNextChar(revision) {
+
+  if (input === "Iniciado") {
+      return "A"
+  }
+
+  // Caso en que el string es un número
+  if (/^[0-9]+$/.test(revision)) {
+
+    return (parseInt(revision, 10) + 1).toString()
+
+  // Caso en que el string es una letra o secuencia de letras en mayúscula
+  } else if (/^[A-Z]+$/.test(revision)) {
+
+    let result = ""
+    let carry = 1 // Representa el incremento
+
+    for (let i = revision.length - 1; i >= 0; i--) {
+      const charCode = revision.charCodeAt(i) + carry
+
+      if (charCode > 90) { // 90 es el código ASCII de 'Z'
+        result = "A" + result
+        carry = 1 // Hay acarreo
+      } else {
+        result = String.fromCharCode(charCode) + result
+        carry = 0 // No hay acarreo
+      }
+    }
+
+    // Si hay un acarreo restante, añadimos 'A' al principio
+    if (carry > 0) {
+      result = "A" + result
+    }
+
+    return result
+
+  } else {
+    throw new Error("La Revisión debe ser un número, una letra o la palabra 'Iniciado'.")
+  }
+}
+
+/**
  * Función para obtener la letra con la que debe ser creada la carpeta de la revisión en Google Drive.
  * @param {Object} blueprint - Objeto con los datos del entregable/plano.
  * @param {Object} authUser - Objeto con los datos del usuario conectado que está ejecutando la acción.
@@ -14,7 +63,7 @@ export const getNextRevisionFolderName = (blueprint, authUser) => {
   const { revision, id, userId, approvedByClient, approvedByDocumentaryControl } = blueprint
   const { role, uid } = authUser
 
-  const nextChar = String.fromCharCode(revision.charCodeAt(0) + 1)
+  const nextChar = getNextChar(revision)
   const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
   const isAuthorized = role === 8 || (role === 7 && userId === uid)
 
