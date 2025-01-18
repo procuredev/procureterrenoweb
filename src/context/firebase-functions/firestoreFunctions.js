@@ -21,7 +21,6 @@ import {
 } from 'firebase/firestore'
 import { db } from 'src/configs/firebase'
 
-//import { getData } from 'src/contex/firebase-functions/firestoreQuerys'
 
 // ** Imports Propios
 import { getUnixTime } from 'date-fns'
@@ -712,7 +711,7 @@ function formatCount(count) {
 
 const addDescription = async (petitionID, blueprint, description) => {
   const ref = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint)
-  updateDoc(ref, { description })
+  await updateDoc(ref, { description })
 }
 
 // getLatestRevision() obtiene la última revisión de un plano en la base de datos
@@ -736,11 +735,13 @@ const getLatestRevision = async (petitionID, blueprintID) => {
 }
 
 // getNextRevision calcula la próxima revisión basándose en una serie de condiciones
-const getNextRevision = async (
-  approves,
-  latestRevision,
-  { role, email, displayName, uid },
-  {
+const getNextRevision = async (approves, latestRevision, authUser, blueprint, remarks) => {
+
+  // Desestructuración de authUser
+  const { role, email, displayName, uid } = authUser
+
+  // Desestructuración de blueprint
+  const {
     id,
     revision,
     description,
@@ -754,11 +755,8 @@ const getNextRevision = async (
     storageHlcDocuments,
     blueprintPercent,
     attentive
-  },
-  remarks
-  //hours,
-  //investedHours
-) => {
+  } = blueprint
+
   // Inicializa la nueva revisión con el valor actual de la revisión
   let newRevision = revision
   let newBlueprintPercent = blueprintPercent
@@ -902,7 +900,7 @@ const getNextRevision = async (
 }
 
 // updateBlueprint() actualiza el entregable en la base de datos
-const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks /* hours, investedHours */) => {
+const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks) => {
   // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
   const solicitudRef = doc(db, 'solicitudes', petitionID)
@@ -921,7 +919,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const isApprovedByClient = blueprint.approvedByClient
   const isOverResumable = isRevisionAtLeast1 && blueprint.resumeBlueprint && blueprint.blueprintCompleted
 
-  const isM3D = blueprint.id.split('-').slice(-2, -1)[0] === 'M3D'
+  const isM3D = blueprint.id.split('-')[2] === 'M3D'
 
   // Inicializa los datos que se van a actualizar
   let updateData = {
@@ -934,18 +932,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     blueprintPercent: nextRevision.newBlueprintPercent
   }
 
-  const roleUser = async idUser => {
-    const docRef = doc(db, 'users', idUser)
-    const docSnap = await getDoc(docRef)
-
-    if (docSnap.exists()) {
-      return docSnap.data().role
-    } else {
-      return undefined
-    }
-  }
-
-  const autorRole = await roleUser(blueprint.userId)
+  const authorData = await getData(blueprint.userId)
+  const authorRole = authorData.role
 
   // Define las acciones a realizar en función del rol del usuario
   const roleActions = {
@@ -963,13 +951,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             ...updateData,
             sentBySupervisor: approves,
             approvedByContractAdmin: approves && blueprint.revision === 'Iniciado' && !isM3D,
-            attentive: blueprint.revision === 'Iniciado' ? 9 : 6,
+            attentive: (blueprint.revision === 'Iniciado' && !isM3D) ? 9 : 6,
             blueprintPercent:
-              blueprint.revision === 'Iniciado' && !isM3D
-                ? 20
-                : blueprint.revision === 'Iniciado' && isM3D
-                ? 60
-                : updateData.blueprintPercent
+              blueprint.revision === 'Iniciado' && !isM3D ? 20 : blueprint.revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
           }
         : {
             ...updateData,
@@ -1022,7 +1006,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
               (((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient) ||
                 (!isApprovedByClient && isRevisionAtLeast1))
                 ? 10
-                : autorRole,
+                : authorRole,
             remarks: remarks ? true : false,
             storageHlcDocuments: null,
             blueprintPercent: (isRevisionAtLeast0 || isRevisionAtLeast1) && approves ? 100 : updateData.blueprintPercent
@@ -1039,7 +1023,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         : {
             ...updateData,
             approvedByDocumentaryControl: approves,
-            attentive: approves && blueprint.revision === 'A' ? autorRole : approves ? 4 : autorRole,
+            attentive: approves && blueprint.revision === 'A' ? authorRole : approves ? 4 : authorRole,
             sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentByDesigner,
             sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentBySupervisor,
             blueprintPercent: approves && blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
