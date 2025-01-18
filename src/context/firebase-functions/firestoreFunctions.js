@@ -904,13 +904,26 @@ const getNextRevision = async (approves, latestRevision, authUser, blueprint, re
  * @param {string} petitionID - ID de la OT.
  * @param {Object} blueprint - Objeto con los datos del Entregable.
  * @param {boolean} approves - Booleano que define si el usuario Aprobó o Rechazo el Entreagable.
- * @param {Object} userParam - Objeto con los datos del usuario que realiza la acción.
+ * @param {Object} authUser - Objeto con los datos del usuario que realiza la acción.
  * @param {string|boolean} remarks - String con texto que indica comentarios. Si no existen comentarios es Booleano.
  */
-const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks) => {
+const updateBlueprint = async (petitionID, blueprint, approves, authUser, remarks) => {
 
   // Desestructuración de blueprint
-  const { id, revision, approvedByContractAdmin, approvedBySupervisor, approvedByClient, resumeBlueprint, blueprintCompleted, userId, storageBlueprints, approvedByDocumentaryControl, sentByDesigner, sentBySupervisor } = blueprint
+  const {
+    id,
+    revision,
+    approvedByContractAdmin,
+    approvedBySupervisor,
+    approvedByClient,
+    resumeBlueprint,
+    blueprintCompleted,
+    userId,
+    storageBlueprints,
+    approvedByDocumentaryControl,
+    sentByDesigner,
+    sentBySupervisor
+  } = blueprint
 
   // Referencia al documento del entregable (blueprint) en la base de datos.
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', id)
@@ -922,7 +935,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const latestRevision = await getLatestRevision(petitionID, id)
 
   // Calcula la próxima revisión del plano
-  const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks)
+  const nextRevision = await getNextRevision(approves, latestRevision, authUser, blueprint, remarks)
 
   // Comprueba varias condiciones sobre el plano
   const isRevisionAtLeastB = revision.charCodeAt(0) >= 66
@@ -931,7 +944,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   const isNotApprovedByAdminAndSupervisor = !approvedByContractAdmin && !approvedBySupervisor
   const isApprovedByClient = approvedByClient
   const isOverResumable = isRevisionAtLeast1 && resumeBlueprint && blueprintCompleted
-
   const isM3D = id.split('-')[2] === 'M3D'
 
   // Inicializa los datos que se van a actualizar
@@ -958,7 +970,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
       approvedByContractAdmin: approves,
       storageBlueprints: approves ? storageBlueprints : null
     }),
-    7: (blueprint, authUser) => {
+    7: () => {
       return userId === authUser.uid
         ? {
             ...updateData,
@@ -1047,7 +1059,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   }
 
   // Aplica la acción correspondiente al rol del usuario
-  updateData = roleActions[userParam.role] ? await roleActions[userParam.role](blueprint, userParam) : updateData
+  updateData = roleActions[authUser.role] ? await roleActions[authUser.role]() : updateData
 
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
@@ -1057,11 +1069,11 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', id, 'revisions'), nextRevision)
 
   // Función para enviar emails de forma automática.
-  // userParam es el usuario conectado que ejecuta la acción.
+  // authUser es el usuario conectado que ejecuta la acción.
   // petitionID es el ID del la Solicitud/OT en Firestore.
   // blueprint es el objeto con la información del entregable
   // updateData es un objeto que contiene datos del siguiente revisor ("attentive" Rol del siguiente revisor , bla, bla)
-  await sendEmailDeliverableNextRevision(userParam, petitionID, blueprint, updateData)
+  await sendEmailDeliverableNextRevision(authUser, petitionID, blueprint, updateData)
 
   // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
   const solicitudDocBefore = await getDoc(petitionRef)
@@ -1093,7 +1105,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
       await updateDoc(petitionRef, { otReadyToFinish: false })
     }
   } else if (
-    userParam.role === 9 &&
+    authUser.role === 9 &&
     approvedByDocumentaryControl === true &&
     !blueprintDoc.data().blueprintCompleted &&
     blueprintDoc.data().resumeBlueprint === true
