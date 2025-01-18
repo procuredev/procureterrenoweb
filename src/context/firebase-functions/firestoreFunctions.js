@@ -899,27 +899,40 @@ const getNextRevision = async (approves, latestRevision, authUser, blueprint, re
   return nextRevision
 }
 
-// updateBlueprint() actualiza el entregable en la base de datos
+/**
+ * Función que actualiza el entregable en la base de datos.
+ * @param {string} petitionID - ID de la OT.
+ * @param {Object} blueprint - Objeto con los datos del Entregable.
+ * @param {boolean} approves - Booleano que define si el usuario Aprobó o Rechazo el Entreagable.
+ * @param {Object} userParam - Objeto con los datos del usuario que realiza la acción.
+ * @param {string|boolean} remarks - String con texto que indica comentarios. Si no existen comentarios es Booleano.
+ */
 const updateBlueprint = async (petitionID, blueprint, approves, userParam, remarks) => {
-  // Obtiene la referencia al documento del entregable (blueprint) en la base de datos
-  const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprint.id)
-  const solicitudRef = doc(db, 'solicitudes', petitionID)
+
+  // Desestructuración de blueprint
+  const { id, revision, approvedByContractAdmin, approvedBySupervisor, approvedByClient, resumeBlueprint, blueprintCompleted, userId, storageBlueprints, approvedByDocumentaryControl, sentByDesigner, sentBySupervisor } = blueprint
+
+  // Referencia al documento del entregable (blueprint) en la base de datos.
+  const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', id)
+
+  // Referencia al documento de la OT (petition) en la base de datos.
+  const petitionRef = doc(db, 'solicitudes', petitionID)
 
   // Obtiene la última revisión del plano
-  const latestRevision = await getLatestRevision(petitionID, blueprint.id)
+  const latestRevision = await getLatestRevision(petitionID, id)
 
   // Calcula la próxima revisión del plano
   const nextRevision = await getNextRevision(approves, latestRevision, userParam, blueprint, remarks)
 
   // Comprueba varias condiciones sobre el plano
-  const isRevisionAtLeastB = blueprint.revision.charCodeAt(0) >= 66
-  const isRevisionAtLeast0 = blueprint.revision.charCodeAt(0) >= 48 && blueprint.revision.charCodeAt(0) <= 57
-  const isRevisionAtLeast1 = blueprint.revision.charCodeAt(0) >= 49 && blueprint.revision.charCodeAt(0) <= 57
-  const isNotApprovedByAdminAndSupervisor = !blueprint.approvedByContractAdmin && !blueprint.approvedBySupervisor
-  const isApprovedByClient = blueprint.approvedByClient
-  const isOverResumable = isRevisionAtLeast1 && blueprint.resumeBlueprint && blueprint.blueprintCompleted
+  const isRevisionAtLeastB = revision.charCodeAt(0) >= 66
+  const isRevisionAtLeast0 = revision.charCodeAt(0) >= 48 && revision.charCodeAt(0) <= 57
+  const isRevisionAtLeast1 = revision.charCodeAt(0) >= 49 && revision.charCodeAt(0) <= 57
+  const isNotApprovedByAdminAndSupervisor = !approvedByContractAdmin && !approvedBySupervisor
+  const isApprovedByClient = approvedByClient
+  const isOverResumable = isRevisionAtLeast1 && resumeBlueprint && blueprintCompleted
 
-  const isM3D = blueprint.id.split('-')[2] === 'M3D'
+  const isM3D = id.split('-')[2] === 'M3D'
 
   // Inicializa los datos que se van a actualizar
   let updateData = {
@@ -932,7 +945,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     blueprintPercent: nextRevision.newBlueprintPercent
   }
 
-  const authorData = await getData(blueprint.userId)
+  const authorData = await getData(userId)
   const authorRole = authorData.role
 
   // Define las acciones a realizar en función del rol del usuario
@@ -943,59 +956,59 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
       attentive: approves ? 9 : 7,
       sentBySupervisor: approves,
       approvedByContractAdmin: approves,
-      storageBlueprints: approves ? blueprint.storageBlueprints : null
+      storageBlueprints: approves ? storageBlueprints : null
     }),
     7: (blueprint, authUser) => {
-      return blueprint.userId === authUser.uid
+      return userId === authUser.uid
         ? {
             ...updateData,
             sentBySupervisor: approves,
-            approvedByContractAdmin: approves && blueprint.revision === 'Iniciado' && !isM3D,
-            attentive: (blueprint.revision === 'Iniciado' && !isM3D) ? 9 : 6,
+            approvedByContractAdmin: approves && revision === 'Iniciado' && !isM3D,
+            attentive: (revision === 'Iniciado' && !isM3D) ? 9 : 6,
             blueprintPercent:
-              blueprint.revision === 'Iniciado' && !isM3D ? 20 : blueprint.revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
+              revision === 'Iniciado' && !isM3D ? 20 : revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
           }
         : {
             ...updateData,
             sentByDesigner: approves,
             attentive: approves ? 9 : 8,
             approvedBySupervisor: approves,
-            storageBlueprints: approves ? blueprint.storageBlueprints : null
+            storageBlueprints: approves ? storageBlueprints : null
           }
     },
     8: () => ({
       ...updateData,
       sentByDesigner: approves,
-      attentive: blueprint.revision === 'Iniciado' ? 9 : 7,
+      attentive: revision === 'Iniciado' ? 9 : 7,
       blueprintPercent:
-        blueprint.revision === 'Iniciado' && !isM3D
+        revision === 'Iniciado' && !isM3D
           ? 20
-          : blueprint.revision === 'Iniciado' && isM3D
+          : revision === 'Iniciado' && isM3D
           ? 60
           : updateData.blueprintPercent,
       approvedBySupervisor:
-        (approves && blueprint.revision === 'Iniciado' && !isM3D) ||
-        (blueprint.revision === 'A' && !blueprint.approvedByDocumentaryControl)
+        (approves && revision === 'Iniciado' && !isM3D) ||
+        (revision === 'A' && !approvedByDocumentaryControl)
     }),
     9: () =>
       (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor
         ? {
             ...updateData,
-            approvedByClient: blueprint.blueprintCompleted ? false : approves,
+            approvedByClient: blueprintCompleted ? false : approves,
             approvedByDocumentaryControl: true,
             storageBlueprints:
               approves &&
-              ((!blueprint.blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1))
-                ? blueprint.storageBlueprints
+              ((!blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1))
+                ? storageBlueprints
                 : null,
             resumeBlueprint:
-              (isApprovedByClient && blueprint.blueprintCompleted) ||
-              (blueprint.resumeBlueprint && !blueprint.approvedByDocumentaryControl)
+              (isApprovedByClient && blueprintCompleted) ||
+              (resumeBlueprint && !approvedByDocumentaryControl)
                 ? true
                 : false,
             blueprintCompleted:
               approves &&
-              (((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient) ||
+              (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
                 (!isApprovedByClient && isRevisionAtLeast1))
                 ? true
                 : false,
@@ -1003,7 +1016,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
             sentBySupervisor: false,
             attentive:
               approves &&
-              (((!blueprint.blueprintCompleted || blueprint.resumeBlueprint) && isApprovedByClient) ||
+              (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
                 (!isApprovedByClient && isRevisionAtLeast1))
                 ? 10
                 : authorRole,
@@ -1023,13 +1036,13 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
         : {
             ...updateData,
             approvedByDocumentaryControl: approves,
-            attentive: approves && blueprint.revision === 'A' ? authorRole : approves ? 4 : authorRole,
-            sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentByDesigner,
-            sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && blueprint.sentBySupervisor,
-            blueprintPercent: approves && blueprint.revision === 'A' ? 50 : updateData.blueprintPercent,
+            attentive: approves && revision === 'A' ? authorRole : approves ? 4 : authorRole,
+            sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentByDesigner,
+            sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentBySupervisor,
+            blueprintPercent: approves && revision === 'A' ? 50 : updateData.blueprintPercent,
             remarks: remarks ? true : false,
             storageBlueprints:
-              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [blueprint.storageBlueprints[0]] : null
+              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [storageBlueprints[0]] : null
           }
   }
 
@@ -1041,7 +1054,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
 
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   nextRevision.newBlueprintPercent = updateData.blueprintPercent
-  await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', blueprint.id, 'revisions'), nextRevision)
+  await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', id, 'revisions'), nextRevision)
 
   // Función para enviar emails de forma automática.
   // userParam es el usuario conectado que ejecuta la acción.
@@ -1051,16 +1064,16 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
   await sendEmailDeliverableNextRevision(userParam, petitionID, blueprint, updateData)
 
   // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
-  const solicitudDocBefore = await getDoc(solicitudRef)
+  const solicitudDocBefore = await getDoc(petitionRef)
   const blueprintDoc = await getDoc(blueprintRef)
 
   if (blueprintDoc.data().blueprintCompleted && blueprintDoc.data().resumeBlueprint === false) {
     // Si el documento no tiene un campo 'counterBlueprintCompleted', créalo
     if (!solicitudDocBefore.data().counterBlueprintCompleted) {
-      await updateDoc(solicitudRef, { counterBlueprintCompleted: 0 })
+      await updateDoc(petitionRef, { counterBlueprintCompleted: 0 })
     }
 
-    await updateDoc(solicitudRef, { counterBlueprintCompleted: increment(1) })
+    await updateDoc(petitionRef, { counterBlueprintCompleted: increment(1) })
 
     // Obtiene la subcolección 'blueprints'
     const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints')
@@ -1072,20 +1085,20 @@ const updateBlueprint = async (petitionID, blueprint, approves, userParam, remar
     const numBlueprints = filteredBlueprints.length
 
     // Lee el documento de la 'solicitud posterior al incremento de counterBlueprintCompleted'
-    const solicitudDocAfter = await getDoc(solicitudRef)
+    const solicitudDocAfter = await getDoc(petitionRef)
 
     if (solicitudDocAfter.data().counterBlueprintCompleted === numBlueprints) {
-      await updateDoc(solicitudRef, { otReadyToFinish: true })
+      await updateDoc(petitionRef, { otReadyToFinish: true })
     } else {
-      await updateDoc(solicitudRef, { otReadyToFinish: false })
+      await updateDoc(petitionRef, { otReadyToFinish: false })
     }
   } else if (
     userParam.role === 9 &&
-    blueprint.approvedByDocumentaryControl === true &&
+    approvedByDocumentaryControl === true &&
     !blueprintDoc.data().blueprintCompleted &&
     blueprintDoc.data().resumeBlueprint === true
   ) {
-    await updateDoc(solicitudRef, { counterBlueprintCompleted: increment(-1), otReadyToFinish: false })
+    await updateDoc(petitionRef, { counterBlueprintCompleted: increment(-1), otReadyToFinish: false })
   }
 }
 
@@ -1454,7 +1467,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
   const melCounterRef = doc(db, 'solicitudes', docData.id, 'clientCodeGeneratorCount', melCounterDocId)
 
   // Crea la referencia al documento de la solicitud
-  const solicitudRef = doc(db, 'solicitudes', docData.id)
+  const petitionRef = doc(db, 'solicitudes', docData.id)
 
   // Función para formatear el contador MEL
   function formatCountMEL(count) {
@@ -1481,7 +1494,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
   const codes = await runTransaction(db, async transaction => {
     const procureCounterDoc = await transaction.get(procureCounterRef)
     const melCounterDoc = await transaction.get(melCounterRef)
-    const solicitudDoc = await transaction.get(solicitudRef)
+    const solicitudDoc = await transaction.get(petitionRef)
 
     // Manejo de la situación cuando el documento de MEL no existe
     let melCounter
@@ -1512,9 +1525,9 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
     if (solicitudDoc.exists()) {
       const solicitudData = solicitudDoc.data()
       if (solicitudData.otReadyToFinish === true) {
-        transaction.update(solicitudRef, { otReadyToFinish: false })
+        transaction.update(petitionRef, { otReadyToFinish: false })
       } else if (solicitudData.otReadyToFinish === undefined) {
-        transaction.update(solicitudRef, { otReadyToFinish: false })
+        transaction.update(petitionRef, { otReadyToFinish: false })
       }
     }
 
