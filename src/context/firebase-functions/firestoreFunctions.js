@@ -1015,6 +1015,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
   const isApprovedByClient = approvedByClient
   const isOverResumable = isRevisionAtLeast1 && resumeBlueprint && blueprintCompleted
   const isM3D = id.split('-')[2] === 'M3D'
+  const isInitialRevision = revision === 'Iniciado'
+  const isRevA = revision === 'A'
 
   // Inicializa los datos que se van a actualizar
   let updateData = {
@@ -1048,9 +1050,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
       ? {
           ...updateData,
           sentBySupervisor: approves,
-          approvedByContractAdmin: approves && revision === 'Iniciado' && !isM3D,
-          attentive: (revision === 'Iniciado' && !isM3D) ? 9 : 6,
-          blueprintPercent: revision === 'Iniciado' && !isM3D ? 20 : revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
+          approvedByContractAdmin: approves && isInitialRevision && !isM3D,
+          attentive: (isInitialRevision && !isM3D) ? 9 : 6,
+          blueprintPercent: isInitialRevision && !isM3D ? 20 : isInitialRevision && isM3D ? 60 : updateData.blueprintPercent
         }
       : {
           ...updateData,
@@ -1066,9 +1068,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
     return {
       ...updateData,
       sentByDesigner: approves,
-      attentive: revision === 'Iniciado' ? 9 : 7,
-      blueprintPercent: (revision === 'Iniciado' && !isM3D) ? 20 : (revision === 'Iniciado' && isM3D) ? 60 : updateData.blueprintPercent,
-      approvedBySupervisor: (approves && revision === 'Iniciado' && !isM3D) || (revision === 'A' && !approvedByDocumentaryControl)
+      attentive: isInitialRevision ? 9 : 7,
+      blueprintPercent: (isInitialRevision && !isM3D) ? 20 : (isInitialRevision && isM3D) ? 60 : updateData.blueprintPercent,
+      approvedBySupervisor: (approves && isInitialRevision && !isM3D) || (isRevA && !approvedByDocumentaryControl)
     }
   }
 
@@ -1100,13 +1102,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
   : {
       ...updateData,
       approvedByDocumentaryControl: approves,
-      attentive: approves && revision === 'A' ? authorRole : approves ? 4 : authorRole,
+      attentive: approves && isRevA ? authorRole : approves ? 4 : authorRole,
       sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentByDesigner,
       sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentBySupervisor,
-      blueprintPercent: approves && revision === 'A' ? 50 : updateData.blueprintPercent,
+      blueprintPercent: approves && isRevA ? 50 : updateData.blueprintPercent,
       remarks: remarks ? true : false,
-      storageBlueprints:
-        approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [storageBlueprints[0]] : null
+      storageBlueprints: approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [storageBlueprints[0]] : null
     }
   }
 
