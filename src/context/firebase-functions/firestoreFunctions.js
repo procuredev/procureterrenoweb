@@ -982,8 +982,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
           sentBySupervisor: approves,
           approvedByContractAdmin: approves && revision === 'Iniciado' && !isM3D,
           attentive: (revision === 'Iniciado' && !isM3D) ? 9 : 6,
-          blueprintPercent:
-            revision === 'Iniciado' && !isM3D ? 20 : revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
+          blueprintPercent: revision === 'Iniciado' && !isM3D ? 20 : revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
         }
       : {
           ...updateData,
@@ -999,15 +998,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
       ...updateData,
       sentByDesigner: approves,
       attentive: revision === 'Iniciado' ? 9 : 7,
-      blueprintPercent:
-        revision === 'Iniciado' && !isM3D
-          ? 20
-          : revision === 'Iniciado' && isM3D
-          ? 60
-          : updateData.blueprintPercent,
-      approvedBySupervisor:
-        (approves && revision === 'Iniciado' && !isM3D) ||
-        (revision === 'A' && !approvedByDocumentaryControl)
+      blueprintPercent: (revision === 'Iniciado' && !isM3D) ? 20 : (revision === 'Iniciado' && isM3D) ? 60 : updateData.blueprintPercent,
+      approvedBySupervisor: (approves && revision === 'Iniciado' && !isM3D) || (revision === 'A' && !approvedByDocumentaryControl)
     }
   }
 
@@ -1016,30 +1008,12 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
       ...updateData,
       approvedByClient: blueprintCompleted ? false : approves,
       approvedByDocumentaryControl: true,
-      storageBlueprints:
-        approves &&
-        ((!blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1))
-          ? storageBlueprints
-          : null,
-      resumeBlueprint:
-        (isApprovedByClient && blueprintCompleted) ||
-        (resumeBlueprint && !approvedByDocumentaryControl)
-          ? true
-          : false,
-      blueprintCompleted:
-        approves &&
-        (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
-          (!isApprovedByClient && isRevisionAtLeast1))
-          ? true
-          : false,
+      storageBlueprints: approves && ((!blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? storageBlueprints : null,
+      resumeBlueprint: (isApprovedByClient && blueprintCompleted) || (resumeBlueprint && !approvedByDocumentaryControl) ? true : false,
+      blueprintCompleted: approves && (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? true : false,
       sentByDesigner: false,
       sentBySupervisor: false,
-      attentive:
-        approves &&
-        (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
-          (!isApprovedByClient && isRevisionAtLeast1))
-          ? 10
-          : authorRole,
+      attentive: approves && (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? 10 : authorRole,
       remarks: remarks ? true : false,
       storageHlcDocuments: null,
       blueprintPercent: (isRevisionAtLeast0 || isRevisionAtLeast1) && approves ? 100 : updateData.blueprintPercent
