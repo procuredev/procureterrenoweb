@@ -1046,21 +1046,23 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
 
   // TODO: Mejorar la legibilidad de esta parte.
   const handleRole7 = () => {
-    return userId === uid
-      ? {
-          ...updateData,
-          sentBySupervisor: approves,
-          approvedByContractAdmin: approves && isInitialRevision && !isM3D,
-          attentive: (isInitialRevision && !isM3D) ? 9 : 6,
-          blueprintPercent: isInitialRevision && !isM3D ? 20 : isInitialRevision && isM3D ? 60 : updateData.blueprintPercent
-        }
-      : {
-          ...updateData,
-          sentByDesigner: approves,
-          attentive: approves ? 9 : 8,
-          approvedBySupervisor: approves,
-          storageBlueprints: approves ? storageBlueprints : null
-        }
+    if (userId === uid) {
+      return {
+        ...updateData,
+        sentBySupervisor: approves,
+        approvedByContractAdmin: approves && isInitialRevision && !isM3D,
+        attentive: (isInitialRevision && !isM3D) ? 9 : 6,
+        blueprintPercent: isInitialRevision && !isM3D ? 20 : isInitialRevision && isM3D ? 60 : updateData.blueprintPercent
+      }
+    } else {
+      return {
+        ...updateData,
+        sentByDesigner: approves,
+        attentive: approves ? 9 : 8,
+        approvedBySupervisor: approves,
+        storageBlueprints: approves ? storageBlueprints : null
+      }
+    }
   }
 
   // TODO: Mejorar la legibilidad de esta parte.
@@ -1076,40 +1078,44 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
 
   // TODO: Mejorar la legibilidad de esta parte.
   const handleRole9 = () => {
-    return (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor ? {
-      ...updateData,
-      approvedByClient: blueprintCompleted ? false : approves,
-      approvedByDocumentaryControl: true,
-      storageBlueprints: approves && ((!blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? storageBlueprints : null,
-      resumeBlueprint: (isApprovedByClient && blueprintCompleted) || (resumeBlueprint && !approvedByDocumentaryControl) ? true : false,
-      blueprintCompleted: approves && (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? true : false,
-      sentByDesigner: false,
-      sentBySupervisor: false,
-      attentive: approves && (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? 10 : authorRole,
-      remarks: remarks ? true : false,
-      storageHlcDocuments: null,
-      blueprintPercent: (isRevisionAtLeast0 || isRevisionAtLeast1) && approves ? 100 : updateData.blueprintPercent
-    }
-  : isOverResumable
-  ? {
-      ...updateData,
-      approvedByClient: false,
-      approvedByDocumentaryControl: false,
-      storageBlueprints: null,
-      sentByDesigner: false,
-      remarks: remarks ? true : false
-    }
-  : {
-      ...updateData,
-      approvedByDocumentaryControl: approves,
-      attentive: approves && isRevA ? authorRole : approves ? 4 : authorRole,
-      sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentByDesigner,
-      sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentBySupervisor,
-      blueprintPercent: approves && isRevA ? 50 : updateData.blueprintPercent,
-      remarks: remarks ? true : false,
-      storageBlueprints: approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [storageBlueprints[0]] : null
+    if ((isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor) {
+      return {
+        ...updateData,
+        approvedByClient: blueprintCompleted ? false : approves,
+        approvedByDocumentaryControl: true,
+        storageBlueprints: approves && ((!blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? storageBlueprints : null,
+        resumeBlueprint: (isApprovedByClient && blueprintCompleted) || (resumeBlueprint && !approvedByDocumentaryControl) ? true : false,
+        blueprintCompleted: approves && (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? true : false,
+        sentByDesigner: false,
+        sentBySupervisor: false,
+        attentive: approves && (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1)) ? 10 : authorRole,
+        remarks: remarks ? true : false,
+        storageHlcDocuments: null,
+        blueprintPercent: (isRevisionAtLeast0 || isRevisionAtLeast1) && approves ? 100 : updateData.blueprintPercent,
+      }
+    } else if (isOverResumable) {
+      return {
+        ...updateData,
+        approvedByClient: false,
+        approvedByDocumentaryControl: false,
+        storageBlueprints: null,
+        sentByDesigner: false,
+        remarks: remarks ? true : false,
+      }
+    } else {
+      return {
+        ...updateData,
+        approvedByDocumentaryControl: approves,
+        attentive: approves && isRevA ? authorRole : approves ? 4 : authorRole,
+        sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentByDesigner,
+        sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentBySupervisor,
+        blueprintPercent: approves && isRevA ? 50 : updateData.blueprintPercent,
+        remarks: remarks ? true : false,
+        storageBlueprints: approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [storageBlueprints[0]] : null,
+      }
     }
   }
+
 
   // Mapeo de roles y sus respectivas acciones.
   const roleActions = {
