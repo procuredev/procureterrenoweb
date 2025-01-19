@@ -909,21 +909,24 @@ const getNextRevision = async (approves, latestRevision, authUser, blueprint, re
  */
 const updateBlueprint = async (petitionID, blueprint, approves, authUser, remarks) => {
 
-  // Desestructuración de blueprint
+  // Desestructuración de blueprint.
   const {
-    id,
-    revision,
-    approvedByContractAdmin,
-    approvedBySupervisor,
-    approvedByClient,
-    resumeBlueprint,
-    blueprintCompleted,
-    userId,
-    storageBlueprints,
-    approvedByDocumentaryControl,
-    sentByDesigner,
-    sentBySupervisor
+    id, // ID del Entregable (Código Procure)
+    revision, // Revisión en que se encuentra el Entregable.
+    approvedByContractAdmin, // Booleano que define si se encuentra aprobado por el Administrador de Contrato o no.
+    approvedBySupervisor, // Booleano que define si se encuentra aprobado por el Supervisor o no.
+    approvedByDocumentaryControl, // Booleano que define si se encuentra aprobado por Control Documental o no.
+    approvedByClient, // Booleano que define si se encuentra aprobado por el Cliente o no.
+    resumeBlueprint, // Creo que es un Booleano que indica cuando hay que reabrir un entregable.
+    blueprintCompleted, // Booleano que define si se encuentra terminado o no.
+    userId, // ID del Autor del entregable.
+    storageBlueprints, // Array con Objeto que contiene Nombre y Link del Entregable en Google Drive.
+    sentByDesigner, // Entregable creado por un Proyectista.
+    sentBySupervisor // Entregable creado por un Supervisor.
   } = blueprint
+
+  // Desestructuración de authUser.
+  const { uid, role } = authUser
 
   // Referencia al documento del entregable (blueprint) en la base de datos.
   const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', id)
@@ -960,35 +963,39 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
   const authorData = await getData(userId)
   const authorRole = authorData.role
 
-  // Define las acciones a realizar en función del rol del usuario
-  const roleActions = {
-    6: () => ({
+  // Define las acciones a realizar en función del rol del usuario.
+  const handleRole6 = () => {
+    return {
       ...updateData,
       sentByDesigner: approves,
       attentive: approves ? 9 : 7,
       sentBySupervisor: approves,
       approvedByContractAdmin: approves,
       storageBlueprints: approves ? storageBlueprints : null
-    }),
-    7: () => {
-      return userId === authUser.uid
-        ? {
-            ...updateData,
-            sentBySupervisor: approves,
-            approvedByContractAdmin: approves && revision === 'Iniciado' && !isM3D,
-            attentive: (revision === 'Iniciado' && !isM3D) ? 9 : 6,
-            blueprintPercent:
-              revision === 'Iniciado' && !isM3D ? 20 : revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
-          }
-        : {
-            ...updateData,
-            sentByDesigner: approves,
-            attentive: approves ? 9 : 8,
-            approvedBySupervisor: approves,
-            storageBlueprints: approves ? storageBlueprints : null
-          }
-    },
-    8: () => ({
+    }
+  }
+
+  const handleRole7 = () => {
+    return userId === uid
+      ? {
+          ...updateData,
+          sentBySupervisor: approves,
+          approvedByContractAdmin: approves && revision === 'Iniciado' && !isM3D,
+          attentive: (revision === 'Iniciado' && !isM3D) ? 9 : 6,
+          blueprintPercent:
+            revision === 'Iniciado' && !isM3D ? 20 : revision === 'Iniciado' && isM3D ? 60 : updateData.blueprintPercent
+        }
+      : {
+          ...updateData,
+          sentByDesigner: approves,
+          attentive: approves ? 9 : 8,
+          approvedBySupervisor: approves,
+          storageBlueprints: approves ? storageBlueprints : null
+        }
+  }
+
+  const handleRole8 = () => {
+    return {
       ...updateData,
       sentByDesigner: approves,
       attentive: revision === 'Iniciado' ? 9 : 7,
@@ -1001,65 +1008,74 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
       approvedBySupervisor:
         (approves && revision === 'Iniciado' && !isM3D) ||
         (revision === 'A' && !approvedByDocumentaryControl)
-    }),
-    9: () =>
-      (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor
-        ? {
-            ...updateData,
-            approvedByClient: blueprintCompleted ? false : approves,
-            approvedByDocumentaryControl: true,
-            storageBlueprints:
-              approves &&
-              ((!blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1))
-                ? storageBlueprints
-                : null,
-            resumeBlueprint:
-              (isApprovedByClient && blueprintCompleted) ||
-              (resumeBlueprint && !approvedByDocumentaryControl)
-                ? true
-                : false,
-            blueprintCompleted:
-              approves &&
-              (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
-                (!isApprovedByClient && isRevisionAtLeast1))
-                ? true
-                : false,
-            sentByDesigner: false,
-            sentBySupervisor: false,
-            attentive:
-              approves &&
-              (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
-                (!isApprovedByClient && isRevisionAtLeast1))
-                ? 10
-                : authorRole,
-            remarks: remarks ? true : false,
-            storageHlcDocuments: null,
-            blueprintPercent: (isRevisionAtLeast0 || isRevisionAtLeast1) && approves ? 100 : updateData.blueprintPercent
-          }
-        : isOverResumable
-        ? {
-            ...updateData,
-            approvedByClient: false,
-            approvedByDocumentaryControl: false,
-            storageBlueprints: null,
-            sentByDesigner: false,
-            remarks: remarks ? true : false
-          }
-        : {
-            ...updateData,
-            approvedByDocumentaryControl: approves,
-            attentive: approves && revision === 'A' ? authorRole : approves ? 4 : authorRole,
-            sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentByDesigner,
-            sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentBySupervisor,
-            blueprintPercent: approves && revision === 'A' ? 50 : updateData.blueprintPercent,
-            remarks: remarks ? true : false,
-            storageBlueprints:
-              approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [storageBlueprints[0]] : null
-          }
+    }
+  }
+
+  const handleRole9 = () => {
+    return (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor ? {
+      ...updateData,
+      approvedByClient: blueprintCompleted ? false : approves,
+      approvedByDocumentaryControl: true,
+      storageBlueprints:
+        approves &&
+        ((!blueprintCompleted && isApprovedByClient) || (!isApprovedByClient && isRevisionAtLeast1))
+          ? storageBlueprints
+          : null,
+      resumeBlueprint:
+        (isApprovedByClient && blueprintCompleted) ||
+        (resumeBlueprint && !approvedByDocumentaryControl)
+          ? true
+          : false,
+      blueprintCompleted:
+        approves &&
+        (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
+          (!isApprovedByClient && isRevisionAtLeast1))
+          ? true
+          : false,
+      sentByDesigner: false,
+      sentBySupervisor: false,
+      attentive:
+        approves &&
+        (((!blueprintCompleted || resumeBlueprint) && isApprovedByClient) ||
+          (!isApprovedByClient && isRevisionAtLeast1))
+          ? 10
+          : authorRole,
+      remarks: remarks ? true : false,
+      storageHlcDocuments: null,
+      blueprintPercent: (isRevisionAtLeast0 || isRevisionAtLeast1) && approves ? 100 : updateData.blueprintPercent
+    }
+  : isOverResumable
+  ? {
+      ...updateData,
+      approvedByClient: false,
+      approvedByDocumentaryControl: false,
+      storageBlueprints: null,
+      sentByDesigner: false,
+      remarks: remarks ? true : false
+    }
+  : {
+      ...updateData,
+      approvedByDocumentaryControl: approves,
+      attentive: approves && revision === 'A' ? authorRole : approves ? 4 : authorRole,
+      sentByDesigner: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentByDesigner,
+      sentBySupervisor: approves && (isRevisionAtLeastB || isRevisionAtLeast0) && sentBySupervisor,
+      blueprintPercent: approves && revision === 'A' ? 50 : updateData.blueprintPercent,
+      remarks: remarks ? true : false,
+      storageBlueprints:
+        approves && (isRevisionAtLeastB || isRevisionAtLeast0) ? [storageBlueprints[0]] : null
+    }
+  }
+
+  // Mapeo de roles y sus respectivas acciones.
+  const roleActions = {
+    6: handleRole6,
+    7: handleRole7,
+    8: handleRole8,
+    9: handleRole9
   }
 
   // Aplica la acción correspondiente al rol del usuario
-  updateData = roleActions[authUser.role] ? await roleActions[authUser.role]() : updateData
+  updateData = roleActions[role] ? await roleActions[role]() : updateData
 
   // Actualiza el plano en la base de datos
   await updateDoc(blueprintRef, updateData)
@@ -1105,7 +1121,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
       await updateDoc(petitionRef, { otReadyToFinish: false })
     }
   } else if (
-    authUser.role === 9 &&
+    role === 9 &&
     approvedByDocumentaryControl === true &&
     !blueprintDoc.data().blueprintCompleted &&
     blueprintDoc.data().resumeBlueprint === true
