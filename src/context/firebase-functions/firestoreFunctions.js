@@ -1482,7 +1482,7 @@ const generateBlueprintCodes = async (mappedCodes, docData, quantity, userParam)
 
   // Crea la referencia al campo específico del contador de Procure
   const procureCounterField = `${procureDiscipline}-${procureDeliverable}-counter`
-  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+  const procureCounterRef = doc(db, 'counters', 'blueprintsProcureCodeCounter')
 
   // Crea la referencia al documento específico del contador MEL
   const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
@@ -1631,17 +1631,17 @@ const updateBlueprintAssignment = async (petitionId, blueprintId, newUser) => {
 
 const getProcureCounter = async procureCounterField => {
   // Crea referencia a Firestore para el contador de Procure
-  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+  const procureCounterRef = doc(db, 'counters', 'blueprintsProcureCodeCounter')
 
   const procureCounterDoc = await getDoc(procureCounterRef)
 
   if (!procureCounterDoc.exists()) {
-    throw new Error(`El documento blueprints_InternalCode-Counter no existe en Firestore.`)
+    throw new Error(`El documento blueprintsProcureCodeCounter no existe en Firestore.`)
   }
 
   const currentProcureCounterData = procureCounterDoc.data()[procureCounterField]
   if (!currentProcureCounterData) {
-    throw new Error(`El campo ${procureCounterField} no existe en el documento blueprints_InternalCode-Counter.`)
+    throw new Error(`El campo ${procureCounterField} no existe en el documento blueprintsProcureCodeCounter.`)
   }
 
   const currentProcureCounter = Number(currentProcureCounterData.count)
@@ -1690,7 +1690,7 @@ const deleteBlueprintAndDecrementCounters = async (
   melDeliverable
 ) => {
   // Crea referencias a Firestore para el contador de Procure y MEL
-  const procureCounterRef = doc(db, 'counters', 'blueprints_InternalCode-Counter')
+  const procureCounterRef = doc(db, 'counters', 'blueprintsProcureCodeCounter')
   const melCounterDocId = `${melDiscipline}-${melDeliverable}-counter`
   const melCounterRef = doc(db, 'solicitudes', mainDocId, 'clientCodeGeneratorCount', melCounterDocId)
 
