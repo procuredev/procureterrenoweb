@@ -1151,7 +1151,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
 const generateTransmittalCounter = async currentPetition => {
   try {
     // Referencia al documento de contador para la combinación específica dentro de la subcolección transmittals
-    const counterRef = doc(db, 'counters', 'transmittal_Counter')
+    const counterRef = doc(db, 'counters', 'transmittalCounter')
 
     // Incrementa el contador dentro de una transacción
     const incrementedCount = await runTransaction(db, async transaction => {
