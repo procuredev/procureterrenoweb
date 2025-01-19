@@ -1142,28 +1142,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
   await updatePetitionBlueprintsCompletedCounter(role, petitionID, id)
 }
 
-async function increaseGetNewOTValue() {
-  const counterRef = doc(db, 'counters', 'otCounter')
-
-  try {
-    // Utilizamos una transacción para garantizar la consistencia de los datos.
-    const newOTValue = await runTransaction(db, async transaction => {
-      const counterSnapshot = await transaction.get(counterRef)
-
-      const newCounter = counterSnapshot.exists ? counterSnapshot.data().counter + 1 : 1
-
-      transaction.set(counterRef, { counter: newCounter })
-
-      return newCounter
-    })
-
-    return newOTValue
-  } catch (error) {
-    console.error('Error:', error)
-    throw error
-  }
-}
-
 const generateTransmittalCounter = async currentPetition => {
   try {
     // Referencia al documento de contador para la combinación específica dentro de la subcolección transmittals
