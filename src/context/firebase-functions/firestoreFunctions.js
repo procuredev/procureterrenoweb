@@ -1116,7 +1116,6 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
     }
   }
 
-
   // Mapeo de roles y sus respectivas acciones.
   const roleActions = {
     6: handleRole6,
