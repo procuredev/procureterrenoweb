@@ -900,6 +900,73 @@ const getNextRevision = async (approves, latestRevision, authUser, blueprint, re
 }
 
 /**
+ * Función para actualizar el contador de Entregables terminados de la OT.
+ * En caso de que se hayan terminado todos, se crea el booleano para indicarlo.
+ * @param {number} authUser - Número con Rol del usuario conectado que realiza la acción.
+ * @param {string} petitionID - ID de la OT.
+ * @param {string} blueprintID - ID del Entregable (Código Procure).
+ */
+const updatePetitionBlueprintsCompletedCounter = async (authUseRole, petitionID, blueprintID) => {
+
+  try {
+    // Referencia al documento del entregable (blueprint) en la base de datos.
+    const blueprintRef = doc(db, 'solicitudes', petitionID, 'blueprints', blueprintID)
+
+    // Referencia al documento de la OT (petition) en la base de datos.
+    const petitionRef = doc(db, 'solicitudes', petitionID)
+
+    // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
+    const solicitudDocBefore = await getDoc(petitionRef)
+    const blueprintDoc = await getDoc(blueprintRef)
+    const blueprintData = blueprintDoc.data()
+
+    // Si el Entregable se ha terminado (blueprintCompleted) y no se requiere reabrirlo...
+    if (blueprintData.blueprintCompleted && blueprintData.resumeBlueprint === false) {
+
+      // Se crear el campo counterBlueprintCompleted dentro de la OT.
+      // Este campo es un contador de cuántos Entregables se han terminado en esa OT.
+      if (!solicitudDocBefore.data().counterBlueprintCompleted) {
+        await updateDoc(petitionRef, { counterBlueprintCompleted: 0 })
+      }
+
+      // Se aumenta el contador en 1.
+      await updateDoc(petitionRef, { counterBlueprintCompleted: increment(1) })
+
+      // Obtiene la subcolección 'blueprints'
+      const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints')
+
+      // Obtiene todos los documentos de la subcolección
+      const blueprintsSnapshot = await getDocs(blueprintsCollection)
+      // Se obtienen todos los entregables que no hayan sido eliminados.
+      const filteredBlueprints = blueprintsSnapshot.docs.filter(doc => doc.data().deleted !== true)
+      // Obtiene la cantidad de documentos en la subcolección
+      const numBlueprints = filteredBlueprints.length
+
+      // Lee el documento de la 'solicitud posterior al incremento de counterBlueprintCompleted'
+      const solicitudDocAfter = await getDoc(petitionRef)
+
+      // Si el contador de Entregables terminados es igual a la cantidad de Entregables de la OT...
+      if (solicitudDocAfter.data().counterBlueprintCompleted === numBlueprints) {
+        // Se actualiza el Booleano otReadyToFinish a true.
+        await updateDoc(petitionRef, { otReadyToFinish: true })
+      } else {
+        // Se actualiza el Booleano otReadyToFinish a false.
+        await updateDoc(petitionRef, { otReadyToFinish: false })
+      }
+
+    // Cuando se requiere reabrir el Entregable...
+    } else if (authUseRole === 9 && approvedByDocumentaryControl === true && !blueprintData.blueprintCompleted && blueprintData.resumeBlueprint === true) {
+      // Se descuenta -1 en el contador de Entregables terminados
+      // El booleano de OT finalizada cambia a false.
+      await updateDoc(petitionRef, { counterBlueprintCompleted: increment(-1), otReadyToFinish: false })
+    }
+  } catch (error) {
+    console.log("Error al actualizar el contador de Entregables Terminados: " + error)
+  }
+
+}
+
+/**
  * Función que actualiza el entregable en la base de datos.
  * @param {string} petitionID - ID de la OT.
  * @param {Object} blueprint - Objeto con los datos del Entregable.
@@ -975,6 +1042,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
     }
   }
 
+  // TODO: Mejorar la legibilidad de esta parte.
   const handleRole7 = () => {
     return userId === uid
       ? {
@@ -993,6 +1061,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
         }
   }
 
+  // TODO: Mejorar la legibilidad de esta parte.
   const handleRole8 = () => {
     return {
       ...updateData,
@@ -1003,6 +1072,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
     }
   }
 
+  // TODO: Mejorar la legibilidad de esta parte.
   const handleRole9 = () => {
     return (isRevisionAtLeastB || isRevisionAtLeast0) && isNotApprovedByAdminAndSupervisor ? {
       ...updateData,
@@ -1056,6 +1126,8 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
 
   // Añade la nueva revisión a la subcolección de revisiones del entregable (blueprint)
   nextRevision.newBlueprintPercent = updateData.blueprintPercent
+
+  // Se registra la nueva acción tomada por el usuario dentro de la colecction 'revisions' del Entregable.
   await addDoc(collection(db, 'solicitudes', petitionID, 'blueprints', id, 'revisions'), nextRevision)
 
   // Función para enviar emails de forma automática.
@@ -1065,43 +1137,9 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
   // updateData es un objeto que contiene datos del siguiente revisor ("attentive" Rol del siguiente revisor , bla, bla)
   await sendEmailDeliverableNextRevision(authUser, petitionID, blueprint, updateData)
 
-  // Lee el documento de la 'solicitud previo al incremento de counterBlueprintCompleted'
-  const solicitudDocBefore = await getDoc(petitionRef)
-  const blueprintDoc = await getDoc(blueprintRef)
-
-  if (blueprintDoc.data().blueprintCompleted && blueprintDoc.data().resumeBlueprint === false) {
-    // Si el documento no tiene un campo 'counterBlueprintCompleted', créalo
-    if (!solicitudDocBefore.data().counterBlueprintCompleted) {
-      await updateDoc(petitionRef, { counterBlueprintCompleted: 0 })
-    }
-
-    await updateDoc(petitionRef, { counterBlueprintCompleted: increment(1) })
-
-    // Obtiene la subcolección 'blueprints'
-    const blueprintsCollection = collection(db, 'solicitudes', petitionID, 'blueprints')
-
-    // Obtiene todos los documentos de la subcolección
-    const blueprintsSnapshot = await getDocs(blueprintsCollection)
-    const filteredBlueprints = blueprintsSnapshot.docs.filter(doc => doc.data().deleted !== true)
-    // Obtiene la cantidad de documentos en la subcolección
-    const numBlueprints = filteredBlueprints.length
-
-    // Lee el documento de la 'solicitud posterior al incremento de counterBlueprintCompleted'
-    const solicitudDocAfter = await getDoc(petitionRef)
-
-    if (solicitudDocAfter.data().counterBlueprintCompleted === numBlueprints) {
-      await updateDoc(petitionRef, { otReadyToFinish: true })
-    } else {
-      await updateDoc(petitionRef, { otReadyToFinish: false })
-    }
-  } else if (
-    role === 9 &&
-    approvedByDocumentaryControl === true &&
-    !blueprintDoc.data().blueprintCompleted &&
-    blueprintDoc.data().resumeBlueprint === true
-  ) {
-    await updateDoc(petitionRef, { counterBlueprintCompleted: increment(-1), otReadyToFinish: false })
-  }
+  // Función para actualizar el contador de Entregables terminados de la OT.
+  // En caso de que se hayan terminado todos, se crea el booleano para indicarlo.
+  await updatePetitionBlueprintsCompletedCounter(role, petitionID, id)
 }
 
 async function increaseGetNewOTValue() {
