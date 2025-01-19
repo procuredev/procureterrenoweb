@@ -767,7 +767,7 @@ const getNextRevision = async (approves, latestRevision, authUser, blueprint, re
   const nextChar = String.fromCharCode(nextCharCode)
 
   // Verifica si el id contiene "M3D" antes del último guion
-  const isM3D = id.split('-').slice(-2, -1)[0] === 'M3D'
+  const isM3D = id.split('-')[2] === 'M3D'
 
   // Si el rol es 8 y se aprueba, se ejecutan una serie de acciones
   if (role === 8 && approves) {
