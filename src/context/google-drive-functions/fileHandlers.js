@@ -288,14 +288,9 @@ export const handleFileUpload = async ({
 
   try {
     // Utilizamos createFolderStructure para manejar toda la lógica de carpetas
-    const destinationFolder = await createFolderStructure(
-      petition,
-      rootFolder,
-      fetchFolders,
-      createFolder,
-      uploadInFolder
-    )
-    const revisionFolderName = `REV_${await getNextRevisionFolderName(blueprint, authUser)}`
+    const destinationFolder = await createFolderStructure(petition, rootFolder, fetchFolders, createFolder, uploadInFolder)
+    const revision = getNextRevisionFolderName(blueprint)
+    const revisionFolderName = `REV_${revision}`
     const revisionFolders = await fetchFolders(destinationFolder.id)
     let revisionFolder = revisionFolders.files.find(folder => folder.name === revisionFolderName)
 

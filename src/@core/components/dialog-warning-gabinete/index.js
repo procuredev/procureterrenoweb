@@ -49,6 +49,7 @@ export default function AlertDialogGabinete({
   setDoc,
   checkRoleAndApproval
 }) {
+
   const isRole9 = authUser.role === 9 // Ctrl. Documental : C-Doc
   const isRole8 = authUser.role === 8 // Proyectista
   const isRole7 = authUser.role === 7 // Suervisor
@@ -489,6 +490,20 @@ export default function AlertDialogGabinete({
   const handleUploadFile = async () => {
     try {
       updateFormState('isUploading', true)
+
+      console.log(files)
+      console.log(blueprint)
+      console.log(petitionId)
+      console.log(petition)
+      console.log(fetchFolders)
+      console.log(uploadFile)
+      console.log(createFolder)
+      console.log(updateBlueprintsWithStorageOrHlc)
+      console.log(rootFolder)
+      console.log(authUser)
+      console.log(onFileUpload)
+      console.log(uploadInFolder)
+
       await handleFileUpload({
         files,
         blueprint,
