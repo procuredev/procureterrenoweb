@@ -157,23 +157,29 @@ export const useGoogleDriveFolder = () => {
 
   /**
    * Función para Buscar y/o Crear una nueva carpeta.
-   * @param {string} folderName - Nombre de la carpeta a crear.
    * @param {string} parentFolderId - ID de la carpeta donde se debe buscar y/o crear la nueva carpeta.
+   * @param {string} folderName - Nombre de la carpeta a crear.
    * @param {string} findBy - String para hacer el match de búsqueda mediante includes().
    * @returns
    */
-  const findOrCreateFolder = async (folderName, parentFolderId, findBy) => {
+  const findOrCreateFolder = async (parentFolderId, folderName, findBy) => {
 
-    // Busca las carpetas dentro del directorio especificado.
-    const folders = await fetchFolders(parentFolderId)
-    let folder = folders.files.find(f => f.name.includes(findBy))
+    try {
+       // Busca las carpetas dentro del directorio especificado.
+      const folders = await fetchFolders(parentFolderId)
+      let folder = folders.files.find(f => f.name.includes(findBy))
 
-    // Si no existe, la crea.
-    if (!folder) {
-      folder = await createFolder(folderName, parentFolderId)
+      // Si no existe, la crea.
+      if (!folder) {
+        folder = await createFolder(folderName, parentFolderId)
+      }
+
+      return folder
+    } catch (error) {
+      console.error('Error en la ejecución de findOrCreateFolder():', error)
+      throw error
     }
 
-    return folder
   }
 
   /**
@@ -190,17 +196,17 @@ export const useGoogleDriveFolder = () => {
    */
   const processFolders = async (mainFolderId, plantName, plantInitials, areaName, areaNumber, projectFolderName, projectOtNumber, subfolders = []) => {
     // Carpeta principal (de la planta).
-    const plantFolder = await findOrCreateFolder(plantInitials, mainFolderId, plantInitials)
+    const plantFolder = await findOrCreateFolder(mainFolderId, plantInitials, plantInitials)
 
     // Carpeta del área.
-    const areaFolder = await findOrCreateFolder(areaName, plantFolder.id, areaNumber)
+    const areaFolder = await findOrCreateFolder(plantFolder.id, areaName, areaNumber)
 
     // Carpeta del proyecto.
-    const projectFolder = await findOrCreateFolder(projectFolderName, areaFolder.id, projectOtNumber)
+    const projectFolder = await findOrCreateFolder(areaFolder.id, projectFolderName, projectOtNumber)
 
     // Crear subcarpetas si se especifican.
     for (const subfolder of subfolders) {
-      await findOrCreateFolder(subfolder, projectFolder.id, subfolder)
+      await findOrCreateFolder(projectFolder.id, subfolder, subfolder)
     }
 
     return projectFolder
