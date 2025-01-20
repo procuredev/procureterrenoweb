@@ -207,7 +207,7 @@ export const DialogDoneProject = ({ open, petition, handleClose, proyectistas })
         )
 
         // Buscar o crear la carpeta "LEVANTAMIENTO".
-        const targetFolder = await findOrCreateFolder("LEVANTAMIENTO", projectFolder.id, "LEVANTAMIENTO")
+        const targetFolder = await findOrCreateFolder(projectFolder.id, "LEVANTAMIENTO", "LEVANTAMIENTO")
 
         // Subir archivo a la carpeta "LEVANTAMIENTO".
         const fileContent = `levantamiento de OT ${petition.ot} - ${petition.title} TERMINADO`
