@@ -905,8 +905,9 @@ const getNextRevision = async (approves, latestRevision, authUser, blueprint, re
  * @param {number} authUser - Número con Rol del usuario conectado que realiza la acción.
  * @param {string} petitionID - ID de la OT.
  * @param {string} blueprintID - ID del Entregable (Código Procure).
+ * @param {boolean} approvedByDocumentaryControl - Booleano que indica si el Entregable fue aprobado por Control Documental o no.
  */
-const updatePetitionBlueprintsCompletedCounter = async (authUseRole, petitionID, blueprintID) => {
+const updatePetitionBlueprintsCompletedCounter = async (authUseRole, petitionID, blueprintID, approvedByDocumentaryControl) => {
 
   try {
     // Referencia al documento del entregable (blueprint) en la base de datos.
@@ -1145,7 +1146,7 @@ const updateBlueprint = async (petitionID, blueprint, approves, authUser, remark
 
   // Función para actualizar el contador de Entregables terminados de la OT.
   // En caso de que se hayan terminado todos, se crea el booleano para indicarlo.
-  await updatePetitionBlueprintsCompletedCounter(role, petitionID, id)
+  await updatePetitionBlueprintsCompletedCounter(role, petitionID, id, approvedByDocumentaryControl)
 }
 
 const generateTransmittalCounter = async currentPetition => {
