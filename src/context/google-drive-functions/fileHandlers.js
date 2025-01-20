@@ -225,48 +225,19 @@ function extractAreaNumber(areaFullname) {
 }
 
 /**
- * Asegura la existencia de una carpeta con un nombre específico dentro de una carpeta padre en Google Drive.
- * Si la carpeta no existe, se crea.
- * @param {string} parentId - ID de la carpeta analizada.
- * @param {string} folderName - Nombre de la carpeta a crear.
- * @param {Function} fetchFolders - Función que busca las carpetas existentes en parentId.
- * @param {Function} createFolder - Función que crea una carpeta de nombre "folderName" en parentId.
- * @param {string} includedString - String para hacer el Match de la búsqueda mediante "includes".
- * @returns {Promise<object>} - Objeto que representa la carpeta final creada o encontrada en Google Drive.
- */
-const ensureFolder = async (parentId, folderName, fetchFolders, createFolder, includedString) => {
-
-  try {
-    const parentFolders = await fetchFolders(parentId)
-    let folder = parentFolders.files.find(f => f.name.includes(includedString))
-
-    if (!folder) {
-      folder = await createFolder(folderName, parentId)
-    }
-
-    return folder
-  } catch (error) {
-    console.error('Error en la ejecución de ensureFolder():', error)
-    throw error
-  }
-}
-
-/**
  * Crea una estructura de carpetas jerárquica en Google Drive basada en los datos de la petición.
  * @param {object} petition - Objeto con la información de la OT.
  * @param {string} rootFolder - String con el ID de la carpeta.
- * @param {Function} fetchFolders - Función que busca las carpetas existentes en parentId.
- * @param {Function} createFolder - Función que crea una carpeta de nombre "folderName" en parentId.
  * @param {string} uploadInFolder - Nombre de la carpeta específica que se quiere crear.
  * @returns {Promise<object>} - Objeto que representa la carpeta final creada o encontrada en Google Drive.
  */
-export const createFolderStructure = async (petition, rootFolder, fetchFolders, createFolder, uploadInFolder) => {
+export const createFolderStructure = async (petition, rootFolder, uploadInFolder) => {
 
   const plantInitials = await getPlantInitals(petition.plant)
-  const plantFolder = await ensureFolder(rootFolder, plantInitials, fetchFolders, createFolder, plantInitials)
-  const areaFolder = await ensureFolder(plantFolder.id, petition.area, fetchFolders, createFolder, extractAreaNumber(petition.area))
-  const projectFolder = await ensureFolder(areaFolder.id, `OT N°${petition.ot} - ${petition.title}`, fetchFolders, createFolder, petition.ot)
-  const destinationFolder = await ensureFolder(projectFolder.id, uploadInFolder, fetchFolders, createFolder, uploadInFolder)
+  const plantFolder = await findOrCreateFolder(rootFolder, plantInitials, plantInitials)
+  const areaFolder = await findOrCreateFolder(plantFolder.id, petition.area, extractAreaNumber(petition.area))
+  const projectFolder = await findOrCreateFolder(areaFolder.id, `OT N°${petition.ot} - ${petition.title}`, petition.ot)
+  const destinationFolder = await findOrCreateFolder(projectFolder.id, uploadInFolder, uploadInFolder)
 
   return destinationFolder
 }
